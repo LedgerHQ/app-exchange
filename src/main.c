@@ -23,7 +23,8 @@ unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 #define CLA 0xE0
 #define INS_GET_APP_VERSION 0x01
-#define INS_START_TRANSACTION 0x02
+#define INS_INIT_TRANSACTION 0x02
+#define INS_START_TRANSACTION 0x03
 
 #define OFFSET_CLA 0
 #define OFFSET_INS 1
@@ -34,10 +35,12 @@ unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 #define ERROR_CANT_CREATE_TX 0x6F01
 
-char device_tx_id[10];
+volatile char device_tx_id[10];
 
-void create_device_tx_id(char *device_tra) {
-//    cx_rng()
+void create_device_tx_id(char *device_tx_id, unsigned int len) {
+    for (int i = 0; i < len; ++i) {
+        device_tx_id[i] = (char)((int)'A' + cx_rng_u8() % 26);
+    }
 }
 
 void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx) {
@@ -58,12 +61,17 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx) {
                     *tx = 3;
                     THROW(0x9000);
                     break;
-
-                case INS_START_TRANSACTION:
-                    create_device_tx_id(device_tx_id);
+                case INS_INIT_TRANSACTION:
+                    create_device_tx_id(device_tx_id, sizeof(device_tx_id));
+                    PRINTF("New transaction id %10s\n", device_tx_id);
+                    os_memcpy(G_io_apdu_buffer, device_tx_id, sizeof(device_tx_id));
+                    *tx = sizeof(device_tx_id);
                     THROW(0x9000);
                     break;
-
+                case INS_START_TRANSACTION:
+                    if (os_memcmp())
+                    THROW(0x9000);
+                    break;
                 default:
                     THROW(0x6D00);
                     break;
