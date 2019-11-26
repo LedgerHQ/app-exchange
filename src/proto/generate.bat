@@ -1,0 +1,1 @@
+%PATH_TO_NANO_PB%/protoc.exe --nanopb_out=.. protocol.proto -I . --js_out=import_style=commonjs,binary:../../test/src/

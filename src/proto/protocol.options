@@ -1,0 +1,2 @@
+ledger_swap.NewTransactionResponse.amount_to_provider max_size:16;
+ledger_swap.NewTransactionResponse.amount_to_wallet max_size:16;

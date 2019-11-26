@@ -16,8 +16,10 @@
 ********************************************************************************/
 
 #include "utils.h"
-#include "getAddress.h"
 #include "menu.h"
+#include "../3rdparty/btchip_altcoin_config.h"
+#include "protocol.pb.h"
+#include "pb_decode.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
@@ -35,6 +37,12 @@ unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 #define ERROR_CANT_CREATE_TX 0x6F01
 
+#ifdef TEST_PUBLIC_KEY
+// this key was created from private key sha256('Ledger'), see test/tools folder
+unsigned char LedgerPubKey[] = {0x02, 0x05, 0xc5, 0x2e, 0xc5, 0xfe, 0x24, 0x5a, 0x55, 0x7b, 0x86, 0x1d, 0x22, 0x18, 0x50, 0x1a, 0x81, 0x2d, 0x32, 0xe0, 0x34, 0xe1, 0x5e, 0x9d, 0x96, 0x1c, 0x1b, 0x1a, 0x13, 0x8c, 0x7f, 0xb1, 0x49};
+#else
+unsigned char LedgerPubKey[] = {};
+#endif
 volatile char device_tx_id[10];
 
 void create_device_tx_id(char *device_tx_id, unsigned int len) {
@@ -45,6 +53,10 @@ void create_device_tx_id(char *device_tx_id, unsigned int len) {
 
 void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx) {
     unsigned short sw = 0;   
+    btchip_altcoin_config_t coin_config;
+    unsigned int libcall_params[3];
+    ledger_swap_NewTransactionResponse msg = ledger_swap_NewTransactionResponse_init_zero;
+    pb_istream_t stream;
 
     BEGIN_TRY {
         TRY {
@@ -69,7 +81,23 @@ void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx) {
                     THROW(0x9000);
                     break;
                 case INS_START_TRANSACTION:
-                    if (os_memcmp())
+                    
+                    stream = pb_istream_from_buffer(G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC]);
+                    pb_decode(&stream, ledger_swap_NewTransactionResponse_fields, &msg);
+                    coin_config.p2pkh_version = 0;
+                    coin_config.p2sh_version = 5;
+                    coin_config.family = 1;
+                    coin_config.coinid = "Bitcoin";
+                    coin_config.name = "Bitcoin";
+                    coin_config.name_short = "BTC";
+                    coin_config.native_segwit_prefix = "bc";
+                    coin_config.flags = FLAG_SEGWIT_CHANGE_SUPPORT;
+                    coin_config.kind = COIN_KIND_BITCOIN;
+
+                    libcall_params[0] = "Bitcoin";
+                    libcall_params[1] = 0x200; // use the Init call, as we won't exit
+                    libcall_params[2] = &(coin_config);
+                    os_lib_call(&libcall_params);
                     THROW(0x9000);
                     break;
                 default:
@@ -270,18 +298,6 @@ void app_exit(void) {
     END_TRY_L(exit);
 }
 
-void nv_app_state_init(){
-    if (N_storage.initialized != 0x01) {
-        internalStorage_t storage;
-        storage.dummy_setting_1 = 0x00;
-        storage.dummy_setting_2 = 0x00;
-        storage.initialized = 0x01;
-        nvm_write(&N_storage, (void*)&storage, sizeof(internalStorage_t));
-    }
-    dummy_setting_1 = N_storage.dummy_setting_1;
-    dummy_setting_2 = N_storage.dummy_setting_2;
-}
-
 __attribute__((section(".boot"))) int main(int arg0) {
     // exit critical section
     __asm volatile("cpsie i");
@@ -295,8 +311,6 @@ __attribute__((section(".boot"))) int main(int arg0) {
         BEGIN_TRY {
             TRY {
                 io_seproxyhal_init();
-
-                nv_app_state_init();
 
                 USB_power(0);
                 USB_power(1);
@@ -312,9 +326,11 @@ __attribute__((section(".boot"))) int main(int arg0) {
             }
             CATCH(EXCEPTION_IO_RESET) {
                 // reset IO and UX before continuing
+                CLOSE_TRY;
                 continue;
             }
             CATCH_ALL {
+                CLOSE_TRY;
                 break;
             }
             FINALLY {

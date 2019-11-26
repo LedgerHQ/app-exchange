@@ -1,0 +1,16 @@
+syntax = "proto3";
+package ledger_swap;
+ 
+message NewTransactionResponse {
+    string payin_address = 1;
+    string payin_extra_id = 2;
+    string refund_address = 3;
+    string refund_extra_id = 4;
+    string payout_address = 5;
+    string payout_extra_id = 6;
+    string currency_from = 7;
+    string currency_to = 8;
+    bytes  amount_to_provider = 9;
+    bytes  amount_to_wallet = 10;
+    string device_transaction_id = 11;
+}
