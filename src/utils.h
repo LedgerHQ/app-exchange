@@ -18,6 +18,8 @@ unsigned int ui_prepro(const bagl_element_t *element);
 
 void sendResponse(uint8_t tx, bool approve);
 
+int addResponseCode(unsigned char* buffer, int buffer_length, int response_code);
+
     // type            userid    x    y   w    h  str rad fill      fg        bg      fid iid  txt   touchparams...       ]
 #define UI_BUTTONS \
     {{BAGL_RECTANGLE   , 0x00,   0,   0, 128,  32, 0, 0, BAGL_FILL, 0x000000, 0xFFFFFF, 0, 0}, NULL, 0, 0, 0, NULL, NULL, NULL},\

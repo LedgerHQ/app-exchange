@@ -35,7 +35,8 @@ test('TransactionId should be 10 uppercase letters', async () => {
 test('Transaction should be signed', async () => {
   const transport = await _HttpTransport.default.open("http://127.0.0.1:9998");
   const swap = new _hwAppSwap.default(transport);
-  const transactionId = await swap.startNewTransaction(); // Create a proto transaction 
+  const transactionId = await swap.startNewTransaction();
+  await swap.setPartnerKey(swapSignedNameAndPubKey); // Create a proto transaction 
 
   var tr = new proto.ledger_swap.NewTransactionResponse();
   tr.setPayinAddress("2324234324324234");
@@ -48,8 +49,10 @@ test('Transaction should be signed', async () => {
   tr.setAmountToWallet(numberToBigEndianBuffer(48430000000000000000));
   tr.setDeviceTransactionId(transactionId);
   const payload = Buffer.from(tr.serializeBinary());
+  const digest = Buffer.from(_jsSha.default.sha256.array(payload));
 
-  const signature = _secp256k.default.sign(_jsSha.default.sha256.array(payload), swapTestPrivateKey).signature;
+  const signature = _secp256k.default.sign(digest, swapTestPrivateKey).signature;
 
   expect(signature.length).toBe(64);
+  await swap.processTransactionResponse(payload, signature);
 });

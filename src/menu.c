@@ -10,50 +10,8 @@ volatile uint8_t dummy_setting_2;
 
 static const ux_menu_entry_t menu_main[];
 static const ux_menu_entry_t menu_settings[];
-static const ux_menu_entry_t menu_dummy_setting_1[];
-static const ux_menu_entry_t menu_dummy_setting_2[];
-
-// change the setting
-static void menu_dummy_setting_1_change(unsigned int enabled) {
-    dummy_setting_1 = enabled;
-    nvm_write(&N_storage.dummy_setting_1, (void*)&dummy_setting_1, sizeof(uint8_t));
-    // go back to the menu entry
-    UX_MENU_DISPLAY(0, menu_settings, NULL);
-}
-
-static void menu_dummy_setting_2_change(unsigned int enabled) {
-    dummy_setting_2 = enabled;
-    nvm_write(&N_storage.dummy_setting_2, (void*)&dummy_setting_2, sizeof(uint8_t));
-    // go back to the menu entry
-    UX_MENU_DISPLAY(0, menu_settings, NULL);
-}
-
-// show the currently activated entry
-static void menu_dummy_setting_1_init(unsigned int ignored) {
-    UNUSED(ignored);
-    UX_MENU_DISPLAY(N_storage.dummy_setting_1?1:0, menu_dummy_setting_1, NULL);
-}
-
-static void menu_dummy_setting_2_init(unsigned int ignored) {
-    UNUSED(ignored);
-    UX_MENU_DISPLAY(N_storage.dummy_setting_2?1:0, menu_dummy_setting_2, NULL);
-}
-
-static const ux_menu_entry_t menu_dummy_setting_1[] = {
-    {NULL, menu_dummy_setting_1_change, 0, NULL, "No", NULL, 0, 0},
-    {NULL, menu_dummy_setting_1_change, 1, NULL, "Yes", NULL, 0, 0},
-    UX_MENU_END
-};
-
-static const ux_menu_entry_t menu_dummy_setting_2[] = {
-    {NULL, menu_dummy_setting_2_change, 0, NULL, "No", NULL, 0, 0},
-    {NULL, menu_dummy_setting_2_change, 1, NULL, "Yes", NULL, 0, 0},
-    UX_MENU_END
-};
 
 static const ux_menu_entry_t menu_settings[] = {
-    {NULL, menu_dummy_setting_1_init, 0, NULL, "Dummy setting 1", NULL, 0, 0},
-    {NULL, menu_dummy_setting_2_init, 0, NULL, "Dummy setting 2", NULL, 0, 0},
     {menu_main, NULL, 1, &C_icon_back, "Back", NULL, 61, 40},
     UX_MENU_END
 };
@@ -158,8 +116,6 @@ void dummy_setting_2_data_selector(unsigned int idx) {
 // Settings menu:
 
 const char* const settings_submenu_getter_values[] = {
-  "Dummy setting 1",
-  "Dummy setting 2",
   "Back",
 };
 

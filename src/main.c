@@ -20,183 +20,81 @@
 #include "../3rdparty/btchip_altcoin_config.h"
 #include "protocol.pb.h"
 #include "pb_decode.h"
+#include "swap_app_context.h"
+#include "commands.h"
+#include "states.h"
+#include "get_version_handler.h"
+#include "unexpected_command.h"
+#include "start_new_transaction.h"
+#include "set_partner_key.h"
+#include "process_transaction.h"
+#include "check_signature.h"
+#include "apdu_offsets.h"
+#include "errors.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 #define CLA 0xE0
-#define INS_GET_APP_VERSION 0x01
-#define INS_INIT_TRANSACTION 0x02
-#define INS_START_TRANSACTION 0x03
 
-#define OFFSET_CLA 0
-#define OFFSET_INS 1
-#define OFFSET_P1 2
-#define OFFSET_P2 3
-#define OFFSET_LC 4
-#define OFFSET_CDATA 5
+typedef int (*CommandDispatcher)(swap_app_context_t* ctx, unsigned char* input_buffer, int input_buffer_length, unsigned char* output_buffer, int output_buffer_length);
 
-#define ERROR_CANT_CREATE_TX 0x6F01
+CommandDispatcher dispatchTable[COMMAND_UPPER_BOUND][STATE_UPPER_BOUND] = {
+//                                               INITIAL_STATE          WAITING_TRANSACTION     PROVIDER_SETTED         TRANSACTION_RECIEVED
+/* GET_VERSION_COMMAND                      */  {get_version_handler,   get_version_handler,    get_version_handler,    get_version_handler},
+/* START_NEW_TRANSACTION_COMMAND            */  {start_new_transaction, start_new_transaction,  start_new_transaction,  start_new_transaction},
+/* SET_PARTNER_KEY_COMMAND                  */  {unexpected_command,    set_partner_key,        unexpected_command,     unexpected_command},
+/* PROCESS_TRANSACTION_COMMAND              */  {unexpected_command,    unexpected_command,     process_transaction,    unexpected_command},
+/* CHECK_TRANSACTION_SIGNATURE_COMMAND      */  {unexpected_command,    unexpected_command,     unexpected_command,     check_signature}
+};
 
-#ifdef TEST_PUBLIC_KEY
-// this key was created from private key sha256('Ledger'), see test/tools folder
-unsigned char LedgerPubKey[] = {0x02, 0x05, 0xc5, 0x2e, 0xc5, 0xfe, 0x24, 0x5a, 0x55, 0x7b, 0x86, 0x1d, 0x22, 0x18, 0x50, 0x1a, 0x81, 0x2d, 0x32, 0xe0, 0x34, 0xe1, 0x5e, 0x9d, 0x96, 0x1c, 0x1b, 0x1a, 0x13, 0x8c, 0x7f, 0xb1, 0x49};
-#else
-unsigned char LedgerPubKey[] = {};
-#endif
-volatile char device_tx_id[10];
+/*
+case INS_START_TRANSACTION:
+    
+    stream = pb_istream_from_buffer(G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC]);
+    pb_decode(&stream, ledger_swap_NewTransactionResponse_fields, &msg);
+    coin_config.p2pkh_version = 0;
+    coin_config.p2sh_version = 5;
+    coin_config.family = 1;
+    coin_config.coinid = "Bitcoin";
+    coin_config.name = "Bitcoin";
+    coin_config.name_short = "BTC";
+    coin_config.native_segwit_prefix = "bc";
+    coin_config.flags = FLAG_SEGWIT_CHANGE_SUPPORT;
+    coin_config.kind = COIN_KIND_BITCOIN;
 
-void create_device_tx_id(char *device_tx_id, unsigned int len) {
-    for (int i = 0; i < len; ++i) {
-        device_tx_id[i] = (char)((int)'A' + cx_rng_u8() % 26);
-    }
-}
+    libcall_params[0] = "Bitcoin";
+    libcall_params[1] = 0x200; // use the Init call, as we won't exit
+    libcall_params[2] = &(coin_config);
+    os_lib_call(&libcall_params);
+    THROW(0x9000);
+    break;
+*/
 
-void handleApdu(volatile unsigned int *flags, volatile unsigned int *tx) {
-    unsigned short sw = 0;   
-    btchip_altcoin_config_t coin_config;
-    unsigned int libcall_params[3];
-    ledger_swap_NewTransactionResponse msg = ledger_swap_NewTransactionResponse_init_zero;
-    pb_istream_t stream;
-
+void app_main(void) {
+    int output_length = 0;
+    int input_length = 0;
+    swap_app_context_t ctx;
+    ctx.state = INITIAL_STATE;
     BEGIN_TRY {
         TRY {
-            if (G_io_apdu_buffer[OFFSET_CLA] != CLA) {
-                THROW(0x6E00);
+            for(;;) {
+                input_length = io_exchange(CHANNEL_APDU, output_length);
+                if (G_io_apdu_buffer[OFFSET_CLA] != CLA) {
+                    THROW(CLASS_NOT_SUPPORTED);
+                }
+                if (G_io_apdu_buffer[OFFSET_INS] >= COMMAND_UPPER_BOUND) {
+                    THROW(INVALID_INSTRUCTION);
+                }
+                CommandDispatcher handler = PIC(dispatchTable[G_io_apdu_buffer[OFFSET_INS]][ctx.state]);
+                output_length = handler(&ctx, G_io_apdu_buffer, input_length, G_io_apdu_buffer, sizeof(G_io_apdu_buffer));
             }
-
-            switch (G_io_apdu_buffer[OFFSET_INS]) {
-
-                case INS_GET_APP_VERSION:
-                    G_io_apdu_buffer[0] = 1;
-                    G_io_apdu_buffer[1] = 2;
-                    G_io_apdu_buffer[2] = 3;
-                    *tx = 3;
-                    THROW(0x9000);
-                    break;
-                case INS_INIT_TRANSACTION:
-                    create_device_tx_id(device_tx_id, sizeof(device_tx_id));
-                    PRINTF("New transaction id %10s\n", device_tx_id);
-                    os_memcpy(G_io_apdu_buffer, device_tx_id, sizeof(device_tx_id));
-                    *tx = sizeof(device_tx_id);
-                    THROW(0x9000);
-                    break;
-                case INS_START_TRANSACTION:
-                    
-                    stream = pb_istream_from_buffer(G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC]);
-                    pb_decode(&stream, ledger_swap_NewTransactionResponse_fields, &msg);
-                    coin_config.p2pkh_version = 0;
-                    coin_config.p2sh_version = 5;
-                    coin_config.family = 1;
-                    coin_config.coinid = "Bitcoin";
-                    coin_config.name = "Bitcoin";
-                    coin_config.name_short = "BTC";
-                    coin_config.native_segwit_prefix = "bc";
-                    coin_config.flags = FLAG_SEGWIT_CHANGE_SUPPORT;
-                    coin_config.kind = COIN_KIND_BITCOIN;
-
-                    libcall_params[0] = "Bitcoin";
-                    libcall_params[1] = 0x200; // use the Init call, as we won't exit
-                    libcall_params[2] = &(coin_config);
-                    os_lib_call(&libcall_params);
-                    THROW(0x9000);
-                    break;
-                default:
-                    THROW(0x6D00);
-                    break;
-            }
-        }
+        } 
         CATCH(EXCEPTION_IO_RESET) {
             THROW(EXCEPTION_IO_RESET);
         }
-        CATCH_OTHER(e) {
-            switch (e & 0xF000) {
-            case 0x6000:
-                sw = e;
-                break;
-            case 0x9000:
-                // All is well
-                sw = e;
-                break;
-            default:
-                // Internal error
-                sw = 0x6800 | (e & 0x7FF);
-                break;
-            }
-            // Unexpected exception => report
-            G_io_apdu_buffer[*tx] = sw >> 8;
-            G_io_apdu_buffer[*tx + 1] = sw;
-            *tx += 2;
-        }
-        FINALLY {
-        }
+        FINALLY {}
     }
     END_TRY;
-}
-
-void app_main(void) {
-    volatile unsigned int rx = 0;
-    volatile unsigned int tx = 0;
-    volatile unsigned int flags = 0;
-
-    // DESIGN NOTE: the bootloader ignores the way APDU are fetched. The only
-    // goal is to retrieve APDU.
-    // When APDU are to be fetched from multiple IOs, like NFC+USB+BLE, make
-    // sure the io_event is called with a
-    // switch event, before the apdu is replied to the bootloader. This avoid
-    // APDU injection faults.
-    for (;;) {
-        volatile unsigned short sw = 0;
-
-        BEGIN_TRY {
-            TRY {
-                rx = tx;
-                tx = 0; // ensure no race in catch_other if io_exchange throws
-                        // an error
-                rx = io_exchange(CHANNEL_APDU | flags, rx);
-                flags = 0;
-
-                // no apdu received, well, reset the session, and reset the
-                // bootloader configuration
-                if (rx == 0) {
-                    THROW(0x6982);
-                }
-
-                PRINTF("New APDU received:\n%.*H\n", rx, G_io_apdu_buffer);
-
-                handleApdu(&flags, &tx);
-            }
-            CATCH(EXCEPTION_IO_RESET) {
-                THROW(EXCEPTION_IO_RESET);
-            }
-            CATCH_OTHER(e) {
-                switch (e & 0xF000) {
-                    case 0x6000:
-                        sw = e;
-                        break;
-                    case 0x9000:
-                        // All is well
-                        sw = e;
-                        break;
-                    default:
-                        // Internal error
-                        sw = 0x6800 | (e & 0x7FF);
-                        break;
-                }
-                if (e != 0x9000) {
-                    flags &= ~IO_ASYNCH_REPLY;
-                }
-                // Unexpected exception => report
-                G_io_apdu_buffer[tx] = sw >> 8;
-                G_io_apdu_buffer[tx + 1] = sw;
-                tx += 2;
-            }
-            FINALLY {
-            }
-        }
-        END_TRY;
-    }
-
-//return_to_dashboard:
     return;
 }
 
