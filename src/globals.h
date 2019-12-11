@@ -17,4 +17,8 @@ extern ux_state_t ux;
 extern unsigned int ux_step;
 extern unsigned int ux_step_count;
 
+extern const unsigned char CURVE_SIZE_BYTES;
+extern const unsigned char PUB_KEY_LENGTH;
+extern const unsigned char DER_SIGNATURE_LENGTH;
+
 #endif

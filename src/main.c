@@ -16,10 +16,8 @@
 ********************************************************************************/
 
 #include "utils.h"
+#include "init.h"
 #include "menu.h"
-#include "../3rdparty/btchip_altcoin_config.h"
-#include "protocol.pb.h"
-#include "pb_decode.h"
 #include "swap_app_context.h"
 #include "commands.h"
 #include "states.h"
@@ -28,7 +26,9 @@
 #include "start_new_transaction.h"
 #include "set_partner_key.h"
 #include "process_transaction.h"
-#include "check_signature.h"
+#include "check_tx_signature.h"
+#include "check_payout_address.h"
+#include "check_refund_address.h"
 #include "apdu_offsets.h"
 #include "errors.h"
 
@@ -39,41 +39,21 @@ unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 typedef int (*CommandDispatcher)(swap_app_context_t* ctx, unsigned char* input_buffer, int input_buffer_length, unsigned char* output_buffer, int output_buffer_length);
 
 CommandDispatcher dispatchTable[COMMAND_UPPER_BOUND][STATE_UPPER_BOUND] = {
-//                                               INITIAL_STATE          WAITING_TRANSACTION     PROVIDER_SETTED         TRANSACTION_RECIEVED
-/* GET_VERSION_COMMAND                      */  {get_version_handler,   get_version_handler,    get_version_handler,    get_version_handler},
-/* START_NEW_TRANSACTION_COMMAND            */  {start_new_transaction, start_new_transaction,  start_new_transaction,  start_new_transaction},
-/* SET_PARTNER_KEY_COMMAND                  */  {unexpected_command,    set_partner_key,        unexpected_command,     unexpected_command},
-/* PROCESS_TRANSACTION_COMMAND              */  {unexpected_command,    unexpected_command,     process_transaction,    unexpected_command},
-/* CHECK_TRANSACTION_SIGNATURE_COMMAND      */  {unexpected_command,    unexpected_command,     unexpected_command,     check_signature}
+//                                               INITIAL_STATE          WAITING_TRANSACTION     PROVIDER_SETTED         TRANSACTION_RECIEVED    SIGNATURE_CHECKED       TO_ADDR_CHECKED
+/* GET_VERSION_COMMAND                      */  {get_version_handler,   get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler},
+/* START_NEW_TRANSACTION_COMMAND            */  {start_new_transaction, start_new_transaction,  start_new_transaction,  start_new_transaction,  start_new_transaction,  start_new_transaction},
+/* SET_PARTNER_KEY_COMMAND                  */  {unexpected_command,    set_partner_key,        unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command},
+/* PROCESS_TRANSACTION_COMMAND              */  {unexpected_command,    unexpected_command,     process_transaction,    unexpected_command,     unexpected_command,     unexpected_command},
+/* CHECK_TRANSACTION_SIGNATURE_COMMAND      */  {unexpected_command,    unexpected_command,     unexpected_command,     check_tx_signature,     unexpected_command,     unexpected_command},
+/* CHECK_TO_ADDRESS                         */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     check_payout_address,   unexpected_command},
+/* CHECK_REFUND_ADDRESS                     */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     check_refund_address}
 };
-
-/*
-case INS_START_TRANSACTION:
-    
-    stream = pb_istream_from_buffer(G_io_apdu_buffer + OFFSET_CDATA, G_io_apdu_buffer[OFFSET_LC]);
-    pb_decode(&stream, ledger_swap_NewTransactionResponse_fields, &msg);
-    coin_config.p2pkh_version = 0;
-    coin_config.p2sh_version = 5;
-    coin_config.family = 1;
-    coin_config.coinid = "Bitcoin";
-    coin_config.name = "Bitcoin";
-    coin_config.name_short = "BTC";
-    coin_config.native_segwit_prefix = "bc";
-    coin_config.flags = FLAG_SEGWIT_CHANGE_SUPPORT;
-    coin_config.kind = COIN_KIND_BITCOIN;
-
-    libcall_params[0] = "Bitcoin";
-    libcall_params[1] = 0x200; // use the Init call, as we won't exit
-    libcall_params[2] = &(coin_config);
-    os_lib_call(&libcall_params);
-    THROW(0x9000);
-    break;
-*/
 
 void app_main(void) {
     int output_length = 0;
     int input_length = 0;
     swap_app_context_t ctx;
+    init_application_context(&ctx);
     ctx.state = INITIAL_STATE;
     BEGIN_TRY {
         TRY {
@@ -86,7 +66,7 @@ void app_main(void) {
                     THROW(INVALID_INSTRUCTION);
                 }
                 CommandDispatcher handler = PIC(dispatchTable[G_io_apdu_buffer[OFFSET_INS]][ctx.state]);
-                output_length = handler(&ctx, G_io_apdu_buffer, input_length, G_io_apdu_buffer, sizeof(G_io_apdu_buffer));
+                output_length = handler(&ctx, G_io_apdu_buffer + OFFSET_CDATA, input_length - OFFSET_CDATA, G_io_apdu_buffer, sizeof(G_io_apdu_buffer));
             }
         } 
         CATCH(EXCEPTION_IO_RESET) {

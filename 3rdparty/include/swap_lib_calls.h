@@ -1,7 +1,0 @@
-#ifndef SWAP_LIB_CALLS
-#define SWAP_LIB_CALLS
-
-#define SIGN_TRANSACTION_IN 0x200
-#define SIGN_TRANSACTION_OUT 0x201
-
-#endif

@@ -12,3 +12,8 @@ ux_state_t ux;
 // display stepped screens
 unsigned int ux_step;
 unsigned int ux_step_count;
+
+const unsigned char CURVE_SIZE_BYTES = 32;
+const unsigned char PUB_KEY_LENGTH = CURVE_SIZE_BYTES + 1;
+const unsigned char DER_SIGNATURE_LENGTH = 6 + 2 * CURVE_SIZE_BYTES;
+

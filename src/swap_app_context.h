@@ -18,6 +18,7 @@ typedef struct swap_app_context_s {
     state_e state;
     ledger_swap_NewTransactionResponse received_transaction;
     unsigned char transaction_sha256_digest[32];
+    cx_ecfp_256_public_key_t ledger_public_key;
 } swap_app_context_t;
 
 #endif // _SWAP_APP_CONTEXT_H_
