@@ -35,5 +35,4 @@ debug
 dep
 src/glyphs.c
 src/glyphs.h
-.vscode/*
 node_modules
