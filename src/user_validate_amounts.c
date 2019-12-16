@@ -20,26 +20,6 @@
 // Only one scrolling text per screen can be displayed
 #define UI_NANOS_SCROLLING_TEXT(userid, x, y, w, text, font) {{BAGL_LABELINE,userid,x,y,w,12,0x80|10,0,0,COLOR_WHITE,0,font|BAGL_FONT_ALIGNMENT_CENTER,26},(char *)text,0,0,0,NULL,NULL,NULL}
 
-unsigned int ui_verify_message_prepro(const bagl_element_t *element) {
-    if (element->component.userid > 0) {
-        unsigned int display = (ux_step == element->component.userid - 1);
-        if (display) {
-            switch (element->component.userid) {
-            case 1:
-                UX_CALLBACK_SET_INTERVAL(2000);
-                break;
-            case 2:
-                UX_CALLBACK_SET_INTERVAL(MAX(
-                    3000, 1000 + bagl_label_roundtrip_duration_ms(element, 7)));
-                break;
-            }
-        }
-        return display;
-    }
-    return 1;
-}
-
-
 int user_validate_amounts(
     char* currency_from,
     unsigned char currency_from_size,
@@ -61,5 +41,5 @@ int user_validate_amounts(
         UI_NANOS_TEXT(2, 0, 12, 128, "Message hash", BAGL_FONT_OPEN_SANS_REGULAR_11px),
         UI_NANOS_SCROLLING_TEXT(2, 23, 26, 82, "KUKU", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px)
     };
-    UX_DISPLAY(ui_verify_message_signature_nanos, )
+    UX_DISPLAY(ui_verify_message_signature_nanos, );
 }

@@ -3,6 +3,7 @@
 #include "globals.h"
 #include "check_address.h"
 #include "user_validate_amounts.h"
+#include "errors.h"
 
 int check_refund_address(
     swap_app_context_t* ctx,
@@ -44,10 +45,10 @@ int check_refund_address(
         sizeof(ctx->received_transaction.currency_from),
         ctx->received_transaction.currency_to,
         sizeof(ctx->received_transaction.currency_to),
-        ctx->received_transaction.amount_to_provider,
-        sizeof(ctx->received_transaction.amount_to_provider),
-        ctx->received_transaction.amount_to_wallet,
-        sizeof(ctx->received_transaction.amount_to_wallet),
+        ctx->received_transaction.amount_to_provider.bytes,
+        ctx->received_transaction.amount_to_provider.size,
+        ctx->received_transaction.amount_to_wallet.bytes,
+        ctx->received_transaction.amount_to_wallet.size,
         ctx->partner.name,
         ctx->partner.name_length)) {
         PRINTF("Error: User refused to accept transaction");
