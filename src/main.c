@@ -31,6 +31,8 @@
 #include "check_refund_address.h"
 #include "apdu_offsets.h"
 #include "errors.h"
+#include "default_screen.h"
+#include "power_ble.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
@@ -195,11 +197,8 @@ __attribute__((section(".boot"))) int main(int arg0) {
 
                 ui_idle();
 
-#ifdef HAVE_BLE
-                BLE_power(0, NULL);
-                BLE_power(1, "Nano X");
-#endif // HAVE_BLE
-
+                power_ble();
+                show_default_screen();
                 app_main();
             }
             CATCH(EXCEPTION_IO_RESET) {

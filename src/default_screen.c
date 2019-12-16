@@ -1,4 +1,5 @@
-#include "user_validate_amounts.h"
+#include "default_screen.h"
+
 #include "ux.h"
 
 #define BAGL_FONT_OPEN_SANS_LIGHT_16_22PX_AVG_WIDTH 10
@@ -20,34 +21,22 @@
 // Only one scrolling text per screen can be displayed
 #define UI_NANOS_SCROLLING_TEXT(userid, x, y, w, text, font) {{BAGL_LABELINE,userid,x,y,w,12,0x80|10,0,0,COLOR_WHITE,0,font|BAGL_FONT_ALIGNMENT_CENTER,26},(char *)text,0,0,0,NULL,NULL,NULL}
 
-const bagl_element_t* redraw(const bagl_element_t* element) {
-    return NULL;
+const bagl_element_t* ui_default_screen_nanos_redraw(const bagl_element_t* element) {
+    return element;
 }
 
-unsigned int ui_verify_message_signature_nanos_button(unsigned int button_mask, unsigned int button_mask_counter) {
-
+unsigned int ui_default_screen_nanos_button(unsigned int button_mask, unsigned int button_mask_counter) {
+    
 }
 
-int user_validate_amounts(
-    char* currency_from,
-    unsigned char currency_from_size,
-    char* currency_to,
-    unsigned char currency_to_size,
-    unsigned char* amount_to_provider,
-    unsigned char amount_to_provider_size,
-    unsigned char* amount_to_wallet,
-    unsigned char amount_to_wallet_size,
-    char* partner_name,
-    unsigned char partner_name_size) {
-    bagl_element_t ui_verify_message_signature_nanos[] = {
-        UI_NANOS_BACKGROUND(),
-        UI_NANOS_ICON_LEFT(0, BAGL_GLYPH_ICON_CROSS),
-        UI_NANOS_ICON_RIGHT(0, BAGL_GLYPH_ICON_CHECK),
-        UI_NANOS_TEXT(1, 0, 12, 128, "Sign the", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
-        UI_NANOS_TEXT(1, 0, 26, 128, "message", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
+bagl_element_t ui_default_screen_nanos[] = {
+    UI_NANOS_BACKGROUND(),
+    UI_NANOS_ICON_LEFT(0, BAGL_GLYPH_ICON_CROSS),
+    UI_NANOS_ICON_RIGHT(0, BAGL_GLYPH_ICON_CHECK),
+    UI_NANOS_TEXT(1, 0, 12, 128, "SWAP", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
+    UI_NANOS_TEXT(1, 0, 26, 128, "message", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
+};
 
-        UI_NANOS_TEXT(2, 0, 12, 128, "Message hash", BAGL_FONT_OPEN_SANS_REGULAR_11px),
-        UI_NANOS_SCROLLING_TEXT(2, 23, 26, 82, "KUKU", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px)
-    };
-    UX_DISPLAY(ui_verify_message_signature_nanos, redraw);
+void show_default_screen() {
+    UX_DISPLAY(ui_default_screen_nanos, ui_default_screen_nanos_redraw);
 }

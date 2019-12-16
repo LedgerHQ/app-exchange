@@ -5,4 +5,4 @@
 
 void init_application_context(swap_app_context_t* ctx);
 
-#endif _INIT_H_
+#endif //_INIT_H_

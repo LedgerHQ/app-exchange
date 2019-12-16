@@ -15,23 +15,6 @@ int addResponseCode(unsigned char* buffer, int buffer_length, int response_code)
     return 2;
 }
 
-unsigned int ui_prepro(const bagl_element_t *element) {
-    unsigned int display = 1;
-    PRINTF("ui_prepro for element at %x of type %d\n", element, element->component.type);
-    if (element->component.userid > 0) {
-        display = (ux_step == element->component.userid - 1);
-        if (display) {
-            if (element->component.userid == 1) {
-                UX_CALLBACK_SET_INTERVAL(2000);
-            }
-            else {
-            //    UX_CALLBACK_SET_INTERVAL(MAX(3000, 1000 + bagl_label_roundtrip_duration_ms(element, 7)));
-            }
-        }
-    }
-    return display;
-}
-
 int strcmp_non_zero(char* str1, unsigned char str1_buffer_size, char* str2, unsigned char str2_buffer_size) {
     unsigned char len1 = strnlen(str1, str1_buffer_size);
     unsigned char len2 = strnlen(str2, str2_buffer_size);
