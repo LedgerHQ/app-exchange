@@ -41,7 +41,12 @@ int check_payout_address(
         sizeof(ctx->received_transaction.payout_address),
         ctx->received_transaction.payout_extra_id,
         sizeof(ctx->received_transaction.payout_extra_id))) {
-        PRINTF("Error: Fail to verify signature of coin config");
-        THROW(SIGN_VERIFICATION_FAIL);
+        PRINTF("Error: Payout address validation failed");
+        THROW(INVALID_ADDRESS);
     }
+    PRINTF("Payout address validated");
+    ctx->state = TO_ADDR_CHECKED;
+    output_buffer[0] = 0x90;
+    output_buffer[1] = 0x00;
+    return 2;
 }

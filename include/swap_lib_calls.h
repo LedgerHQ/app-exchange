@@ -15,6 +15,10 @@ typedef struct get_address_in_parameters_s {
     // fields and serialization format depends on spesific coin app
     unsigned char* address_parameters; 
     unsigned char address_parameters_length;
+    char resulted_address[50];
+    char resulted_extra_id[10];
 } get_address_in_parameters_t;
+
+
 
 #endif
