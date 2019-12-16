@@ -29,14 +29,13 @@ unsigned int ui_default_screen_nanos_button(unsigned int button_mask, unsigned i
     
 }
 
-bagl_element_t ui_default_screen_nanos[] = {
-    UI_NANOS_BACKGROUND(),
-    UI_NANOS_ICON_LEFT(0, BAGL_GLYPH_ICON_CROSS),
-    UI_NANOS_ICON_RIGHT(0, BAGL_GLYPH_ICON_CHECK),
-    UI_NANOS_TEXT(1, 0, 12, 128, "SWAP", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
-    UI_NANOS_TEXT(1, 0, 26, 128, "message", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
-};
-
 void show_default_screen() {
+    bagl_element_t ui_default_screen_nanos[] = {
+        UI_NANOS_BACKGROUND(),
+        UI_NANOS_ICON_LEFT(0, BAGL_GLYPH_ICON_CROSS),
+        UI_NANOS_ICON_RIGHT(0, BAGL_GLYPH_ICON_CHECK),
+        UI_NANOS_TEXT(1, 0, 12, 128, "SWAP", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
+        UI_NANOS_TEXT(1, 0, 26, 128, "message", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
+    };
     UX_DISPLAY(ui_default_screen_nanos, ui_default_screen_nanos_redraw);
 }

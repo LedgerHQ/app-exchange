@@ -29,8 +29,9 @@ const main = () => {
         throw new Error('Invalid ledger private key');
 
     const ledgerPublicKey = secp256k1.publicKeyCreate(ledgerPrivateKey);
-
-    console.log("Ledger public key: " + toHexPrintableConst(ledgerPublicKey));
+    const uncompressed = secp256k1.publicKeyConvert(ledgerPublicKey, false)
+    
+    console.log("Ledger public key: " + toHexPrintableConst(uncompressed));
 
     swapTestData = createSignedPartnerPublicKeyAndName("SWAP_TEST", ledgerPrivateKey);
     console.log("SWAP_TEST private key: " + toHexPrintableConst(swapTestData.privKey));
