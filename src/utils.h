@@ -49,5 +49,3 @@ int addResponseCode(unsigned char* buffer, int buffer_length, int response_code)
 
 #endif
 
-// compare strings that can fill all the buffer, so without ending 0
-int strcmp_non_zero(char* str1, unsigned char str1_buffer_size, char* str2, unsigned char str2_buffer_size);

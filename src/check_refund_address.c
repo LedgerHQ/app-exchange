@@ -4,6 +4,7 @@
 #include "check_address.h"
 #include "user_validate_amounts.h"
 #include "errors.h"
+#include "get_printable_amount.h"
 
 int check_refund_address(
     swap_app_context_t* ctx,
@@ -32,26 +33,35 @@ int check_refund_address(
         input_buffer + 1 + config_length + DER_SIGNATURE_LENGTH + 1,
         input_buffer[1 + config_length + DER_SIGNATURE_LENGTH],
         ctx->received_transaction.currency_from,
-        sizeof(ctx->received_transaction.currency_from),
         ctx->received_transaction.refund_address,
-        sizeof(ctx->received_transaction.refund_address),
-        ctx->received_transaction.refund_extra_id,
-        sizeof(ctx->received_transaction.refund_extra_id))) {
+        ctx->received_transaction.refund_extra_id)) {
         PRINTF("Error: Refund address validation failed");
         THROW(INVALID_ADDRESS);
     }
-    if (!user_validate_amounts(
+    char printable_send_amount[30] = {0};
+    char printable_get_amount[30] = {0};
+    get_printable_amount(
+        input_buffer + 1,
+        config_length,
         ctx->received_transaction.currency_from,
-        sizeof(ctx->received_transaction.currency_from),
-        ctx->received_transaction.currency_to,
-        sizeof(ctx->received_transaction.currency_to),
         ctx->received_transaction.amount_to_provider.bytes,
         ctx->received_transaction.amount_to_provider.size,
+        printable_send_amount,
+        sizeof(printable_send_amount));
+    get_printable_amount(
+        input_buffer + 1,
+        config_length,
+        ctx->received_transaction.currency_to,
         ctx->received_transaction.amount_to_wallet.bytes,
         ctx->received_transaction.amount_to_wallet.size,
-        ctx->partner.name,
-        ctx->partner.name_length)) {
-        PRINTF("Error: User refused to accept transaction");
+        printable_get_amount,
+        sizeof(printable_get_amount));
+
+    if (!user_validate_amounts(
+        printable_send_amount,
+        printable_get_amount,
+        "Changelly.com")) {
+        PRINTF("Error: User refused transaction");
         THROW(USER_REFUSED);
     }
 }

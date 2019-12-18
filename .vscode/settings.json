@@ -8,6 +8,7 @@
         "bolos_target.h": "c",
         "check_address.h": "c",
         "errors.h": "c",
-        "ux_flow_engine.h": "c"
+        "ux_flow_engine.h": "c",
+        "swap_lib_calls.h": "c"
     }
 }

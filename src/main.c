@@ -31,8 +31,8 @@
 #include "check_refund_address.h"
 #include "apdu_offsets.h"
 #include "errors.h"
-#include "default_screen.h"
 #include "power_ble.h"
+#include "user_validate_amounts.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
@@ -194,11 +194,11 @@ __attribute__((section(".boot"))) int main(int arg0) {
 
                 USB_power(0);
                 USB_power(1);
-
-                ui_idle();
-
                 power_ble();
-                show_default_screen();
+
+                //ui_idle();
+                user_validate_amounts("0.001 BTC", "32.00 ETH", "____");
+                user_validate_amounts("0.002 BTC", "64.00 ETH", "____");
                 app_main();
             }
             CATCH(EXCEPTION_IO_RESET) {

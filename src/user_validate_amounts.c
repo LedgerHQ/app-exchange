@@ -5,9 +5,6 @@
 #define BAGL_FONT_OPEN_SANS_REGULAR_10_13PX_AVG_WIDTH 8
 #define MAX_CHAR_PER_LINE 25
 
-#define COLOR_BG_1 0xF9F9F9
-#define COLOR_APP COIN_COLOR_HDR      // bitcoin 0xFCB653
-#define COLOR_APP_LIGHT COIN_COLOR_DB // bitcoin 0xFEDBA9
 #define COLOR_BLACK 0x000000
 #define COLOR_WHITE 0xFFFFFF
 #define COLOR_GRAY 0x999999
@@ -21,33 +18,36 @@
 #define UI_NANOS_SCROLLING_TEXT(userid, x, y, w, text, font) {{BAGL_LABELINE,userid,x,y,w,12,0x80|10,0,0,COLOR_WHITE,0,font|BAGL_FONT_ALIGNMENT_CENTER,26},(char *)text,0,0,0,NULL,NULL,NULL}
 
 const bagl_element_t* redraw(const bagl_element_t* element) {
-    return NULL;
+    PRINTF("KIKI");
+    return element;
 }
 
 unsigned int ui_verify_message_signature_nanos_button(unsigned int button_mask, unsigned int button_mask_counter) {
-
+    PRINTF("KUKUKU");
 }
 
 int user_validate_amounts(
-    char* currency_from,
-    unsigned char currency_from_size,
-    char* currency_to,
-    unsigned char currency_to_size,
-    unsigned char* amount_to_provider,
-    unsigned char amount_to_provider_size,
-    unsigned char* amount_to_wallet,
-    unsigned char amount_to_wallet_size,
-    char* partner_name,
-    unsigned char partner_name_size) {
+    char* send_amount,
+    char* get_amount,
+    char* partner_name) {
+    char send[30] = {0};
+    int res = snprintf(send, sizeof(send), "Send %s", send_amount);
+    if ((res >= sizeof(send)) || (res < 0)) {
+        PRINTF("Error: String amount representaition is too big");
+        THROW(INVALID_PARAMETER);
+    }
+    char get[30] = {0};
+    res = snprintf(get, sizeof(get), "Get %s", get_amount);
+    if ((res >= sizeof(send)) || (res < 0)) {
+        PRINTF("Error: String amount representaition is too big");
+        THROW(INVALID_PARAMETER);
+    }
     bagl_element_t ui_verify_message_signature_nanos[] = {
         UI_NANOS_BACKGROUND(),
         UI_NANOS_ICON_LEFT(0, BAGL_GLYPH_ICON_CROSS),
         UI_NANOS_ICON_RIGHT(0, BAGL_GLYPH_ICON_CHECK),
-        UI_NANOS_TEXT(1, 0, 12, 128, "Sign the", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
-        UI_NANOS_TEXT(1, 0, 26, 128, "message", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
-
-        UI_NANOS_TEXT(2, 0, 12, 128, "Message hash", BAGL_FONT_OPEN_SANS_REGULAR_11px),
-        UI_NANOS_SCROLLING_TEXT(2, 23, 26, 82, "KUKU", BAGL_FONT_OPEN_SANS_EXTRABOLD_11px)
+        UI_NANOS_TEXT(1, 0, 12, 128, send, BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
+        UI_NANOS_TEXT(1, 0, 26, 128, get, BAGL_FONT_OPEN_SANS_EXTRABOLD_11px)
     };
     UX_DISPLAY(ui_verify_message_signature_nanos, redraw);
 }

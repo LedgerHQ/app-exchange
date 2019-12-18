@@ -36,11 +36,8 @@ int check_payout_address(
         input_buffer + 1 + config_length + DER_SIGNATURE_LENGTH + 1,
         input_buffer[1 + config_length + DER_SIGNATURE_LENGTH],
         ctx->received_transaction.currency_to,
-        sizeof(ctx->received_transaction.currency_to),
         ctx->received_transaction.payout_address,
-        sizeof(ctx->received_transaction.payout_address),
-        ctx->received_transaction.payout_extra_id,
-        sizeof(ctx->received_transaction.payout_extra_id))) {
+        ctx->received_transaction.payout_extra_id)) {
         PRINTF("Error: Payout address validation failed");
         THROW(INVALID_ADDRESS);
     }
