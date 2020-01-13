@@ -1,6 +1,5 @@
 #include "der_serialization.h"
 #include "os.h"
-#include "errors.h"
 
 unsigned char der_serialize(
     unsigned char* R, unsigned char r_length,
@@ -10,7 +9,7 @@ unsigned char der_serialize(
     unsigned int der_length = 1 + 1 + 1 + 1 + r_length + 1 + 1 + s_length;
     if (der_length > output_buffer_size) {
         PRINTF("Error: Output buffer for DER is too small");
-        THROW(OUTPUT_BUFFER_IS_TOO_SMALL);
+        return -1;
     }
     unsigned char off = 0;
     der[off++] = 30;

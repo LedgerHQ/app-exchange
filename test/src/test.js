@@ -41,7 +41,7 @@ test('TransactionId should be 10 uppercase letters', async () => {
   expect(transactionId).toBe(transactionId.toUpperCase());
 })
 
-
+/*
 test('Transaction should be signed', async () => {
   const transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
   const swap: Swap = new Swap(transport);
@@ -65,3 +65,4 @@ test('Transaction should be signed', async () => {
   expect(signature.length).toBe(64);
   await swap.processTransactionResponse(payload, signature);
 })
+ */

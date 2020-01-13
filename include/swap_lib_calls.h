@@ -4,33 +4,45 @@
 #define SIGN_TRANSACTION_IN 0x200
 #define SIGN_TRANSACTION_OUT 0x201
 
-#define GET_ADDRESS_IN 0x300
-#define GET_ADDRESS_OUT 0x301
+#define CHECK_ADDRESS_IN 0x300
+#define CHECK_ADDRESS_OUT 0x301
 
 #define GET_PRINTABLE_AMOUNT_IN 0x400
 #define GET_PRINTABLE_AMOUNT_OUT 0x401
 
 // structure that should be send to specific coin application to get address
-typedef struct get_address_in_parameters_s {
+typedef struct check_address_parameters_s {
+    // IN
     unsigned char* coin_configuration;
     unsigned char coin_configuration_length;
     // serialized path, segwit, version prefix, hash used, dictionary etc. 
     // fields and serialization format depends on spesific coin app
     unsigned char* address_parameters; 
     unsigned char address_parameters_length;
-    char resulted_address[50];
-    char resulted_extra_id[10];
-} get_address_in_parameters_t;
+    char *address_to_check;
+    char *extra_id_to_check;
+    // OUT
+    int result;
+} check_address_parameters_t;
 
 // structure that should be send to specific coin application to get printable amount
-typedef struct get_printable_amount_in_parameters_s {
+typedef struct get_printable_amount_parameters_s {
+    // IN
     unsigned char* coin_configuration;
     unsigned char coin_configuration_length;
     unsigned char* amount; 
     unsigned char amount_length;
+    // OUT
     char printable_amont[30];
-} get_printable_amount_in_parameters_t;
+} get_printable_amount_parameters_t;
 
-
+typedef struct create_transaction_parameters_s {
+    unsigned char* coin_configuration;
+    unsigned char coin_configuration_length;
+    unsigned char* amount; 
+    unsigned char amount_length;
+    char *destination_address;
+    char *destination_address_extra_id;
+} create_transaction_parameters_t;
 
 #endif

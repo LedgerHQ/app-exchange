@@ -15,69 +15,97 @@
 *  limitations under the License.
 ********************************************************************************/
 
-#include "utils.h"
 #include "init.h"
 #include "menu.h"
 #include "swap_app_context.h"
 #include "commands.h"
-#include "states.h"
-#include "get_version_handler.h"
-#include "unexpected_command.h"
-#include "start_new_transaction.h"
-#include "set_partner_key.h"
-#include "process_transaction.h"
-#include "check_tx_signature.h"
-#include "check_payout_address.h"
-#include "check_refund_address.h"
-#include "apdu_offsets.h"
-#include "errors.h"
 #include "power_ble.h"
-#include "user_validate_amounts.h"
+#include "command_dispatcher.h"
+#include "apdu_offsets.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 #define CLA 0xE0
 
-typedef int (*CommandDispatcher)(swap_app_context_t* ctx, unsigned char* input_buffer, int input_buffer_length, unsigned char* output_buffer, int output_buffer_length);
+// recv()
+// send()
+// recv()
+// UI
+// recv(ASYNC)
+//   send()->io_exchange(RETURN)  
+// recv()
+//
+//             READY         RECEIVED          WAITING_USER
+// recv()   to Received  ASYNC+to waiting          ERROR
+// send()      ERROR         to ready      RETURN_AFTER_RX + to ready
 
-CommandDispatcher dispatchTable[COMMAND_UPPER_BOUND][STATE_UPPER_BOUND] = {
-//                                               INITIAL_STATE          WAITING_TRANSACTION     PROVIDER_SETTED         TRANSACTION_RECIEVED    SIGNATURE_CHECKED       TO_ADDR_CHECKED
-/* GET_VERSION_COMMAND                      */  {get_version_handler,   get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler},
-/* START_NEW_TRANSACTION_COMMAND            */  {start_new_transaction, start_new_transaction,  start_new_transaction,  start_new_transaction,  start_new_transaction,  start_new_transaction},
-/* SET_PARTNER_KEY_COMMAND                  */  {unexpected_command,    set_partner_key,        unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command},
-/* PROCESS_TRANSACTION_COMMAND              */  {unexpected_command,    unexpected_command,     process_transaction,    unexpected_command,     unexpected_command,     unexpected_command},
-/* CHECK_TRANSACTION_SIGNATURE_COMMAND      */  {unexpected_command,    unexpected_command,     unexpected_command,     check_tx_signature,     unexpected_command,     unexpected_command},
-/* CHECK_TO_ADDRESS                         */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     check_payout_address,   unexpected_command},
-/* CHECK_REFUND_ADDRESS                     */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     check_refund_address}
-};
+typedef enum io_state {
+    READY,
+    RECEIVED,
+    WAITING_USER
+} io_state_e;
+
+int output_length = 0;
+io_state_e io_state = READY;
+
+int recv_apdu() {
+    switch (io_state) {
+        case READY:
+            io_state = RECEIVED;
+            return io_exchange(CHANNEL_APDU, output_length);
+        case RECEIVED:
+            io_state = WAITING_USER;
+            return io_exchange(CHANNEL_APDU | IO_ASYNCH_REPLY, output_length);
+        case WAITING_USER:
+            PRINTF("Error: Unexpected recv call in WAITING_USER state");
+            io_state = READY;
+            return -1;
+    };
+    return -1;
+}
+
+// return -1 in case of error
+int send_apdu(unsigned char* buffer, unsigned int buffer_length) {
+    os_memmove(G_io_apdu_buffer, buffer, buffer_length);
+    output_length = buffer_length;
+    switch (io_state) {
+        case READY:
+            PRINTF("Error: Unexpected send call in READY state");
+            return -1;
+        case RECEIVED:
+            io_state = READY;
+            return 0;
+        case WAITING_USER:
+            io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, output_length);
+            output_length = 0;
+            io_state = READY;
+            return 0;
+    }
+    return -1;
+}
 
 void app_main(void) {
     int output_length = 0;
     int input_length = 0;
     swap_app_context_t ctx;
     init_application_context(&ctx);
-    ctx.state = INITIAL_STATE;
-    BEGIN_TRY {
-        TRY {
-            for(;;) {
-                input_length = io_exchange(CHANNEL_APDU, output_length);
-                if (G_io_apdu_buffer[OFFSET_CLA] != CLA) {
-                    THROW(CLASS_NOT_SUPPORTED);
-                }
-                if (G_io_apdu_buffer[OFFSET_INS] >= COMMAND_UPPER_BOUND) {
-                    THROW(INVALID_INSTRUCTION);
-                }
-                CommandDispatcher handler = PIC(dispatchTable[G_io_apdu_buffer[OFFSET_INS]][ctx.state]);
-                output_length = handler(&ctx, G_io_apdu_buffer + OFFSET_CDATA, input_length - OFFSET_CDATA, G_io_apdu_buffer, sizeof(G_io_apdu_buffer));
-            }
-        } 
-        CATCH(EXCEPTION_IO_RESET) {
-            THROW(EXCEPTION_IO_RESET);
+    ui_idle();    
+    for(;;) {
+        input_length = recv_apdu();
+        if (input_length == -1) // there were an error, lets start from the beginning
+            return;
+        if (input_length <= OFFSET_INS ||
+            G_io_apdu_buffer[OFFSET_CLA] != CLA ||
+            G_io_apdu_buffer[OFFSET_INS] >= COMMAND_UPPER_BOUND) {
+            PRINTF("Error: bad APDU");
+            return;
         }
-        FINALLY {}
+        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS], &ctx, G_io_apdu_buffer + OFFSET_CDATA, input_length - OFFSET_CDATA, send_apdu) < 0)
+            return; // some non recoverable error happened
+        if (ctx.state == INITIAL_STATE) {
+            ui_idle();
+        }
     }
-    END_TRY;
-    return;
 }
 
 // override point, but nothing more to do
@@ -112,19 +140,7 @@ unsigned char io_event(unsigned char channel) {
             break;
 
         case SEPROXYHAL_TAG_TICKER_EVENT:
-            UX_TICKER_EVENT(G_io_seproxyhal_spi_buffer,
-            {
-            #ifndef TARGET_NANOX
-                if (UX_ALLOWED) {
-                    if (ux_step_count) {
-                    // prepare next screen
-                    ux_step = (ux_step+1)%ux_step_count;
-                    // redisplay screen
-                    UX_REDISPLAY();
-                    }
-                }
-            #endif // TARGET_NANOX
-            });
+            UX_TICKER_EVENT(G_io_seproxyhal_spi_buffer, {});
             break;
     }
 
@@ -195,10 +211,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
                 USB_power(0);
                 USB_power(1);
                 power_ble();
-
-                //ui_idle();
-                user_validate_amounts("0.001 BTC", "32.00 ETH", "____");
-                user_validate_amounts("0.002 BTC", "64.00 ETH", "____");
+              
                 app_main();
             }
             CATCH(EXCEPTION_IO_RESET) {

@@ -10,6 +10,14 @@
         "errors.h": "c",
         "ux_flow_engine.h": "c",
         "swap_lib_calls.h": "c",
-        "seproxyhal_protocol.h": "c"
+        "seproxyhal_protocol.h": "c",
+        "pcreposix.h": "c",
+        "commands.h": "c",
+        "apdu_offsets.h": "c",
+        "command_dispatcher.h": "c",
+        "currency_lib_calls.h": "c",
+        "check_payout_address.h": "c",
+        "swap_app_context.h": "c",
+        "states.h": "c"
     }
 }

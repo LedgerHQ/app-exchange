@@ -2,12 +2,13 @@
 #define _STATES_H_
 
 typedef enum {
-    INITIAL_STATE                   = 1,
-    WAITING_TRANSACTION             = 2,
-    PROVIDER_SETTED                 = 3,
-    TRANSACTION_RECIEVED            = 4,
-    SIGNATURE_CHECKED               = 5,
-    TO_ADDR_CHECKED                 = 6,
+    INITIAL_STATE                   = 0,
+    WAITING_TRANSACTION             = 1,
+    PROVIDER_SET                    = 2,
+    TRANSACTION_RECIEVED            = 3,
+    SIGNATURE_CHECKED               = 4,
+    TO_ADDR_CHECKED                 = 5,
+    WAITING_USER_VALIDATION         = 6,
     STATE_UPPER_BOUND
 } state_e;
 
