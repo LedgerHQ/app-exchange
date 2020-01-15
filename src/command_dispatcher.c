@@ -13,9 +13,11 @@
 #include "apdu_offsets.h"
 #include "user_validation.h"
 
+#include "reply_error.h"
+
 typedef int (*StateCommandDispatcher)(swap_app_context_t* ctx, unsigned char* input_buffer, int input_buffer_length, SendFunction send);
 
-StateCommandDispatcher dispatcher_table[COMMAND_UPPER_BOUND][STATE_UPPER_BOUND] = {
+static const StateCommandDispatcher dispatcher_table[COMMAND_UPPER_BOUND][STATE_UPPER_BOUND] = {
 //                                               INITIAL_STATE          WAITING_TRANSACTION     PROVIDER_SET            TRANSACTION_RECIEVED    SIGNATURE_CHECKED       TO_ADDR_CHECKED         WAITING_USER_VALIDATION
 /* GET_VERSION_COMMAND                      */  {get_version_handler,   get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    unexpected_command},
 /* START_NEW_TRANSACTION_COMMAND            */  {start_new_transaction, start_new_transaction,  start_new_transaction,  start_new_transaction,  start_new_transaction,  start_new_transaction,  unexpected_command},
@@ -28,7 +30,6 @@ StateCommandDispatcher dispatcher_table[COMMAND_UPPER_BOUND][STATE_UPPER_BOUND] 
 };
 
 int dispatch_command(command_e command, swap_app_context_t *context, unsigned char* input_buffer, unsigned int buffer_size, SendFunction send) {
-    unexpected_command(context, input_buffer, buffer_size, send);
-    StateCommandDispatcher handler = dispatcher_table[command][context->state];
+    StateCommandDispatcher handler = (StateCommandDispatcher)(PIC(dispatcher_table[command][context->state]));
     return handler(context, input_buffer, buffer_size, send);
 }

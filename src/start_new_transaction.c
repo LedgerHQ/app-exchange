@@ -7,9 +7,8 @@ void create_device_tx_id(char *device_tx_id, unsigned int len) {
 }
 
 int start_new_transaction(swap_app_context_t* ctx, unsigned char* input_buffer, int input_buffer_length, SendFunction send) {
+    //os_memset(ctx, 0, sizeof(swap_app_context_t));
     create_device_tx_id(ctx->device_tx_id, sizeof(ctx->device_tx_id));
-    os_memset((void*)&ctx, 0, sizeof(ctx));
-    PRINTF("New transaction id %10s\n", ctx->device_tx_id);
     unsigned char output_buffer[sizeof(ctx->device_tx_id) + 2];
     os_memcpy(output_buffer, ctx->device_tx_id, sizeof(ctx->device_tx_id));
     output_buffer[sizeof(ctx->device_tx_id)] = 0x90;

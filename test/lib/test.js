@@ -32,27 +32,28 @@ test('TransactionId should be 10 uppercase letters', async () => {
   expect(transactionId.length).toBe(10);
   expect(transactionId).toBe(transactionId.toUpperCase());
 });
+/*
 test('Transaction should be signed', async () => {
-  const transport = await _HttpTransport.default.open("http://127.0.0.1:9998");
-  const swap = new _hwAppSwap.default(transport);
-  const transactionId = await swap.startNewTransaction();
-  await swap.setPartnerKey(swapSignedNameAndPubKey); // Create a proto transaction 
-
+  const transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
+  const swap: Swap = new Swap(transport);
+  const transactionId: string  = await swap.startNewTransaction();
+  await swap.setPartnerKey(swapSignedNameAndPubKey);
+  // Create a proto transaction 
   var tr = new proto.ledger_swap.NewTransactionResponse();
   tr.setPayinAddress("2324234324324234");
   tr.setRefundAddress("sfdsfdsfsdfdsfsdf");
   tr.setPayoutAddress("asdasdassasadsada");
   tr.setCurrencyFrom("BTC");
-  tr.setCurrencyTo("ETH"); // 100000000 Satoshi to 48430000000000000000 Wei (1 BTC to 48.43 ETH)
-
+  tr.setCurrencyTo("ETH");
+  // 100000000 Satoshi to 48430000000000000000 Wei (1 BTC to 48.43 ETH)
   tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
   tr.setAmountToWallet(numberToBigEndianBuffer(48430000000000000000));
   tr.setDeviceTransactionId(transactionId);
-  const payload = Buffer.from(tr.serializeBinary());
-  const digest = Buffer.from(_jsSha.default.sha256.array(payload));
 
-  const signature = _secp256k.default.sign(digest, swapTestPrivateKey).signature;
-
+  const payload: Buffer = Buffer.from(tr.serializeBinary());
+  const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+  const signature: Buffer = secp256k1.sign(digest, swapTestPrivateKey).signature;
   expect(signature.length).toBe(64);
   await swap.processTransactionResponse(payload, signature);
-});
+})
+ */
