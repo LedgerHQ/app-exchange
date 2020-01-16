@@ -1,7 +1,6 @@
 #include "set_partner_key.h"
 #include "os.h"
 #include "swap_errors.h"
-#include "der_serialization.h"
 #include "globals.h"
 #include "reply_error.h"
 
