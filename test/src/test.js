@@ -28,11 +28,11 @@ const swapSignedNameAndPubKey: Buffer = Buffer.from(
  0xD8, 0x38, 0x20, 0x39, 0x34, 0xB9, 0xDC, 0xE8, 0xEE, 0x3E,
  0x8C, 0xE1, 0x64, 0xBE, 0x57, 0xC1, 0xDF]);
 
- function numberToBigEndianBuffer(x: Number): Buffer {
+ function numberToBigEndianBuffer(x: number): Buffer {
    var hex =x.toString(16);
    return Buffer.from(hex.padStart(hex.length + hex.length % 2, '0'), 'hex');
  }
-
+/*
 test('TransactionId should be 10 uppercase letters', async () => {
   const transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
   const swap: Swap = new Swap(transport);
@@ -40,9 +40,16 @@ test('TransactionId should be 10 uppercase letters', async () => {
   expect(transactionId.length).toBe(10);
   expect(transactionId).toBe(transactionId.toUpperCase());
 })
+*/
+test('SetPartnerKey should not throw', async () => {
+  const transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
+  const swap: Swap = new Swap(transport);
+  const transactionId: string  = await swap.startNewTransaction();
+  await expect(swap.setPartnerKey(swapSignedNameAndPubKey)).resolves.toBe(undefined);
+})
 
 /*
-test('Transaction should be signed', async () => {
+test('Transaction signature should be checked', async () => {
   const transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
   const swap: Swap = new Swap(transport);
   const transactionId: string  = await swap.startNewTransaction();
@@ -65,4 +72,4 @@ test('Transaction should be signed', async () => {
   expect(signature.length).toBe(64);
   await swap.processTransactionResponse(payload, signature);
 })
- */
+*/
