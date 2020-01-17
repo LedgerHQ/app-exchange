@@ -29,8 +29,8 @@ Posible commands:
 | 2 bytes       | Result |
 
 Result can be one of the following sequences:
-| Bytes | Name | Description |
-| ----- | ---- | ----------- |
+| Bytes  | Name                     | Description                                      |
+| ------ | ------------------------ | ------------------------------------------------ |
 | 0x6A80 | INCORRECT_COMMAND_DATA   | Command byte, or specific command data is incorrect |
 | 0x6A81 | DESERIALIZATION_FAILED   | Can't parse partner transaction |
 | 0x6A82 | WRONG_TRANSACTION_ID     | Transaction ID is not equal to one generated on the first step|
