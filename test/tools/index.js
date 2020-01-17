@@ -19,7 +19,9 @@ const createSignedPartnerPublicKeyAndName = (partnerName, ledgerPrivateKey) => {
 
     var binaryPartnerName = Buffer.from(partnerName, 'ascii');
     var binaryNameAndPublicKey = Buffer.concat([Buffer.from([binaryPartnerName.length]), binaryPartnerName, swapPartnerPublicKey]);
-    return {"privKey":swapPartnerPrivateKey, "signedPubKeyAndName": Buffer.concat([binaryNameAndPublicKey, secp256k1.sign(Buffer.from(sha256.sha256.array(binaryNameAndPublicKey)), ledgerPrivateKey).signature])};
+    var signature = secp256k1.sign(Buffer.from(sha256.sha256.array(binaryNameAndPublicKey)), ledgerPrivateKey).signature.split();
+    var der = Buffer.concat([Buffer.from([30, 68, 2, 32]), signature.slice(0, 32), Buffer.from([2, 32]), signature.slice(32, 32)]);
+    return {"privKey":swapPartnerPrivateKey, "serializedPubKeyAndName": binaryNameAndPublicKey, "signatureInDER": der};
 }
 
 const main = () => {
@@ -35,7 +37,8 @@ const main = () => {
 
     swapTestData = createSignedPartnerPublicKeyAndName("SWAP_TEST", ledgerPrivateKey);
     console.log("SWAP_TEST private key: " + toHexPrintableConst(swapTestData.privKey));
-    console.log("SWAP_TEST signed name and pub key: " + toHexPrintableConst(swapTestData.signedPubKeyAndName));
+    console.log("SWAP_TEST signed name and pub key: " + toHexPrintableConst(swapTestData.serializedPubKeyAndName));
+    console.log("DER signature: " + toHexPrintableConst(swapTestData.signatureInDER));
 }
 
 
