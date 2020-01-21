@@ -1,4 +1,5 @@
 #include "start_new_transaction.h"
+#include "init.h"
 
 void create_device_tx_id(char *device_tx_id, unsigned int len) {
     for (unsigned int i = 0; i < len; ++i) {
@@ -7,7 +8,7 @@ void create_device_tx_id(char *device_tx_id, unsigned int len) {
 }
 
 int start_new_transaction(swap_app_context_t* ctx, unsigned char* input_buffer, int input_buffer_length, SendFunction send) {
-    //os_memset(ctx, 0, sizeof(swap_app_context_t));
+    init_application_context(ctx);
     create_device_tx_id(ctx->device_tx_id, sizeof(ctx->device_tx_id));
     unsigned char output_buffer[sizeof(ctx->device_tx_id) + 2];
     os_memcpy(output_buffer, ctx->device_tx_id, sizeof(ctx->device_tx_id));

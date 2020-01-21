@@ -85,7 +85,6 @@ int send_apdu(unsigned char* buffer, unsigned int buffer_length) {
 }
 
 void app_main(void) {
-    int output_length = 0;
     int input_length = 0;
     swap_app_context_t ctx;
     init_application_context(&ctx);

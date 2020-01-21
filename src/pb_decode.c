@@ -13,6 +13,8 @@
     #define checkreturn __attribute__((warn_unused_result))
 #endif
 
+#include "os.h"
+
 #include "pb.h"
 #include "pb_decode.h"
 #include "pb_common.h"
@@ -409,7 +411,7 @@ static bool checkreturn decode_static_field(pb_istream_t *stream, pb_wire_type_t
     pb_decoder_t func;
     
     type = iter->pos->type;
-    func = PB_DECODERS[PB_LTYPE(type)];
+    func = PIC(PB_DECODERS[PB_LTYPE(type)]);
 
     switch (PB_HTYPE(type))
     {

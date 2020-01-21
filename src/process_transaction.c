@@ -14,7 +14,7 @@ int process_transaction(swap_app_context_t* ctx, unsigned char* input_buffer, in
         PRINTF("Error: Device transaction IDs doesn't match");
         return reply_error(ctx, WRONG_TRANSACTION_ID, send);
     }
-    cx_hash_sha256(input_buffer, input_buffer_length, ctx->transaction_sha256_digest, sizeof(ctx->transaction_sha256_digest));
+    cx_hash_sha256(input_buffer, input_buffer_length, ctx->sha256_digest, sizeof(ctx->sha256_digest));
     unsigned char output_buffer[2] = {0x90, 0x00};
     if (send(output_buffer, 2) < 0) {
         PRINTF("Error: failed to send response");

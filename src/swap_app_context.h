@@ -17,7 +17,7 @@ typedef struct swap_app_context_s {
     partner_data_t partner;
     state_e state;
     ledger_swap_NewTransactionResponse received_transaction;
-    unsigned char transaction_sha256_digest[32];
+    unsigned char sha256_digest[32];
     cx_ecfp_256_public_key_t ledger_public_key;
     unsigned char payin_coin_config[50]; // serialized coin configuration
     int payin_coin_config_length;
