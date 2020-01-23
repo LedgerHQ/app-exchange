@@ -8,4 +8,4 @@ ledger_swap.NewTransactionResponse.currency_from max_size:10;
 ledger_swap.NewTransactionResponse.currency_to max_size:10;
 ledger_swap.NewTransactionResponse.amount_to_provider max_size:16;
 ledger_swap.NewTransactionResponse.amount_to_wallet max_size:16;
-ledger_swap.NewTransactionResponse.device_transaction_id max_size:10;
+ledger_swap.NewTransactionResponse.device_transaction_id max_size:11;
