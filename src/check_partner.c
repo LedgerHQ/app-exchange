@@ -6,12 +6,12 @@
 
 // This function receive signature of
 // Input should be in the form of DER serialized signature 
-// the length should be equal to DER_SIGNATURE_LENGTH
+// the length should be in [MIN_DER_SIGNATURE_LENGTH, MAX_DER_SIGNATURE_LENGTH]
 int check_partner(
     swap_app_context_t* ctx,
     unsigned char* input_buffer, int input_buffer_length,
     SendFunction send) {
-    if (input_buffer_length != DER_SIGNATURE_LENGTH) {
+    if (input_buffer_length < MIN_DER_SIGNATURE_LENGTH || input_buffer_length > MAX_DER_SIGNATURE_LENGTH) {
         PRINTF("Error: Input buffer length don't correspond to DER length");
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }

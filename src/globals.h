@@ -17,6 +17,7 @@ extern unsigned int ux_step_count;
 extern const unsigned char CURVE_SIZE_BYTES;
 extern const unsigned char PUB_KEY_LENGTH;
 extern const unsigned char UNCOMPRESSED_KEY_LENGTH;
-extern const unsigned char DER_SIGNATURE_LENGTH;
+extern const unsigned char MAX_DER_SIGNATURE_LENGTH;
+extern const unsigned char MIN_DER_SIGNATURE_LENGTH;
 
 #endif

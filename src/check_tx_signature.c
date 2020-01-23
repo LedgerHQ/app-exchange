@@ -11,7 +11,9 @@ int check_tx_signature(
     swap_app_context_t* ctx,
     unsigned char* input_buffer, int input_buffer_length,
     SendFunction send) {
-    if (input_buffer_length != CURVE_SIZE_BYTES * 2 + 6) {
+    if (input_buffer_length < MIN_DER_SIGNATURE_LENGTH ||
+        input_buffer_length > MAX_DER_SIGNATURE_LENGTH ||
+        input_buffer[1] + 2 != input_buffer_length) {
         PRINTF("Error: Input buffer length don't correspond to DER length");
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
@@ -28,7 +30,7 @@ int check_tx_signature(
     }
     unsigned char output_buffer[2] = { 0x90, 0x00 };
     if (send(output_buffer, 2) < 0) {
-        PRINTF("Error: ");
+        PRINTF("Error: Can't send message");
         return -1;
     }
     ctx->state = SIGNATURE_CHECKED;
