@@ -1,14 +1,14 @@
 #ifndef SWAP_LIB_CALLS
 #define SWAP_LIB_CALLS
 
-#define SIGN_TRANSACTION_IN 0x200
-#define SIGN_TRANSACTION_OUT 0x201
+#define SIGN_TRANSACTION_IN 0x2000
+#define SIGN_TRANSACTION_OUT 0x2001
 
-#define CHECK_ADDRESS_IN 0x300
-#define CHECK_ADDRESS_OUT 0x301
+#define CHECK_ADDRESS_IN 0x3000
+#define CHECK_ADDRESS_OUT 0x3001
 
-#define GET_PRINTABLE_AMOUNT_IN 0x400
-#define GET_PRINTABLE_AMOUNT_OUT 0x401
+#define GET_PRINTABLE_AMOUNT_IN 0x4000
+#define GET_PRINTABLE_AMOUNT_OUT 0x4001
 
 // structure that should be send to specific coin application to get address
 typedef struct check_address_parameters_s {

@@ -22,6 +22,9 @@
 #include "power_ble.h"
 #include "command_dispatcher.h"
 #include "apdu_offsets.h"
+#include "ux.h"
+
+#include "usbd_core.h"
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
@@ -49,18 +52,22 @@ int output_length = 0;
 io_state_e io_state = READY;
 
 int recv_apdu() {
+    PRINTF("Im inside recv_apdu\n");
     switch (io_state) {
         case READY:
+            PRINTF("In state READY\n");
             io_state = RECEIVED;
             return io_exchange(CHANNEL_APDU, output_length);
         case RECEIVED:
+            PRINTF("In state RECEIVED\n");
             io_state = WAITING_USER;
-            return io_exchange(CHANNEL_APDU | IO_ASYNCH_REPLY, output_length);
+            return io_exchange(CHANNEL_APDU /*| IO_ASYNCH_REPLY*/, output_length);
         case WAITING_USER:
-            PRINTF("Error: Unexpected recv call in WAITING_USER state");
+            PRINTF("Error: Unexpected recv call in WAITING_USER state\n");
             io_state = READY;
             return -1;
     };
+    PRINTF("ERROR unknown state\n");
     return -1;
 }
 
@@ -68,19 +75,22 @@ int recv_apdu() {
 int send_apdu(unsigned char* buffer, unsigned int buffer_length) {
     os_memmove(G_io_apdu_buffer, buffer, buffer_length);
     output_length = buffer_length;
+    PRINTF("Sending apdu\n");
     switch (io_state) {
         case READY:
-            PRINTF("Error: Unexpected send call in READY state");
+            PRINTF("Error: Unexpected send call in READY state\n");
             return -1;
         case RECEIVED:
             io_state = READY;
             return 0;
         case WAITING_USER:
+            PRINTF("Sending reply with IO_RETURN_AFTER_TX\n");
             io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, output_length);
             output_length = 0;
             io_state = READY;
             return 0;
     }
+    PRINTF("Error: Unknown io_state\n");
     return -1;
 }
 
@@ -88,15 +98,29 @@ void app_main(void) {
     int input_length = 0;
     swap_app_context_t ctx;
     init_application_context(&ctx);
-    ui_idle();    
+/*
+    #include "currency_lib_calls.h"
+    unsigned char app_config[1] = {0};
+    unsigned char addressParameters[] = {0x00, 0x05,
+                                        0x80, 0x00, 0x00, 0x31,
+                                        0x80, 0x00, 0x00, 0x00,
+                                        0x80, 0x00, 0x00, 0x00,
+                                        0x00, 0x00, 0x00, 0x00,
+                                        0x00, 0x00, 0x00, 0x00};
+    check_address(app_config, 0, addressParameters, sizeof(addressParameters), "Litecoin", "LfVcteqo74JVakyNqWQtr9tDUkTxjDzGp", "");
+*/
+    ui_idle();
+    output_length = 0;
+    io_state = READY;
     for(;;) {
         input_length = recv_apdu();
+        PRINTF("I have received %d bytes\n", input_length);
         if (input_length == -1) // there were an error, lets start from the beginning
             return;
         if (input_length <= OFFSET_INS ||
             G_io_apdu_buffer[OFFSET_CLA] != CLA ||
             G_io_apdu_buffer[OFFSET_INS] >= COMMAND_UPPER_BOUND) {
-            PRINTF("Error: bad APDU");
+            PRINTF("Error: bad APDU\n");
             return;
         }
         if (dispatch_command(G_io_apdu_buffer[OFFSET_INS], &ctx, G_io_apdu_buffer + OFFSET_CDATA, input_length - OFFSET_CDATA, send_apdu) < 0)
@@ -104,81 +128,9 @@ void app_main(void) {
         if (ctx.state == INITIAL_STATE) {
             ui_idle();
         }
+        UX_REDISPLAY();
     }
 }
-
-// override point, but nothing more to do
-void io_seproxyhal_display(const bagl_element_t *element) {
-    io_seproxyhal_display_default((bagl_element_t*)element);
-}
-
-unsigned char io_event(unsigned char channel) {
-    // nothing done with the event, throw an error on the transport layer if
-    // needed
-    // can't have more than one tag in the reply, not supported yet.
-    switch (G_io_seproxyhal_spi_buffer[0]) {
-        case SEPROXYHAL_TAG_FINGER_EVENT:
-            UX_FINGER_EVENT(G_io_seproxyhal_spi_buffer);
-            break;
-
-        case SEPROXYHAL_TAG_BUTTON_PUSH_EVENT:
-            UX_BUTTON_PUSH_EVENT(G_io_seproxyhal_spi_buffer);
-            break;
-
-        case SEPROXYHAL_TAG_STATUS_EVENT:
-            if (G_io_apdu_media == IO_APDU_MEDIA_USB_HID && !(U4BE(G_io_seproxyhal_spi_buffer, 3) & SEPROXYHAL_TAG_STATUS_EVENT_FLAG_USB_POWERED)) {
-                THROW(EXCEPTION_IO_RESET);
-            }
-            // no break is intentional
-        default:
-            UX_DEFAULT_EVENT();
-            break;
-
-        case SEPROXYHAL_TAG_DISPLAY_PROCESSED_EVENT:
-            UX_DISPLAYED_EVENT({});
-            break;
-
-        case SEPROXYHAL_TAG_TICKER_EVENT:
-            UX_TICKER_EVENT(G_io_seproxyhal_spi_buffer, {});
-            break;
-    }
-
-    // close the event if not done previously (by a display or whatever)
-    if (!io_seproxyhal_spi_is_status_sent()) {
-        io_seproxyhal_general_status();
-    }
-
-    // command has been processed, DO NOT reset the current APDU transport
-    return 1;
-}
-
-
-unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
-    switch (channel & ~(IO_FLAGS)) {
-        case CHANNEL_KEYBOARD:
-            break;
-
-        // multiplexed io exchange over a SPI channel and TLV encapsulated protocol
-        case CHANNEL_SPI:
-            if (tx_len) {
-                io_seproxyhal_spi_send(G_io_apdu_buffer, tx_len);
-
-                if (channel & IO_RESET_AFTER_REPLIED) {
-                    reset();
-                }
-                return 0; // nothing received from the master so far (it's a tx
-                        // transaction)
-            } else {
-                return io_seproxyhal_spi_recv(G_io_apdu_buffer,
-                                            sizeof(G_io_apdu_buffer), 0);
-            }
-
-        default:
-            THROW(INVALID_PARAMETER);
-    }
-    return 0;
-}
-
 
 void app_exit(void) {
 
@@ -199,7 +151,10 @@ __attribute__((section(".boot"))) int main(int arg0) {
 
     // ensure exception will work as planned
     os_boot();
-
+    
+    // TODO: REMOVE ME
+    USBD_Device.dev_state = USBD_STATE_CONFIGURED;
+    
     for (;;) {
         UX_INIT();
 
@@ -207,8 +162,8 @@ __attribute__((section(".boot"))) int main(int arg0) {
             TRY {
                 io_seproxyhal_init();
 
-                USB_power(0);
-                USB_power(1);
+                //USB_power(0);
+                //USB_power(1);
                 power_ble();
               
                 app_main();

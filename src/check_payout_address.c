@@ -16,46 +16,78 @@ int check_payout_address(
     unsigned char der_length;
     unsigned char* address_parameters;
     unsigned char address_parameters_length;
+    unsigned char* ticker;
+    unsigned char ticker_length;
+    unsigned char* application_name;
+    unsigned char application_name_length;
     if (parse_check_address_message(
         input_buffer, input_buffer_length,
         &config, &config_length,
         &der, &der_length,
         &address_parameters, &address_parameters_length) == 0) {
+        PRINTF("Error: Can't parse CHECK_PAYOUT_ADDRESS command\n");
         return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
     }
+    PRINTF("CHECK_PAYOUT_ADDRESS parsed OK\n");
     unsigned char hash[CURVE_SIZE_BYTES];
     cx_hash_sha256(config, config_length, hash, CURVE_SIZE_BYTES);
     if (cx_ecdsa_verify(&ctx->ledger_public_key, CX_LAST, CX_SHA256, hash, CURVE_SIZE_BYTES, der, der_length) == 0) {
-        PRINTF("Error: Fail to verify signature of coin config");
+        PRINTF("Error: Fail to verify signature of coin config\n");
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
+    if (parse_coin_config(config, config_length,
+                          &ticker, &ticker_length,
+                          &application_name, &application_name_length,
+                          &config, &config_length) == 0) {
+        PRINTF("Error: Can't parse payout coin config command\n");
+        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+    }
+    if (ticker_length < 3 || ticker_length > 9) {
+        PRINTF("Error: Ticker length should be in [3, 9]\n");
+        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+    }
+    if (application_name_length < 3 || application_name_length > 15) {
+        PRINTF("Error: Application name should be in [3, 15]\n");
+        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+    }
+    // Check that given ticker match current context
+    if (strlen(ctx->received_transaction.currency_to) != ticker_length ||
+        strncmp(ctx->received_transaction.currency_to, ticker, ticker_length) != 0) {
+        PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
+        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+    }
+    PRINTF("Coin config parsed OK\n");
+    // creating 0-terminated application name
+    char app_name[16] = {0};
+    os_memcpy(app_name, application_name, application_name_length);
     // check address
     if (check_address(
         config,
         config_length,
         address_parameters,
         address_parameters_length,
-        ctx->received_transaction.currency_to,
+        app_name,
         ctx->received_transaction.payout_address,
         ctx->received_transaction.payout_extra_id) != 1) {
-        PRINTF("Error: Payout address validation failed");
+        PRINTF("Error: Payout address validation failed\n");
         return reply_error(ctx, INVALID_ADDRESS, send);
     }
+    PRINTF("Payout address is OK\n");
     // getting printable amount
     if(get_printable_amount(
         config,
         config_length,
-        ctx->received_transaction.currency_to,
+        app_name,
         ctx->received_transaction.amount_to_wallet.bytes,
         ctx->received_transaction.amount_to_wallet.size,
         ctx->printable_get_amount,
         sizeof(ctx->printable_get_amount)) < 0) {
-        PRINTF("Error: Failed to get destination currency printable amount");
+        PRINTF("Error: Failed to get destination currency printable amount\n");
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
     unsigned char output_buffer[2] = {0x90, 0x00};
     if (send(output_buffer, 2) < 0) {
-        PRINTF("Error: failed to send");
+        PRINTF("Error: failed to send\n");
         return -1;
     }
     ctx->state = TO_ADDR_CHECKED;

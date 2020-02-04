@@ -1,5 +1,6 @@
 #include "currency_lib_calls.h"
 #include "swap_lib_calls.h"
+#include "ux.h"
 
 int get_printable_amount(
     unsigned char* coin_config,
@@ -18,18 +19,20 @@ int get_printable_amount(
     libcall_params[0] = (unsigned int)application_name;
     libcall_params[1] = GET_PRINTABLE_AMOUNT_IN;
     libcall_params[2] = (unsigned int)&lib_input_params;
+    // Speculos workaround
+    io_seproxyhal_general_status();
     os_lib_call(libcall_params);
     if (libcall_params[1] != GET_PRINTABLE_AMOUNT_OUT) {
-        PRINTF("Error: Safety check failed on return from library");
+        PRINTF("Error: Safety check failed on return from library\n");
         return -1;
     }
     // result should be null terminated string, so we need to have at least one 0
     if (lib_input_params.printable_amont[printable_amount_size - 1] != 0) {
-        PRINTF("Error: Printable amount should be null-terminated");
+        PRINTF("Error: Printable amount should be null-terminated\n");
         return -1;
     }
     if (strlen(lib_input_params.printable_amont) >= printable_amount_size) {
-        PRINTF("Error: Printable amount is too big to fit into input buffer");
+        PRINTF("Error: Printable amount is too big to fit into input buffer\n");
         return -1;
     }
     strcpy(printable_amount, strlen(lib_input_params.printable_amont));
@@ -50,12 +53,19 @@ int check_address(
     lib_in_out_params.coin_configuration_length = coin_config_length;
     lib_in_out_params.address_parameters = address_parameters;
     lib_in_out_params.address_parameters_length = address_parameters_length;
+    lib_in_out_params.address_to_check = address_to_check;
+    lib_in_out_params.extra_id_to_check = address_extra_to_check;
     libcall_params[0] = (unsigned int)application_name;
     libcall_params[1] = CHECK_ADDRESS_IN;
     libcall_params[2] = (unsigned int)&lib_in_out_params;
+    PRINTF("I am calling %s to check address\n", application_name);
+    PRINTF("I am going to check address %s\n", lib_in_out_params.address_to_check);
+    // Speculos workaround
+    io_seproxyhal_general_status();
     os_lib_call(libcall_params);
+    PRINTF("I am back\n");
     if (libcall_params[1] != CHECK_ADDRESS_OUT) {
-        PRINTF("Error: Safety check failed on return from library");
+        PRINTF("Error: Safety check failed on return from library\n");
         return -1;
     }
     return lib_in_out_params.result;
@@ -80,7 +90,9 @@ void create_payin_transaction(
     libcall_params[0] = (unsigned int)application_name;
     libcall_params[1] = CHECK_ADDRESS_IN;
     libcall_params[2] = (unsigned int)&lib_in_out_params;
+    // Speculos workaround
+    io_seproxyhal_general_status();
     os_lib_call(libcall_params);
     if (libcall_params[1] != CHECK_ADDRESS_OUT) // doesn't affect application flow, just for logging
-        PRINTF("Error: Safety check failed on return from library");
+        PRINTF("Error: Safety check failed on return from library\n");
 }

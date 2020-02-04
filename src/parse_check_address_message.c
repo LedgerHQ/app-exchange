@@ -24,9 +24,9 @@ int parse_check_address_message(
     *config = input_buffer + 1;
     if (input_buffer_length < 2 + MIN_DER_SIGNATURE_LENGTH + *config_length)
         return 0;
-    *der_length = input_buffer[1 + *config_length + 2] + 2;
+    *der_length = input_buffer[1 + *config_length + 1] + 2;
     *der = input_buffer + 1 + *config_length;
-    if (*der_length < MIN_DER_SIGNATURE_LENGTH || *der_length > MAX_DER_SIGNATURE_LENGTH || 2 + *der_length + *config_length)
+    if (*der_length < MIN_DER_SIGNATURE_LENGTH || *der_length > MAX_DER_SIGNATURE_LENGTH || input_buffer_length < 2 + *der_length + *config_length)
         return 0;
     *address_parameters_length = input_buffer[1 + *config_length + *der_length];
     *address_parameters = input_buffer + 1 + *config_length + *der_length + 1;

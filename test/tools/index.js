@@ -20,11 +20,19 @@ const createSignedPartnerPublicKeyAndName = (partnerName, ledgerPrivateKey) => {
     var binaryPartnerName = Buffer.from(partnerName, 'ascii');
     var binaryNameAndPublicKey = Buffer.concat([Buffer.from([binaryPartnerName.length]), binaryPartnerName, swapPartnerPublicKey]);
     var hash = Buffer.from(sha256.sha256.array(binaryNameAndPublicKey));
-    console.log("HASH = " + toHexPrintableConst(hash));
     var signature = secp256k1.sign(hash, ledgerPrivateKey).signature;
-    console.log("signature = " + toHexPrintableConst(signature) + "\n");
     var der = secp256k1.signatureExport(signature)
     return {"privKey":swapPartnerPrivateKey, "serializedPubKeyAndName": binaryNameAndPublicKey, "signatureInDER": der};
+}
+
+const createCurrencyConfig = (ticker, applicationName, coinConfig, ledgerPrivateKey) => {
+    var payload = Buffer.concat([Buffer.from([ticker.length]), Buffer.from(ticker),
+                                Buffer.from([applicationName.length]), Buffer.from(applicationName),
+                                Buffer.from([coinConfig.length]), coinConfig]);
+    var hash = Buffer.from(sha256.sha256.array(payload));
+    var signature = secp256k1.sign(hash, ledgerPrivateKey).signature;
+    var der = secp256k1.signatureExport(signature);
+    return {"coinConfig":payload, "signature": der};
 }
 
 const main = () => {
@@ -43,6 +51,13 @@ const main = () => {
     console.log("SWAP_TEST private key: " + toHexPrintableConst(swapTestData.privKey));
     console.log("SWAP_TEST signed name and pub key: " + toHexPrintableConst(swapTestData.serializedPubKeyAndName));
     console.log("DER signature: " + toHexPrintableConst(swapTestData.signatureInDER));
+    console.log("===========\n");
+    var btcConfig = createCurrencyConfig("BTC", "Bitcoin", Buffer(0), ledgerPrivateKey);
+    var ltcConfig = createCurrencyConfig("LTC", "Litecoin", Buffer(0), ledgerPrivateKey);
+    console.log("BTC config: " +toHexPrintableConst(btcConfig.coinConfig));
+    console.log("BTC config signature: " +toHexPrintableConst(btcConfig.signature));
+    console.log("LTC config: " +toHexPrintableConst(ltcConfig.coinConfig));
+    console.log("LTC config signature: " +toHexPrintableConst(ltcConfig.signature));
 }
 
 

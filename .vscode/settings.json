@@ -18,6 +18,9 @@
         "currency_lib_calls.h": "c",
         "check_payout_address.h": "c",
         "swap_app_context.h": "c",
-        "states.h": "c"
+        "states.h": "c",
+        "usbd_core.h": "c",
+        "menu.h": "c",
+        "glyphs.h": "c"
     }
 }

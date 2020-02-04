@@ -2,7 +2,6 @@
 #include "os.h"
 #include "globals.h"
 #include "currency_lib_calls.h"
-#include "currency_application_map.h"
 #include "user_validate_amounts.h"
 #include "swap_errors.h"
 #include "reply_error.h"
