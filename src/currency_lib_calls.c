@@ -19,6 +19,8 @@ int get_printable_amount(
     libcall_params[0] = (unsigned int)application_name;
     libcall_params[1] = GET_PRINTABLE_AMOUNT_IN;
     libcall_params[2] = (unsigned int)&lib_input_params;
+    PRINTF("Address of printable_amount %d\n", lib_input_params.printable_amount);
+    os_memset(lib_input_params.printable_amount, 0, sizeof(lib_input_params.printable_amount));
     // Speculos workaround
     io_seproxyhal_general_status();
     os_lib_call(libcall_params);
@@ -27,15 +29,15 @@ int get_printable_amount(
         return -1;
     }
     // result should be null terminated string, so we need to have at least one 0
-    if (lib_input_params.printable_amont[printable_amount_size - 1] != 0) {
+    if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != 0) {
         PRINTF("Error: Printable amount should be null-terminated\n");
         return -1;
     }
-    if (strlen(lib_input_params.printable_amont) >= printable_amount_size) {
+    if (strlen(lib_input_params.printable_amount) >= printable_amount_size) {
         PRINTF("Error: Printable amount is too big to fit into input buffer\n");
         return -1;
     }
-    strcpy(printable_amount, strlen(lib_input_params.printable_amont));
+    strcpy(printable_amount, lib_input_params.printable_amount);
     return 0;
 }
 
@@ -88,11 +90,11 @@ void create_payin_transaction(
     lib_in_out_params.destination_address_extra_id = payin_address_extra_id;
     unsigned int libcall_params[3];
     libcall_params[0] = (unsigned int)application_name;
-    libcall_params[1] = CHECK_ADDRESS_IN;
+    libcall_params[1] = SIGN_TRANSACTION_IN;
     libcall_params[2] = (unsigned int)&lib_in_out_params;
     // Speculos workaround
     io_seproxyhal_general_status();
     os_lib_call(libcall_params);
-    if (libcall_params[1] != CHECK_ADDRESS_OUT) // doesn't affect application flow, just for logging
+    if (libcall_params[1] != SIGN_TRANSACTION_OUT) // doesn't affect application flow, just for logging
         PRINTF("Error: Safety check failed on return from library\n");
 }

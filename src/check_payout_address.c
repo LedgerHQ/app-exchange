@@ -60,6 +60,7 @@ int check_payout_address(
     // creating 0-terminated application name
     char app_name[16] = {0};
     os_memcpy(app_name, application_name, application_name_length);
+    PRINTF("PATH inside the SWAP = %.*H\n", address_parameters_length, address_parameters);
     // check address
     if (check_address(
         config,
@@ -85,6 +86,7 @@ int check_payout_address(
         PRINTF("Error: Failed to get destination currency printable amount\n");
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
+    PRINTF("Amount = %s\n", ctx->printable_get_amount);
     unsigned char output_buffer[2] = {0x90, 0x00};
     if (send(output_buffer, 2) < 0) {
         PRINTF("Error: failed to send\n");

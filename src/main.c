@@ -25,10 +25,10 @@
 #include "ux.h"
 
 #include "usbd_core.h"
+#define CLA 0xE0
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-
-#define CLA 0xE0
+swap_app_context_t ctx;
 
 // recv()
 // send()
@@ -96,19 +96,33 @@ int send_apdu(unsigned char* buffer, unsigned int buffer_length) {
 
 void app_main(void) {
     int input_length = 0;
-    swap_app_context_t ctx;
     init_application_context(&ctx);
 /*
     #include "currency_lib_calls.h"
     unsigned char app_config[1] = {0};
-    unsigned char addressParameters[] = {0x00, 0x05,
+    unsigned char addressParameters[] = {0x00, // format
+                                        0x05,  // length
                                         0x80, 0x00, 0x00, 0x31,
                                         0x80, 0x00, 0x00, 0x00,
                                         0x80, 0x00, 0x00, 0x00,
                                         0x00, 0x00, 0x00, 0x00,
                                         0x00, 0x00, 0x00, 0x00};
-    check_address(app_config, 0, addressParameters, sizeof(addressParameters), "Litecoin", "LfVcteqo74JVakyNqWQtr9tDUkTxjDzGp", "");
-*/
+    char address[50] = "LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD";
+    check_address(app_config, 0, addressParameters, sizeof(addressParameters), "Litecoin", address, "");
+*/    
+    #include "currency_lib_calls.h"
+    unsigned char app_config[1] = {0};
+    unsigned char amount[8] = {0x05, 0xF5, 0xE1, 0x00};
+    char printable_amount[30];
+    get_printable_amount(
+        app_config,
+        0,
+        "Litecoin",
+        amount,
+        4,
+        printable_amount,
+        sizeof(printable_amount));
+    PRINTF("Amount = %s\n", printable_amount);
     ui_idle();
     output_length = 0;
     io_state = READY;
