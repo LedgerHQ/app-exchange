@@ -37,7 +37,7 @@ int check_refund_address(
     if (parse_coin_config(config, config_length,
                           &ticker, &ticker_length,
                           &application_name, &application_name_length,
-                          &config, &config_length) == 0) {
+                          &ctx->payin_coin_config, &ctx->payin_coin_config_length) == 0) {
         PRINTF("Error: Can't parse refund coin config command\n");
         return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
     }
@@ -55,26 +55,18 @@ int check_refund_address(
         PRINTF("Error: Refund ticker doesn't match configuration ticker\n");
         return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
     }
-    // copy payin configuration, we will need it later
-    if (config_length > sizeof(ctx->payin_coin_config)) {
-        PRINTF("Error: Currency config is too big");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
-    }
-    ctx->payin_coin_config_length = config_length;
-    os_memcpy(ctx->payin_coin_config, config, ctx->payin_coin_config_length);
-    PRINTF("Coin config parsed OK\n");
     // creating 0-terminated application name
-    char app_name[16] = {0};
-    os_memcpy(app_name, application_name, application_name_length);
+    os_memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
+    os_memcpy(ctx->payin_binary_name, application_name, application_name_length);
     // check address
     if (check_address(
         ctx->payin_coin_config,
         ctx->payin_coin_config_length,
         address_parameters,
         address_parameters_length,
-        ctx->received_transaction.currency_from,
+        ctx->payin_binary_name,
         ctx->received_transaction.refund_address,
-        ctx->received_transaction.refund_extra_id) < 0) {
+        ctx->received_transaction.refund_extra_id) != 1) {
         PRINTF("Error: Refund address validation failed");
         return reply_error(ctx, INVALID_ADDRESS, send);
     }
@@ -82,7 +74,7 @@ int check_refund_address(
     if (get_printable_amount(
         ctx->payin_coin_config,
         ctx->payin_coin_config_length,
-        ctx->received_transaction.currency_from,
+        ctx->payin_binary_name,
         ctx->received_transaction.amount_to_provider.bytes,
         ctx->received_transaction.amount_to_provider.size,
         printable_send_amount,
@@ -90,5 +82,6 @@ int check_refund_address(
         PRINTF("Error: Failed to get source currency printable amount");
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
+    ctx->state = WAITING_USER_VALIDATION;
     return user_validate_amounts(printable_send_amount, ctx->printable_get_amount, ctx->partner.name, ctx, send);
 }

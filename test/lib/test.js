@@ -148,10 +148,112 @@ test('Wrong transactions signature should be rejected', async () => {
   await expect(swap.checkTransactionSignature(wrongSign))
     .rejects.toEqual(new Error("Swap application report error SIGN_VERIFICATION_FAIL"));
 })
+
+
+test('Wrong payout address should be rejected', async () => {
+  jest.setTimeout(100000);
+  const transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
+  const swap: Swap = new Swap(transport);
+  const btc: Btc = new Btc(transport);
+  const transactionId: string  = await swap.startNewTransaction();
+  await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+  await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+  var tr  = new proto.ledger_swap.NewTransactionResponse();
+  tr.setPayinAddress("2324234324324234");
+  tr.setPayinExtraId("");
+  tr.setRefundAddress("sfdsfdsfsdfdsfsdf");
+  tr.setRefundExtraId("");
+  tr.setPayoutAddress("LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjL");
+  tr.setPayoutExtraId("");
+  tr.setCurrencyFrom("BTC");
+  tr.setCurrencyTo("LTC");
+  // 1 BTC to 1 LTC
+  tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
+  tr.setAmountToWallet(numberToBigEndianBuffer(48430000000000000000));
+  tr.setDeviceTransactionId(transactionId);
+
+  const payload: Buffer = Buffer.from(tr.serializeBinary());
+  await swap.processTransaction(payload);
+  const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+  const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+  await swap.checkTransactionSignature(signature);
+  const params = await btc.getSerializedAddressParameters("49'/0'/0'/0/0");
+  console.log(params);
+  await expect(swap.checkPayoutAddress(LTCConfig, LTCConfigSignature, params.addressParameters))
+    .rejects.toEqual(new Error("Swap application report error INVALID_ADDRESS"));
+})
+
+
+test('Valid payout address should be accepted', async () => {
+  jest.setTimeout(100000);
+  const transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
+  const swap: Swap = new Swap(transport);
+  const btc: Btc = new Btc(transport);
+  const transactionId: string  = await swap.startNewTransaction();
+  await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+  await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+  var tr  = new proto.ledger_swap.NewTransactionResponse();
+  tr.setPayinAddress("2324234324324234");
+  tr.setPayinExtraId("");
+  tr.setRefundAddress("sfdsfdsfsdfdsfsdf");
+  tr.setRefundExtraId("");
+  tr.setPayoutAddress("LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD");
+  tr.setPayoutExtraId("");
+  tr.setCurrencyFrom("BTC");
+  tr.setCurrencyTo("LTC");
+  // 1 BTC to 10 LTC
+  tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
+  tr.setAmountToWallet(numberToBigEndianBuffer(1000000000));
+  tr.setDeviceTransactionId(transactionId);
+
+  const payload: Buffer = Buffer.from(tr.serializeBinary());
+  await swap.processTransaction(payload);
+  const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+  const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+  await swap.checkTransactionSignature(signature);
+  const params = await btc.getSerializedAddressParameters("49'/0'/0'/0/0");
+  console.log(params);
+  await expect(swap.checkPayoutAddress(LTCConfig, LTCConfigSignature, params.addressParameters)).resolves.toBe(undefined);
+})
+
+test('Wrong refund address should be rejected', async () => {
+  jest.setTimeout(100000);
+  const transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
+  const swap: Swap = new Swap(transport);
+  const btc: Btc = new Btc(transport);
+  const transactionId: string  = await swap.startNewTransaction();
+  await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+  await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+  var tr  = new proto.ledger_swap.NewTransactionResponse();
+  tr.setPayinAddress("2324234324324234");
+  tr.setPayinExtraId("");
+  tr.setRefundAddress("sfdsfdsfsdfdsfsdf");
+  tr.setRefundExtraId("");
+  tr.setPayoutAddress("LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD");
+  tr.setPayoutExtraId("");
+  tr.setCurrencyFrom("BTC");
+  tr.setCurrencyTo("LTC");
+  // 1 BTC to 10 LTC
+  tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
+  tr.setAmountToWallet(numberToBigEndianBuffer(1000000000));
+  tr.setDeviceTransactionId(transactionId);
+
+  const payload: Buffer = Buffer.from(tr.serializeBinary());
+  await swap.processTransaction(payload);
+  const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+  const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+  await swap.checkTransactionSignature(signature);
+  const ltcAddressParams = await btc.getSerializedAddressParameters("49'/0'/0'/0/0");
+  await swap.checkPayoutAddress(LTCConfig, LTCConfigSignature, ltcAddressParams.addressParameters);
+
+  const btcAddressParams = await btc.getSerializedAddressParameters("84'/0'/0'/1/0", "bech32");
+  await expect(swap.checkRefundAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters))
+    .rejects.toEqual(new Error("Swap application report error INVALID_ADDRESS"));
+})
 */
 
 
-test('Payout address should be checked', async () => {
+test('Valid refund address should be accepted', async () => {
   jest.setTimeout(100000);
   const transport = await _HttpTransport.default.open("http://127.0.0.1:9998");
   const swap = new _hwAppSwap.default(transport);
@@ -162,15 +264,15 @@ test('Payout address should be checked', async () => {
   var tr = new proto.ledger_swap.NewTransactionResponse();
   tr.setPayinAddress("2324234324324234");
   tr.setPayinExtraId("");
-  tr.setRefundAddress("sfdsfdsfsdfdsfsdf");
+  tr.setRefundAddress("bc1qwpgezdcy7g6khsald7cww42lva5g5dmasn6y2z");
   tr.setRefundExtraId("");
-  tr.setPayoutAddress("asdasdassasadsada");
+  tr.setPayoutAddress("LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD");
   tr.setPayoutExtraId("");
   tr.setCurrencyFrom("BTC");
-  tr.setCurrencyTo("LTC"); // 1 BTC to 1 LTC
+  tr.setCurrencyTo("LTC"); // 1 BTC to 10 LTC
 
   tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
-  tr.setAmountToWallet(numberToBigEndianBuffer(48430000000000000000));
+  tr.setAmountToWallet(numberToBigEndianBuffer(1000000000));
   tr.setDeviceTransactionId(transactionId);
   const payload = Buffer.from(tr.serializeBinary());
   await swap.processTransaction(payload);
@@ -179,7 +281,8 @@ test('Payout address should be checked', async () => {
   const signature = _secp256k.default.signatureExport(_secp256k.default.sign(digest, swapTestPrivateKey).signature);
 
   await swap.checkTransactionSignature(signature);
-  const params = await btc.getSerializedAddressParameters("49'/0'/0'/0/0");
-  console.log(params);
-  await expect(swap.checkPayoutAddress(LTCConfig, LTCConfigSignature, params.addressParameters)).resolves.toBe(undefined);
+  const ltcAddressParams = await btc.getSerializedAddressParameters("49'/0'/0'/0/0");
+  await swap.checkPayoutAddress(LTCConfig, LTCConfigSignature, ltcAddressParams.addressParameters);
+  const btcAddressParams = await btc.getSerializedAddressParameters("84'/0'/0'/1/0", "bech32");
+  await expect(swap.checkRefundAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters)).resolves.toBe(undefined);
 });

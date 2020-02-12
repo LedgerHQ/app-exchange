@@ -61,7 +61,7 @@ int recv_apdu() {
         case RECEIVED:
             PRINTF("In state RECEIVED\n");
             io_state = WAITING_USER;
-            return io_exchange(CHANNEL_APDU /*| IO_ASYNCH_REPLY*/, output_length);
+            return io_exchange(CHANNEL_APDU | IO_ASYNCH_REPLY, output_length);
         case WAITING_USER:
             PRINTF("Error: Unexpected recv call in WAITING_USER state\n");
             io_state = READY;
@@ -108,21 +108,20 @@ void app_main(void) {
                                         0x00, 0x00, 0x00, 0x00,
                                         0x00, 0x00, 0x00, 0x00};
     char address[50] = "LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD";
-    check_address(app_config, 0, addressParameters, sizeof(addressParameters), "Litecoin", address, "");
-*/    
-    #include "currency_lib_calls.h"
-    unsigned char app_config[1] = {0};
+    check_address(app_config, 0, addressParameters, sizeof(addressParameters), "Bitcoin", address, "");
+
     unsigned char amount[8] = {0x05, 0xF5, 0xE1, 0x00};
     char printable_amount[30];
     get_printable_amount(
         app_config,
         0,
-        "Litecoin",
+        "Bitcoin",
         amount,
         4,
         printable_amount,
         sizeof(printable_amount));
     PRINTF("Amount = %s\n", printable_amount);
+*/
     ui_idle();
     output_length = 0;
     io_state = READY;
@@ -142,7 +141,6 @@ void app_main(void) {
         if (ctx.state == INITIAL_STATE) {
             ui_idle();
         }
-        UX_REDISPLAY();
     }
 }
 
@@ -166,9 +164,6 @@ __attribute__((section(".boot"))) int main(int arg0) {
     // ensure exception will work as planned
     os_boot();
     
-    // TODO: REMOVE ME
-    USBD_Device.dev_state = USBD_STATE_CONFIGURED;
-    
     for (;;) {
         UX_INIT();
 
@@ -176,8 +171,8 @@ __attribute__((section(".boot"))) int main(int arg0) {
             TRY {
                 io_seproxyhal_init();
 
-                //USB_power(0);
-                //USB_power(1);
+                USB_power(0);
+                USB_power(1);
                 power_ble();
               
                 app_main();

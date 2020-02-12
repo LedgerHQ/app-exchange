@@ -23,15 +23,20 @@ swap_app_context_t* application_context;
 SendFunction send_function;
 
 unsigned int ui_verify_message_signature_nanos_button(unsigned int button_mask, unsigned int button_mask_counter) {
+    PRINTF("I am inside button handler\n");
     unsigned char buffer[1] = {0};
     switch (button_mask) {
         case BUTTON_EVT_RELEASED | BUTTON_LEFT:
             buffer[0] = 0;
-            dispatch_command(USER_VALIDATION_RESPONSE, application_context, buffer, 1, send_function);        
+            PRINTF("Left button pressed\n");
+            dispatch_command(USER_VALIDATION_RESPONSE, application_context, buffer, 1, send_function);
+            ui_idle();        
         break;
         case BUTTON_EVT_RELEASED | BUTTON_RIGHT:
             buffer[0] = 1;
+            PRINTF("Right pressed\n");
             dispatch_command(USER_VALIDATION_RESPONSE, application_context, buffer, 1, send_function);
+            ui_idle();
         break;
     }
     return 0;
