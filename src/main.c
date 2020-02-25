@@ -122,7 +122,16 @@ void app_main(void) {
         sizeof(printable_amount));
     PRINTF("Amount = %s\n", printable_amount);
 */
+  
+    
     ui_idle();
+
+
+    #include "currency_lib_calls.h"
+    unsigned char app_config[1] = {0};
+    unsigned char amount[1] = {0};
+    create_payin_transaction(app_config, 0, "Bitcoin", amount, 1, "blablalba", "");
+
     output_length = 0;
     io_state = READY;
     for(;;) {
@@ -173,6 +182,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
 
                 USB_power(0);
                 USB_power(1);
+
                 power_ble();
               
                 app_main();

@@ -1,5 +1,5 @@
-const secp256k1 = require('secp256k1')
-const sha256 = require('js-sha256').sha256
+const secp256k1 = require('secp256k1');
+const sha256 = require('js-sha256').sha256;
 
 const toHexPrintableConst  = (buffer) => {
     var ans = "{0x" + buffer[0].toString(16).toUpperCase();
@@ -7,6 +7,15 @@ const toHexPrintableConst  = (buffer) => {
         ans += ", 0x" + buffer[i].toString(16).toUpperCase();
     ans +="}"
     return ans;
+}
+
+const serializeSignedPartnerPublicKeyAndName = (partnerName, swapPartnerPublicKey, ledgerPrivateKey) => {
+    var binaryPartnerName = Buffer.from(partnerName, 'ascii');
+    var binaryNameAndPublicKey = Buffer.concat([Buffer.from([binaryPartnerName.length]), binaryPartnerName, swapPartnerPublicKey]);
+    var hash = Buffer.from(sha256.sha256.array(binaryNameAndPublicKey));
+    var signature = secp256k1.sign(hash, ledgerPrivateKey).signature;
+    var der = secp256k1.signatureExport(signature)
+    return {"privKey": "NONONO", "serializedPubKeyAndName": binaryNameAndPublicKey, "signatureInDER": der};
 }
 
 const createSignedPartnerPublicKeyAndName = (partnerName, ledgerPrivateKey) => {
@@ -17,12 +26,7 @@ const createSignedPartnerPublicKeyAndName = (partnerName, ledgerPrivateKey) => {
 
     const swapPartnerPublicKey = secp256k1.publicKeyCreate(swapPartnerPrivateKey, false);
 
-    var binaryPartnerName = Buffer.from(partnerName, 'ascii');
-    var binaryNameAndPublicKey = Buffer.concat([Buffer.from([binaryPartnerName.length]), binaryPartnerName, swapPartnerPublicKey]);
-    var hash = Buffer.from(sha256.sha256.array(binaryNameAndPublicKey));
-    var signature = secp256k1.sign(hash, ledgerPrivateKey).signature;
-    var der = secp256k1.signatureExport(signature)
-    return {"privKey":swapPartnerPrivateKey, "serializedPubKeyAndName": binaryNameAndPublicKey, "signatureInDER": der};
+    return {...serializeSignedPartnerPublicKeyAndName(partnerName, swapPartnerPublicKey, ledgerPrivateKey), "privKey":swapPartnerPrivateKey,};
 }
 
 const createCurrencyConfig = (ticker, applicationName, coinConfig, ledgerPrivateKey) => {
@@ -36,6 +40,7 @@ const createCurrencyConfig = (ticker, applicationName, coinConfig, ledgerPrivate
 }
 
 const main = () => {
+    const changellyPubKey = secp256k1.publicKeyConvert(Buffer.from('0380d7c0d3a9183597395f58dda05999328da6f18fabd5cda0aff8e8e3fc633436', 'hex'), false)
     const ledgerPrivateKey = Buffer.from(sha256.sha256.array('Ledger'))
 
     if (!secp256k1.privateKeyVerify(ledgerPrivateKey))
@@ -47,13 +52,20 @@ const main = () => {
     console.log("Ledger compressed public key: " + toHexPrintableConst(ledgerPublicKey) + "\n");
     console.log("Ledger public key: " + toHexPrintableConst(uncompressed) + "\n");
     console.log("===========\n");
+    /*
     swapTestData = createSignedPartnerPublicKeyAndName("SWAP_TEST", ledgerPrivateKey);
     console.log("SWAP_TEST private key: " + toHexPrintableConst(swapTestData.privKey));
     console.log("SWAP_TEST signed name and pub key: " + toHexPrintableConst(swapTestData.serializedPubKeyAndName));
     console.log("DER signature: " + toHexPrintableConst(swapTestData.signatureInDER));
     console.log("===========\n");
-    var btcConfig = createCurrencyConfig("BTC", "Bitcoin", Buffer(0), ledgerPrivateKey);
-    var ltcConfig = createCurrencyConfig("LTC", "Litecoin", Buffer(0), ledgerPrivateKey);
+    */
+    changellyData = serializeSignedPartnerPublicKeyAndName("Changelly", changellyPubKey, ledgerPrivateKey);
+    console.log("Changelly private key: " + toHexPrintableConst(changellyData.privKey));
+    console.log("Changelly signed name and pub key: " + toHexPrintableConst(changellyData.serializedPubKeyAndName));
+    console.log("DER signature: " + toHexPrintableConst(changellyData.signatureInDER));
+
+    var btcConfig = createCurrencyConfig("btc", "Bitcoin", Buffer(0), ledgerPrivateKey);
+    var ltcConfig = createCurrencyConfig("ltc", "Litecoin", Buffer(0), ledgerPrivateKey);
     console.log("BTC config: " +toHexPrintableConst(btcConfig.coinConfig));
     console.log("BTC config signature: " +toHexPrintableConst(btcConfig.signature));
     console.log("LTC config: " +toHexPrintableConst(ltcConfig.coinConfig));

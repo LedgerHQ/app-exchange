@@ -4,6 +4,8 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
+    "bip39": "^3.0.2",
+    "bitcoinjs-lib": "^5.1.7",
     "js-sha256": "^0.9.0",
     "secp256k1": "^3.7.1"
   }
