@@ -92,9 +92,9 @@ void create_payin_transaction(
     libcall_params[0] = (unsigned int)application_name;
     libcall_params[1] = SIGN_TRANSACTION_IN;
     libcall_params[2] = (unsigned int)&lib_in_out_params;
-    // Speculos workaround
-    io_seproxyhal_general_status();
     os_lib_call(libcall_params);
     if (libcall_params[1] != SIGN_TRANSACTION_OUT) // doesn't affect application flow, just for logging
         PRINTF("Error: Safety check failed on return from library\n");
+    USB_power(0);
+    USB_power(1);
 }
