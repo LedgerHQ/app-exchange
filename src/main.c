@@ -100,37 +100,10 @@ void app_main(void) {
 /*
     #include "currency_lib_calls.h"
     unsigned char app_config[1] = {0};
-    unsigned char addressParameters[] = {0x00, // format
-                                        0x05,  // length
-                                        0x80, 0x00, 0x00, 0x31,
-                                        0x80, 0x00, 0x00, 0x00,
-                                        0x80, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00,
-                                        0x00, 0x00, 0x00, 0x00};
-    char address[50] = "LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD";
-    check_address(app_config, 0, addressParameters, sizeof(addressParameters), "Bitcoin", address, "");
-
-    unsigned char amount[8] = {0x05, 0xF5, 0xE1, 0x00};
-    char printable_amount[30];
-    get_printable_amount(
-        app_config,
-        0,
-        "Bitcoin",
-        amount,
-        4,
-        printable_amount,
-        sizeof(printable_amount));
-    PRINTF("Amount = %s\n", printable_amount);
-*/
-  
-    
-    ui_idle();
-
-
-    #include "currency_lib_calls.h"
-    unsigned char app_config[1] = {0};
     unsigned char amount[1] = {0};
     create_payin_transaction(app_config, 0, "Bitcoin", amount, 1, "blablalba", "");
+*/
+    ui_idle();
 
     output_length = 0;
     io_state = READY;
