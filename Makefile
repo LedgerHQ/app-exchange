@@ -81,6 +81,7 @@ else
 DEFINES   	  += IO_SEPROXYHAL_BUFFER_SIZE_B=128
 endif
 
+DEFINES	      += HAVE_STACK_OVERFLOW_CHECK
 # Enabling debug PRINTF
 DEBUG = 1
 ifneq ($(DEBUG),0)
@@ -117,6 +118,7 @@ CC       := $(CLANGPATH)clang
 
 #CFLAGS   += -O0
 CFLAGS   += -O3 -Os
+CFLAGS   += -I/usr/include/
 
 AS     := $(GCCPATH)arm-none-eabi-gcc
 
