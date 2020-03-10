@@ -14,10 +14,10 @@ extern ux_state_t ux;
 extern unsigned int ux_step;
 extern unsigned int ux_step_count;
 
-extern const unsigned char CURVE_SIZE_BYTES;
-extern const unsigned char PUB_KEY_LENGTH;
-extern const unsigned char UNCOMPRESSED_KEY_LENGTH;
-extern const unsigned char MAX_DER_SIGNATURE_LENGTH;
-extern const unsigned char MIN_DER_SIGNATURE_LENGTH;
+#define CURVE_SIZE_BYTES    32U
+#define PUB_KEY_LENGTH      33U
+#define UNCOMPRESSED_KEY_LENGTH 65U
+#define MAX_DER_SIGNATURE_LENGTH 72U
+#define MIN_DER_SIGNATURE_LENGTH 70U
 
 #endif

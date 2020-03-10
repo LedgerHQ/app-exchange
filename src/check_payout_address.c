@@ -29,7 +29,7 @@ int check_payout_address(
         return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
     }
     PRINTF("CHECK_PAYOUT_ADDRESS parsed OK\n");
-    unsigned char hash[CURVE_SIZE_BYTES];
+    static unsigned char hash[CURVE_SIZE_BYTES];
     cx_hash_sha256(config, config_length, hash, CURVE_SIZE_BYTES);
     if (cx_ecdsa_verify(&ctx->ledger_public_key, CX_LAST, CX_SHA256, hash, CURVE_SIZE_BYTES, der, der_length) == 0) {
         PRINTF("Error: Fail to verify signature of coin config\n");
@@ -58,8 +58,9 @@ int check_payout_address(
     }
     PRINTF("Coin config parsed OK\n");
     // creating 0-terminated application name
-    char app_name[16] = {0};
+    static char app_name[16];
     os_memcpy(app_name, application_name, application_name_length);
+    app_name[application_name_length] = 0;
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters_length, address_parameters);
     // check address
     if (check_address(
