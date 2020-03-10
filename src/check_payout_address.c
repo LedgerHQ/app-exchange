@@ -10,16 +10,16 @@ int check_payout_address(
     swap_app_context_t* ctx,
     unsigned char* input_buffer, int input_buffer_length,
     SendFunction send) {
-    unsigned char* config;
-    unsigned char config_length;
-    unsigned char* der;
-    unsigned char der_length;
-    unsigned char* address_parameters;
-    unsigned char address_parameters_length;
-    unsigned char* ticker;
-    unsigned char ticker_length;
-    unsigned char* application_name;
-    unsigned char application_name_length;
+    static unsigned char* config;
+    static unsigned char config_length;
+    static unsigned char* der;
+    static unsigned char der_length;
+    static unsigned char* address_parameters;
+    static unsigned char address_parameters_length;
+    static unsigned char* ticker;
+    static unsigned char ticker_length;
+    static unsigned char* application_name;
+    static unsigned char application_name_length;
     if (parse_check_address_message(
         input_buffer, input_buffer_length,
         &config, &config_length,

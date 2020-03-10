@@ -50,7 +50,7 @@ int check_address(
     char * address_to_check,
     char * address_extra_to_check) {
     unsigned int libcall_params[3];
-    check_address_parameters_t lib_in_out_params = {0};
+    static check_address_parameters_t lib_in_out_params = {0};
     lib_in_out_params.coin_configuration = coin_config;
     lib_in_out_params.coin_configuration_length = coin_config_length;
     lib_in_out_params.address_parameters = address_parameters;
