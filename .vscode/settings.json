@@ -21,6 +21,7 @@
         "states.h": "c",
         "usbd_core.h": "c",
         "menu.h": "c",
-        "glyphs.h": "c"
+        "glyphs.h": "c",
+        "user_validation.h": "c"
     }
 }

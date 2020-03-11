@@ -97,12 +97,7 @@ int send_apdu(unsigned char* buffer, unsigned int buffer_length) {
 void app_main(void) {
     int input_length = 0;
     init_application_context(&ctx);
-/*
-    #include "currency_lib_calls.h"
-    unsigned char app_config[1] = {0};
-    unsigned char amount[1] = {0};
-    create_payin_transaction(app_config, 0, "Bitcoin", amount, 1, "blablalba", "");
-*/
+
     ui_idle();
 
     output_length = 0;
@@ -118,10 +113,20 @@ void app_main(void) {
             PRINTF("Error: bad APDU\n");
             return;
         }
+        
         if (dispatch_command(G_io_apdu_buffer[OFFSET_INS], &ctx, G_io_apdu_buffer + OFFSET_CDATA, input_length - OFFSET_CDATA, send_apdu) < 0)
             return; // some non recoverable error happened
+
         if (ctx.state == INITIAL_STATE) {
             ui_idle();
+            {
+                //TODO: REMOVE ME
+
+                #include "currency_lib_calls.h"
+                unsigned char app_config[1] = {0};
+                unsigned char amount[1] = {0};
+                create_payin_transaction(app_config, 0, "Bitcoin", amount, 1, "blablalba", "");
+            }
         }
     }
 }

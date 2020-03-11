@@ -82,6 +82,7 @@ int check_refund_address(
         PRINTF("Error: Failed to get source currency printable amount");
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
+
     ctx->state = WAITING_USER_VALIDATION;
     return user_validate_amounts(printable_send_amount, ctx->printable_get_amount, ctx->partner.name, ctx, send);
 }

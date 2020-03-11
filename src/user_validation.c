@@ -20,13 +20,13 @@ int user_validation(swap_app_context_t* ctx, unsigned char* input_buffer, int in
         return  -1;
     }
     ctx->state = INITIAL_STATE;
-    create_payin_transaction(
-        ctx->payin_coin_config,
-        ctx->payin_coin_config_length,
-        ctx->payin_binary_name,
-        ctx->received_transaction.amount_to_provider.bytes,
-        ctx->received_transaction.amount_to_provider.size,
-        ctx->received_transaction.payin_address,
-        ctx->received_transaction.payin_extra_id);
+    // create_payin_transaction(
+    //     ctx->payin_coin_config,
+    //     ctx->payin_coin_config_length,
+    //     ctx->payin_binary_name,
+    //     ctx->received_transaction.amount_to_provider.bytes,
+    //     ctx->received_transaction.amount_to_provider.size,
+    //     ctx->received_transaction.payin_address,
+    //     ctx->received_transaction.payin_extra_id);
     return 0;
 }

@@ -81,7 +81,7 @@ void create_payin_transaction(
     unsigned char amount_size,
     char * payin_address,
     char * payin_address_extra_id) {
-    create_transaction_parameters_t lib_in_out_params = {0};
+    static create_transaction_parameters_t lib_in_out_params = {0};
     lib_in_out_params.amount = amount;
     lib_in_out_params.amount_length = amount_size;
     lib_in_out_params.coin_configuration = coin_config;
