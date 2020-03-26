@@ -1,6 +1,8 @@
 #ifndef _SOURCE_CURRENCY_LIB_CALLS_H_
 #define _SOURCE_CURRENCY_LIB_CALLS_H_
 
+#include "swap_lib_calls.h"
+
 // return 1 if the address match, 0 is not match,
 // other values in case of error
 int check_address(
@@ -13,13 +15,9 @@ int check_address(
     char * address_extra_id_to_check);
 
 void create_payin_transaction(
-    unsigned char* coin_config,
-    unsigned char coin_config_length,
     char * application_name,
-    unsigned char * amount,
-    unsigned char amount_size,
-    char * payin_address,
-    char * payin_address_extra_id);
+    create_transaction_parameters_t *params
+);
 
 int get_printable_amount(
     unsigned char* coin_config,

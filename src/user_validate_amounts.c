@@ -19,6 +19,17 @@
 // Only one scrolling text per screen can be displayed
 #define UI_NANOS_SCROLLING_TEXT(userid, x, y, w, text, font) {{BAGL_LABELINE,userid,x,y,w,12,0x80|10,0,0,COLOR_WHITE,0,font|BAGL_FONT_ALIGNMENT_CENTER,26},(char *)text,0,0,0,NULL,NULL,NULL}
 
+char send[30];
+char get[30] = {0};
+
+const bagl_element_t ui_verify_message_signature_nanos[] = {
+        UI_NANOS_BACKGROUND(),
+        UI_NANOS_ICON_LEFT(0, BAGL_GLYPH_ICON_CROSS),
+        UI_NANOS_ICON_RIGHT(0, BAGL_GLYPH_ICON_CHECK),
+        UI_NANOS_TEXT(1, 0, 12, 128, send, BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
+        UI_NANOS_TEXT(1, 0, 26, 128, get, BAGL_FONT_OPEN_SANS_EXTRABOLD_11px)
+};
+
 swap_app_context_t* application_context;
 SendFunction send_function;
 
@@ -50,25 +61,16 @@ int user_validate_amounts(
     SendFunction send_func) {
     application_context = ctx;
     send_function = send_func;
-    char send[30] = {0};
-    int res = snprintf(send, sizeof(send), "Send %s", send_amount);
+     int res = snprintf(send, sizeof(send), "Send %s", send_amount);
     if ((res >= sizeof(send)) || (res < 0)) {
         PRINTF("Error: String amount representaition is too big");
         return -INVALID_PARAMETER;
     }
-    char get[30] = {0};
     res = snprintf(get, sizeof(get), "Get %s", get_amount);
     if ((res >= sizeof(send)) || (res < 0)) {
         PRINTF("Error: String amount representaition is too big");
         return -INVALID_PARAMETER;
     }
-    bagl_element_t ui_verify_message_signature_nanos[] = {
-        UI_NANOS_BACKGROUND(),
-        UI_NANOS_ICON_LEFT(0, BAGL_GLYPH_ICON_CROSS),
-        UI_NANOS_ICON_RIGHT(0, BAGL_GLYPH_ICON_CHECK),
-        UI_NANOS_TEXT(1, 0, 12, 128, send, BAGL_FONT_OPEN_SANS_EXTRABOLD_11px),
-        UI_NANOS_TEXT(1, 0, 26, 128, get, BAGL_FONT_OPEN_SANS_EXTRABOLD_11px)
-    };
     UX_DISPLAY(ui_verify_message_signature_nanos, 0);
     return 0;
 }

@@ -1,5 +1,4 @@
 #include "currency_lib_calls.h"
-#include "swap_lib_calls.h"
 #include "ux.h"
 
 int get_printable_amount(
@@ -10,8 +9,8 @@ int get_printable_amount(
     unsigned char amount_size,
     char* printable_amount,
     unsigned char printable_amount_size) {
-    unsigned int libcall_params[3];
-    get_printable_amount_parameters_t lib_input_params = {0};
+    static unsigned int libcall_params[3];
+    static get_printable_amount_parameters_t lib_input_params = {0};
     lib_input_params.coin_configuration = coin_config;
     lib_input_params.coin_configuration_length = coin_config_length;
     lib_input_params.amount = amount;
@@ -49,7 +48,7 @@ int check_address(
     char * application_name,
     char * address_to_check,
     char * address_extra_to_check) {
-    unsigned int libcall_params[3];
+    static unsigned int libcall_params[3];
     static check_address_parameters_t lib_in_out_params = {0};
     lib_in_out_params.coin_configuration = coin_config;
     lib_in_out_params.coin_configuration_length = coin_config_length;
@@ -74,24 +73,13 @@ int check_address(
 }
 
 void create_payin_transaction(
-    unsigned char* coin_config,
-    unsigned char coin_config_length,
     char * application_name,
-    unsigned char * amount,
-    unsigned char amount_size,
-    char * payin_address,
-    char * payin_address_extra_id) {
-    static create_transaction_parameters_t lib_in_out_params = {0};
-    lib_in_out_params.amount = amount;
-    lib_in_out_params.amount_length = amount_size;
-    lib_in_out_params.coin_configuration = coin_config;
-    lib_in_out_params.coin_configuration_length = coin_config_length;
-    lib_in_out_params.destination_address = payin_address;
-    lib_in_out_params.destination_address_extra_id = payin_address_extra_id;
+    create_transaction_parameters_t * lib_in_out_params
+) {
     unsigned int libcall_params[3];
     libcall_params[0] = (unsigned int)application_name;
     libcall_params[1] = SIGN_TRANSACTION_IN;
-    libcall_params[2] = (unsigned int)&lib_in_out_params;
+    libcall_params[2] = (unsigned int)lib_in_out_params;
     USB_power(0);
     os_lib_call(libcall_params);
     if (libcall_params[1] != SIGN_TRANSACTION_OUT) // doesn't affect application flow, just for logging

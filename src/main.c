@@ -119,14 +119,6 @@ void app_main(void) {
 
         if (ctx.state == INITIAL_STATE) {
             ui_idle();
-            {
-                //TODO: REMOVE ME
-
-                #include "currency_lib_calls.h"
-                unsigned char app_config[1] = {0};
-                unsigned char amount[1] = {0};
-                create_payin_transaction(app_config, 0, "Bitcoin", amount, 1, "blablalba", "");
-            }
         }
     }
 }

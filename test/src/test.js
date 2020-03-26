@@ -329,7 +329,9 @@ test('BTC app should accepted incoming messages', async () => {
   const btcAddressParams = await btc.getSerializedAddressParameters("84'/0'/0'/1/0", "bech32");
   await swap.checkRefundAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters);
   transport.close();
-  
+
+  await new Promise(r => setTimeout(r, 10000));
+
   const new_transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
   const new_btc: Btc = new Btc(new_transport);
   var tx1 = await new_btc.splitTransaction("0200000001dd675082bde863b3d8dd25445475ef57895616693049a159ea76b25a3f859312000000006a4730440220421aa508131ab36218bf7f6f269b3db88dc41ea9edf4654b009af2096fde4f2602201be95788f43907fd1d5a6f8dd71b98c3f5523b3cbaa245b5789f5c4b54d39a4d0121032bd8bdeefe9c470eaa954f8ec33f760f82ab54b1dad1c54a11bec6db3e5b564effffffff02d6217d33020000001976a914b12bf1403df766faa06c4408664e76633d96eac688ac80b2e60e000000001976a914d4758cba4096660081c88b60a3f56e1385e90fc388ac00000000");

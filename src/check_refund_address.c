@@ -11,16 +11,16 @@ int check_refund_address(
     swap_app_context_t* ctx,
     unsigned char* input_buffer, int input_buffer_length,
     SendFunction send) {
-    unsigned char* config;
-    unsigned char config_length;
-    unsigned char* der;
-    unsigned char der_length;
-    unsigned char* address_parameters;
-    unsigned char address_parameters_length;
-    unsigned char* ticker;
-    unsigned char ticker_length;
-    unsigned char* application_name;
-    unsigned char application_name_length;
+    static unsigned char* config;
+    static unsigned char config_length;
+    static unsigned char* der;
+    static unsigned char der_length;
+    static unsigned char* address_parameters;
+    static unsigned char address_parameters_length;
+    static unsigned char* ticker;
+    static unsigned char ticker_length;
+    static unsigned char* application_name;
+    static unsigned char application_name_length;
     if (parse_check_address_message(
         input_buffer, input_buffer_length,
         &config, &config_length,
@@ -28,7 +28,8 @@ int check_refund_address(
         &address_parameters, &address_parameters_length) == 0) {
         return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
     }
-    unsigned char hash[CURVE_SIZE_BYTES];
+    static unsigned char hash[CURVE_SIZE_BYTES];
+    memset(hash, 0, sizeof(hash));
     cx_hash_sha256(config, config_length, hash, CURVE_SIZE_BYTES);
     if (cx_ecdsa_verify(&ctx->ledger_public_key, CX_LAST, CX_SHA256, hash, CURVE_SIZE_BYTES, der, der_length) == 0) {
         PRINTF("Error: Fail to verify signature of coin config");
@@ -70,7 +71,8 @@ int check_refund_address(
         PRINTF("Error: Refund address validation failed");
         return reply_error(ctx, INVALID_ADDRESS, send);
     }
-    char printable_send_amount[30] = {0};
+    static char printable_send_amount[30];
+    memset(printable_send_amount, 0, sizeof(printable_send_amount));
     if (get_printable_amount(
         ctx->payin_coin_config,
         ctx->payin_coin_config_length,
