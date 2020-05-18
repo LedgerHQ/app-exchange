@@ -41,6 +41,8 @@ typedef struct create_transaction_parameters_s {
     unsigned char coin_configuration_length;
     unsigned char* amount; 
     unsigned char amount_length;
+    unsigned char* fee_amount; 
+    unsigned char fee_amount_length;
     char *destination_address;
     char *destination_address_extra_id;
 } create_transaction_parameters_t;

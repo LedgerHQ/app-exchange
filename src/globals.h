@@ -17,7 +17,7 @@ extern unsigned int ux_step_count;
 #define CURVE_SIZE_BYTES    32U
 #define PUB_KEY_LENGTH      33U
 #define UNCOMPRESSED_KEY_LENGTH 65U
-#define MAX_DER_SIGNATURE_LENGTH 72U
+#define MAX_DER_SIGNATURE_LENGTH 74U
 #define MIN_DER_SIGNATURE_LENGTH 70U
 
 #endif

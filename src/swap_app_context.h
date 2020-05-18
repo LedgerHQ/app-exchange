@@ -3,8 +3,8 @@
 
 #include "states.h"
 #include "os.h"
-#include "cx.h"
 #include "protocol.pb.h"
+#include "cx.h"
 
 typedef struct partner_data_s {
     unsigned char name_length;
@@ -13,6 +13,8 @@ typedef struct partner_data_s {
 } partner_data_t;
 
 typedef struct swap_app_context_s {
+    unsigned char transaction_fee[16];
+    unsigned char transaction_fee_length;
     char device_tx_id[10];  // device transaction id
     partner_data_t partner;
     state_e state;

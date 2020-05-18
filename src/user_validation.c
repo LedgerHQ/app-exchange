@@ -24,6 +24,8 @@ int user_validation(swap_app_context_t* ctx, unsigned char* input_buffer, int in
     static create_transaction_parameters_t lib_in_out_params;
     lib_in_out_params.amount = ctx->received_transaction.amount_to_provider.bytes;
     lib_in_out_params.amount_length = ctx->received_transaction.amount_to_provider.size;
+    lib_in_out_params.fee_amount = ctx->transaction_fee;
+    lib_in_out_params.fee_amount_length = ctx->transaction_fee_length;
     lib_in_out_params.coin_configuration = ctx->payin_coin_config;
     lib_in_out_params.coin_configuration_length = ctx->payin_coin_config_length;
     lib_in_out_params.destination_address = ctx->received_transaction.payin_address;
