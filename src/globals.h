@@ -9,11 +9,6 @@
 #define P1_FIRST 0x00
 #define P1_MORE 0x80
 
-extern ux_state_t ux;
-// display stepped screens
-extern unsigned int ux_step;
-extern unsigned int ux_step_count;
-
 #define CURVE_SIZE_BYTES    32U
 #define PUB_KEY_LENGTH      33U
 #define UNCOMPRESSED_KEY_LENGTH 65U

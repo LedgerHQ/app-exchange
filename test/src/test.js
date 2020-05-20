@@ -317,56 +317,6 @@ test('Valid refund address should be accepted', async () => {
   const btcAddressParams = await btc.getSerializedAddressParameters("84'/0'/0'/1/0", "bech32");
   await expect(swap.checkRefundAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters)).resolves.toBe(undefined);
 })
-
-test('BTC app should accepted incoming messages', async () => {
-  jest.setTimeout(100000);
-  const transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
-  const swap: Swap = new Swap(transport);
-  const btc: Btc = new Btc(transport);
-  const transactionId: string  = await swap.startNewTransaction();
-  await swap.setPartnerKey(partnerSerializedNameAndPubKey);
-  await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
-  var tr  = new proto.ledger_swap.NewTransactionResponse();
-  tr.setPayinAddress("2324234324324234");
-  tr.setPayinExtraId("");
-  tr.setRefundAddress("bc1qwpgezdcy7g6khsald7cww42lva5g5dmasn6y2z");
-  tr.setRefundExtraId("");
-  tr.setPayoutAddress("LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD");
-  tr.setPayoutExtraId("");
-  tr.setCurrencyFrom("BTC");
-  tr.setCurrencyTo("LTC");
-  // 1 BTC to 10 LTC
-  tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
-  tr.setAmountToWallet(numberToBigEndianBuffer(1000000000));
-  tr.setDeviceTransactionId(transactionId);
-
-  const payload: Buffer = Buffer.from(tr.serializeBinary());
-  await swap.processTransaction(payload);
-  const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
-  const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
-  await swap.checkTransactionSignature(signature);
-  const ltcAddressParams = await btc.getSerializedAddressParameters("49'/0'/0'/0/0");
-  await swap.checkPayoutAddress(LTCConfig, LTCConfigSignature, ltcAddressParams.addressParameters);
-
-  const btcAddressParams = await btc.getSerializedAddressParameters("84'/0'/0'/1/0", "bech32");
-  await swap.checkRefundAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters);
-  transport.close();
-
-  await new Promise(r => setTimeout(r, 10000));
-
-  const new_transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
-  const new_btc: Btc = new Btc(new_transport);
-  var tx1 = await new_btc.splitTransaction("0200000001dd675082bde863b3d8dd25445475ef57895616693049a159ea76b25a3f859312000000006a4730440220421aa508131ab36218bf7f6f269b3db88dc41ea9edf4654b009af2096fde4f2602201be95788f43907fd1d5a6f8dd71b98c3f5523b3cbaa245b5789f5c4b54d39a4d0121032bd8bdeefe9c470eaa954f8ec33f760f82ab54b1dad1c54a11bec6db3e5b564effffffff02d6217d33020000001976a914b12bf1403df766faa06c4408664e76633d96eac688ac80b2e60e000000001976a914d4758cba4096660081c88b60a3f56e1385e90fc388ac00000000");
-  console.log(tx1);
-  var signedTr = await new_btc.createPaymentTransactionNew({
-    inputs: [ [tx1, 0] ],
-    associatedKeysets: ["44'/0'/0'/0/0"],
-
-    outputScriptHex: "01905f0100000000001976a91472a5d75c8d2d0565b656a5232703b167d50d5a2b88ac"
-  });
-  console.log(signedTr);
- 
-})
 */
 
 test('Test btc signed', async () => {
@@ -391,7 +341,7 @@ test('Test btc signed', async () => {
   tr.setDeviceTransactionId(transactionId);
 
   const payload: Buffer = Buffer.from(tr.serializeBinary());
-  await swap.processTransaction(payload, 642);
+  await swap.processTransaction(payload, 1070);
   const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
   const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
   await swap.checkTransactionSignature(signature);
@@ -402,7 +352,7 @@ test('Test btc signed', async () => {
   await swap.checkRefundAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters);
   transport.close();
 
-  await new Promise(r => setTimeout(r, 10000));
+  await new Promise(r => setTimeout(r, 1000));
 
   const new_transport: Transport<string> = await HttpTransport.open("http://127.0.0.1:9998");
 
@@ -418,9 +368,8 @@ test('Test btc signed', async () => {
 
   ans = await new_transport.send(0xe0, 0x4a, 0xff, 0x00, Buffer.from('058000005480000000800000000000000100000000', 'hex'));
 
-  ans = await new_transport.send(0xe0, 0x4a, 0x00, 0x00, Buffer.from('0220a107000000000017a9142040cc4169698b7f2f071e4ad14b01458bbc99b08732390800000000001600140f16966f7a3c', 'hex'));
-
-  ans = await new_transport.send(0xe0, 0x4a, 0x80, 0x00, Buffer.from('4b5ecd5494193fee19ea2c09abae', 'hex'));
+  ans = await new_transport.send(0xe0, 0x4a, 0x80, 0x00, Buffer.from('0220a107000000000017a9142040cc4169698b7f2f071e4ad14b01458bbc99b08732390800000000001600147051913704F2', 'hex'));
+  ans = await new_transport.send(0xe0, 0x4a, 0x80, 0x00, Buffer.from('356BC3BF6FB0E7555F67688A377D', 'hex'));
 
   // start signing inputs
   ans = await new_transport.send(0xe0, 0x44, 0x00, 0x80, Buffer.from('0100000001', 'hex'));

@@ -22,7 +22,6 @@
 #include "power_ble.h"
 #include "command_dispatcher.h"
 #include "apdu_offsets.h"
-#include "ux.h"
 
 #include "usbd_core.h"
 #define CLA 0xE0
@@ -144,7 +143,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
     os_boot();
     
     for (;;) {
-        UX_INIT();
+        ux_init();
 
         BEGIN_TRY {
             TRY {

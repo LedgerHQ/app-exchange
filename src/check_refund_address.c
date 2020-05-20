@@ -1,11 +1,43 @@
 #include "check_refund_address.h"
 #include "os.h"
 #include "currency_lib_calls.h"
-#include "user_validate_amounts.h"
 #include "globals.h"
 #include "swap_errors.h"
 #include "reply_error.h"
 #include "parse_check_address_message.h"
+#include "menu.h"
+
+swap_app_context_t* application_context;
+SendFunction send_function;
+
+void on_accept() {
+    // user accepted
+    unsigned char output_buffer[2] = {0x90, 0x00};
+    if (send_function(output_buffer, 2) < 0) {
+        PRINTF("Error: Failed to send\n");
+        return;
+    }
+    application_context->state = INITIAL_STATE;
+
+    static create_transaction_parameters_t lib_in_out_params;
+    lib_in_out_params.amount = application_context->received_transaction.amount_to_provider.bytes;
+    lib_in_out_params.amount_length = application_context->received_transaction.amount_to_provider.size;
+    lib_in_out_params.fee_amount = application_context->transaction_fee;
+    lib_in_out_params.fee_amount_length = application_context->transaction_fee_length;
+    lib_in_out_params.coin_configuration = application_context->payin_coin_config;
+    lib_in_out_params.coin_configuration_length = application_context->payin_coin_config_length;
+    lib_in_out_params.destination_address = application_context->received_transaction.payin_address;
+    lib_in_out_params.destination_address_extra_id = application_context->received_transaction.payin_extra_id;
+
+    create_payin_transaction(
+        application_context->payin_binary_name,
+        &lib_in_out_params);
+}
+
+void on_reject() {
+    PRINTF("User refused transaction\n");
+    reply_error(application_context, USER_REFUSED, send_function);
+}
 
 int check_refund_address(
     swap_app_context_t* ctx,
@@ -84,7 +116,23 @@ int check_refund_address(
         PRINTF("Error: Failed to get source currency printable amount");
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
+    static char printable_fees_amount[30];
+    memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
+    if (get_printable_amount(
+        ctx->payin_coin_config,
+        ctx->payin_coin_config_length,
+        ctx->payin_binary_name,
+        ctx->transaction_fee,
+        ctx->transaction_fee_length,
+        printable_fees_amount,
+        sizeof(printable_fees_amount)) < 0) {
+        PRINTF("Error: Failed to get source currency fees amount");
+        return reply_error(ctx, INTERNAL_ERROR, send);
+    }
 
     ctx->state = WAITING_USER_VALIDATION;
-    return user_validate_amounts(printable_send_amount, ctx->printable_get_amount, ctx->partner.name, ctx, send);
+    application_context = ctx;
+    send_function = send;
+    ui_validate_amounts(printable_send_amount, ctx->printable_get_amount, printable_fees_amount, on_accept, on_reject);
+    return 0;
 }

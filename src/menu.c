@@ -1,16 +1,141 @@
 #include "menu.h"
+#include "ux.h"
 #include "os.h"
 #include "globals.h"
 #include "glyphs.h"
 
-static const ux_menu_entry_t menu_main[] = {
-    {NULL, NULL, 0, NULL, "SWAP", "ready", 0, 0},
-    {NULL, os_sched_exit, 0, &C_icon_dashboard, "Quit app", NULL, 50, 29},
-    UX_MENU_END
-};
+ux_state_t G_ux;
+bolos_ux_params_t G_ux_params;
+
+UX_STEP_NOCB(
+    ux_idle_flow_1_step, 
+    nn, 
+    {
+      "Exchange",
+      "is ready",
+    });
+UX_STEP_NOCB(
+    ux_idle_flow_2_step, 
+    bn, 
+    {
+      "Version",
+      APPVERSION,
+    });
+UX_STEP_VALID(
+    ux_idle_flow_3_step,
+    pb,
+    os_sched_exit(-1),
+    {
+      &C_icon_dashboard_x,
+      "Quit",
+    });
+UX_FLOW(ux_idle_flow,
+  &ux_idle_flow_1_step,
+  &ux_idle_flow_2_step,
+  &ux_idle_flow_3_step,
+  FLOW_LOOP
+);
+
+//////////////////////////
+
+struct ValidationInfo {
+    char send[30];
+    char get[30];
+    char fees[30];
+    UserChoiseCallback OnAccept;
+    UserChoiseCallback OnReject;
+} validationInfo;
+
+unsigned int io_accept(const bagl_element_t *e) {
+    validationInfo.OnAccept();
+    ui_idle();
+    return 0;
+}
+
+unsigned int io_reject(const bagl_element_t *e) {
+    validationInfo.OnReject();
+    ui_idle();
+    return 0;
+}
+
+UX_STEP_NOCB(ux_confirm_flow_1_step, 
+    pnn, 
+    {
+      &C_icon_eye,
+      "Review",
+      "transaction",
+    });
+UX_STEP_NOCB(
+    ux_confirm_flow_2_step, 
+    bnnn_paging, 
+    {
+      .title = "Send",
+      .text = validationInfo.send,
+    });
+UX_STEP_NOCB(
+    ux_confirm_flow_3_step, 
+    bnnn_paging, 
+    {
+      .title = "Get",
+      .text = validationInfo.get,
+    });
+UX_STEP_NOCB(
+    ux_confirm_flow_4_step, 
+    bnnn_paging, 
+    {
+      .title = "Fees",
+      .text = validationInfo.fees,
+    });
+UX_STEP_VALID(
+    ux_confirm_flow_5_step, 
+    pbb, 
+    io_accept(NULL),
+    {
+      &C_icon_validate_14,
+      "Accept",
+      "and send",
+    });
+UX_STEP_VALID(
+    ux_confirm_flow_6_step, 
+    pb, 
+    io_reject(NULL),
+    {
+      &C_icon_crossmark,
+      "Reject",
+    });
+UX_FLOW(ux_confirm_flow,
+  &ux_confirm_flow_1_step,
+  &ux_confirm_flow_2_step,
+  &ux_confirm_flow_3_step,
+  &ux_confirm_flow_4_step,
+  &ux_confirm_flow_5_step,
+  &ux_confirm_flow_6_step
+);
+
+void ui_validate_amounts(
+    char* send_amount,
+    char* get_amount,
+    char* fees_amount,
+    UserChoiseCallback on_accept,
+    UserChoiseCallback on_reject) {
+    strcpy(validationInfo.send, send_amount);
+    strcpy(validationInfo.get, get_amount);
+    strcpy(validationInfo.fees, fees_amount);
+    validationInfo.OnAccept = on_accept;
+    validationInfo.OnReject = on_reject;
+    ux_flow_init(0, ux_confirm_flow, NULL);
+}
+
+void ux_init() {
+    UX_INIT();
+}
 
 void ui_idle(void) {
-    UX_MENU_DISPLAY(0, menu_main, NULL);
+    // reserve a display stack slot if none yet
+    if(G_ux.stack_count == 0) {
+        ux_stack_push();
+    }
+    ux_flow_init(0, ux_idle_flow, NULL);
 }
 
 // override point, but nothing more to do

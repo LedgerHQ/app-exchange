@@ -10,7 +10,6 @@ typedef enum  {
     CHECK_TRANSACTION_SIGNATURE_COMMAND     = 0x05,
     CHECK_PAYOUT_ADDRESS                    = 0x06,
     CHECK_REFUND_ADDRESS                    = 0x07,
-    USER_VALIDATION_RESPONSE                = 0x08,
     COMMAND_UPPER_BOUND
 } command_e;
 
