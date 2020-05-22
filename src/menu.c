@@ -3,6 +3,7 @@
 #include "os.h"
 #include "globals.h"
 #include "glyphs.h"
+#include "swap_app_context.h"
 
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
@@ -152,10 +153,10 @@ unsigned char io_event(unsigned char channel) {
             UX_FINGER_EVENT(G_io_seproxyhal_spi_buffer);
             break;
 
-        case SEPROXYHAL_TAG_BUTTON_PUSH_EVENT:
+        case SEPROXYHAL_TAG_BUTTON_PUSH_EVENT: {
             UX_BUTTON_PUSH_EVENT(G_io_seproxyhal_spi_buffer);
             break;
-
+        }
         case SEPROXYHAL_TAG_STATUS_EVENT:
             if (G_io_apdu_media == IO_APDU_MEDIA_USB_HID && !(U4BE(G_io_seproxyhal_spi_buffer, 3) & SEPROXYHAL_TAG_STATUS_EVENT_FLAG_USB_POWERED)) {
                 THROW(EXCEPTION_IO_RESET);

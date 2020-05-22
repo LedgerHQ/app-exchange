@@ -17,21 +17,7 @@ void on_accept() {
         PRINTF("Error: Failed to send\n");
         return;
     }
-    application_context->state = INITIAL_STATE;
-
-    static create_transaction_parameters_t lib_in_out_params;
-    lib_in_out_params.amount = application_context->received_transaction.amount_to_provider.bytes;
-    lib_in_out_params.amount_length = application_context->received_transaction.amount_to_provider.size;
-    lib_in_out_params.fee_amount = application_context->transaction_fee;
-    lib_in_out_params.fee_amount_length = application_context->transaction_fee_length;
-    lib_in_out_params.coin_configuration = application_context->payin_coin_config;
-    lib_in_out_params.coin_configuration_length = application_context->payin_coin_config_length;
-    lib_in_out_params.destination_address = application_context->received_transaction.payin_address;
-    lib_in_out_params.destination_address_extra_id = application_context->received_transaction.payin_extra_id;
-
-    create_payin_transaction(
-        application_context->payin_binary_name,
-        &lib_in_out_params);
+    application_context->state = WAITING_SIGNING;
 }
 
 void on_reject() {

@@ -1,8 +1,8 @@
-#include "os.h"
-#include "os_io_seproxyhal.h"
-
 #ifndef _GLOBALS_H_
 #define _GLOBALS_H_
+
+#include "os.h"
+#include "os_io_seproxyhal.h"
 
 #define P1_CONFIRM 0x01
 #define P1_NON_CONFIRM 0x00

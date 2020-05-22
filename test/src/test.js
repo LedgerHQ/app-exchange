@@ -350,6 +350,7 @@ test('Test btc signed', async () => {
 
   const btcAddressParams = getSerializedAddressParameters("84'/0'/0'/1/0", "bech32");
   await swap.checkRefundAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters);
+  await swap.signCoinTransaction();
   transport.close();
 
   await new Promise(r => setTimeout(r, 1000));

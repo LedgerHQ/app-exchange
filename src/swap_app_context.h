@@ -27,4 +27,6 @@ typedef struct swap_app_context_s {
     char printable_get_amount[30];
 } swap_app_context_t;
 
+extern swap_app_context_t swap_ctx;
+
 #endif // _SWAP_APP_CONTEXT_H_

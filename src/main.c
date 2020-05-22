@@ -27,7 +27,7 @@
 #define CLA 0xE0
 
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-swap_app_context_t ctx;
+swap_app_context_t swap_ctx;
 
 // recv()
 // send()
@@ -95,7 +95,7 @@ int send_apdu(unsigned char* buffer, unsigned int buffer_length) {
 
 void app_main(void) {
     int input_length = 0;
-    init_application_context(&ctx);
+    init_application_context(&swap_ctx);
 
     ui_idle();
 
@@ -113,10 +113,10 @@ void app_main(void) {
             return;
         }
         
-        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS], &ctx, G_io_apdu_buffer + OFFSET_CDATA, input_length - OFFSET_CDATA, send_apdu) < 0)
+        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS], &swap_ctx, G_io_apdu_buffer + OFFSET_CDATA, input_length - OFFSET_CDATA, send_apdu) < 0)
             return; // some non recoverable error happened
 
-        if (ctx.state == INITIAL_STATE) {
+        if (swap_ctx.state == INITIAL_STATE) {
             ui_idle();
         }
     }

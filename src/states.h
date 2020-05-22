@@ -10,6 +10,7 @@ typedef enum {
     SIGNATURE_CHECKED               = 5,
     TO_ADDR_CHECKED                 = 6,
     WAITING_USER_VALIDATION         = 7,
+    WAITING_SIGNING                 = 8,
     STATE_UPPER_BOUND
 } state_e;
 
