@@ -2,10 +2,10 @@ const secp256k1 = require('secp256k1');
 const sha256 = require('js-sha256').sha256;
 
 const toHexPrintableConst  = (buffer) => {
-    var ans = "{0x" + buffer[0].toString(16).toUpperCase();
+    var ans = "\n[0x" + buffer[0].toString(16).toUpperCase();
     for (i = 1; i < buffer.length; i++)
         ans += ", 0x" + buffer[i].toString(16).toUpperCase();
-    ans +="}"
+    ans +="]);"
     return ans;
 }
 
@@ -64,12 +64,23 @@ const main = () => {
     console.log("Changelly signed name and pub key: " + toHexPrintableConst(changellyData.serializedPubKeyAndName));
     console.log("DER signature: " + toHexPrintableConst(changellyData.signatureInDER));
 
-    var btcConfig = createCurrencyConfig("btc", "Bitcoin", Buffer(0), ledgerPrivateKey);
-    var ltcConfig = createCurrencyConfig("ltc", "Litecoin", Buffer(0), ledgerPrivateKey);
+    var btcConfig = createCurrencyConfig("BTC", "Bitcoin", Buffer(0), ledgerPrivateKey);
+    var ltcConfig = createCurrencyConfig("LTC", "Litecoin", Buffer(0), ledgerPrivateKey);
+
+    ethSubConfig = Buffer.concat([Buffer.from(["ETH".length]), Buffer.from("ETH"), Buffer.from([18])])
+    var ethConfig = createCurrencyConfig("ETH", "Ethereum", ethSubConfig, ledgerPrivateKey);
+
+    aeSubConfig = Buffer.concat([Buffer.from(["AE".length]), Buffer.from("AE"), Buffer.from([18])])
+    var aeConfig = createCurrencyConfig("AE", "Ethereum", aeSubConfig, ledgerPrivateKey);
+
     console.log("BTC config: " +toHexPrintableConst(btcConfig.coinConfig));
     console.log("BTC config signature: " +toHexPrintableConst(btcConfig.signature));
     console.log("LTC config: " +toHexPrintableConst(ltcConfig.coinConfig));
     console.log("LTC config signature: " +toHexPrintableConst(ltcConfig.signature));
+    console.log("ETH config: " +toHexPrintableConst(ethConfig.coinConfig));
+    console.log("ETH config signature: " +toHexPrintableConst(ethConfig.signature));
+    console.log("AE config: " +toHexPrintableConst(aeConfig.coinConfig));
+    console.log("AE config signature: " +toHexPrintableConst(aeConfig.signature));
 }
 
 

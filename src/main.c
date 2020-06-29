@@ -103,7 +103,7 @@ void app_main(void) {
     io_state = READY;
     for(;;) {
         input_length = recv_apdu();
-        PRINTF("I have received %d bytes\n", input_length);
+        PRINTF("New APDU received:\n%.*H\n", input_length, G_io_apdu_buffer);
         if (input_length == -1) // there were an error, lets start from the beginning
             return;
         if (input_length <= OFFSET_INS ||

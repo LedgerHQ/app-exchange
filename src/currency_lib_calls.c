@@ -8,13 +8,15 @@ int get_printable_amount(
     unsigned char * amount,
     unsigned char amount_size,
     char* printable_amount,
-    unsigned char printable_amount_size) {
+    unsigned char printable_amount_size,
+    bool is_fee) {
     static unsigned int libcall_params[5];
     static get_printable_amount_parameters_t lib_input_params = {0};
     lib_input_params.coin_configuration = coin_config;
     lib_input_params.coin_configuration_length = coin_config_length;
     lib_input_params.amount = amount;
     lib_input_params.amount_length = amount_size;
+    lib_input_params.is_fee = is_fee;
     libcall_params[0] = (unsigned int)application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = GET_PRINTABLE_AMOUNT;
@@ -23,7 +25,7 @@ int get_printable_amount(
     PRINTF("Address of printable_amount %d\n", lib_input_params.printable_amount);
     os_memset(lib_input_params.printable_amount, 0, sizeof(lib_input_params.printable_amount));
     // Speculos workaround
-    io_seproxyhal_general_status();
+    //io_seproxyhal_general_status();
     os_lib_call(libcall_params);
     // result should be null terminated string, so we need to have at least one 0
     if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != 0) {
@@ -62,7 +64,7 @@ int check_address(
     PRINTF("I am calling %s to check address\n", application_name);
     PRINTF("I am going to check address %s\n", lib_in_out_params.address_to_check);
     // Speculos workaround
-    io_seproxyhal_general_status();
+    //io_seproxyhal_general_status();
     os_lib_call(libcall_params);
     PRINTF("I am back\n");
     return lib_in_out_params.result;
@@ -72,7 +74,7 @@ void create_payin_transaction(
     char * application_name,
     create_transaction_parameters_t * lib_in_out_params
 ) {
-    unsigned int libcall_params[3];
+    unsigned int libcall_params[5];
     libcall_params[0] = (unsigned int)application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = SIGN_TRANSACTION;

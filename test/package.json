@@ -6,7 +6,7 @@
   "scripts": {
     "build": "babel src/ -d lib/",
     "prepublish": "yarn run build",
-    "test": "jest src"
+    "test": "jest src --verbose"
   },
   "author": "",
   "license": "ISC",

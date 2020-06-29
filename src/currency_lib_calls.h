@@ -26,6 +26,7 @@ int get_printable_amount(
     unsigned char * amount,
     unsigned char amount_size,
     char* printable_amount,
-    unsigned char printable_amount_size);
+    unsigned char printable_amount_size,
+    bool is_fee);
 
 #endif // _SOURCE_CURRENCY_LIB_CALLS_H_
