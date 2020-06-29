@@ -105,6 +105,7 @@ class Swap {
     hex = hex.padStart(hex.length + hex.length % 2, '0');
     var feeHex = Buffer.from(hex, 'hex');
     const bufferToSend = Buffer.concat([Buffer.from([transaction.length]), transaction, Buffer.from([feeHex.length]), feeHex]);
+    console.log(bufferToSend.toString("hex"));
     let result = await this.transport.send(0xE0, PROCESS_TRANSACTION_RESPONSE, 0x00, 0x00, bufferToSend, this.allowedStatuses);
     if (!this.isSuccess(result)) this.mapProtocolError(result);
   }

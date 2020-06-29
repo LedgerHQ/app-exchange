@@ -20,7 +20,7 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS= --curve ed25519 --path "44'/1234'" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
+APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --path "" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
 
 APPVERSION_M=1
 APPVERSION_N=0
@@ -83,7 +83,7 @@ endif
 DEFINES		  += HAVE_UX_FLOW
 DEFINES	      += HAVE_STACK_OVERFLOW_CHECK
 # Enabling debug PRINTF
-DEBUG = 1
+DEBUG = 0
 ifneq ($(DEBUG),0)
 		DEFINES   += HAVE_STACK_OVERFLOW_CHECK
         ifeq ($(TARGET_NAME),TARGET_NANOX)
@@ -163,4 +163,4 @@ dep/%.d: %.c Makefile
 
 
 listvariants:
-	@echo VARIANTS COIN boilerplate
+	@echo VARIANTS COIN swap

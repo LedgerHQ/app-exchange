@@ -83,7 +83,8 @@ int check_payout_address(
         ctx->received_transaction.amount_to_wallet.bytes,
         ctx->received_transaction.amount_to_wallet.size,
         ctx->printable_get_amount,
-        sizeof(ctx->printable_get_amount)) < 0) {
+        sizeof(ctx->printable_get_amount),
+        false) < 0) {
         PRINTF("Error: Failed to get destination currency printable amount\n");
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
