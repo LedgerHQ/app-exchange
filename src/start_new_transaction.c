@@ -3,8 +3,8 @@
 
 void create_device_tx_id(char *device_tx_id, unsigned int len) {
     for (unsigned int i = 0; i < len; ++i) {
-        device_tx_id[i] = (char)((int)'A' + cx_rng_u8() % 26);
-        //device_tx_id[i] = (char)((int)'A' + 42 % 26); // No RNG
+        //device_tx_id[i] = (char)((int)'A' + cx_rng_u8() % 26);
+        device_tx_id[i] = (char)((int)'A' + 42 % 26); // No RNG
     }
 }
 
