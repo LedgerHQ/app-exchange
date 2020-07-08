@@ -60,7 +60,9 @@ int recv_apdu() {
         case RECEIVED:
             PRINTF("In state RECEIVED\n");
             io_state = WAITING_USER;
-            return io_exchange(CHANNEL_APDU | IO_ASYNCH_REPLY, output_length);
+            int ret = io_exchange(CHANNEL_APDU | IO_ASYNCH_REPLY, output_length);
+            io_state = RECEIVED;
+            return ret;
         case WAITING_USER:
             PRINTF("Error: Unexpected recv call in WAITING_USER state\n");
             io_state = READY;
