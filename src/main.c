@@ -22,6 +22,7 @@
 #include "power_ble.h"
 #include "command_dispatcher.h"
 #include "apdu_offsets.h"
+#include "swap_errors.h"
 
 #include "usbd_core.h"
 #define CLA 0xE0
@@ -113,7 +114,8 @@ void app_main(void) {
             G_io_apdu_buffer[OFFSET_INS] <= COMMAND_LOWER_BOUND ||
             G_io_apdu_buffer[OFFSET_INS] >= COMMAND_UPPER_BOUND) {
             PRINTF("Error: bad APDU\n");
-            return;
+            reply_error(&swap_ctx, INVALID_INSTRUCTION, send_apdu);
+            continue;
         }
         
         if (dispatch_command(G_io_apdu_buffer[OFFSET_INS], &swap_ctx, G_io_apdu_buffer + OFFSET_CDATA, input_length - OFFSET_CDATA, send_apdu) < 0)
