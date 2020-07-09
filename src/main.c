@@ -110,6 +110,7 @@ void app_main(void) {
             return;
         if (input_length <= OFFSET_INS ||
             G_io_apdu_buffer[OFFSET_CLA] != CLA ||
+            G_io_apdu_buffer[OFFSET_INS] <= COMMAND_LOWER_BOUND ||
             G_io_apdu_buffer[OFFSET_INS] >= COMMAND_UPPER_BOUND) {
             PRINTF("Error: bad APDU\n");
             return;
