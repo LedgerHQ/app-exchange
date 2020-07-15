@@ -26,7 +26,8 @@ void on_reject() {
     reply_error(application_context, USER_REFUSED, send_function);
 }
 
-int check_refund_address(swap_app_context_t *ctx,                                        //
+int check_refund_address(subcommand_e subcommand,                                        //
+                         swap_app_context_t *ctx,                                        //
                          unsigned char *input_buffer, unsigned int input_buffer_length,  //
                          SendFunction send) {
     static unsigned char *config;

@@ -7,7 +7,8 @@
 #include "parse_check_address_message.h"
 #include "parse_coin_config.h"
 
-int check_payout_address(swap_app_context_t *ctx,                                        //
+int check_payout_address(subcommand_e subcommand,                                        //
+                         swap_app_context_t *ctx,                                        //
                          unsigned char *input_buffer, unsigned int input_buffer_length,  //
                          SendFunction send) {
     static unsigned char *config;

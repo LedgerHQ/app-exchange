@@ -15,10 +15,16 @@ typedef struct partner_data_s {
 typedef struct swap_app_context_s {
     unsigned char transaction_fee[16];
     unsigned char transaction_fee_length;
-    char device_tx_id[10];  // device transaction id
+    union {
+        char swap[10];           // device_transaction_id (SWAP)
+        unsigned char sell[32];  // device_transaction_id (SELL)
+    } device_transaction_id;
     partner_data_t partner;
     state_e state;
-    ledger_swap_NewTransactionResponse received_transaction;
+    union {
+        ledger_swap_NewTransactionResponse received_transaction;  // SWAP
+        ledger_swap_NewSellResponse sell_transaction;             // SELL
+    };
     unsigned char sha256_digest[32];
     cx_ecfp_256_public_key_t ledger_public_key;
     unsigned char *payin_coin_config;  // serialized coin configuration

@@ -7,7 +7,8 @@
 // This function receive signature of
 // Input should be in the form of DER serialized signature
 // the length should be in [MIN_DER_SIGNATURE_LENGTH, MAX_DER_SIGNATURE_LENGTH]
-int check_partner(swap_app_context_t *ctx,                                        //
+int check_partner(subcommand_e subcommand,                                        //
+                  swap_app_context_t *ctx,                                        //
                   unsigned char *input_buffer, unsigned int input_buffer_length,  //
                   SendFunction send) {
     if (input_buffer_length < MIN_DER_SIGNATURE_LENGTH ||

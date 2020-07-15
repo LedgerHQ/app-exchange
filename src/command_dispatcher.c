@@ -16,7 +16,8 @@
 
 #include "reply_error.h"
 
-typedef int (*StateCommandDispatcher)(swap_app_context_t *ctx,           //
+typedef int (*StateCommandDispatcher)(subcommand_e subcommand,           //
+                                      swap_app_context_t *ctx,           //
                                       unsigned char *input_buffer,       //
                                       unsigned int input_buffer_length,  //
                                       SendFunction send);
@@ -36,11 +37,15 @@ static const StateCommandDispatcher dispatcher_table[COMMAND_UPPER_BOUND-2][STAT
 };
 // clang-format on
 
-int dispatch_command(command_e command, swap_app_context_t *context, unsigned char *input_buffer,
-                     unsigned int buffer_size, SendFunction send) {
-    PRINTF("%d %d\n", command, context->state);
+int dispatch_command(command_e command, subcommand_e subcommand,             //
+                     swap_app_context_t *context,                            //
+                     unsigned char *input_buffer, unsigned int buffer_size,  //
+                     SendFunction send) {
+    PRINTF("command: %d, subcommand: %d, state: %d\n", command, subcommand, context->state);
+    if (subcommand >= SUBCOMMAND_UPPER_BOUND) {
+        return reply_error(context, WRONG_P2, send);
+    }
     StateCommandDispatcher handler =
         (StateCommandDispatcher)(PIC(dispatcher_table[command - 2][context->state]));
-    PRINTF("%d\n", handler);
-    return handler(context, input_buffer, buffer_size, send);
+    return handler(subcommand, context, input_buffer, buffer_size, send);
 }
