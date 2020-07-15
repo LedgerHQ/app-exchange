@@ -13,7 +13,7 @@
  *****************************************************************/
 
 /* Enable support for dynamically allocated fields */
-/* #define PB_ENABLE_MALLOC 1 */
+/*#define PB_ENABLE_MALLOC 1 */
 
 /* Define this if your CPU / compiler combination does not support
  * unaligned memory access to packed structures. */
@@ -27,7 +27,7 @@
 /* #define PB_FIELD_16BIT 1 */
 
 /* Add support for tag numbers > 65536 and fields larger than 65536 bytes. */
-/* #define PB_FIELD_32BIT 1 */
+#define PB_FIELD_32BIT 1
 
 /* Disable support for error messages in order to save some code space. */
 /* #define PB_NO_ERRMSG 1 */
@@ -40,11 +40,6 @@
 /* #define PB_OLD_CALLBACK_STYLE */
 
 
-/* Don't encode scalar arrays as packed. This is only to be used when
- * the decoder on the receiving side cannot process packed scalar arrays.
- * Such example is older protobuf.js. */
-/* #define PB_ENCODE_ARRAYS_UNPACKED 1 */
-
 /******************************************************************
  * You usually don't need to change anything below this line.     *
  * Feel free to look around and use the defined macros, though.   *
@@ -53,7 +48,7 @@
 
 /* Version of the nanopb library. Just in case you want to check it in
  * your own program. */
-#define NANOPB_VERSION nanopb-0.3.9.4
+#define NANOPB_VERSION nanopb-0.4.0-dev
 
 /* Include all the system headers needed by nanopb. You will need the
  * definitions of the following:
@@ -152,40 +147,39 @@ typedef uint_least8_t pb_type_t;
 /**** Field data types ****/
 
 /* Numeric types */
-#define PB_LTYPE_BOOL    0x00 /* bool */
-#define PB_LTYPE_VARINT  0x01 /* int32, int64, enum, bool */
-#define PB_LTYPE_UVARINT 0x02 /* uint32, uint64 */
-#define PB_LTYPE_SVARINT 0x03 /* sint32, sint64 */
-#define PB_LTYPE_FIXED32 0x04 /* fixed32, sfixed32, float */
-#define PB_LTYPE_FIXED64 0x05 /* fixed64, sfixed64, double */
+#define PB_LTYPE_VARINT  0x00 /* int32, int64, enum, bool */
+#define PB_LTYPE_UVARINT 0x01 /* uint32, uint64 */
+#define PB_LTYPE_SVARINT 0x02 /* sint32, sint64 */
+#define PB_LTYPE_FIXED32 0x03 /* fixed32, sfixed32, float */
+#define PB_LTYPE_FIXED64 0x04 /* fixed64, sfixed64, double */
 
 /* Marker for last packable field type. */
-#define PB_LTYPE_LAST_PACKABLE 0x05
+#define PB_LTYPE_LAST_PACKABLE 0x04
 
 /* Byte array with pre-allocated buffer.
  * data_size is the length of the allocated PB_BYTES_ARRAY structure. */
-#define PB_LTYPE_BYTES 0x06
+#define PB_LTYPE_BYTES 0x05
 
 /* String with pre-allocated buffer.
  * data_size is the maximum length. */
-#define PB_LTYPE_STRING 0x07
+#define PB_LTYPE_STRING 0x06
 
 /* Submessage
  * submsg_fields is pointer to field descriptions */
-#define PB_LTYPE_SUBMESSAGE 0x08
+#define PB_LTYPE_SUBMESSAGE 0x07
 
 /* Extension pseudo-field
  * The field contains a pointer to pb_extension_t */
-#define PB_LTYPE_EXTENSION 0x09
+#define PB_LTYPE_EXTENSION 0x08
 
 /* Byte array with inline, pre-allocated byffer.
  * data_size is the length of the inline, allocated buffer.
  * This differs from PB_LTYPE_BYTES by defining the element as
  * pb_byte_t[data_size] rather than pb_bytes_array_t. */
-#define PB_LTYPE_FIXED_LENGTH_BYTES 0x0A
+#define PB_LTYPE_FIXED_LENGTH_BYTES 0x09
 
 /* Number of declared LTYPES */
-#define PB_LTYPES_COUNT 0x0B
+#define PB_LTYPES_COUNT 0x0A
 #define PB_LTYPE_MASK 0x0F
 
 /**** Field repetition rules ****/
@@ -494,7 +488,7 @@ struct pb_extension_s {
     PB_OPTIONAL_CALLBACK(tag, st, m, fd, ltype, ptr)
 
 /* The mapping from protobuf types to LTYPEs is done using these macros. */
-#define PB_LTYPE_MAP_BOOL               PB_LTYPE_BOOL
+#define PB_LTYPE_MAP_BOOL               PB_LTYPE_VARINT
 #define PB_LTYPE_MAP_BYTES              PB_LTYPE_BYTES
 #define PB_LTYPE_MAP_DOUBLE             PB_LTYPE_FIXED64
 #define PB_LTYPE_MAP_ENUM               PB_LTYPE_VARINT
@@ -534,14 +528,6 @@ struct pb_extension_s {
         PB_ ## rules ## _ ## allocation(tag, message, field, \
         PB_DATAOFFSET_ ## placement(message, field, prevfield), \
         PB_LTYPE_MAP_ ## type, ptr)
-
-/* Field description for repeated static fixed count fields.*/
-#define PB_REPEATED_FIXED_COUNT(tag, type, placement, message, field, prevfield, ptr) \
-    {tag, PB_ATYPE_STATIC | PB_HTYPE_REPEATED | PB_LTYPE_MAP_ ## type, \
-    PB_DATAOFFSET_ ## placement(message, field, prevfield), \
-    0, \
-    pb_membersize(message, field[0]), \
-    pb_arraysize(message, field), ptr}
 
 /* Field description for oneof fields. This requires taking into account the
  * union name also, that's why a separate set of macros is needed.
@@ -587,7 +573,14 @@ struct pb_extension_s {
  * PB_GET_ERROR() always returns a pointer to a string.
  * PB_RETURN_ERROR() sets the error and returns false from current
  *                   function.
+ * G_depth is a global that should be initialized to 0 when 
+ * creating an input stream. It helps tracking the level of the 
+ * call stack when instrumentation is enabled 
+ * (set `INTRUMENT_FUNCTION += -finstrument-functions` in your 
+ * Makfile to do so)
  */
+extern int G_depth;
+
 #ifdef PB_NO_ERRMSG
 #define PB_SET_ERROR(stream, msg) PB_UNUSED(stream)
 #define PB_GET_ERROR(stream) "(errmsg disabled)"
