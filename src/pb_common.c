@@ -1,3 +1,5 @@
+/* clang-format off */
+
 /* pb_common.c: Common support functions for pb_encode.c and pb_decode.c.
  *
  * 2014 Petteri Aimonen <jpa@kapsi.fi>

@@ -1,3 +1,5 @@
+/* clang-format off */
+
 /* pb_decode.h: Functions to decode protocol buffers. Depends on pb_decode.c.
  * The main function is pb_decode. You also need an input stream, and the
  * field descriptions created by nanopb_generator.py.

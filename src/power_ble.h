@@ -3,4 +3,4 @@
 
 void power_ble();
 
-#endif // _POWER_BLE_H_
+#endif  // _POWER_BLE_H_

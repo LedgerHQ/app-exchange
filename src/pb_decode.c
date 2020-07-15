@@ -1,3 +1,5 @@
+/* clang-format off */
+
 /* pb_decode.c -- decode a protobuf using minimal resources
  *
  * 2011 Petteri Aimonen <jpa@kapsi.fi>

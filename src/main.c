@@ -1,19 +1,19 @@
-/*******************************************************************************
-*   Ledger Blue
-*   (c) 2016 Ledger
-*
-*  Licensed under the Apache License, Version 2.0 (the "License");
-*  you may not use this file except in compliance with the License.
-*  You may obtain a copy of the License at
-*
-*      http://www.apache.org/licenses/LICENSE-2.0
-*
-*  Unless required by applicable law or agreed to in writing, software
-*  distributed under the License is distributed on an "AS IS" BASIS,
-*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-*  See the License for the specific language governing permissions and
-*  limitations under the License.
-********************************************************************************/
+/*****************************************************************************
+ *   Ledger Blue
+ *   (c) 2016 Ledger
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *****************************************************************************/
 
 #include "init.h"
 #include "menu.h"
@@ -35,18 +35,14 @@ swap_app_context_t swap_ctx;
 // recv()
 // UI
 // recv(ASYNC)
-//   send()->io_exchange(RETURN)  
+//   send()->io_exchange(RETURN)
 // recv()
 //
 //             READY         RECEIVED          WAITING_USER
 // recv()   to Received  ASYNC+to waiting          ERROR
 // send()      ERROR         to ready      RETURN_AFTER_RX + to ready
 
-typedef enum io_state {
-    READY,
-    RECEIVED,
-    WAITING_USER
-} io_state_e;
+typedef enum io_state { READY, RECEIVED, WAITING_USER } io_state_e;
 
 int output_length = 0;
 io_state_e io_state = READY;
@@ -74,7 +70,7 @@ int recv_apdu() {
 }
 
 // return -1 in case of error
-int send_apdu(unsigned char* buffer, unsigned int buffer_length) {
+int send_apdu(unsigned char *buffer, unsigned int buffer_length) {
     os_memmove(G_io_apdu_buffer, buffer, buffer_length);
     output_length = buffer_length;
     PRINTF("Sending apdu\n");
@@ -104,22 +100,25 @@ void app_main(void) {
 
     output_length = 0;
     io_state = READY;
-    for(;;) {
+    for (;;) {
         input_length = recv_apdu();
         PRINTF("New APDU received:\n%.*H\n", input_length, G_io_apdu_buffer);
-        if (input_length == -1) // there were an error, lets start from the beginning
+        if (input_length == -1)  // there were an error, lets start from the beginning
             return;
-        if (input_length <= OFFSET_INS ||
-            G_io_apdu_buffer[OFFSET_CLA] != CLA ||
-            G_io_apdu_buffer[OFFSET_INS] <= COMMAND_LOWER_BOUND ||
+        if (input_length <= OFFSET_INS ||                           //
+            G_io_apdu_buffer[OFFSET_CLA] != CLA ||                  //
+            G_io_apdu_buffer[OFFSET_INS] <= COMMAND_LOWER_BOUND ||  //
             G_io_apdu_buffer[OFFSET_INS] >= COMMAND_UPPER_BOUND) {
             PRINTF("Error: bad APDU\n");
             reply_error(&swap_ctx, INVALID_INSTRUCTION, send_apdu);
             continue;
         }
-        
-        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS], &swap_ctx, G_io_apdu_buffer + OFFSET_CDATA, input_length - OFFSET_CDATA, send_apdu) < 0)
-            return; // some non recoverable error happened
+
+        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],  //
+                             &swap_ctx,
+                             G_io_apdu_buffer + OFFSET_CDATA,  //
+                             input_length - OFFSET_CDATA, send_apdu) < 0)
+            return;  // some non recoverable error happened
 
         if (swap_ctx.state == INITIAL_STATE) {
             ui_idle();
@@ -128,14 +127,9 @@ void app_main(void) {
 }
 
 void app_exit(void) {
-
     BEGIN_TRY_L(exit) {
-        TRY_L(exit) {
-            os_sched_exit(-1);
-        }
-        FINALLY_L(exit) {
-
-        }
+        TRY_L(exit) { os_sched_exit(-1); }
+        FINALLY_L(exit) {}
     }
     END_TRY_L(exit);
 }
@@ -146,7 +140,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
 
     // ensure exception will work as planned
     os_boot();
-    
+
     for (;;) {
         ux_init();
 
@@ -158,7 +152,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
                 USB_power(1);
 
                 power_ble();
-              
+
                 app_main();
             }
             CATCH(EXCEPTION_IO_RESET) {
@@ -170,8 +164,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
                 CLOSE_TRY;
                 break;
             }
-            FINALLY {
-            }
+            FINALLY {}
         }
         END_TRY;
     }

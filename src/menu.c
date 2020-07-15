@@ -8,34 +8,22 @@
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
 
-UX_STEP_NOCB(
-    ux_idle_flow_1_step, 
-    nn, 
-    {
-      "Exchange",
-      "is ready",
-    });
-UX_STEP_NOCB(
-    ux_idle_flow_2_step, 
-    bn, 
-    {
-      "Version",
-      APPVERSION,
-    });
-UX_STEP_VALID(
-    ux_idle_flow_3_step,
-    pb,
-    os_sched_exit(-1),
-    {
-      &C_icon_dashboard_x,
-      "Quit",
-    });
-UX_FLOW(ux_idle_flow,
-  &ux_idle_flow_1_step,
-  &ux_idle_flow_2_step,
-  &ux_idle_flow_3_step,
-  FLOW_LOOP
-);
+UX_STEP_NOCB(ux_idle_flow_1_step, nn,
+             {
+                 "Exchange",
+                 "is ready",
+             });
+UX_STEP_NOCB(ux_idle_flow_2_step, bn,
+             {
+                 "Version",
+                 APPVERSION,
+             });
+UX_STEP_VALID(ux_idle_flow_3_step, pb, os_sched_exit(-1),
+              {
+                  &C_icon_dashboard_x,
+                  "Quit",
+              });
+UX_FLOW(ux_idle_flow, &ux_idle_flow_1_step, &ux_idle_flow_2_step, &ux_idle_flow_3_step, FLOW_LOOP);
 
 //////////////////////////
 
@@ -59,66 +47,43 @@ unsigned int io_reject(const bagl_element_t *e) {
     return 0;
 }
 
-UX_STEP_NOCB(ux_confirm_flow_1_step, 
-    pnn, 
-    {
-      &C_icon_eye,
-      "Review",
-      "transaction",
-    });
-UX_STEP_NOCB(
-    ux_confirm_flow_2_step, 
-    bnnn_paging, 
-    {
-      .title = "Send",
-      .text = validationInfo.send,
-    });
-UX_STEP_NOCB(
-    ux_confirm_flow_3_step, 
-    bnnn_paging, 
-    {
-      .title = "Get",
-      .text = validationInfo.get,
-    });
-UX_STEP_NOCB(
-    ux_confirm_flow_4_step, 
-    bnnn_paging, 
-    {
-      .title = "Fees",
-      .text = validationInfo.fees,
-    });
-UX_STEP_VALID(
-    ux_confirm_flow_5_step, 
-    pbb, 
-    io_accept(NULL),
-    {
-      &C_icon_validate_14,
-      "Accept",
-      "and send",
-    });
-UX_STEP_VALID(
-    ux_confirm_flow_6_step, 
-    pb, 
-    io_reject(NULL),
-    {
-      &C_icon_crossmark,
-      "Reject",
-    });
-UX_FLOW(ux_confirm_flow,
-  &ux_confirm_flow_1_step,
-  &ux_confirm_flow_2_step,
-  &ux_confirm_flow_3_step,
-  &ux_confirm_flow_4_step,
-  &ux_confirm_flow_5_step,
-  &ux_confirm_flow_6_step
-);
+UX_STEP_NOCB(ux_confirm_flow_1_step, pnn,
+             {
+                 &C_icon_eye,
+                 "Review",
+                 "transaction",
+             });
+UX_STEP_NOCB(ux_confirm_flow_2_step, bnnn_paging,
+             {
+                 .title = "Send",
+                 .text = validationInfo.send,
+             });
+UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
+             {
+                 .title = "Get",
+                 .text = validationInfo.get,
+             });
+UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
+             {
+                 .title = "Fees",
+                 .text = validationInfo.fees,
+             });
+UX_STEP_VALID(ux_confirm_flow_5_step, pbb, io_accept(NULL),
+              {
+                  &C_icon_validate_14,
+                  "Accept",
+                  "and send",
+              });
+UX_STEP_VALID(ux_confirm_flow_6_step, pb, io_reject(NULL),
+              {
+                  &C_icon_crossmark,
+                  "Reject",
+              });
+UX_FLOW(ux_confirm_flow, &ux_confirm_flow_1_step, &ux_confirm_flow_2_step, &ux_confirm_flow_3_step,
+        &ux_confirm_flow_4_step, &ux_confirm_flow_5_step, &ux_confirm_flow_6_step);
 
-void ui_validate_amounts(
-    char* send_amount,
-    char* get_amount,
-    char* fees_amount,
-    UserChoiseCallback on_accept,
-    UserChoiseCallback on_reject) {
+void ui_validate_amounts(char *send_amount, char *get_amount, char *fees_amount,
+                         UserChoiseCallback on_accept, UserChoiseCallback on_reject) {
     strcpy(validationInfo.send, send_amount);
     strcpy(validationInfo.get, get_amount);
     strcpy(validationInfo.fees, fees_amount);
@@ -127,13 +92,11 @@ void ui_validate_amounts(
     ux_flow_init(0, ux_confirm_flow, NULL);
 }
 
-void ux_init() {
-    UX_INIT();
-}
+void ux_init() { UX_INIT(); }
 
 void ui_idle(void) {
     // reserve a display stack slot if none yet
-    if(G_ux.stack_count == 0) {
+    if (G_ux.stack_count == 0) {
         ux_stack_push();
     }
     ux_flow_init(0, ux_idle_flow, NULL);
@@ -141,7 +104,7 @@ void ui_idle(void) {
 
 // override point, but nothing more to do
 void io_seproxyhal_display(const bagl_element_t *element) {
-    io_seproxyhal_display_default((bagl_element_t*)element);
+    io_seproxyhal_display_default((bagl_element_t *)element);
 }
 
 unsigned char io_event(unsigned char channel) {
@@ -158,7 +121,9 @@ unsigned char io_event(unsigned char channel) {
             break;
         }
         case SEPROXYHAL_TAG_STATUS_EVENT:
-            if (G_io_apdu_media == IO_APDU_MEDIA_USB_HID && !(U4BE(G_io_seproxyhal_spi_buffer, 3) & SEPROXYHAL_TAG_STATUS_EVENT_FLAG_USB_POWERED)) {
+            if (G_io_apdu_media == IO_APDU_MEDIA_USB_HID &&
+                !(U4BE(G_io_seproxyhal_spi_buffer, 3) &
+                  SEPROXYHAL_TAG_STATUS_EVENT_FLAG_USB_POWERED)) {
                 THROW(EXCEPTION_IO_RESET);
             }
             // no break is intentional
@@ -184,7 +149,6 @@ unsigned char io_event(unsigned char channel) {
     return 1;
 }
 
-
 unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
     switch (channel & ~(IO_FLAGS)) {
         case CHANNEL_KEYBOARD:
@@ -198,11 +162,10 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
                 if (channel & IO_RESET_AFTER_REPLIED) {
                     reset();
                 }
-                return 0; // nothing received from the master so far (it's a tx
-                        // transaction)
+                return 0;  // nothing received from the master so far (it's a tx
+                           // transaction)
             } else {
-                return io_seproxyhal_spi_recv(G_io_apdu_buffer,
-                                            sizeof(G_io_apdu_buffer), 0);
+                return io_seproxyhal_spi_recv(G_io_apdu_buffer, sizeof(G_io_apdu_buffer), 0);
             }
 
         default:

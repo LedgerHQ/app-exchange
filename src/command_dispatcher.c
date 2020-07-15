@@ -16,8 +16,11 @@
 
 #include "reply_error.h"
 
-typedef int (*StateCommandDispatcher)(swap_app_context_t* ctx, unsigned char* input_buffer, int input_buffer_length, SendFunction send);
+typedef int (*StateCommandDispatcher)(swap_app_context_t *ctx,                               //
+                                      unsigned char *input_buffer, int input_buffer_length,  //
+                                      SendFunction send);
 
+// clang-format off
 static const StateCommandDispatcher dispatcher_table[COMMAND_UPPER_BOUND-2][STATE_UPPER_BOUND] = {
 //                                               INITIAL_STATE          WAITING_TRANSACTION     PROVIDER_SET            PROVIDER_CHECKED,       TRANSACTION_RECIEVED    SIGNATURE_CHECKED       TO_ADDR_CHECKED         WAITING_USER_VALIDATION     WAITING_SIGNING
 /* GET_VERSION_COMMAND                      */  {get_version_handler,   get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    unexpected_command,         unexpected_command},
@@ -30,10 +33,13 @@ static const StateCommandDispatcher dispatcher_table[COMMAND_UPPER_BOUND-2][STAT
 /* CHECK_REFUND_ADDRESS                     */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     check_refund_address,   unexpected_command,         unexpected_command},
 /* START_SIGNING_TRANSACTION                */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,         start_signing_transaction}
 };
+// clang-format on
 
-int dispatch_command(command_e command, swap_app_context_t *context, unsigned char* input_buffer, unsigned int buffer_size, SendFunction send) {
+int dispatch_command(command_e command, swap_app_context_t *context, unsigned char *input_buffer,
+                     unsigned int buffer_size, SendFunction send) {
     PRINTF("%d %d\n", command, context->state);
-    StateCommandDispatcher handler = (StateCommandDispatcher)(PIC(dispatcher_table[command-2][context->state]));
+    StateCommandDispatcher handler =
+        (StateCommandDispatcher)(PIC(dispatcher_table[command - 2][context->state]));
     PRINTF("%d\n", handler);
     return handler(context, input_buffer, buffer_size, send);
 }
