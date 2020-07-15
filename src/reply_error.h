@@ -7,6 +7,6 @@
 
 // Send a error message, change the state to INITIAL
 // return negative number in case of something go wrong (send operation for example)
-int reply_error(swap_app_context_t* ctx, swap_error_e error, SendFunction send);
+int reply_error(swap_app_context_t *ctx, swap_error_e error, SendFunction send);
 
-#endif // _REPLY_ERROR_H_
+#endif  // _REPLY_ERROR_H_

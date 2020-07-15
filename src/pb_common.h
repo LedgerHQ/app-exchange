@@ -1,3 +1,5 @@
+/* clang-format off */
+
 /* pb_common.h: Common support functions for pb_encode.c and pb_decode.c.
  * These functions are rarely needed by applications directly.
  */

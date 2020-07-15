@@ -1,15 +1,11 @@
 #include "currency_lib_calls.h"
 #include "ux.h"
 
-int get_printable_amount(
-    unsigned char* coin_config,
-    unsigned char coin_config_length,
-    char * application_name,
-    unsigned char * amount,
-    unsigned char amount_size,
-    char* printable_amount,
-    unsigned char printable_amount_size,
-    bool is_fee) {
+int get_printable_amount(unsigned char *coin_config, unsigned char coin_config_length,  //
+                         char *application_name,                                        //
+                         unsigned char *amount, unsigned char amount_size,              //
+                         char *printable_amount, unsigned char printable_amount_size,   //
+                         bool is_fee) {
     static unsigned int libcall_params[5];
     static get_printable_amount_parameters_t lib_input_params = {0};
     lib_input_params.coin_configuration = coin_config;
@@ -25,7 +21,7 @@ int get_printable_amount(
     PRINTF("Address of printable_amount %d\n", lib_input_params.printable_amount);
     os_memset(lib_input_params.printable_amount, 0, sizeof(lib_input_params.printable_amount));
     // Speculos workaround
-    //io_seproxyhal_general_status();
+    // io_seproxyhal_general_status();
     os_lib_call(libcall_params);
     // result should be null terminated string, so we need to have at least one 0
     if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != 0) {
@@ -40,14 +36,11 @@ int get_printable_amount(
     return 0;
 }
 
-int check_address(
-    unsigned char* coin_config,
-    unsigned char coin_config_length,
-    unsigned char* address_parameters,
-    unsigned char address_parameters_length,
-    char * application_name,
-    char * address_to_check,
-    char * address_extra_to_check) {
+int check_address(unsigned char *coin_config, unsigned char coin_config_length,                //
+                  unsigned char *address_parameters, unsigned char address_parameters_length,  //
+                  char *application_name,                                                      //
+                  char *address_to_check,                                                      //
+                  char *address_extra_to_check) {
     static unsigned int libcall_params[5];
     static check_address_parameters_t lib_in_out_params = {0};
     lib_in_out_params.coin_configuration = coin_config;
@@ -64,16 +57,14 @@ int check_address(
     PRINTF("I am calling %s to check address\n", application_name);
     PRINTF("I am going to check address %s\n", lib_in_out_params.address_to_check);
     // Speculos workaround
-    //io_seproxyhal_general_status();
+    // io_seproxyhal_general_status();
     os_lib_call(libcall_params);
     PRINTF("I am back\n");
     return lib_in_out_params.result;
 }
 
-void create_payin_transaction(
-    char * application_name,
-    create_transaction_parameters_t * lib_in_out_params
-) {
+void create_payin_transaction(char *application_name,
+                              create_transaction_parameters_t *lib_in_out_params) {
     unsigned int libcall_params[5];
     libcall_params[0] = (unsigned int)application_name;
     libcall_params[1] = 0x100;

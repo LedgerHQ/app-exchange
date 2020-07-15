@@ -4,7 +4,8 @@
 // This value is the part of the host <-> device protocol
 // they will be reported to host in APDU
 
-// error codes tries to respect https://www.eftlab.com/knowledge-base/complete-list-of-apdu-responses/
+// error codes tries to respect
+// https://www.eftlab.com/knowledge-base/complete-list-of-apdu-responses/
 
 typedef enum {
     INCORRECT_COMMAND_DATA = 0x6A80,
@@ -18,4 +19,4 @@ typedef enum {
     SIGN_VERIFICATION_FAIL = 0x9D1A
 } swap_error_e;
 
-#endif //_SWAP_ERRORS_H_
+#endif  //_SWAP_ERRORS_H_

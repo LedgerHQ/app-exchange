@@ -4,10 +4,9 @@
 #include "globals.h"
 #include "reply_error.h"
 
-int set_partner_key(
-    swap_app_context_t* ctx,
-    unsigned char* input_buffer, int input_buffer_length,
-    SendFunction send) {
+int set_partner_key(swap_app_context_t *ctx,                               //
+                    unsigned char *input_buffer, int input_buffer_length,  //
+                    SendFunction send) {
     // data is serialized as
     // 1 byte - partner name length L
     // L bytes - partner name
@@ -26,9 +25,11 @@ int set_partner_key(
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     os_memcpy(ctx->partner.name, input_buffer + 1, ctx->partner.name_length);
-    cx_ecfp_init_public_key(CX_CURVE_SECP256K1, input_buffer + 1 + ctx->partner.name_length, UNCOMPRESSED_KEY_LENGTH, &(ctx->partner.public_key));
-    cx_hash_sha256(input_buffer, input_buffer_length, ctx->sha256_digest, sizeof(ctx->sha256_digest));
-    unsigned char ouput_buffer[2] = { 0x90, 0x00 };
+    cx_ecfp_init_public_key(CX_CURVE_SECP256K1, input_buffer + 1 + ctx->partner.name_length,
+                            UNCOMPRESSED_KEY_LENGTH, &(ctx->partner.public_key));
+    cx_hash_sha256(input_buffer, input_buffer_length, ctx->sha256_digest,
+                   sizeof(ctx->sha256_digest));
+    unsigned char ouput_buffer[2] = {0x90, 0x00};
     if (send(ouput_buffer, 2) < 0) {
         PRINTF("Error: failed to send");
         return -1;
