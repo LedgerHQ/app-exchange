@@ -10,7 +10,8 @@ void to_uppercase(char *str, unsigned char size) {
     }
 }
 
-int process_transaction(swap_app_context_t *ctx,                                        //
+int process_transaction(subcommand_e subcommand,                                        //
+                        swap_app_context_t *ctx,                                        //
                         unsigned char *input_buffer, unsigned int input_buffer_length,  //
                         SendFunction send) {
     if (input_buffer_length < 1) {
@@ -24,8 +25,8 @@ int process_transaction(swap_app_context_t *ctx,                                
         PRINTF("Error: Can't parse transaction protobuf");
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
-    if (os_memcmp(ctx->device_tx_id, ctx->received_transaction.device_transaction_id,
-                  sizeof(ctx->device_tx_id)) != 0) {
+    if (os_memcmp(ctx->device_transaction_id.swap, ctx->received_transaction.device_transaction_id,
+                  sizeof(ctx->device_transaction_id.swap)) != 0) {
         PRINTF("Error: Device transaction IDs doesn't match");
         return reply_error(ctx, WRONG_TRANSACTION_ID, send);
     }

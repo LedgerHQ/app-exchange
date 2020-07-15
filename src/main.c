@@ -114,6 +114,7 @@ void app_main(void) {
         }
 
         if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],     //
+                             G_io_apdu_buffer[OFFSET_P2],      //
                              &swap_ctx,                        //
                              G_io_apdu_buffer + OFFSET_CDATA,  //
                              input_length - OFFSET_CDATA,      //

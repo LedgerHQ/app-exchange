@@ -1,6 +1,7 @@
 #include "get_version_handler.h"
 
-int get_version_handler(swap_app_context_t *ctx,                                        //
+int get_version_handler(subcommand_e subcommand,                                        //
+                        swap_app_context_t *ctx,                                        //
                         unsigned char *input_buffer, unsigned int input_buffer_length,  //
                         SendFunction send) {
     unsigned char output_buffer[5];

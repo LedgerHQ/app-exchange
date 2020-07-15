@@ -15,4 +15,7 @@ typedef enum {
     COMMAND_UPPER_BOUND
 } command_e;
 
+// subcommands
+typedef enum { SWAP = 0x00, SELL = 0x01, SUBCOMMAND_UPPER_BOUND } subcommand_e;
+
 #endif  //_COMMANDS_H_
