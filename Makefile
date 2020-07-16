@@ -24,7 +24,7 @@ APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --path "" --appFlags 0x240 $(
 
 APPVERSION_M=1
 APPVERSION_N=0
-APPVERSION_P=6
+APPVERSION_P=7
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Exchange"
 
@@ -57,9 +57,6 @@ DEFINES   += HAVE_U2F HAVE_IO_U2F
 DEFINES   += U2F_PROXY_MAGIC=\"BOIL\"
 DEFINES   += USB_SEGMENT_SIZE=64
 DEFINES   += BLE_SEGMENT_SIZE=32 #max MTU, min 20
-
-WEBUSB_URL     = www.ledgerwallet.com
-DEFINES       += HAVE_WEBUSB WEBUSB_URL_SIZE_B=$(shell echo -n $(WEBUSB_URL) | wc -c) WEBUSB_URL=$(shell echo -n $(WEBUSB_URL) | sed -e "s/./\\\'\0\\\',/g")
 
 DEFINES   += UNUSED\(x\)=\(void\)x
 DEFINES   += APPVERSION=\"$(APPVERSION)\"
