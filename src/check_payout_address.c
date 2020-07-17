@@ -41,7 +41,7 @@ int check_payout_address(swap_app_context_t *ctx,                               
         PRINTF("Error: Can't parse payout coin config command\n");
         return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
     }
-    if (ticker_length < 3 || ticker_length > 9) {
+    if (ticker_length < 2 || ticker_length > 9) {
         PRINTF("Error: Ticker length should be in [3, 9]\n");
         return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
     }

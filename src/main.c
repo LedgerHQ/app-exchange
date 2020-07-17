@@ -15,11 +15,12 @@
  *  limitations under the License.
  *****************************************************************************/
 
+#include "os.h"
+#include "os_io_seproxyhal.h"
 #include "init.h"
 #include "menu.h"
 #include "swap_app_context.h"
 #include "commands.h"
-#include "power_ble.h"
 #include "command_dispatcher.h"
 #include "apdu_offsets.h"
 #include "swap_errors.h"
@@ -94,9 +95,6 @@ int send_apdu(unsigned char *buffer, unsigned int buffer_length) {
 
 void app_main(void) {
     int input_length = 0;
-    init_application_context(&swap_ctx);
-
-    ui_idle();
 
     output_length = 0;
     io_state = READY;
@@ -148,10 +146,22 @@ __attribute__((section(".boot"))) int main(int arg0) {
             TRY {
                 io_seproxyhal_init();
 
+#ifdef TARGET_NANOX
+                // grab the current plane mode setting
+                G_io_app.plane_mode = os_setting_get(OS_SETTING_PLANEMODE, NULL, 0);
+#endif // TARGET_NANOX
+
+                init_application_context(&swap_ctx);
+
                 USB_power(0);
                 USB_power(1);
 
-                power_ble();
+                ui_idle();
+
+#ifdef HAVE_BLE
+                BLE_power(0, NULL);
+                BLE_power(1, "Nano X");
+#endif
 
                 app_main();
             }

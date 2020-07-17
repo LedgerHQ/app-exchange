@@ -73,6 +73,12 @@ const main = () => {
     aeSubConfig = Buffer.concat([Buffer.from(["AE".length]), Buffer.from("AE"), Buffer.from([18])])
     var aeConfig = createCurrencyConfig("AE", "Ethereum", aeSubConfig, ledgerPrivateKey);
 
+    usdtSubConfig = Buffer.concat([Buffer.from(["USDT".length]), Buffer.from("USDT"), Buffer.from([6])])
+    var usdtConfig = createCurrencyConfig("USDT", "Ethereum", usdtSubConfig, ledgerPrivateKey);
+
+    repSubConfig = Buffer.concat([Buffer.from(["REP".length]), Buffer.from("REP"), Buffer.from([18])])
+    var repConfig = createCurrencyConfig("REP", "Ethereum", repSubConfig, ledgerPrivateKey);
+
     console.log("BTC config: " +toHexPrintableConst(btcConfig.coinConfig));
     console.log("BTC config signature: " +toHexPrintableConst(btcConfig.signature));
     console.log("LTC config: " +toHexPrintableConst(ltcConfig.coinConfig));
@@ -81,6 +87,10 @@ const main = () => {
     console.log("ETH config signature: " +toHexPrintableConst(ethConfig.signature));
     console.log("AE config: " +toHexPrintableConst(aeConfig.coinConfig));
     console.log("AE config signature: " +toHexPrintableConst(aeConfig.signature));
+    console.log("USDT config: " +toHexPrintableConst(usdtConfig.coinConfig));
+    console.log("USDT config signature: " +toHexPrintableConst(usdtConfig.signature));
+    console.log("REP config: " +toHexPrintableConst(repConfig.coinConfig));
+    console.log("REP config signature: " +toHexPrintableConst(repConfig.signature));
 }
 
 
