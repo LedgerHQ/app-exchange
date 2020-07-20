@@ -1,8 +1,8 @@
 #include "start_signing_transaction.h"
 #include "currency_lib_calls.h"
 
-int start_signing_transaction(swap_app_context_t *ctx,                               //
-                              unsigned char *input_buffer, int input_buffer_length,  //
+int start_signing_transaction(swap_app_context_t *ctx,                                        //
+                              unsigned char *input_buffer, unsigned int input_buffer_length,  //
                               SendFunction send) {
     G_io_apdu_buffer[0] = 0x90;
     G_io_apdu_buffer[1] = 0x00;
@@ -19,4 +19,6 @@ int start_signing_transaction(swap_app_context_t *ctx,                          
     lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
 
     create_payin_transaction(ctx->payin_binary_name, &lib_in_out_params);
+
+    return 0;
 }

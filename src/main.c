@@ -24,6 +24,7 @@
 #include "command_dispatcher.h"
 #include "apdu_offsets.h"
 #include "swap_errors.h"
+#include "reply_error.h"
 
 #include "usbd_core.h"
 #define CLA 0xE0
@@ -112,10 +113,11 @@ void app_main(void) {
             continue;
         }
 
-        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],  //
-                             &swap_ctx,
+        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],     //
+                             &swap_ctx,                        //
                              G_io_apdu_buffer + OFFSET_CDATA,  //
-                             input_length - OFFSET_CDATA, send_apdu) < 0)
+                             input_length - OFFSET_CDATA,      //
+                             send_apdu) < 0)
             return;  // some non recoverable error happened
 
         if (swap_ctx.state == INITIAL_STATE) {
@@ -149,7 +151,7 @@ __attribute__((section(".boot"))) int main(int arg0) {
 #ifdef TARGET_NANOX
                 // grab the current plane mode setting
                 G_io_app.plane_mode = os_setting_get(OS_SETTING_PLANEMODE, NULL, 0);
-#endif // TARGET_NANOX
+#endif  // TARGET_NANOX
 
                 init_application_context(&swap_ctx);
 

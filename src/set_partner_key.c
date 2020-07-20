@@ -4,8 +4,8 @@
 #include "globals.h"
 #include "reply_error.h"
 
-int set_partner_key(swap_app_context_t *ctx,                               //
-                    unsigned char *input_buffer, int input_buffer_length,  //
+int set_partner_key(swap_app_context_t *ctx,                                        //
+                    unsigned char *input_buffer, unsigned int input_buffer_length,  //
                     SendFunction send) {
     // data is serialized as
     // 1 byte - partner name length L

@@ -7,8 +7,8 @@
 // This function receive transaction signature
 // Input should be in the form of DER serialized signature
 // the length should be CURVE_SIZE_BYTES * 2 + 6 (DER encoding)
-int check_tx_signature(swap_app_context_t *ctx,                               //
-                       unsigned char *input_buffer, int input_buffer_length,  //
+int check_tx_signature(swap_app_context_t *ctx,                                        //
+                       unsigned char *input_buffer, unsigned int input_buffer_length,  //
                        SendFunction send) {
     if (input_buffer_length < MIN_DER_SIGNATURE_LENGTH ||
         input_buffer_length > MAX_DER_SIGNATURE_LENGTH ||

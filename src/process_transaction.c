@@ -10,8 +10,8 @@ void to_uppercase(char *str, unsigned char size) {
     }
 }
 
-int process_transaction(swap_app_context_t *ctx,                               //
-                        unsigned char *input_buffer, int input_buffer_length,  //
+int process_transaction(swap_app_context_t *ctx,                                        //
+                        unsigned char *input_buffer, unsigned int input_buffer_length,  //
                         SendFunction send) {
     if (input_buffer_length < 1) {
         PRINTF("Error: Can't parse process_transaction message, length should be more then 1");

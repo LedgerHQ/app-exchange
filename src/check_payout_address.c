@@ -5,9 +5,10 @@
 #include "currency_lib_calls.h"
 #include "reply_error.h"
 #include "parse_check_address_message.h"
+#include "parse_coin_config.h"
 
-int check_payout_address(swap_app_context_t *ctx,                               //
-                         unsigned char *input_buffer, int input_buffer_length,  //
+int check_payout_address(swap_app_context_t *ctx,                                        //
+                         unsigned char *input_buffer, unsigned int input_buffer_length,  //
                          SendFunction send) {
     static unsigned char *config;
     static unsigned char config_length;
@@ -24,7 +25,7 @@ int check_payout_address(swap_app_context_t *ctx,                               
                                     &der, &der_length,                  //
                                     &address_parameters, &address_parameters_length) == 0) {
         PRINTF("Error: Can't parse CHECK_PAYOUT_ADDRESS command\n");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     PRINTF("CHECK_PAYOUT_ADDRESS parsed OK\n");
     static unsigned char hash[CURVE_SIZE_BYTES];
@@ -39,21 +40,21 @@ int check_payout_address(swap_app_context_t *ctx,                               
                           &application_name, &application_name_length,  //
                           &config, &config_length) == 0) {
         PRINTF("Error: Can't parse payout coin config command\n");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     if (ticker_length < 2 || ticker_length > 9) {
         PRINTF("Error: Ticker length should be in [3, 9]\n");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     if (application_name_length < 3 || application_name_length > 15) {
         PRINTF("Error: Application name should be in [3, 15]\n");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     // Check that given ticker match current context
     if (strlen(ctx->received_transaction.currency_to) != ticker_length ||
-        strncmp(ctx->received_transaction.currency_to, ticker, ticker_length) != 0) {
+        strncmp(ctx->received_transaction.currency_to, (const char *)ticker, ticker_length) != 0) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     PRINTF("Coin config parsed OK\n");
     // creating 0-terminated application name
