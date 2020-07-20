@@ -6,6 +6,7 @@
 #include "reply_error.h"
 #include "parse_check_address_message.h"
 #include "menu.h"
+#include "parse_coin_config.h"
 
 swap_app_context_t *application_context;
 SendFunction send_function;

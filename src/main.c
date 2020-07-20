@@ -24,6 +24,7 @@
 #include "command_dispatcher.h"
 #include "apdu_offsets.h"
 #include "swap_errors.h"
+#include "reply_error.h"
 
 #include "usbd_core.h"
 #define CLA 0xE0
