@@ -19,4 +19,6 @@ int start_signing_transaction(swap_app_context_t *ctx,                          
     lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
 
     create_payin_transaction(ctx->payin_binary_name, &lib_in_out_params);
+
+    return 0;
 }
