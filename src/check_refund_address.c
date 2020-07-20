@@ -42,7 +42,7 @@ int check_refund_address(swap_app_context_t *ctx,                               
                                     &config, &config_length,            //
                                     &der, &der_length,                  //
                                     &address_parameters, &address_parameters_length) == 0) {
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     static unsigned char hash[CURVE_SIZE_BYTES];
     memset(hash, 0, sizeof(hash));
@@ -57,21 +57,21 @@ int check_refund_address(swap_app_context_t *ctx,                               
                           &application_name, &application_name_length,  //
                           &ctx->payin_coin_config, &ctx->payin_coin_config_length) == 0) {
         PRINTF("Error: Can't parse refund coin config command\n");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     if (ticker_length < 2 || ticker_length > 9) {
         PRINTF("Error: Ticker length should be in [3, 9]\n");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     if (application_name_length < 3 || application_name_length > 15) {
         PRINTF("Error: Application name should be in [3, 15]\n");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     // Check that given ticker match current context
     if (strlen(ctx->received_transaction.currency_from) != ticker_length ||
         strncmp(ctx->received_transaction.currency_from, ticker, ticker_length) != 0) {
         PRINTF("Error: Refund ticker doesn't match configuration ticker\n");
-        return reply_error(&ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
     // creating 0-terminated application name
     os_memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
