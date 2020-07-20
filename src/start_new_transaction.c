@@ -8,8 +8,8 @@ void create_device_tx_id(char *device_tx_id, unsigned int len) {
     }
 }
 
-int start_new_transaction(swap_app_context_t *ctx,                               //
-                          unsigned char *input_buffer, int input_buffer_length,  //
+int start_new_transaction(swap_app_context_t *ctx,                                        //
+                          unsigned char *input_buffer, unsigned int input_buffer_length,  //
                           SendFunction send) {
     init_application_context(ctx);
     create_device_tx_id(ctx->device_tx_id, sizeof(ctx->device_tx_id));

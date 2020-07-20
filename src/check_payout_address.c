@@ -6,8 +6,8 @@
 #include "reply_error.h"
 #include "parse_check_address_message.h"
 
-int check_payout_address(swap_app_context_t *ctx,                               //
-                         unsigned char *input_buffer, int input_buffer_length,  //
+int check_payout_address(swap_app_context_t *ctx,                                        //
+                         unsigned char *input_buffer, unsigned int input_buffer_length,  //
                          SendFunction send) {
     static unsigned char *config;
     static unsigned char config_length;
