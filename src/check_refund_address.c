@@ -56,7 +56,8 @@ int check_refund_address(swap_app_context_t *ctx,                               
     if (parse_coin_config(config, config_length,                        //
                           &ticker, &ticker_length,                      //
                           &application_name, &application_name_length,  //
-                          &ctx->payin_coin_config, &ctx->payin_coin_config_length) == 0) {
+                          &ctx->payin_coin_config,                      //
+                          (unsigned char *)&ctx->payin_coin_config_length) == 0) {
         PRINTF("Error: Can't parse refund coin config command\n");
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
@@ -70,7 +71,9 @@ int check_refund_address(swap_app_context_t *ctx,                               
     }
     // Check that given ticker match current context
     if (strlen(ctx->received_transaction.currency_from) != ticker_length ||
-        strncmp(ctx->received_transaction.currency_from, ticker, ticker_length) != 0) {
+        strncmp(ctx->received_transaction.currency_from,  //
+                (const char *)ticker,                     //
+                ticker_length) != 0) {
         PRINTF("Error: Refund ticker doesn't match configuration ticker\n");
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
