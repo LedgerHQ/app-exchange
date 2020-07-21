@@ -10,4 +10,5 @@ AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: true
 AllowAllParametersOfDeclarationOnNextLine: false
 SortIncludes: false
+SpaceAfterCStyleCast: true
 ---

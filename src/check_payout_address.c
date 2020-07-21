@@ -52,7 +52,7 @@ int check_payout_address(swap_app_context_t *ctx,                               
     }
     // Check that given ticker match current context
     if (strlen(ctx->received_transaction.currency_to) != ticker_length ||
-        strncmp(ctx->received_transaction.currency_to, (const char *)ticker, ticker_length) != 0) {
+        strncmp(ctx->received_transaction.currency_to, (const char *) ticker, ticker_length) != 0) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
