@@ -13,11 +13,11 @@ int get_printable_amount(unsigned char *coin_config, unsigned char coin_config_l
     lib_input_params.amount = amount;
     lib_input_params.amount_length = amount_size;
     lib_input_params.is_fee = is_fee;
-    libcall_params[0] = (unsigned int)application_name;
+    libcall_params[0] = (unsigned int) application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = GET_PRINTABLE_AMOUNT;
     libcall_params[3] = 0;
-    libcall_params[4] = (unsigned int)&lib_input_params;
+    libcall_params[4] = (unsigned int) &lib_input_params;
     PRINTF("Address of printable_amount %d\n", lib_input_params.printable_amount);
     os_memset(lib_input_params.printable_amount, 0, sizeof(lib_input_params.printable_amount));
     // Speculos workaround
@@ -49,11 +49,11 @@ int check_address(unsigned char *coin_config, unsigned char coin_config_length, 
     lib_in_out_params.address_parameters_length = address_parameters_length;
     lib_in_out_params.address_to_check = address_to_check;
     lib_in_out_params.extra_id_to_check = address_extra_to_check;
-    libcall_params[0] = (unsigned int)application_name;
+    libcall_params[0] = (unsigned int) application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = CHECK_ADDRESS;
     libcall_params[3] = 0;
-    libcall_params[4] = (unsigned int)&lib_in_out_params;
+    libcall_params[4] = (unsigned int) &lib_in_out_params;
     PRINTF("I am calling %s to check address\n", application_name);
     PRINTF("I am going to check address %s\n", lib_in_out_params.address_to_check);
     // Speculos workaround
@@ -66,11 +66,11 @@ int check_address(unsigned char *coin_config, unsigned char coin_config_length, 
 void create_payin_transaction(char *application_name,
                               create_transaction_parameters_t *lib_in_out_params) {
     unsigned int libcall_params[5];
-    libcall_params[0] = (unsigned int)application_name;
+    libcall_params[0] = (unsigned int) application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = SIGN_TRANSACTION;
     libcall_params[3] = 0;
-    libcall_params[4] = (unsigned int)lib_in_out_params;
+    libcall_params[4] = (unsigned int) lib_in_out_params;
     USB_power(0);
     os_lib_call(libcall_params);
     USB_power(0);
