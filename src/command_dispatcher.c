@@ -10,6 +10,7 @@
 #include "check_tx_signature.h"
 #include "check_payout_address.h"
 #include "check_refund_address.h"
+#include "check_asset_in.h"
 #include "apdu_offsets.h"
 #include "check_partner.h"
 #include "start_signing_transaction.h"
@@ -41,11 +42,20 @@ int dispatch_command(command_e command, subcommand_e subcommand,             //
                      swap_app_context_t *context,                            //
                      unsigned char *input_buffer, unsigned int buffer_size,  //
                      SendFunction send) {
+    StateCommandDispatcher handler;
+
     PRINTF("command: %d, subcommand: %d, state: %d\n", command, subcommand, context->state);
+
     if (subcommand >= SUBCOMMAND_UPPER_BOUND) {
         return reply_error(context, WRONG_P2, send);
     }
-    StateCommandDispatcher handler =
-        (StateCommandDispatcher)(PIC(dispatcher_table[command - 2][context->state]));
+
+    // CHECK_ASSET_IN command instead of CHECK_TO_ADDRESS.
+    if (subcommand == SELL && command == CHECK_PAYOUT_ADDRESS) {
+        handler = (StateCommandDispatcher)(PIC(check_asset_in));
+    } else {
+        handler = (StateCommandDispatcher)(PIC(dispatcher_table[command - 2][context->state]));
+    }
+
     return handler(subcommand, context, input_buffer, buffer_size, send);
 }

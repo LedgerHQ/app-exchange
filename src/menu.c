@@ -4,9 +4,32 @@
 #include "globals.h"
 #include "glyphs.h"
 #include "swap_app_context.h"
+#include "send_function.h"
+#include "reply_error.h"
+#include "commands.h"
 
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
+
+swap_app_context_t *application_context;
+SendFunction send_function;
+
+void on_accept() {
+    unsigned char output_buffer[2] = {0x90, 0x00};
+
+    if (send_function(output_buffer, 2) < 0) {
+        PRINTF("Error: Failed to send\n");
+        return;
+    }
+
+    application_context->state = WAITING_SIGNING;
+}
+
+void on_reject() {
+    PRINTF("User refused transaction\n");
+
+    reply_error(application_context, USER_REFUSED, send_function);
+}
 
 UX_STEP_NOCB(ux_idle_flow_1_step, nn,
              {
@@ -28,6 +51,7 @@ UX_FLOW(ux_idle_flow, &ux_idle_flow_1_step, &ux_idle_flow_2_step, &ux_idle_flow_
 //////////////////////////
 
 struct ValidationInfo {
+    char email[30];
     char send[30];
     char get[30];
     char fees[30];
@@ -53,6 +77,11 @@ UX_STEP_NOCB(ux_confirm_flow_1_step, pnn,
                  "Review",
                  "transaction",
              });
+UX_STEP_NOCB(ux_confirm_flow_1_2_step, bnnn_paging,
+             {
+                 .title = "Email",
+                 .text = validationInfo.email,
+             });
 UX_STEP_NOCB(ux_confirm_flow_2_step, bnnn_paging,
              {
                  .title = "Send",
@@ -68,28 +97,56 @@ UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
                  .title = "Fees",
                  .text = validationInfo.fees,
              });
-UX_STEP_VALID(ux_confirm_flow_5_step, pbb, io_accept(NULL),
-              {
-                  &C_icon_validate_14,
-                  "Accept",
-                  "and send",
-              });
-UX_STEP_VALID(ux_confirm_flow_6_step, pb, io_reject(NULL),
-              {
-                  &C_icon_crossmark,
-                  "Reject",
-              });
-UX_FLOW(ux_confirm_flow, &ux_confirm_flow_1_step, &ux_confirm_flow_2_step, &ux_confirm_flow_3_step,
-        &ux_confirm_flow_4_step, &ux_confirm_flow_5_step, &ux_confirm_flow_6_step);
+UX_STEP_CB(ux_confirm_flow_5_step, pbb, io_accept(NULL),
+           {
+               &C_icon_validate_14,
+               "Accept",
+               "and send",
+           });
+UX_STEP_CB(ux_confirm_flow_6_step, pb, io_reject(NULL),
+           {
+               &C_icon_crossmark,
+               "Reject",
+           });
 
-void ui_validate_amounts(char *send_amount, char *get_amount, char *fees_amount,
-                         UserChoiseCallback on_accept, UserChoiseCallback on_reject) {
+UX_FLOW(ux_confirm_swap_flow,     //
+        &ux_confirm_flow_1_step,  //
+        &ux_confirm_flow_2_step,  //
+        &ux_confirm_flow_3_step,  //
+        &ux_confirm_flow_4_step,  //
+        &ux_confirm_flow_5_step,  //
+        &ux_confirm_flow_6_step);
+
+UX_FLOW(ux_confirm_sell_flow,       //
+        &ux_confirm_flow_1_step,    //
+        &ux_confirm_flow_1_2_step,  //
+        &ux_confirm_flow_2_step,    //
+        &ux_confirm_flow_3_step,    //
+        &ux_confirm_flow_4_step,    //
+        &ux_confirm_flow_5_step,    //
+        &ux_confirm_flow_6_step);
+
+void ui_validate_amounts(subcommand_e subcommand,  //
+                         swap_app_context_t *ctx,  //
+                         char *send_amount,        //
+                         char *fees_amount,        //
+                         SendFunction send) {
+    application_context = ctx;
+    send_function = send;
     strcpy(validationInfo.send, send_amount);
-    strcpy(validationInfo.get, get_amount);
+    strcpy(validationInfo.get, ctx->printable_get_amount);
     strcpy(validationInfo.fees, fees_amount);
     validationInfo.OnAccept = on_accept;
     validationInfo.OnReject = on_reject;
-    ux_flow_init(0, ux_confirm_flow, NULL);
+
+    if (subcommand == SWAP) {
+        ux_flow_init(0, ux_confirm_swap_flow, NULL);
+    }
+
+    if (subcommand == SELL) {
+        strcpy(validationInfo.email, ctx->sell_transaction.trader_email);
+        ux_flow_init(0, ux_confirm_sell_flow, NULL);
+    }
 }
 
 void ux_init() { UX_INIT(); }
