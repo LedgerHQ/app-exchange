@@ -71,6 +71,7 @@ void create_payin_transaction(char *application_name,
     libcall_params[2] = SIGN_TRANSACTION;
     libcall_params[3] = 0;
     libcall_params[4] = (unsigned int) lib_in_out_params;
+    PRINTF("Calling %s app\n", application_name);
     USB_power(0);
     os_lib_call(libcall_params);
     USB_power(0);
