@@ -88,7 +88,7 @@ else
         DEFINES   += PRINTF\(...\)=
 endif
 
-DEFINES += OLD_TEST_PUBLIC_KEY
+DEFINES += TEST_PUBLIC_KEY
 
 ##############
 #  Compiler  #
