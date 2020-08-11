@@ -18,12 +18,14 @@ int check_partner(subcommand_e subcommand,                                      
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
+#ifndef TESTING
     if (cx_ecdsa_verify(&(ctx->ledger_public_key), CX_LAST, CX_SHA256, ctx->sha256_digest,
                         CURVE_SIZE_BYTES, input_buffer, input_buffer_length) == 0) {
         PRINTF("Error: Failed to verify signature of partner data\n");
 
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
+#endif
 
     unsigned char output_buffer[2] = {0x90, 0x00};
 
