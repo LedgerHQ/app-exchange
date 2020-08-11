@@ -15,7 +15,7 @@ int start_new_transaction(subcommand_e subcommand,                              
         output_buffer_size = sizeof(ctx->device_transaction_id.swap);
 
         for (unsigned int i = 0; i < output_buffer_size; ++i) {
-#ifdef OLD_TEST_PUBLIC_KEY
+#ifdef TESTING
             ctx->device_transaction_id.swap[i] = (char) ((int) 'A' + 42 % 26);
 #else
             ctx->device_transaction_id.swap[i] = (char) ((int) 'A' + cx_rng_u8() % 26);
@@ -26,7 +26,7 @@ int start_new_transaction(subcommand_e subcommand,                              
     if (subcommand == SELL) {
         output_buffer_size = sizeof(ctx->device_transaction_id.sell);
 
-#ifdef OLD_TEST_PUBLIC_KEY
+#ifdef TESTING
         unsigned char tx_id[32] = {
             0x35, 0x0a, 0xea, 0x0c, 0x97, 0xf7, 0x47, 0xf1,  //
             0xd0, 0xf7, 0x60, 0x81, 0x46, 0x14, 0xa4, 0x75,  //
