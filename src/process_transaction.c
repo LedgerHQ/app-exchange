@@ -5,10 +5,39 @@
 #include "reply_error.h"
 #include "base64.h"
 
+typedef struct currency_alias_s{
+    char* foreign_name;
+    char* ledger_name;
+} currency_alias_t;
+
+const currency_alias_t const currencies_aliases[] = {
+    {"USDT20", "USDT"} // Changelly's name must be changed to match the ticker from Ledger's cryptoasset list
+};
+
 void to_uppercase(char *str, unsigned char size) {
     for (unsigned char i = 0; i < size && str[i] != 0; i++) {
         str[i] = str[i] >= 'a' ? str[i] - ('a' - 'A') : str[i];
     }
+}
+
+void set_ledger_currency_name(char* currency){
+    for(size_t i=0; i<sizeof(currencies_aliases)/sizeof(currencies_aliases[0]); i++){
+        if(!strcmp(currency, (char*)(PIC(currencies_aliases[i].foreign_name)))){
+            strcpy(currency, (char*)(PIC(currencies_aliases[i].ledger_name)));
+            return;
+        }
+    }
+}
+
+void normalize_currencies(swap_app_context_t *ctx) {
+
+    to_uppercase(ctx->received_transaction.currency_from,
+                sizeof(ctx->received_transaction.currency_from));
+    to_uppercase(ctx->received_transaction.currency_to,
+                sizeof(ctx->received_transaction.currency_to));
+
+    set_ledger_currency_name(ctx->received_transaction.currency_from);
+    set_ledger_currency_name(ctx->received_transaction.currency_to);
 }
 
 int process_transaction(subcommand_e subcommand,                                        //
@@ -47,10 +76,7 @@ int process_transaction(subcommand_e subcommand,                                
             return reply_error(ctx, WRONG_TRANSACTION_ID, send);
         }
 
-        to_uppercase(ctx->received_transaction.currency_from,
-                     sizeof(ctx->received_transaction.currency_from));
-        to_uppercase(ctx->received_transaction.currency_to,
-                     sizeof(ctx->received_transaction.currency_to));
+        normalize_currencies(ctx);
     }
 
     if (subcommand == SELL) {
