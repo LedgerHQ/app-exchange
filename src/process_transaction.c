@@ -38,6 +38,16 @@ void normalize_currencies(swap_app_context_t *ctx) {
 
     set_ledger_currency_name(ctx->received_transaction.currency_from);
     set_ledger_currency_name(ctx->received_transaction.currency_to);
+
+    // strip bcash CashAddr header, and other bip21 like headers
+    for(size_t i=0; i < sizeof(ctx->received_transaction.payin_address); i++){
+        if(ctx->received_transaction.payin_address[i] == ':'){
+            memmove(ctx->received_transaction.payin_address,
+                    ctx->received_transaction.payin_address + i + 1,
+                    sizeof(ctx->received_transaction.payin_address) - i - 1);
+            break;
+        }
+    }
 }
 
 int process_transaction(subcommand_e subcommand,                                        //
@@ -63,7 +73,7 @@ int process_transaction(subcommand_e subcommand,                                
 
         if (!pb_decode(&stream, ledger_swap_NewTransactionResponse_fields,
                        &ctx->received_transaction)) {
-            PRINTF("Error: Can't parse SWAP transaction protobuf");
+            PRINTF("Error: Can't parse SWAP transaction protobuf\n%.*H\n", payload_length, input_buffer + 1);
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
