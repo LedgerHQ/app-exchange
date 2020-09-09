@@ -1,4 +1,4 @@
-ledger_swap.NewTransactionResponse.payin_address max_size:50;
+ledger_swap.NewTransactionResponse.payin_address max_size:55;
 ledger_swap.NewTransactionResponse.payin_extra_id max_size:50;
 ledger_swap.NewTransactionResponse.refund_address max_size:50;
 ledger_swap.NewTransactionResponse.refund_extra_id max_size:50;
