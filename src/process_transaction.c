@@ -11,7 +11,8 @@ typedef struct currency_alias_s{
 } currency_alias_t;
 
 const currency_alias_t const currencies_aliases[] = {
-    {"USDT20", "USDT"} // Changelly's name must be changed to match the ticker from Ledger's cryptoasset list
+    {"USDT20", "USDT"}, // Changelly's name must be changed to match the ticker from Ledger's cryptoasset list
+    {"REP", "REPV2"} // Changelly's name isn't up to date...
 };
 
 void to_uppercase(char *str, unsigned char size) {
