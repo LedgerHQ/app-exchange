@@ -23,21 +23,6 @@ typedef int (*StateCommandDispatcher)(subcommand_e subcommand,           //
                                       unsigned int input_buffer_length,  //
                                       SendFunction send);
 
-// clang-format off
-static const StateCommandDispatcher dispatcher_table[COMMAND_UPPER_BOUND-2][STATE_UPPER_BOUND] = {
-//                                               INITIAL_STATE          WAITING_TRANSACTION     PROVIDER_SET            PROVIDER_CHECKED,       TRANSACTION_RECIEVED    SIGNATURE_CHECKED       TO_ADDR_CHECKED         WAITING_USER_VALIDATION     WAITING_SIGNING
-/* GET_VERSION_COMMAND                      */  {get_version_handler,   get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    get_version_handler,    unexpected_command,         unexpected_command},
-/* START_NEW_TRANSACTION_COMMAND            */  {start_new_transaction, start_new_transaction,  start_new_transaction,  start_new_transaction,  start_new_transaction,  start_new_transaction,  start_new_transaction,  unexpected_command,         start_new_transaction},
-/* SET_PARTNER_KEY_COMMAND                  */  {unexpected_command,    set_partner_key,        unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,         unexpected_command},
-/* CHECK_PARTNER                            */  {unexpected_command,    unexpected_command,     check_partner,          unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,         unexpected_command},
-/* PROCESS_TRANSACTION_COMMAND              */  {unexpected_command,    unexpected_command,     unexpected_command,     process_transaction,    unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,         unexpected_command},
-/* CHECK_TRANSACTION_SIGNATURE_COMMAND      */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     check_tx_signature,     unexpected_command,     unexpected_command,     unexpected_command,         unexpected_command},
-/* CHECK_TO_ADDRESS                         */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     check_payout_address,   unexpected_command,     unexpected_command,         unexpected_command},
-/* CHECK_REFUND_ADDRESS                     */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     check_refund_address,   unexpected_command,         unexpected_command},
-/* START_SIGNING_TRANSACTION                */  {unexpected_command,    unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,     unexpected_command,         start_signing_transaction}
-};
-// clang-format on
-
 int dispatch_command(command_e command, subcommand_e subcommand,             //
                      swap_app_context_t *context,                            //
                      unsigned char *input_buffer, unsigned int buffer_size,  //
@@ -46,15 +31,65 @@ int dispatch_command(command_e command, subcommand_e subcommand,             //
 
     PRINTF("command: %d, subcommand: %d, state: %d\n", command, subcommand, context->state);
 
-    if (subcommand >= SUBCOMMAND_UPPER_BOUND) {
+    if (subcommand != SWAP && subcommand != SELL) {
         return reply_error(context, WRONG_P2, send);
     }
 
-    // CHECK_ASSET_IN command instead of CHECK_TO_ADDRESS.
-    if (subcommand == SELL && command == CHECK_PAYOUT_ADDRESS && context->state == SIGNATURE_CHECKED) {
-        handler = (StateCommandDispatcher)(PIC(check_asset_in));
-    } else {
-        handler = (StateCommandDispatcher)(PIC(dispatcher_table[command - 2][context->state]));
+    handler = (void *)PIC(unexpected_command);
+
+    switch (command) {
+        case GET_VERSION_COMMAND:
+            if (context->state != WAITING_USER_VALIDATION && context->state != WAITING_SIGNING) {
+                handler = (void *)PIC(get_version_handler);
+            }
+            break;
+        case START_NEW_TRANSACTION_COMMAND:
+            if (context->state != WAITING_USER_VALIDATION) {
+                handler = (void *)PIC(start_new_transaction);
+            }
+            break;
+        case SET_PARTNER_KEY_COMMAND:
+            if (context->state == WAITING_TRANSACTION) {
+                handler = (void *)PIC(set_partner_key);
+            }
+            break;
+        case CHECK_PARTNER_COMMAND:
+            if (context->state == PROVIDER_SET) {
+                handler = (void *)PIC(check_partner);
+            }
+            break;
+        case PROCESS_TRANSACTION_RESPONSE_COMMAND:
+            if (context->state == PROVIDER_CHECKED) {
+                handler = (void *)PIC(process_transaction);
+            }
+            break;
+        case CHECK_TRANSACTION_SIGNATURE_COMMAND:
+            if (context->state == TRANSACTION_RECIEVED) {
+                handler = (void *)PIC(check_tx_signature);
+            }
+            break;
+        case CHECK_PAYOUT_ADDRESS:
+            if (context->state == SIGNATURE_CHECKED) {
+                if (subcommand == SELL) {
+                    handler = (void *)PIC(check_asset_in);
+                }
+                else {
+                    handler = (void *)PIC(check_payout_address);
+                }
+            }
+            break;
+        case CHECK_REFUND_ADDRESS:
+            if (context->state == TO_ADDR_CHECKED) {
+                handler = (void *)PIC(check_refund_address);
+            }
+            break;
+        case START_SIGNING_TRANSACTION:
+            if (context->state == WAITING_SIGNING) {
+                handler = (void *)PIC(start_signing_transaction);
+            }
+            break;
+        default:
+            break;
     }
 
     return handler(subcommand, context, input_buffer, buffer_size, send);
