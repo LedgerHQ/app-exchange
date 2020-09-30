@@ -1,8 +1,8 @@
 #ifndef _BASE64_H_
 #define _BASE64_H_
 
-int base64_decode_len(int len);
+#include <stddef.h>
 
-void base64_decode(char *bufplain, const char *bufcoded, int len);
+int base64_decode(unsigned char *bufplain, size_t maxsize, const unsigned char *bufcoded, size_t len);
 
 #endif  // _BASE64_H_
