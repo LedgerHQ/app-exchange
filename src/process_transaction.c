@@ -61,7 +61,7 @@ int process_transaction(subcommand_e subcommand,                                
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
 
-    unsigned char payload_length = input_buffer[0];
+    size_t payload_length = input_buffer[0];
     if (input_buffer_length < 1 + payload_length) {
         PRINTF("Error: Can't parse process_transaction message, invalid payload length");
 
@@ -97,13 +97,18 @@ int process_transaction(subcommand_e subcommand,                                
     }
 
     if (subcommand == SELL) {
-        int n = base64_decode_len((int) payload_length);
-        unsigned char payload[n];
+        // arbitrary maximum payload size
+        unsigned char payload[256];
 
         PRINTF("payload: %.*H\n", payload_length, input_buffer + 1);
         PRINTF("len(decode_base64(payload)): %d\n", n);
 
-        base64_decode((char *) payload, (const char *) input_buffer + 1, payload_length);
+        int n = base64_decode(payload, sizeof(payload), (const unsigned char *) input_buffer + 1, payload_length);
+        if (n < 0) {
+            PRINTF("Error: Can't decode SELL transaction base64");
+
+            return reply_error(ctx, DESERIALIZATION_FAILED, send);
+        }
 
         PRINTF("decode_base64(payload): %.*H\n", n, payload);
 

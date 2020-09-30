@@ -28,6 +28,8 @@
  *
  */
 
+#include "base64.h"
+
 const unsigned char pr2six[256] = {
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,  //
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64,  //
@@ -47,49 +49,49 @@ const unsigned char pr2six[256] = {
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64   //
 };
 
-int base64_decode_len(int len) {
-    int modulus = len % 4;
-
-    if (modulus == 0) {
-        return (len / 4) * 3;
-    }
-
-    if (modulus == 2) {
-        return (len - 2) / 4 * 3 + 1;
-    }
-
-    if (modulus == 3) {
-        return (len - 3) / 4 * 3 + 2;
-    }
-
-    return -1;
-}
-
-void base64_decode(char *bufplain, const char *bufcoded, int len) {
+int base64_decode(unsigned char *bufplain, size_t maxsize, const unsigned char *bufcoded, size_t len) {
     const unsigned char *bufin;
     unsigned char *bufout;
-    int nprbytes = len;
+    size_t nprbytes = len;
 
-    bufout = (unsigned char *) bufplain;
-    bufin = (const unsigned char *) bufcoded;
+    bufout = bufplain;
+    bufin = bufcoded;
 
     while (nprbytes > 4) {
+        if (maxsize < 3) {
+            return -1;
+        }
         *(bufout++) = (unsigned char) (pr2six[*bufin] << 2 | pr2six[bufin[1]] >> 4);
         *(bufout++) = (unsigned char) (pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
         *(bufout++) = (unsigned char) (pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
         bufin += 4;
         nprbytes -= 4;
+        maxsize -= 3;
     }
 
     if (nprbytes > 1) {
+        if (maxsize < 1) {
+            return -1;
+        }
         *(bufout++) = (unsigned char) (pr2six[*bufin] << 2 | pr2six[bufin[1]] >> 4);
+        maxsize--;
     }
 
     if (nprbytes > 2) {
+        if (maxsize < 1) {
+            return -1;
+        }
         *(bufout++) = (unsigned char) (pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
+        maxsize--;
     }
 
     if (nprbytes > 3) {
+        if (maxsize < 1) {
+            return -1;
+        }
         *(bufout++) = (unsigned char) (pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
+        maxsize--;
     }
+
+    return bufout - bufplain;
 }
