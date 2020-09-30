@@ -8,9 +8,9 @@
 #include "menu.h"
 #include "parse_coin_config.h"
 
-int check_refund_address(subcommand_e subcommand,                                        //
-                         swap_app_context_t *ctx,                                        //
-                         unsigned char *input_buffer, unsigned int input_buffer_length,  //
+int check_refund_address(subcommand_e subcommand,
+                         swap_app_context_t *ctx,
+                         const buf_t *input,
                          SendFunction send) {
     static buf_t config;
     static buf_t der;
@@ -18,9 +18,9 @@ int check_refund_address(subcommand_e subcommand,                               
     static buf_t ticker;
     static buf_t application_name;
 
-    if (parse_check_address_message(input_buffer, input_buffer_length,  //
-                                    &config,            //
-                                    &der,                  //
+    if (parse_check_address_message(input,
+                                    &config,
+                                    &der,
                                     &address_parameters) == 0) {
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }

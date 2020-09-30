@@ -3,7 +3,7 @@
 
 #include "buffer.h"
 
-int parse_check_address_message(unsigned char *input_buffer, unsigned char input_buffer_length,
+int parse_check_address_message(const buf_t *input,
                                 buf_t *config,
                                 buf_t *der,
                                 buf_t *address_parameters);

@@ -2,9 +2,9 @@
 #include "currency_lib_calls.h"
 #include "reply_error.h"
 
-int start_signing_transaction(subcommand_e subcommand,                                        //
-                              swap_app_context_t *ctx,                                        //
-                              unsigned char *input_buffer, unsigned int input_buffer_length,  //
+int start_signing_transaction(subcommand_e subcommand,
+                              swap_app_context_t *ctx,
+                              const buf_t *input,
                               SendFunction send) {
     G_io_apdu_buffer[0] = 0x90;
     G_io_apdu_buffer[1] = 0x00;
