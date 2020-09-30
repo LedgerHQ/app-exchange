@@ -62,6 +62,12 @@ int process_transaction(subcommand_e subcommand,                                
     }
 
     unsigned char payload_length = input_buffer[0];
+    if (input_buffer_length < 1 + payload_length) {
+        PRINTF("Error: Can't parse process_transaction message, invalid payload length");
+
+        return reply_error(ctx, DESERIALIZATION_FAILED, send);
+    }
+
     pb_istream_t stream;
     cx_sha256_t sha256;
 
