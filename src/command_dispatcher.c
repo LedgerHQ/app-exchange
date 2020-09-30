@@ -51,7 +51,7 @@ int dispatch_command(command_e command, subcommand_e subcommand,             //
     }
 
     // CHECK_ASSET_IN command instead of CHECK_TO_ADDRESS.
-    if (subcommand == SELL && command == CHECK_PAYOUT_ADDRESS) {
+    if (subcommand == SELL && command == CHECK_PAYOUT_ADDRESS && context->state == SIGNATURE_CHECKED) {
         handler = (StateCommandDispatcher)(PIC(check_asset_in));
     } else {
         handler = (StateCommandDispatcher)(PIC(dispatcher_table[command - 2][context->state]));
