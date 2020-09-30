@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "currency_lib_calls.h"
 #include "ux.h"
 
