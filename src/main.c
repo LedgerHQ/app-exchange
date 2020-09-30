@@ -104,10 +104,7 @@ void app_main(void) {
         PRINTF("New APDU received:\n%.*H\n", input_length, G_io_apdu_buffer);
         if (input_length == -1)  // there were an error, lets start from the beginning
             return;
-        if (input_length < OFFSET_CDATA ||                          //
-            G_io_apdu_buffer[OFFSET_CLA] != CLA ||                  //
-            G_io_apdu_buffer[OFFSET_INS] <= COMMAND_LOWER_BOUND ||  //
-            G_io_apdu_buffer[OFFSET_INS] >= COMMAND_UPPER_BOUND) {
+        if (input_length < OFFSET_CDATA || G_io_apdu_buffer[OFFSET_CLA] != CLA) {
             PRINTF("Error: bad APDU\n");
             reply_error(&swap_ctx, INVALID_INSTRUCTION, send_apdu);
             continue;

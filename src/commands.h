@@ -2,7 +2,6 @@
 #define _COMMANDS_H_
 // commands
 typedef enum {
-    COMMAND_LOWER_BOUND = 1,
     GET_VERSION_COMMAND = 0x02,
     START_NEW_TRANSACTION_COMMAND = 0x03,
     SET_PARTNER_KEY_COMMAND = 0x04,
@@ -12,10 +11,9 @@ typedef enum {
     CHECK_PAYOUT_ADDRESS = 0x08,  // CHECK_ASSET_IN for SELL
     CHECK_REFUND_ADDRESS = 0x09,
     START_SIGNING_TRANSACTION = 0x0A,
-    COMMAND_UPPER_BOUND
 } command_e;
 
 // subcommands
-typedef enum { SWAP = 0x00, SELL = 0x01, SUBCOMMAND_UPPER_BOUND } subcommand_e;
+typedef enum { SWAP = 0x00, SELL = 0x01 } subcommand_e;
 
 #endif  //_COMMANDS_H_
