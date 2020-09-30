@@ -10,7 +10,6 @@
 #define P1_MORE        0x80
 
 #define CURVE_SIZE_BYTES         32U
-#define PUB_KEY_LENGTH           33U
 #define UNCOMPRESSED_KEY_LENGTH  65U
 #define MAX_DER_SIGNATURE_LENGTH 74U
 #define MIN_DER_SIGNATURE_LENGTH 70U
