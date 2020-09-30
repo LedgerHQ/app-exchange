@@ -50,11 +50,13 @@ UX_FLOW(ux_idle_flow, &ux_idle_flow_1_step, &ux_idle_flow_2_step, &ux_idle_flow_
 
 //////////////////////////
 
+#define member_size(type, member) sizeof(((type *)0)->member)
+
 struct ValidationInfo {
-    char email[30];
-    char send[30];
-    char get[30];
-    char fees[30];
+    char email[member_size(swap_app_context_t, sell_transaction.trader_email)];
+    char send[PRINTABLE_AMOUNT_SIZE];
+    char get[member_size(swap_app_context_t, printable_get_amount)];
+    char fees[PRINTABLE_AMOUNT_SIZE];
     UserChoiseCallback OnAccept;
     UserChoiseCallback OnReject;
 } validationInfo;

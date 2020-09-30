@@ -90,7 +90,7 @@ int check_refund_address(subcommand_e subcommand,                               
         return reply_error(ctx, INVALID_ADDRESS, send);
     }
 
-    static char printable_send_amount[30];
+    static char printable_send_amount[PRINTABLE_AMOUNT_SIZE];
     os_memset(printable_send_amount, 0, sizeof(printable_send_amount));
 
     if (get_printable_amount(ctx->payin_coin_config, ctx->payin_coin_config_length,  //
@@ -104,7 +104,7 @@ int check_refund_address(subcommand_e subcommand,                               
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
 
-    static char printable_fees_amount[30];
+    static char printable_fees_amount[PRINTABLE_AMOUNT_SIZE];
     os_memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
 
     if (get_printable_amount(ctx->payin_coin_config, ctx->payin_coin_config_length,  //
