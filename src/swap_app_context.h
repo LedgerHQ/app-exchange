@@ -7,6 +7,7 @@
 #include "cx.h"
 #include "commands.h"
 #include "globals.h"
+#include "buffer.h"
 
 typedef struct partner_data_s {
     unsigned char name_length;
@@ -30,8 +31,7 @@ typedef struct swap_app_context_s {
     };
     unsigned char sha256_digest[32];
     cx_ecfp_256_public_key_t ledger_public_key;
-    unsigned char *payin_coin_config;  // serialized coin configuration
-    int payin_coin_config_length;
+    buf_t payin_coin_config;  // serialized coin configuration
     char payin_binary_name[16];
     char printable_get_amount[PRINTABLE_AMOUNT_SIZE];
 } swap_app_context_t;
