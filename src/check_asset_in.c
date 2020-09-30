@@ -109,15 +109,21 @@ int check_asset_in(subcommand_e subcommand,                                     
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
 
-    strcpy(ctx->printable_get_amount, ctx->sell_transaction.out_currency);
-    strncat(ctx->printable_get_amount, " ", 1);
+    size_t len = strlen(ctx->sell_transaction.out_currency);
+    if (len + 1 >= sizeof(ctx->printable_get_amount)) {
+        return reply_error(ctx, INTERNAL_ERROR, send);
+    }
+
+    strncpy(ctx->printable_get_amount, ctx->sell_transaction.out_currency, sizeof(ctx->printable_get_amount));
+    ctx->printable_get_amount[len] = ' ';
+    ctx->printable_get_amount[len+1] = '\x00';
 
     if (get_fiat_printable_amount(
-            ctx->sell_transaction.out_amount.coefficient.bytes,                                 //
-            ctx->sell_transaction.out_amount.coefficient.size,                                  //
-            ctx->sell_transaction.out_amount.exponent,                                          //
-            ctx->printable_get_amount + strlen(ctx->sell_transaction.out_currency) + 1,         //
-            sizeof(ctx->printable_get_amount) - strlen(ctx->sell_transaction.out_currency) + 1  //
+            ctx->sell_transaction.out_amount.coefficient.bytes,
+            ctx->sell_transaction.out_amount.coefficient.size,
+            ctx->sell_transaction.out_amount.exponent,
+            ctx->printable_get_amount + len + 1,
+            sizeof(ctx->printable_get_amount) - (len + 1)
             ) < 0) {
         PRINTF("Error: Failed to get source currency printable amount\n");
         return reply_error(ctx, INTERNAL_ERROR, send);
