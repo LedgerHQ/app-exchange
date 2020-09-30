@@ -109,8 +109,6 @@ int check_asset_in(subcommand_e subcommand,                                     
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
 
-    ctx->state = WAITING_USER_VALIDATION;
-
     strcpy(ctx->printable_get_amount, ctx->sell_transaction.out_currency);
     strncat(ctx->printable_get_amount, " ", 1);
 
@@ -126,6 +124,8 @@ int check_asset_in(subcommand_e subcommand,                                     
     }
 
     PRINTF("%s\n", ctx->printable_get_amount);
+
+    ctx->state = WAITING_USER_VALIDATION;
 
     ui_validate_amounts(subcommand,             //
                         ctx,                    //
