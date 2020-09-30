@@ -53,6 +53,7 @@ int start_new_transaction(subcommand_e subcommand,                              
     }
 
     ctx->state = WAITING_TRANSACTION;
+    ctx->subcommand = subcommand;
 
     return 0;
 }
