@@ -81,7 +81,7 @@ int check_asset_in(subcommand_e subcommand,                                     
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters_length, address_parameters);
 
-    static char in_printable_amount[30];
+    static char in_printable_amount[PRINTABLE_AMOUNT_SIZE];
 
     // getting printable amount
     if (get_printable_amount(config, config_length,                             //
@@ -97,7 +97,7 @@ int check_asset_in(subcommand_e subcommand,                                     
 
     PRINTF("Amount = %s\n", in_printable_amount);
 
-    static char printable_fees_amount[30];
+    static char printable_fees_amount[PRINTABLE_AMOUNT_SIZE];
     os_memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
 
     if (get_printable_amount(ctx->payin_coin_config, ctx->payin_coin_config_length,  //
