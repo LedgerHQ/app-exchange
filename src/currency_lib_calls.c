@@ -34,7 +34,8 @@ int get_printable_amount(unsigned char *coin_config, unsigned char coin_config_l
         PRINTF("Error: Printable amount is too big to fit into input buffer\n");
         return -1;
     }
-    strcpy(printable_amount, lib_input_params.printable_amount);
+    strncpy(printable_amount, lib_input_params.printable_amount, printable_amount_size);
+    printable_amount[printable_amount_size-1] = '\x00';
     return 0;
 }
 
