@@ -17,15 +17,14 @@
 
 #include "reply_error.h"
 
-typedef int (*StateCommandDispatcher)(subcommand_e subcommand,           //
-                                      swap_app_context_t *ctx,           //
-                                      unsigned char *input_buffer,       //
-                                      unsigned int input_buffer_length,  //
+typedef int (*StateCommandDispatcher)(subcommand_e subcommand,
+                                      swap_app_context_t *ctx,
+                                      const buf_t *input,
                                       SendFunction send);
 
-int dispatch_command(command_e command, subcommand_e subcommand,             //
-                     swap_app_context_t *context,                            //
-                     unsigned char *input_buffer, unsigned int buffer_size,  //
+int dispatch_command(command_e command, subcommand_e subcommand,
+                     swap_app_context_t *context,
+                     const buf_t *input,
                      SendFunction send) {
     StateCommandDispatcher handler;
 
@@ -92,5 +91,5 @@ int dispatch_command(command_e command, subcommand_e subcommand,             //
             break;
     }
 
-    return handler(subcommand, context, input_buffer, buffer_size, send);
+    return handler(subcommand, context, input, send);
 }

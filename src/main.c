@@ -110,11 +110,14 @@ void app_main(void) {
             continue;
         }
 
+        const buf_t input = {
+            .bytes = G_io_apdu_buffer + OFFSET_CDATA,
+            .size = input_length - OFFSET_CDATA,
+        };
         if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],     //
                              G_io_apdu_buffer[OFFSET_P2],      //
                              &swap_ctx,                        //
-                             G_io_apdu_buffer + OFFSET_CDATA,  //
-                             input_length - OFFSET_CDATA,      //
+                             &input,                           //
                              send_apdu) < 0)
             return;  // some non recoverable error happened
 

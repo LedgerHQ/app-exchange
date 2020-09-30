@@ -9,9 +9,9 @@
 #include "printable_amount.h"
 #include "menu.h"
 
-int check_asset_in(subcommand_e subcommand,                                        //
-                   swap_app_context_t *ctx,                                        //
-                   unsigned char *input_buffer, unsigned int input_buffer_length,  //
+int check_asset_in(subcommand_e subcommand,
+                   swap_app_context_t *ctx,
+                   const buf_t *input,
                    SendFunction send) {
     static buf_t config;
     static buf_t der;
@@ -19,7 +19,7 @@ int check_asset_in(subcommand_e subcommand,                                     
     static buf_t ticker;
     static buf_t application_name;
 
-    if (parse_check_address_message(input_buffer, input_buffer_length,
+    if (parse_check_address_message(input,
                                     &config,
                                     &der,
                                     &address_parameters) == 0) {
