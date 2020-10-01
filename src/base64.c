@@ -57,6 +57,20 @@ int base64_decode(unsigned char *bufplain, size_t maxsize, const unsigned char *
     bufout = bufplain;
     bufin = bufcoded;
 
+    if (nprbytes % 4 != 0) {
+        return -1;
+    }
+    else if (nprbytes == 0) {
+        return 0;
+    }
+
+    if (bufin[nprbytes-1] == '=') {
+        nprbytes--;
+    }
+    if (bufin[nprbytes-1] == '=') {
+        nprbytes--;
+    }
+
     while (nprbytes > 4) {
         if (maxsize < 3) {
             return -1;
