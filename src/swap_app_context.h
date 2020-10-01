@@ -5,6 +5,9 @@
 #include "os.h"
 #include "protocol.pb.h"
 #include "cx.h"
+#include "commands.h"
+#include "globals.h"
+#include "buffer.h"
 
 typedef struct partner_data_s {
     unsigned char name_length;
@@ -21,16 +24,16 @@ typedef struct swap_app_context_s {
     } device_transaction_id;
     partner_data_t partner;
     state_e state;
+    subcommand_e subcommand;
     union {
         ledger_swap_NewTransactionResponse received_transaction;  // SWAP
         ledger_swap_NewSellResponse sell_transaction;             // SELL
     };
     unsigned char sha256_digest[32];
     cx_ecfp_256_public_key_t ledger_public_key;
-    unsigned char *payin_coin_config;  // serialized coin configuration
-    int payin_coin_config_length;
+    buf_t payin_coin_config;  // serialized coin configuration
     char payin_binary_name[16];
-    char printable_get_amount[30];
+    char printable_get_amount[PRINTABLE_AMOUNT_SIZE];
 } swap_app_context_t;
 
 extern swap_app_context_t swap_ctx;

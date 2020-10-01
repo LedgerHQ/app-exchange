@@ -2,9 +2,9 @@
 #include "currency_lib_calls.h"
 #include "reply_error.h"
 
-int start_signing_transaction(subcommand_e subcommand,                                        //
-                              swap_app_context_t *ctx,                                        //
-                              unsigned char *input_buffer, unsigned int input_buffer_length,  //
+int start_signing_transaction(subcommand_e subcommand,
+                              swap_app_context_t *ctx,
+                              const buf_t *input,
                               SendFunction send) {
     G_io_apdu_buffer[0] = 0x90;
     G_io_apdu_buffer[1] = 0x00;
@@ -14,8 +14,8 @@ int start_signing_transaction(subcommand_e subcommand,                          
 
     lib_in_out_params.fee_amount = ctx->transaction_fee;
     lib_in_out_params.fee_amount_length = ctx->transaction_fee_length;
-    lib_in_out_params.coin_configuration = ctx->payin_coin_config;
-    lib_in_out_params.coin_configuration_length = ctx->payin_coin_config_length;
+    lib_in_out_params.coin_configuration = ctx->payin_coin_config.bytes;
+    lib_in_out_params.coin_configuration_length = ctx->payin_coin_config.size;
 
     if (subcommand == SWAP) {
         lib_in_out_params.amount = ctx->received_transaction.amount_to_provider.bytes;

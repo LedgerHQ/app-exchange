@@ -50,11 +50,13 @@ UX_FLOW(ux_idle_flow, &ux_idle_flow_1_step, &ux_idle_flow_2_step, &ux_idle_flow_
 
 //////////////////////////
 
+#define member_size(type, member) sizeof(((type *)0)->member)
+
 struct ValidationInfo {
-    char email[30];
-    char send[30];
-    char get[30];
-    char fees[30];
+    char email[member_size(swap_app_context_t, sell_transaction.trader_email)];
+    char send[PRINTABLE_AMOUNT_SIZE];
+    char get[member_size(swap_app_context_t, printable_get_amount)];
+    char fees[PRINTABLE_AMOUNT_SIZE];
     UserChoiseCallback OnAccept;
     UserChoiseCallback OnReject;
 } validationInfo;
@@ -133,9 +135,16 @@ void ui_validate_amounts(subcommand_e subcommand,  //
                          SendFunction send) {
     application_context = ctx;
     send_function = send;
-    strcpy(validationInfo.send, send_amount);
-    strcpy(validationInfo.get, ctx->printable_get_amount);
-    strcpy(validationInfo.fees, fees_amount);
+
+    strncpy(validationInfo.send, send_amount, sizeof(validationInfo.send));
+    validationInfo.send[sizeof(validationInfo.send)-1] = '\x00';
+
+    strncpy(validationInfo.get, ctx->printable_get_amount, sizeof(validationInfo.get));
+    validationInfo.get[sizeof(validationInfo.get)-1] = '\x00';
+
+    strncpy(validationInfo.fees, fees_amount, sizeof(validationInfo.fees));
+    validationInfo.fees[sizeof(validationInfo.fees)-1] = '\x00';
+
     validationInfo.OnAccept = on_accept;
     validationInfo.OnReject = on_reject;
 
@@ -144,7 +153,8 @@ void ui_validate_amounts(subcommand_e subcommand,  //
     }
 
     if (subcommand == SELL) {
-        strcpy(validationInfo.email, ctx->sell_transaction.trader_email);
+        strncpy(validationInfo.email, ctx->sell_transaction.trader_email, sizeof(validationInfo.email));
+        validationInfo.email[sizeof(validationInfo.email)-1] = '\x00';
         ux_flow_init(0, ux_confirm_sell_flow, NULL);
     }
 }

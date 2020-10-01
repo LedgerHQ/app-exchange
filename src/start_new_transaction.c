@@ -2,9 +2,9 @@
 #include "init.h"
 #include "reply_error.h"
 
-int start_new_transaction(subcommand_e subcommand,                                        //
-                          swap_app_context_t *ctx,                                        //
-                          unsigned char *input_buffer, unsigned int input_buffer_length,  //
+int start_new_transaction(subcommand_e subcommand,
+                          swap_app_context_t *ctx,
+                          const buf_t *input,
                           SendFunction send) {
     unsigned char output_buffer[sizeof(ctx->device_transaction_id) + 2];
     unsigned int output_buffer_size = 0;
@@ -53,6 +53,7 @@ int start_new_transaction(subcommand_e subcommand,                              
     }
 
     ctx->state = WAITING_TRANSACTION;
+    ctx->subcommand = subcommand;
 
     return 0;
 }

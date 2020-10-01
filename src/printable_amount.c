@@ -12,7 +12,7 @@ static uint64_t uint64_from_BEarray(unsigned char *data, unsigned int len) {
     return result;
 }
 
-static char *int64_to_str(char *data, int size, int64_t number) {
+static int int64_to_str(char *data, int size, int64_t number) {
     char temp[] = "-9223372036854775808";
 
     char *ptr = temp;
@@ -37,7 +37,7 @@ static char *int64_to_str(char *data, int size, int64_t number) {
     int distance = (ptr - temp) + 1;
 
     if (size < distance) {
-        return "Size too small";
+        return -1;
     }
 
     int index = 0;
@@ -48,31 +48,41 @@ static char *int64_to_str(char *data, int size, int64_t number) {
 
     data[index] = '\0';
 
-    return NULL;
+    return 0;
 }
 
-static void fpuint64_to_str(char *dst, const uint64_t value, uint8_t decimals) {
+static int fpuint64_to_str(char *dst, size_t size, const uint64_t value, uint8_t decimals) {
     char buffer[30];
 
-    int64_to_str(buffer, 30, value);
+    if (int64_to_str(buffer, 30, value) < 0) {
+        return -1;
+    }
+
     size_t digits = strlen(buffer);
 
     if (digits <= decimals) {
+        if (size <= 2 + decimals - digits) {
+            return -1;
+        }
         *dst++ = '0';
         *dst++ = '.';
         for (uint16_t i = 0; i < decimals - digits; i++, dst++) {
             *dst = '0';
         }
-        strcpy(dst, buffer);
+        size -= 2 + decimals - digits;
+        strncpy(dst, buffer, size);
     } else {
-        strcpy(dst, buffer);
-        const size_t shift = digits - decimals;
-        dst = dst + shift;
-        *dst++ = '.';
+        if (size <= digits + 1 + decimals) {
+            return -1;
+        }
 
-        char *p = buffer + shift;
-        strcpy(dst, p);
+        const size_t shift = digits - decimals;
+        memcpy(dst, buffer, shift);
+        dst[shift] = '.';
+        strncpy(dst + shift + 1, buffer + shift, decimals);
     }
+
+    return 0;
 }
 
 int get_fiat_printable_amount(unsigned char *amount_be, unsigned int amount_be_len,  //
@@ -80,7 +90,5 @@ int get_fiat_printable_amount(unsigned char *amount_be, unsigned int amount_be_l
                               char *printable_amount, unsigned int printable_amount_len) {
     uint64_t amount = uint64_from_BEarray(amount_be, amount_be_len);
 
-    fpuint64_to_str(printable_amount, amount, exponent);
-
-    return 0;
+    return fpuint64_to_str(printable_amount, printable_amount_len, amount, exponent);
 }
