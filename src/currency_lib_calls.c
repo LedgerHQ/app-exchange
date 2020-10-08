@@ -1,15 +1,17 @@
+#include <string.h>
+
 #include "currency_lib_calls.h"
 #include "ux.h"
 
-int get_printable_amount(unsigned char *coin_config, unsigned char coin_config_length,  //
-                         char *application_name,                                        //
-                         unsigned char *amount, unsigned char amount_size,              //
-                         char *printable_amount, unsigned char printable_amount_size,   //
+int get_printable_amount(buf_t *coin_config,
+                         char *application_name,
+                         unsigned char *amount, unsigned char amount_size,
+                         char *printable_amount, unsigned char printable_amount_size,
                          bool is_fee) {
     static unsigned int libcall_params[5];
     static get_printable_amount_parameters_t lib_input_params = {0};
-    lib_input_params.coin_configuration = coin_config;
-    lib_input_params.coin_configuration_length = coin_config_length;
+    lib_input_params.coin_configuration = coin_config->bytes;
+    lib_input_params.coin_configuration_length = coin_config->size;
     lib_input_params.amount = amount;
     lib_input_params.amount_length = amount_size;
     lib_input_params.is_fee = is_fee;
@@ -32,21 +34,22 @@ int get_printable_amount(unsigned char *coin_config, unsigned char coin_config_l
         PRINTF("Error: Printable amount is too big to fit into input buffer\n");
         return -1;
     }
-    strcpy(printable_amount, lib_input_params.printable_amount);
+    strncpy(printable_amount, lib_input_params.printable_amount, printable_amount_size);
+    printable_amount[printable_amount_size-1] = '\x00';
     return 0;
 }
 
-int check_address(unsigned char *coin_config, unsigned char coin_config_length,                //
-                  unsigned char *address_parameters, unsigned char address_parameters_length,  //
-                  char *application_name,                                                      //
-                  char *address_to_check,                                                      //
+int check_address(buf_t *coin_config,
+                  buf_t *address_parameters,
+                  char *application_name,
+                  char *address_to_check,
                   char *address_extra_to_check) {
     static unsigned int libcall_params[5];
     static check_address_parameters_t lib_in_out_params = {0};
-    lib_in_out_params.coin_configuration = coin_config;
-    lib_in_out_params.coin_configuration_length = coin_config_length;
-    lib_in_out_params.address_parameters = address_parameters;
-    lib_in_out_params.address_parameters_length = address_parameters_length;
+    lib_in_out_params.coin_configuration = coin_config->bytes;
+    lib_in_out_params.coin_configuration_length = coin_config->size;
+    lib_in_out_params.address_parameters = address_parameters->bytes;
+    lib_in_out_params.address_parameters_length = address_parameters->size;
     lib_in_out_params.address_to_check = address_to_check;
     lib_in_out_params.extra_id_to_check = address_extra_to_check;
     libcall_params[0] = (unsigned int) application_name;
@@ -71,6 +74,7 @@ void create_payin_transaction(char *application_name,
     libcall_params[2] = SIGN_TRANSACTION;
     libcall_params[3] = 0;
     libcall_params[4] = (unsigned int) lib_in_out_params;
+    PRINTF("Calling %s app\n", application_name);
     USB_power(0);
     os_lib_call(libcall_params);
     USB_power(0);

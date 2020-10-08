@@ -104,19 +104,20 @@ void app_main(void) {
         PRINTF("New APDU received:\n%.*H\n", input_length, G_io_apdu_buffer);
         if (input_length == -1)  // there were an error, lets start from the beginning
             return;
-        if (input_length <= OFFSET_INS ||                           //
-            G_io_apdu_buffer[OFFSET_CLA] != CLA ||                  //
-            G_io_apdu_buffer[OFFSET_INS] <= COMMAND_LOWER_BOUND ||  //
-            G_io_apdu_buffer[OFFSET_INS] >= COMMAND_UPPER_BOUND) {
+        if (input_length < OFFSET_CDATA || G_io_apdu_buffer[OFFSET_CLA] != CLA) {
             PRINTF("Error: bad APDU\n");
             reply_error(&swap_ctx, INVALID_INSTRUCTION, send_apdu);
             continue;
         }
 
+        const buf_t input = {
+            .bytes = G_io_apdu_buffer + OFFSET_CDATA,
+            .size = input_length - OFFSET_CDATA,
+        };
         if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],     //
+                             G_io_apdu_buffer[OFFSET_P2],      //
                              &swap_ctx,                        //
-                             G_io_apdu_buffer + OFFSET_CDATA,  //
-                             input_length - OFFSET_CDATA,      //
+                             &input,                           //
                              send_apdu) < 0)
             return;  // some non recoverable error happened
 

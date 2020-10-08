@@ -1,17 +1,18 @@
-#include "check_refund_address.h"
+#include "check_asset_in.h"
 #include "os.h"
-#include "currency_lib_calls.h"
-#include "globals.h"
 #include "swap_errors.h"
+#include "globals.h"
+#include "currency_lib_calls.h"
 #include "reply_error.h"
 #include "parse_check_address_message.h"
-#include "menu.h"
 #include "parse_coin_config.h"
+#include "printable_amount.h"
+#include "menu.h"
 
-int check_refund_address(subcommand_e subcommand,
-                         swap_app_context_t *ctx,
-                         const buf_t *input,
-                         SendFunction send) {
+int check_asset_in(subcommand_e subcommand,
+                   swap_app_context_t *ctx,
+                   const buf_t *input,
+                   SendFunction send) {
     static buf_t config;
     static buf_t der;
     static buf_t address_parameters;
@@ -22,27 +23,27 @@ int check_refund_address(subcommand_e subcommand,
                                     &config,
                                     &der,
                                     &address_parameters) == 0) {
+        PRINTF("Error: Can't parse CHECK_ASSET_IN command\n");
+
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
     static unsigned char hash[CURVE_SIZE_BYTES];
 
-    os_memset(hash, 0, sizeof(hash));
-
     cx_hash_sha256(config.bytes, config.size, hash, CURVE_SIZE_BYTES);
 
     if (cx_ecdsa_verify(&ctx->ledger_public_key, CX_LAST, CX_SHA256, hash, CURVE_SIZE_BYTES, der.bytes,
                         der.size) == 0) {
-        PRINTF("Error: Fail to verify signature of coin config");
+        PRINTF("Error: Fail to verify signature of coin config\n");
 
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
 
-    if (parse_coin_config(&config,                        //
-                          &ticker,                      //
-                          &application_name,  //
-                          &ctx->payin_coin_config) == 0) {
-        PRINTF("Error: Can't parse refund coin config command\n");
+    if (parse_coin_config(&config,
+                          &ticker,
+                          &application_name,
+                          &config) == 0) {
+        PRINTF("Error: Can't parse payout coin config command\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
@@ -60,43 +61,36 @@ int check_refund_address(subcommand_e subcommand,
     }
 
     // Check that given ticker match current context
-    if (strlen(ctx->received_transaction.currency_from) != ticker.size ||
-        strncmp(ctx->received_transaction.currency_from,  //
-                (const char *) ticker.bytes,                    //
-                ticker.size) != 0) {
-        PRINTF("Error: Refund ticker doesn't match configuration ticker\n");
+    if (strlen(ctx->sell_transaction.in_currency) != ticker.size ||
+        strncmp(ctx->sell_transaction.in_currency, (const char *) ticker.bytes, ticker.size) != 0) {
+        PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
+
+    PRINTF("Coin config parsed OK\n");
 
     // creating 0-terminated application name
     os_memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
     os_memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
 
-    // check address
-    if (check_address(&ctx->payin_coin_config,
-                      &address_parameters,
-                      ctx->payin_binary_name,
-                      ctx->received_transaction.refund_address,
-                      ctx->received_transaction.refund_extra_id) != 1) {
-        PRINTF("Error: Refund address validation failed");
+    PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
-        return reply_error(ctx, INVALID_ADDRESS, send);
-    }
+    static char in_printable_amount[PRINTABLE_AMOUNT_SIZE];
 
-    static char printable_send_amount[PRINTABLE_AMOUNT_SIZE];
-    os_memset(printable_send_amount, 0, sizeof(printable_send_amount));
-
-    if (get_printable_amount(&ctx->payin_coin_config,
+    // getting printable amount
+    if (get_printable_amount(&config,
                              ctx->payin_binary_name,
-                             ctx->received_transaction.amount_to_provider.bytes,
-                             ctx->received_transaction.amount_to_provider.size,
-                             printable_send_amount, sizeof(printable_send_amount),
+                             ctx->sell_transaction.in_amount.bytes,
+                             ctx->sell_transaction.in_amount.size,
+                             in_printable_amount, sizeof(in_printable_amount),
                              false) < 0) {
-        PRINTF("Error: Failed to get source currency printable amount");
+        PRINTF("Error: Failed to get destination currency printable amount\n");
 
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
+
+    PRINTF("Amount = %s\n", in_printable_amount);
 
     static char printable_fees_amount[PRINTABLE_AMOUNT_SIZE];
     os_memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
@@ -107,17 +101,46 @@ int check_refund_address(subcommand_e subcommand,
                              printable_fees_amount, sizeof(printable_fees_amount),
                              true) < 0) {
         PRINTF("Error: Failed to get source currency fees amount");
-
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
+
+    size_t len = strlen(ctx->sell_transaction.out_currency);
+    if (len + 1 >= sizeof(ctx->printable_get_amount)) {
+        return reply_error(ctx, INTERNAL_ERROR, send);
+    }
+
+    strncpy(ctx->printable_get_amount, ctx->sell_transaction.out_currency, sizeof(ctx->printable_get_amount));
+    ctx->printable_get_amount[len] = ' ';
+    ctx->printable_get_amount[len+1] = '\x00';
+
+    if (get_fiat_printable_amount(
+            ctx->sell_transaction.out_amount.coefficient.bytes,
+            ctx->sell_transaction.out_amount.coefficient.size,
+            ctx->sell_transaction.out_amount.exponent,
+            ctx->printable_get_amount + len + 1,
+            sizeof(ctx->printable_get_amount) - (len + 1)
+            ) < 0) {
+        PRINTF("Error: Failed to get source currency printable amount\n");
+        return reply_error(ctx, INTERNAL_ERROR, send);
+    }
+
+    PRINTF("%s\n", ctx->printable_get_amount);
 
     ctx->state = WAITING_USER_VALIDATION;
 
     ui_validate_amounts(subcommand,             //
                         ctx,                    //
-                        printable_send_amount,  //
+                        in_printable_amount,    //
                         printable_fees_amount,  //
                         send);
+
+    unsigned char output_buffer[2] = {0x90, 0x00};
+
+    if (send(output_buffer, 2) < 0) {
+        PRINTF("Error: failed to send\n");
+
+        return -1;
+    }
 
     return 0;
 }
