@@ -101,7 +101,6 @@ int process_transaction(subcommand_e subcommand,
         unsigned char payload[256];
 
         PRINTF("payload: %.*H\n", payload_length, input->bytes + 1);
-        PRINTF("len(decode_base64(payload)): %d\n", n);
 
         int n = base64_decode(payload, sizeof(payload), (const unsigned char *) input->bytes + 1, payload_length);
         if (n < 0) {
