@@ -134,13 +134,5 @@ int check_asset_in(subcommand_e subcommand,
                         printable_fees_amount,  //
                         send);
 
-    unsigned char output_buffer[2] = {0x90, 0x00};
-
-    if (send(output_buffer, 2) < 0) {
-        PRINTF("Error: failed to send\n");
-
-        return -1;
-    }
-
     return 0;
 }
