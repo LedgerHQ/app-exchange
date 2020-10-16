@@ -56,14 +56,14 @@ int process_transaction(subcommand_e subcommand,
                         const buf_t *input,
                         SendFunction send) {
     if (input->size < 1) {
-        PRINTF("Error: Can't parse process_transaction message, length should be more then 1");
+        PRINTF("Error: Can't parse process_transaction message, length should be more then 1\n");
 
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
 
     size_t payload_length = input->bytes[0];
     if (input->size < 1 + payload_length) {
-        PRINTF("Error: Can't parse process_transaction message, invalid payload length");
+        PRINTF("Error: Can't parse process_transaction message, invalid payload length\n");
 
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
@@ -100,11 +100,14 @@ int process_transaction(subcommand_e subcommand,
         // arbitrary maximum payload size
         unsigned char payload[256];
 
-        PRINTF("payload: %.*H\n", payload_length, input->bytes + 1);
+        PRINTF("payload (%d): %.*H\n", payload_length, payload_length, input->bytes + 1);
 
         int n = base64_decode(payload, sizeof(payload), (const unsigned char *) input->bytes + 1, payload_length);
+
+        PRINTF("len(base64_decode(payload)) = %d\n", n);
+
         if (n < 0) {
-            PRINTF("Error: Can't decode SELL transaction base64");
+            PRINTF("Error: Can't decode SELL transaction base64\n");
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
@@ -118,17 +121,17 @@ int process_transaction(subcommand_e subcommand,
         stream = pb_istream_from_buffer(payload, n);
 
         if (!pb_decode(&stream, ledger_swap_NewSellResponse_fields, &ctx->sell_transaction)) {
-            PRINTF("Error: Can't parse SELL transaction protobuf");
+            PRINTF("Error: Can't parse SELL transaction protobuf\n");
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
 
-        PRINTF("ctx->device_transaction_id: %.*H", 32, ctx->device_transaction_id.sell);
+        PRINTF("ctx->device_transaction_id: %.*H\n", 32, ctx->device_transaction_id.sell);
 
         if (os_memcmp(ctx->device_transaction_id.sell,
                       ctx->sell_transaction.device_transaction_id.bytes,
                       sizeof(ctx->device_transaction_id.sell)) != 0) {
-            PRINTF("Error: Device transaction IDs (SELL) doesn't match");
+            PRINTF("Error: Device transaction IDs (SELL) doesn't match\n");
 
             return reply_error(ctx, WRONG_TRANSACTION_ID, send);
         }
@@ -140,7 +143,7 @@ int process_transaction(subcommand_e subcommand,
     PRINTF("sha256_digest: %.*H\n", 32, ctx->sha256_digest);
 
     if (input->size < 1 + payload_length + 1) {
-        PRINTF("Error: Can't parse process_transaction message, should include fee");
+        PRINTF("Error: Can't parse process_transaction message, should include fee\n");
 
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
@@ -148,7 +151,7 @@ int process_transaction(subcommand_e subcommand,
     ctx->transaction_fee_length = input->bytes[1 + payload_length];
 
     if (ctx->transaction_fee_length > sizeof(ctx->transaction_fee)) {
-        PRINTF("Error: Transaction fee is to long");
+        PRINTF("Error: Transaction fee is to long\n");
 
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
@@ -168,7 +171,7 @@ int process_transaction(subcommand_e subcommand,
     unsigned char output_buffer[2] = {0x90, 0x00};
 
     if (send(output_buffer, 2) < 0) {
-        PRINTF("Error: failed to send response");
+        PRINTF("Error: failed to send response\n");
 
         return -1;
     }
