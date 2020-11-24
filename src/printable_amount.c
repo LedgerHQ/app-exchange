@@ -85,9 +85,11 @@ static int fpuint64_to_str(char *dst, size_t size, const uint64_t value, uint8_t
     return 0;
 }
 
-int get_fiat_printable_amount(unsigned char *amount_be, unsigned int amount_be_len,  //
-                              unsigned int exponent,                                 //
-                              char *printable_amount, unsigned int printable_amount_len) {
+int get_fiat_printable_amount(unsigned char *amount_be,
+                              unsigned int amount_be_len,  //
+                              unsigned int exponent,       //
+                              char *printable_amount,
+                              unsigned int printable_amount_len) {
     uint64_t amount = uint64_from_BEarray(amount_be, amount_be_len);
 
     return fpuint64_to_str(printable_amount, printable_amount_len, amount, exponent);

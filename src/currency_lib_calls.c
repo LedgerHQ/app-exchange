@@ -5,8 +5,10 @@
 
 int get_printable_amount(buf_t *coin_config,
                          char *application_name,
-                         unsigned char *amount, unsigned char amount_size,
-                         char *printable_amount, unsigned char printable_amount_size,
+                         unsigned char *amount,
+                         unsigned char amount_size,
+                         char *printable_amount,
+                         unsigned char printable_amount_size,
                          bool is_fee) {
     static unsigned int libcall_params[5];
     static get_printable_amount_parameters_t lib_input_params = {0};
@@ -35,7 +37,7 @@ int get_printable_amount(buf_t *coin_config,
         return -1;
     }
     strncpy(printable_amount, lib_input_params.printable_amount, printable_amount_size);
-    printable_amount[printable_amount_size-1] = '\x00';
+    printable_amount[printable_amount_size - 1] = '\x00';
     return 0;
 }
 

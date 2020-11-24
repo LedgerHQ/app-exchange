@@ -16,8 +16,10 @@ void create_payin_transaction(char *application_name, create_transaction_paramet
 
 int get_printable_amount(buf_t *coin_config,
                          char *application_name,
-                         unsigned char *amount, unsigned char amount_size,
-                         char *printable_amount, unsigned char printable_amount_size,
+                         unsigned char *amount,
+                         unsigned char amount_size,
+                         char *printable_amount,
+                         unsigned char printable_amount_size,
                          bool is_fee);
 
 #endif  // _SOURCE_CURRENCY_LIB_CALLS_H_

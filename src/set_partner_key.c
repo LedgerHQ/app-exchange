@@ -35,17 +35,20 @@ int set_partner_key(subcommand_e subcommand,
     os_memcpy(ctx->partner.name, input->bytes + 1, ctx->partner.name_length);
 
     if (subcommand == SWAP) {
-        cx_ecfp_init_public_key(CX_CURVE_SECP256K1, input->bytes + 1 + ctx->partner.name_length,
-                                UNCOMPRESSED_KEY_LENGTH, &(ctx->partner.public_key));
+        cx_ecfp_init_public_key(CX_CURVE_SECP256K1,
+                                input->bytes + 1 + ctx->partner.name_length,
+                                UNCOMPRESSED_KEY_LENGTH,
+                                &(ctx->partner.public_key));
     }
 
     if (subcommand == SELL) {
-        cx_ecfp_init_public_key(CX_CURVE_256R1, input->bytes + 1 + ctx->partner.name_length,
-                                UNCOMPRESSED_KEY_LENGTH, &(ctx->partner.public_key));
+        cx_ecfp_init_public_key(CX_CURVE_256R1,
+                                input->bytes + 1 + ctx->partner.name_length,
+                                UNCOMPRESSED_KEY_LENGTH,
+                                &(ctx->partner.public_key));
     }
 
-    cx_hash_sha256(input->bytes, input->size, ctx->sha256_digest,
-                   sizeof(ctx->sha256_digest));
+    cx_hash_sha256(input->bytes, input->size, ctx->sha256_digest, sizeof(ctx->sha256_digest));
 
     unsigned char ouput_buffer[2] = {0x90, 0x00};
 

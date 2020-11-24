@@ -31,26 +31,33 @@ void on_reject() {
     reply_error(application_context, USER_REFUSED, send_function);
 }
 
+// clang-format off
 UX_STEP_NOCB(ux_idle_flow_1_step, nn,
-             {
-                 "Exchange",
-                 "is ready",
-             });
+{
+    "Exchange",
+    "is ready",
+});
 UX_STEP_NOCB(ux_idle_flow_2_step, bn,
-             {
-                 "Version",
-                 APPVERSION,
-             });
+{
+    "Version",
+    APPVERSION,
+});
 UX_STEP_VALID(ux_idle_flow_3_step, pb, os_sched_exit(-1),
-              {
-                  &C_icon_dashboard_x,
-                  "Quit",
-              });
-UX_FLOW(ux_idle_flow, &ux_idle_flow_1_step, &ux_idle_flow_2_step, &ux_idle_flow_3_step, FLOW_LOOP);
+{
+    &C_icon_dashboard_x,
+    "Quit",
+});
+
+UX_FLOW(ux_idle_flow, 
+&ux_idle_flow_1_step, 
+&ux_idle_flow_2_step, 
+&ux_idle_flow_3_step, 
+FLOW_LOOP);
+// clang-format on
 
 //////////////////////////
 
-#define member_size(type, member) sizeof(((type *)0)->member)
+#define member_size(type, member) sizeof(((type *) 0)->member)
 
 struct ValidationInfo {
     char email[member_size(swap_app_context_t, sell_transaction.trader_email)];
@@ -73,77 +80,79 @@ unsigned int io_reject(const bagl_element_t *e) {
     return 0;
 }
 
+// clang-format off
 UX_STEP_NOCB(ux_confirm_flow_1_step, pnn,
-             {
-                 &C_icon_eye,
-                 "Review",
-                 "transaction",
-             });
+{
+    &C_icon_eye,
+    "Review",
+    "transaction",
+});
 UX_STEP_NOCB(ux_confirm_flow_1_2_step, bnnn_paging,
-             {
-                 .title = "Email",
-                 .text = validationInfo.email,
-             });
+{
+    .title = "Email",
+    .text = validationInfo.email,
+});
 UX_STEP_NOCB(ux_confirm_flow_2_step, bnnn_paging,
-             {
-                 .title = "Send",
-                 .text = validationInfo.send,
-             });
+{
+    .title = "Send",
+    .text = validationInfo.send,
+});
 UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
-             {
-                 .title = "Get",
-                 .text = validationInfo.get,
-             });
+{
+    .title = "Get",
+    .text = validationInfo.get,
+});
 UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
-             {
-                 .title = "Fees",
-                 .text = validationInfo.fees,
-             });
+{
+    .title = "Fees",
+    .text = validationInfo.fees,
+});
 UX_STEP_CB(ux_confirm_flow_5_step, pbb, io_accept(NULL),
-           {
-               &C_icon_validate_14,
-               "Accept",
-               "and send",
-           });
+{
+    &C_icon_validate_14,
+    "Accept",
+    "and send",
+});
 UX_STEP_CB(ux_confirm_flow_6_step, pb, io_reject(NULL),
-           {
-               &C_icon_crossmark,
-               "Reject",
-           });
+{
+    &C_icon_crossmark,
+    "Reject",
+});
+// clang-format on
 
-UX_FLOW(ux_confirm_swap_flow,     //
-        &ux_confirm_flow_1_step,  //
-        &ux_confirm_flow_2_step,  //
-        &ux_confirm_flow_3_step,  //
-        &ux_confirm_flow_4_step,  //
-        &ux_confirm_flow_5_step,  //
+UX_FLOW(ux_confirm_swap_flow,
+        &ux_confirm_flow_1_step,
+        &ux_confirm_flow_2_step,
+        &ux_confirm_flow_3_step,
+        &ux_confirm_flow_4_step,
+        &ux_confirm_flow_5_step,
         &ux_confirm_flow_6_step);
 
-UX_FLOW(ux_confirm_sell_flow,       //
-        &ux_confirm_flow_1_step,    //
-        &ux_confirm_flow_1_2_step,  //
-        &ux_confirm_flow_2_step,    //
-        &ux_confirm_flow_3_step,    //
-        &ux_confirm_flow_4_step,    //
-        &ux_confirm_flow_5_step,    //
+UX_FLOW(ux_confirm_sell_flow,
+        &ux_confirm_flow_1_step,
+        &ux_confirm_flow_1_2_step,
+        &ux_confirm_flow_2_step,
+        &ux_confirm_flow_3_step,
+        &ux_confirm_flow_4_step,
+        &ux_confirm_flow_5_step,
         &ux_confirm_flow_6_step);
 
-void ui_validate_amounts(subcommand_e subcommand,  //
-                         swap_app_context_t *ctx,  //
-                         char *send_amount,        //
-                         char *fees_amount,        //
+void ui_validate_amounts(subcommand_e subcommand,
+                         swap_app_context_t *ctx,
+                         char *send_amount,
+                         char *fees_amount,
                          SendFunction send) {
     application_context = ctx;
     send_function = send;
 
     strncpy(validationInfo.send, send_amount, sizeof(validationInfo.send));
-    validationInfo.send[sizeof(validationInfo.send)-1] = '\x00';
+    validationInfo.send[sizeof(validationInfo.send) - 1] = '\x00';
 
     strncpy(validationInfo.get, ctx->printable_get_amount, sizeof(validationInfo.get));
-    validationInfo.get[sizeof(validationInfo.get)-1] = '\x00';
+    validationInfo.get[sizeof(validationInfo.get) - 1] = '\x00';
 
     strncpy(validationInfo.fees, fees_amount, sizeof(validationInfo.fees));
-    validationInfo.fees[sizeof(validationInfo.fees)-1] = '\x00';
+    validationInfo.fees[sizeof(validationInfo.fees) - 1] = '\x00';
 
     validationInfo.OnAccept = on_accept;
     validationInfo.OnReject = on_reject;
@@ -153,13 +162,17 @@ void ui_validate_amounts(subcommand_e subcommand,  //
     }
 
     if (subcommand == SELL) {
-        strncpy(validationInfo.email, ctx->sell_transaction.trader_email, sizeof(validationInfo.email));
-        validationInfo.email[sizeof(validationInfo.email)-1] = '\x00';
+        strncpy(validationInfo.email,
+                ctx->sell_transaction.trader_email,
+                sizeof(validationInfo.email));
+        validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
         ux_flow_init(0, ux_confirm_sell_flow, NULL);
     }
 }
 
-void ux_init() { UX_INIT(); }
+void ux_init() {
+    UX_INIT();
+}
 
 void ui_idle(void) {
     // reserve a display stack slot if none yet

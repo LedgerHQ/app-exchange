@@ -18,10 +18,7 @@ int check_refund_address(subcommand_e subcommand,
     static buf_t ticker;
     static buf_t application_name;
 
-    if (parse_check_address_message(input,
-                                    &config,
-                                    &der,
-                                    &address_parameters) == 0) {
+    if (parse_check_address_message(input, &config, &der, &address_parameters) == 0) {
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
@@ -31,15 +28,20 @@ int check_refund_address(subcommand_e subcommand,
 
     cx_hash_sha256(config.bytes, config.size, hash, CURVE_SIZE_BYTES);
 
-    if (cx_ecdsa_verify(&ctx->ledger_public_key, CX_LAST, CX_SHA256, hash, CURVE_SIZE_BYTES, der.bytes,
+    if (cx_ecdsa_verify(&ctx->ledger_public_key,
+                        CX_LAST,
+                        CX_SHA256,
+                        hash,
+                        CURVE_SIZE_BYTES,
+                        der.bytes,
                         der.size) == 0) {
         PRINTF("Error: Fail to verify signature of coin config");
 
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
 
-    if (parse_coin_config(&config,                        //
-                          &ticker,                      //
+    if (parse_coin_config(&config,            //
+                          &ticker,            //
                           &application_name,  //
                           &ctx->payin_coin_config) == 0) {
         PRINTF("Error: Can't parse refund coin config command\n");
@@ -62,7 +64,7 @@ int check_refund_address(subcommand_e subcommand,
     // Check that given ticker match current context
     if (strlen(ctx->received_transaction.currency_from) != ticker.size ||
         strncmp(ctx->received_transaction.currency_from,  //
-                (const char *) ticker.bytes,                    //
+                (const char *) ticker.bytes,              //
                 ticker.size) != 0) {
         PRINTF("Error: Refund ticker doesn't match configuration ticker\n");
 
@@ -91,7 +93,8 @@ int check_refund_address(subcommand_e subcommand,
                              ctx->payin_binary_name,
                              ctx->received_transaction.amount_to_provider.bytes,
                              ctx->received_transaction.amount_to_provider.size,
-                             printable_send_amount, sizeof(printable_send_amount),
+                             printable_send_amount,
+                             sizeof(printable_send_amount),
                              false) < 0) {
         PRINTF("Error: Failed to get source currency printable amount");
 
@@ -103,8 +106,10 @@ int check_refund_address(subcommand_e subcommand,
 
     if (get_printable_amount(&ctx->payin_coin_config,
                              ctx->payin_binary_name,
-                             ctx->transaction_fee, ctx->transaction_fee_length,
-                             printable_fees_amount, sizeof(printable_fees_amount),
+                             ctx->transaction_fee,
+                             ctx->transaction_fee_length,
+                             printable_fees_amount,
+                             sizeof(printable_fees_amount),
                              true) < 0) {
         PRINTF("Error: Failed to get source currency fees amount");
 
