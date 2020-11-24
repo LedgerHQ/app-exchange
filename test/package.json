@@ -6,17 +6,25 @@
   "scripts": {
     "build": "babel src/ -d lib/",
     "prepublish": "yarn run build",
-    "test": "jest src --verbose"
+    "test": "jest src --verbose --runInBand --detectOpenHandles"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@babel/polyfill": "^7.7.0",
+    "@babel/plugin-proposal-class-properties": "^7.12.1",
+    "@ledgerhq/hw-app-btc": "^5.30.0",
+    "@ledgerhq/hw-app-eth": "^5.30.0",
+    "@ledgerhq/hw-app-xrp": "^5.30.0",
     "@ledgerhq/hw-transport-http": "^4.74.2",
+    "@ledgerhq/logs": "^5.30.0",
+    "@zondax/zemu": "^0.10.0",
     "bignumber.js": "^9.0.0",
     "bip32-path": "^0.4.2",
+    "core-js": "^3.7.0",
     "google-protobuf": "^3.11.0",
+    "jest-serial-runner": "^1.1.0",
     "js-sha256": "^0.9.0",
+    "regenerator-runtime": "^0.13.7",
     "secp256k1": "^3.7.1"
   },
   "devDependencies": {
@@ -27,6 +35,6 @@
     "@babel/preset-stage-0": "^7.0.0",
     "@babel/register": "^7.7.0",
     "flow-bin": "^0.112.0",
-    "jest": "^24.9.0"
+    "jest": "^26.6.3"
   }
 }

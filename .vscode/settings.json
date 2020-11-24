@@ -23,5 +23,7 @@
         "menu.h": "c",
         "glyphs.h": "c",
         "user_validation.h": "c"
-    }
+    },
+    "prettier.enable": false,
+    "editor.formatOnSave": true,
 }
