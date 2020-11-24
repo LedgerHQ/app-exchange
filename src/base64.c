@@ -49,7 +49,10 @@ const unsigned char pr2six[256] = {
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64   //
 };
 
-int base64_decode(unsigned char *bufplain, size_t maxsize, const unsigned char *bufcoded, size_t len) {
+int base64_decode(unsigned char *bufplain,
+                  size_t maxsize,
+                  const unsigned char *bufcoded,
+                  size_t len) {
     const unsigned char *bufin;
     unsigned char *bufout;
     size_t nprbytes = len;
@@ -59,15 +62,14 @@ int base64_decode(unsigned char *bufplain, size_t maxsize, const unsigned char *
 
     if (nprbytes % 4 == 1) {
         return -1;
-    }
-    else if (nprbytes == 0) {
+    } else if (nprbytes == 0) {
         return 0;
     }
 
-    if (bufin[nprbytes-1] == '=') {
+    if (bufin[nprbytes - 1] == '=') {
         nprbytes--;
     }
-    if (bufin[nprbytes-1] == '=') {
+    if (bufin[nprbytes - 1] == '=') {
         nprbytes--;
     }
 

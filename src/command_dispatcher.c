@@ -22,7 +22,8 @@ typedef int (*StateCommandDispatcher)(subcommand_e subcommand,
                                       const buf_t *input,
                                       SendFunction send);
 
-int dispatch_command(command_e command, subcommand_e subcommand,
+int dispatch_command(command_e command,
+                     subcommand_e subcommand,
                      swap_app_context_t *context,
                      const buf_t *input,
                      SendFunction send) {
@@ -34,57 +35,56 @@ int dispatch_command(command_e command, subcommand_e subcommand,
         return reply_error(context, WRONG_P2, send);
     }
 
-    handler = (void *)PIC(unexpected_command);
+    handler = (void *) PIC(unexpected_command);
 
     switch (command) {
         case GET_VERSION_COMMAND:
             if (context->state != WAITING_USER_VALIDATION && context->state != WAITING_SIGNING) {
-                handler = (void *)PIC(get_version_handler);
+                handler = (void *) PIC(get_version_handler);
             }
             break;
         case START_NEW_TRANSACTION_COMMAND:
             if (context->state != WAITING_USER_VALIDATION) {
-                handler = (void *)PIC(start_new_transaction);
+                handler = (void *) PIC(start_new_transaction);
             }
             break;
         case SET_PARTNER_KEY_COMMAND:
             if (context->state == WAITING_TRANSACTION && subcommand == context->subcommand) {
-                handler = (void *)PIC(set_partner_key);
+                handler = (void *) PIC(set_partner_key);
             }
             break;
         case CHECK_PARTNER_COMMAND:
             if (context->state == PROVIDER_SET && subcommand == context->subcommand) {
-                handler = (void *)PIC(check_partner);
+                handler = (void *) PIC(check_partner);
             }
             break;
         case PROCESS_TRANSACTION_RESPONSE_COMMAND:
             if (context->state == PROVIDER_CHECKED && subcommand == context->subcommand) {
-                handler = (void *)PIC(process_transaction);
+                handler = (void *) PIC(process_transaction);
             }
             break;
         case CHECK_TRANSACTION_SIGNATURE_COMMAND:
             if (context->state == TRANSACTION_RECIEVED && subcommand == context->subcommand) {
-                handler = (void *)PIC(check_tx_signature);
+                handler = (void *) PIC(check_tx_signature);
             }
             break;
         case CHECK_PAYOUT_ADDRESS:
             if (context->state == SIGNATURE_CHECKED && subcommand == context->subcommand) {
                 if (subcommand == SELL) {
-                    handler = (void *)PIC(check_asset_in);
-                }
-                else {
-                    handler = (void *)PIC(check_payout_address);
+                    handler = (void *) PIC(check_asset_in);
+                } else {
+                    handler = (void *) PIC(check_payout_address);
                 }
             }
             break;
         case CHECK_REFUND_ADDRESS:
             if (context->state == TO_ADDR_CHECKED && subcommand == context->subcommand) {
-                handler = (void *)PIC(check_refund_address);
+                handler = (void *) PIC(check_refund_address);
             }
             break;
         case START_SIGNING_TRANSACTION:
             if (context->state == WAITING_SIGNING && subcommand == context->subcommand) {
-                handler = (void *)PIC(start_signing_transaction);
+                handler = (void *) PIC(start_signing_transaction);
             }
             break;
         default:

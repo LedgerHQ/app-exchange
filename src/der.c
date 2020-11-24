@@ -138,7 +138,11 @@ static int asn1_insert_integer(uint8_t **p, const uint8_t *end, const uint8_t *v
     return 1;
 }
 
-int encode_sig_der(uint8_t *sig, size_t sig_len, uint8_t *r, size_t r_len, uint8_t *s,
+int encode_sig_der(uint8_t *sig,
+                   size_t sig_len,
+                   uint8_t *r,
+                   size_t r_len,
+                   uint8_t *s,
                    size_t s_len) {
     size_t l0, len;
     const uint8_t *sig_end = sig + sig_len;
