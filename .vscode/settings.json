@@ -24,6 +24,12 @@
         "glyphs.h": "c",
         "user_validation.h": "c"
     },
+<<<<<<< HEAD
     "prettier.enable": false,
     "editor.formatOnSave": true,
+=======
+    "python.pythonPath": "/usr/bin/python3",
+    "prettier.enable": false,
+    "editor.formatOnSave": true
+>>>>>>> bd15f2d... Add vscode targets and update default local parameters
 }

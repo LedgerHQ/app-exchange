@@ -5,6 +5,54 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "type": "node",
+            "name": "jest speculos all",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/node_modules/jest/bin/jest",
+            "args": [
+                "--runInBand",
+                "src",
+                "--verbose",
+                "--detectOpenHandles"
+            ],
+            "cwd": "${workspaceFolder}/test",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true
+        },
+        {
+            "type": "node",
+            "name": "jest speculos file",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/node_modules/jest/bin/jest",
+            "args": [
+                "--runInBand",
+                "${file}",
+                "--detectOpenHandles"
+            ],
+            "cwd": "${workspaceFolder}/test",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true
+        },
+        {
+            "type": "node",
+            "name": "jest hid",
+            "request": "launch",
+            "program": "${workspaceFolder}/test/node_modules/jest/bin/jest",
+            "args": [
+                "--runInBand",
+                "${file}"
+            ],
+            "cwd": "${workspaceFolder}/test",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true,
+            "env": {
+                "HID": 1
+            }
+        },
+        {
             "type": "gdb",
             "request": "attach",
             "name": "Attach to gdbserver",
