@@ -25,7 +25,7 @@ APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --path "" --appFlags 0x240 $(
 APPVERSION_M=2
 APPVERSION_N=0
 APPVERSION_P=2
-APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-testing1
+APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-testing2
 APPNAME = "Exchange"
 
 DEFINES += $(DEFINES_LIB)
@@ -110,7 +110,7 @@ endif
 CC       := $(CLANGPATH)clang
 
 #CFLAGS   += -O0
-CFLAGS   += -O3 -Os
+CFLAGS   += -O3 -Os -I/usr/include
 
 AS     := $(GCCPATH)arm-none-eabi-gcc
 
