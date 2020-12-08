@@ -27,6 +27,11 @@ int get_printable_amount(buf_t *coin_config,
     // Speculos workaround
     // io_seproxyhal_general_status();
     os_lib_call(libcall_params);
+    // check return code from library
+    if (lib_input_params.result != 1) {
+        PRINTF("Error: Couldn't build printable amount\n");
+        return -1;
+    }
     // result should be null terminated string, so we need to have at least one 0
     if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != 0) {
         PRINTF("Error: Printable amount should be null-terminated\n");
