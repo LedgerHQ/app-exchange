@@ -15,13 +15,14 @@ Posible commands:
 
 | Name | Value | Description |
 | ---- | ----- | ----------- |
-| GET_VERSION_COMMAND           | 0x00 | Get application version |
-| START_NEW_TRANSACTION_COMMAND | 0x01 | Start new EXCHANGE transaction |
-| SET_PARTNER_KEY_COMMAND       | 0x02 | Set partner public key |
-| PROCESS_TRANSACTION_RESPONS   | 0x03 | Process transaction received from partner|
-| CHECK_TRANSACTION_SIGNATURE   | 0x04 | Check signature of partner transaction |
-| CHECK_PAYOUT_ADDRES           | 0x05 | Check that payout address belong to us |
-| CHECK_REFUND_ADDRES           | 0x06 | Check that refund address belong to us |
+| GET_VERSION_COMMAND           | 0x02 | Get application version |
+| START_NEW_TRANSACTION_COMMAND | 0x03 | Start new EXCHANGE transaction |
+| SET_PARTNER_KEY_COMMAND       | 0x04 | Set partner public key |
+| CHECK_PARTNER_COMMAND         | 0x05 | Set partner public key |
+| PROCESS_TRANSACTION_RESPONS   | 0x06 | Process transaction received from partner|
+| CHECK_TRANSACTION_SIGNATURE   | 0x07 | Check signature of partner transaction |
+| CHECK_PAYOUT_ADDRES           | 0x08 | Check that payout address belong to us |
+| CHECK_REFUND_ADDRES           | 0x09 | Check that refund address belong to us |
 ### Response:
 | Bytes         | Meaning       |
 | ------------- | ------------- |
