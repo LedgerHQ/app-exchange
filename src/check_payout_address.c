@@ -20,10 +20,7 @@ int check_payout_address(subcommand_e subcommand,
     static buf_t ticker;
     static buf_t application_name;
 
-    if (parse_check_address_message(input,
-                                    &config,
-                                    &der,
-                                    &address_parameters) == 0) {
+    if (parse_check_address_message(input, &config, &der, &address_parameters) == 0) {
         PRINTF("Error: Can't parse CHECK_PAYOUT_ADDRESS command\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
@@ -35,17 +32,19 @@ int check_payout_address(subcommand_e subcommand,
 
     cx_hash_sha256(config.bytes, config.size, hash, CURVE_SIZE_BYTES);
 
-    if (cx_ecdsa_verify(&ctx->ledger_public_key, CX_LAST, CX_SHA256, hash, CURVE_SIZE_BYTES, der.bytes,
+    if (cx_ecdsa_verify(&ctx->ledger_public_key,
+                        CX_LAST,
+                        CX_SHA256,
+                        hash,
+                        CURVE_SIZE_BYTES,
+                        der.bytes,
                         der.size) == 0) {
         PRINTF("Error: Fail to verify signature of coin config\n");
 
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
 
-    if (parse_coin_config(&config,
-                          &ticker,
-                          &application_name,
-                          &config) == 0) {
+    if (parse_coin_config(&config, &ticker, &application_name, &config) == 0) {
         PRINTF("Error: Can't parse payout coin config command\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
@@ -65,7 +64,8 @@ int check_payout_address(subcommand_e subcommand,
 
     // Check that given ticker match current context
     if (strlen(ctx->received_transaction.currency_to) != ticker.size ||
-        strncmp(ctx->received_transaction.currency_to, (const char *) ticker.bytes, ticker.size) != 0) {
+        strncmp(ctx->received_transaction.currency_to, (const char *) ticker.bytes, ticker.size) !=
+            0) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
@@ -97,7 +97,8 @@ int check_payout_address(subcommand_e subcommand,
                              ctx->payin_binary_name,
                              ctx->received_transaction.amount_to_wallet.bytes,
                              ctx->received_transaction.amount_to_wallet.size,
-                             ctx->printable_get_amount, sizeof(ctx->printable_get_amount),
+                             ctx->printable_get_amount,
+                             sizeof(ctx->printable_get_amount),
                              false) < 0) {
         PRINTF("Error: Failed to get destination currency printable amount\n");
 

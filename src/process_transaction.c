@@ -5,14 +5,15 @@
 #include "reply_error.h"
 #include "base64.h"
 
-typedef struct currency_alias_s{
-    char* foreign_name;
-    char* ledger_name;
+typedef struct currency_alias_s {
+    char *foreign_name;
+    char *ledger_name;
 } currency_alias_t;
 
 const currency_alias_t const currencies_aliases[] = {
-    {"USDT20", "USDT"}, // Changelly's name must be changed to match the ticker from Ledger's cryptoasset list
-    {"REP", "REPV2"} // Changelly's name isn't up to date...
+    {"USDT20", "USDT"},  // Changelly's name must be changed to match the ticker from Ledger's
+                         // cryptoasset list
+    {"REP", "REPV2"}     // Changelly's name isn't up to date...
 };
 
 void to_uppercase(char *str, unsigned char size) {
@@ -21,28 +22,27 @@ void to_uppercase(char *str, unsigned char size) {
     }
 }
 
-void set_ledger_currency_name(char* currency){
-    for(size_t i=0; i<sizeof(currencies_aliases)/sizeof(currencies_aliases[0]); i++){
-        if(!strcmp(currency, (char*)(PIC(currencies_aliases[i].foreign_name)))){
-            strcpy(currency, (char*)(PIC(currencies_aliases[i].ledger_name)));
+void set_ledger_currency_name(char *currency) {
+    for (size_t i = 0; i < sizeof(currencies_aliases) / sizeof(currencies_aliases[0]); i++) {
+        if (!strcmp(currency, (char *) (PIC(currencies_aliases[i].foreign_name)))) {
+            strcpy(currency, (char *) (PIC(currencies_aliases[i].ledger_name)));
             return;
         }
     }
 }
 
 void normalize_currencies(swap_app_context_t *ctx) {
-
     to_uppercase(ctx->received_transaction.currency_from,
-                sizeof(ctx->received_transaction.currency_from));
+                 sizeof(ctx->received_transaction.currency_from));
     to_uppercase(ctx->received_transaction.currency_to,
-                sizeof(ctx->received_transaction.currency_to));
+                 sizeof(ctx->received_transaction.currency_to));
 
     set_ledger_currency_name(ctx->received_transaction.currency_from);
     set_ledger_currency_name(ctx->received_transaction.currency_to);
 
     // strip bcash CashAddr header, and other bip21 like headers
-    for(size_t i=0; i < sizeof(ctx->received_transaction.payin_address); i++){
-        if(ctx->received_transaction.payin_address[i] == ':'){
+    for (size_t i = 0; i < sizeof(ctx->received_transaction.payin_address); i++) {
+        if (ctx->received_transaction.payin_address[i] == ':') {
             memmove(ctx->received_transaction.payin_address,
                     ctx->received_transaction.payin_address + i + 1,
                     sizeof(ctx->received_transaction.payin_address) - i - 1);
@@ -78,9 +78,12 @@ int process_transaction(subcommand_e subcommand,
     if (subcommand == SWAP) {
         stream = pb_istream_from_buffer(input->bytes + 1, payload_length);
 
-        if (!pb_decode(&stream, ledger_swap_NewTransactionResponse_fields,
+        if (!pb_decode(&stream,
+                       ledger_swap_NewTransactionResponse_fields,
                        &ctx->received_transaction)) {
-            PRINTF("Error: Can't parse SWAP transaction protobuf\n%.*H\n", payload_length, input->bytes + 1);
+            PRINTF("Error: Can't parse SWAP transaction protobuf\n%.*H\n",
+                   payload_length,
+                   input->bytes + 1);
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
@@ -102,7 +105,10 @@ int process_transaction(subcommand_e subcommand,
 
         PRINTF("payload (%d): %.*H\n", payload_length, payload_length, input->bytes + 1);
 
-        int n = base64_decode(payload, sizeof(payload), (const unsigned char *) input->bytes + 1, payload_length);
+        int n = base64_decode(payload,
+                              sizeof(payload),
+                              (const unsigned char *) input->bytes + 1,
+                              payload_length);
 
         PRINTF("len(base64_decode(payload)) = %d\n", n);
 
@@ -137,7 +143,11 @@ int process_transaction(subcommand_e subcommand,
         }
     }
 
-    cx_hash(&sha256.header, CX_LAST, input->bytes + 1, payload_length, ctx->sha256_digest,
+    cx_hash(&sha256.header,
+            CX_LAST,
+            input->bytes + 1,
+            payload_length,
+            ctx->sha256_digest,
             sizeof(ctx->sha256_digest));
 
     PRINTF("sha256_digest: %.*H\n", 32, ctx->sha256_digest);
@@ -163,7 +173,8 @@ int process_transaction(subcommand_e subcommand,
     }
 
     os_memset(ctx->transaction_fee, 0, sizeof(ctx->transaction_fee));
-    os_memcpy(ctx->transaction_fee, input->bytes + 1 + payload_length + 1,
+    os_memcpy(ctx->transaction_fee,
+              input->bytes + 1 + payload_length + 1,
               ctx->transaction_fee_length);
 
     PRINTF("Transaction fees BE = %.*H\n", ctx->transaction_fee_length, ctx->transaction_fee);

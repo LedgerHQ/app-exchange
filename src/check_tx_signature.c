@@ -15,14 +15,18 @@ int check_tx_signature(subcommand_e subcommand,
                        const buf_t *input,
                        SendFunction send) {
     if (subcommand == SWAP) {
-        if (input->size < MIN_DER_SIGNATURE_LENGTH ||
-            input->size > MAX_DER_SIGNATURE_LENGTH ||
+        if (input->size < MIN_DER_SIGNATURE_LENGTH || input->size > MAX_DER_SIGNATURE_LENGTH ||
             input->bytes[1] + 2 != input->size) {
             PRINTF("Error: Input buffer length don't correspond to DER length");
             return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
         }
-        if (cx_ecdsa_verify(&ctx->partner.public_key, CX_LAST, CX_SHA256, ctx->sha256_digest,
-                            CURVE_SIZE_BYTES, input->bytes, input->size) == 0) {
+        if (cx_ecdsa_verify(&ctx->partner.public_key,
+                            CX_LAST,
+                            CX_SHA256,
+                            ctx->sha256_digest,
+                            CURVE_SIZE_BYTES,
+                            input->bytes,
+                            input->size) == 0) {
             PRINTF("Error: Failed to verify signature of received transaction");
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }
@@ -44,14 +48,18 @@ int check_tx_signature(subcommand_e subcommand,
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }
 
-
         encode_sig_der(der_sig, size, input->bytes, 32, input->bytes + 32, 32);
 
         PRINTF("DER sig: %.*H\n", size, der_sig);
         PRINTF("SHA256(payload): %.*H\n", sizeof(ctx->sha256_digest), ctx->sha256_digest);
 
-        if (cx_ecdsa_verify(&ctx->partner.public_key, CX_LAST, CX_SHA256, ctx->sha256_digest,
-                            CURVE_SIZE_BYTES, der_sig, size) == 0) {
+        if (cx_ecdsa_verify(&ctx->partner.public_key,
+                            CX_LAST,
+                            CX_SHA256,
+                            ctx->sha256_digest,
+                            CURVE_SIZE_BYTES,
+                            der_sig,
+                            size) == 0) {
             PRINTF("Error: Failed to verify signature of received transaction");
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }

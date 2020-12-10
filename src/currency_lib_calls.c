@@ -5,8 +5,10 @@
 
 int get_printable_amount(buf_t *coin_config,
                          char *application_name,
-                         unsigned char *amount, unsigned char amount_size,
-                         char *printable_amount, unsigned char printable_amount_size,
+                         unsigned char *amount,
+                         unsigned char amount_size,
+                         char *printable_amount,
+                         unsigned char printable_amount_size,
                          bool is_fee) {
     static unsigned int libcall_params[5];
     static get_printable_amount_parameters_t lib_input_params = {0};
@@ -25,6 +27,11 @@ int get_printable_amount(buf_t *coin_config,
     // Speculos workaround
     // io_seproxyhal_general_status();
     os_lib_call(libcall_params);
+    // check return code from library
+    if (lib_input_params.result != 1) {
+        PRINTF("Error: Couldn't build printable amount\n");
+        return -1;
+    }
     // result should be null terminated string, so we need to have at least one 0
     if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != 0) {
         PRINTF("Error: Printable amount should be null-terminated\n");
@@ -35,7 +42,7 @@ int get_printable_amount(buf_t *coin_config,
         return -1;
     }
     strncpy(printable_amount, lib_input_params.printable_amount, printable_amount_size);
-    printable_amount[printable_amount_size-1] = '\x00';
+    printable_amount[printable_amount_size - 1] = '\x00';
     return 0;
 }
 

@@ -114,10 +114,10 @@ void app_main(void) {
             .bytes = G_io_apdu_buffer + OFFSET_CDATA,
             .size = input_length - OFFSET_CDATA,
         };
-        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],     //
-                             G_io_apdu_buffer[OFFSET_P2],      //
-                             &swap_ctx,                        //
-                             &input,                           //
+        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],  //
+                             G_io_apdu_buffer[OFFSET_P2],   //
+                             &swap_ctx,                     //
+                             &input,                        //
                              send_apdu) < 0)
             return;  // some non recoverable error happened
 
@@ -129,8 +129,11 @@ void app_main(void) {
 
 void app_exit(void) {
     BEGIN_TRY_L(exit) {
-        TRY_L(exit) { os_sched_exit(-1); }
-        FINALLY_L(exit) {}
+        TRY_L(exit) {
+            os_sched_exit(-1);
+        }
+        FINALLY_L(exit) {
+        }
     }
     END_TRY_L(exit);
 }
@@ -177,7 +180,8 @@ __attribute__((section(".boot"))) int main(int arg0) {
                 CLOSE_TRY;
                 break;
             }
-            FINALLY {}
+            FINALLY {
+            }
         }
         END_TRY;
     }
