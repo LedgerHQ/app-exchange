@@ -115,6 +115,88 @@ test('Test BTC swap to LTC fails', async () => {
 })
 
 
+test('Test LTC swap to ETH', async () => {
+    jest.setTimeout(100000);
+    const sim = new Zemu(APP_PATH, ALL_LIBS);
+    try {
+        await sim.start(sim_options);
+        const swap = new Exchange(sim.getTransport(), 0x00);
+        const transactionId: string = await swap.startNewTransaction();
+        await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+        await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+        var tr = new proto.ledger_swap.NewTransactionResponse();
+        tr.setPayinAddress("MTmgECMPDEUHhtdjKTfd6GddwueYHyQYJw");
+        tr.setPayinExtraId("");
+        tr.setRefundAddress("MJovkMvQ2rXXUj7TGVvnQyVMWghSdqZsmu");
+        tr.setRefundExtraId("");
+        tr.setPayoutAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+        tr.setPayoutExtraId("");
+        tr.setCurrencyFrom("LTC");
+        tr.setCurrencyTo("ETH");
+        tr.setAmountToProvider(numberToBigEndianBuffer(1234));
+        tr.setAmountToWallet(numberToBigEndianBuffer((10 ** 18) * 0.04321)); // 10^18 wei == 1 ETH
+        tr.setDeviceTransactionId(transactionId);
+
+        const payload: Buffer = Buffer.from(tr.serializeBinary());
+        await swap.processTransaction(payload, 17136);
+        const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+        const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+        await swap.checkTransactionSignature(signature);
+        const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+        await swap.checkPayoutAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+
+        const ltcAddressParams = getSerializedAddressParametersBTC("49'/2'/0'/0/0", "p2sh");
+        const checkRequest = swap.checkRefundAddress(LTCConfig, LTCConfigSignature, ltcAddressParams.addressParameters);
+        // Wait until we are not in the main menu
+        await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickBoth();
+        await expect(checkRequest).resolves.toBe(undefined);
+
+        await swap.signCoinTransaction();
+
+        await Zemu.sleep(1000);
+
+        let transport = await sim.getTransport();
+
+        var ans = await transport.send(0xe0, 0x42, 0x00, 0x00, Buffer.from('000000000200000001', 'hex'));
+        ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('4C0334A806A7AF557DF4968040BD86341DEE360010D4C400C7F838F43ED0F8EE010000006A', 'hex'));
+        ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('47304402206C8878BEBDF2B69C0D6A037D1F1D405B22748921215EAB5A7197822502475A430220315058087ECAE5BF63DA6C', 'hex'));
+        ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('3FD8F42C97355ADF1100E5335C9B13801F44D9E1B3012102AB8F0D66218556601E7B3CE19F6AC1BCB1A0F48CD5C2BC43DE6A', 'hex'));
+        ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('9ABA056E0464FFFFFFFF', 'hex'));
+        ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('02', 'hex'));
+        ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('3911C4040000000017A91479EFD0A3CBF9840FD329DBAA667BC874891F1DE587', 'hex'));
+        ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('024C6E3C000000001976A9146C2614C7B45EF8DFA8DC83E6739DDBE201D05AB088AC', 'hex'));
+        ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('00000000', 'hex'));
+
+        ans = await transport.send(0xe0, 0x44, 0x00, 0x02, Buffer.from('0100000001', 'hex'));
+        ans = await transport.send(0xe0, 0x44, 0x80, 0x02, Buffer.from('01383200212bd4b206cefa9cffac7b38c38a8cb5fa48ea5266b0009bd501a9ca0fdeccb4fc90000000003911c40400000000c6df9ee3ead4c36500', 'hex'));
+        ans = await transport.send(0xe0, 0x44, 0x80, 0x02, Buffer.from('FFFFFFFF', 'hex'));
+
+        ans = await transport.send(0xe0, 0x4a, 0xFF, 0x00, Buffer.from('058000003180000002800000000000000100000000', 'hex'));
+        ans = await transport.send(0xe0, 0x4a, 0x00, 0x00, Buffer.from('02D20400000000000017A914D9F83A341518357BBC089B88A64F86C71A55BED28777C9C3040000000017A91410c8c0059a88', 'hex'));
+        ans = await transport.send(0xe0, 0x4a, 0x80, 0x00, Buffer.from('dea62d5aa869f8f9c25e7054fe2c87', 'hex'));
+
+        ans = await transport.send(0xe0, 0x44, 0x00, 0x80, Buffer.from('0100000001', 'hex'));
+        ans = await transport.send(0xe0, 0x44, 0x80, 0x80, Buffer.from('01383200212bd4b206cefa9cffac7b38c38a8cb5fa48ea5266b0009bd501a9ca0fdeccb4fc90000000003911c40400000000c6df9ee3ead4c36519', 'hex'));
+        ans = await transport.send(0xe0, 0x44, 0x80, 0x80, Buffer.from('76A914C3722CEB74B4F5B583A690DDF05D01536B1CB8B488ACFFFFFFFF', 'hex'));
+
+        await expect(transport.send(0xe0, 0x48, 0x00, 0x00, Buffer.from('05800000318000000280000000000000000000000C000000000001', 'hex')))
+            .resolves.toEqual(
+                Buffer.from('3045022100e01f45183c1e4fa647418420ae7dae7b6c1486377a0f9bc5530772a05a22206a02201194578e4d9bb4c137b7e072488a2ca50e4c85e1c4934785110b9ad8024f5038019000', 'hex')
+            );
+
+
+    } finally {
+        await sim.close();
+    }
+
+})
+
+
 test('Test ETH swap to BTC', async () => {
     jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
@@ -175,7 +257,6 @@ test('Test ETH swap to BTC', async () => {
         await sim.close();
     }
 })
-
 
 
 test('Test Aeternity ERC20 swap to BTC', async () => {
