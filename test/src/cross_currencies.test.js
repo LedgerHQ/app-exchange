@@ -29,7 +29,7 @@ const sim_options = {
     X11: true
 };
 const Resolve = require("path").resolve;
-const APP_PATH = Resolve("elfs/exchange.elf");
+const APP_PATH = Resolve("../bin/app.elf");
 const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf") };
 
 test('Test BTC swap to LTC fails', async () => {
