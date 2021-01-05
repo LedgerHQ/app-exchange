@@ -100,6 +100,7 @@ int check_refund_address(subcommand_e subcommand,
 
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
+    PRINTF("Send amount: %s\n", printable_send_amount);
 
     static char printable_fees_amount[PRINTABLE_AMOUNT_SIZE];
     os_memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
@@ -115,6 +116,7 @@ int check_refund_address(subcommand_e subcommand,
 
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
+    PRINTF("Fees: %s\n", printable_fees_amount);
 
     ctx->state = WAITING_USER_VALIDATION;
 

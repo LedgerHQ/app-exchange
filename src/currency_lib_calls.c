@@ -64,6 +64,7 @@ int check_address(buf_t *coin_config,
     // Speculos workaround
     // io_seproxyhal_general_status();
     os_lib_call(libcall_params);
+    // PRINTF("Debug data sent by library %.*H\n", 20, lib_in_out_params.address_to_check);
     PRINTF("I am back\n");
     return lib_in_out_params.result;
 }
