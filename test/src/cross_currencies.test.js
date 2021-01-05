@@ -3,6 +3,7 @@ import "regenerator-runtime/runtime";
 import Btc from "@ledgerhq/hw-app-btc";
 import Eth from "@ledgerhq/hw-app-eth";
 import Xrp from "@ledgerhq/hw-app-xrp";
+import Xlm from "@ledgerhq/hw-app-str";
 import { byContractAddress } from "@ledgerhq/hw-app-eth/erc20";
 import secp256k1 from "secp256k1";
 import sha256 from "js-sha256";
@@ -17,7 +18,8 @@ import {
     LTCConfig, LTCConfigSignature,
     ETHConfig, ETHConfigSignature,
     AEConfig, AEConfigSignature,
-    XRPConfig, XRPConfigSignature
+    XRPConfig, XRPConfigSignature,
+    XLMConfig, XLMConfigSignature
 } from "./common";
 import Exchange from "./exchange.js";
 import Zemu from "@zondax/zemu";
@@ -25,12 +27,12 @@ import { TransportStatusError } from "@ledgerhq/errors";
 
 const sim_options = {
     logging: true,
-    start_delay: 3000,
+    start_delay: 4000,
     X11: true
 };
 const Resolve = require("path").resolve;
-const APP_PATH = Resolve("../bin/app.elf");
-const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf") };
+const APP_PATH = Resolve("elfs/exchange.elf");
+const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf"), "Stellar": Resolve("elfs/stellar.elf") };
 
 test('Test BTC swap to LTC fails', async () => {
     jest.setTimeout(100000);
@@ -170,10 +172,11 @@ test('Test LTC swap to ETH', async () => {
         ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('02', 'hex'));
         ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('3911C4040000000017A91479EFD0A3CBF9840FD329DBAA667BC874891F1DE587', 'hex'));
         ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('024C6E3C000000001976A9146C2614C7B45EF8DFA8DC83E6739DDBE201D05AB088AC', 'hex'));
-        ans = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('00000000', 'hex'));
+        let trusted_input = await transport.send(0xe0, 0x42, 0x80, 0x00, Buffer.from('00000000', 'hex'));
+        trusted_input = trusted_input.slice(0, -2).toString('hex');
 
         ans = await transport.send(0xe0, 0x44, 0x00, 0x02, Buffer.from('0100000001', 'hex'));
-        ans = await transport.send(0xe0, 0x44, 0x80, 0x02, Buffer.from('01383200212bd4b206cefa9cffac7b38c38a8cb5fa48ea5266b0009bd501a9ca0fdeccb4fc90000000003911c40400000000c6df9ee3ead4c36500', 'hex'));
+        ans = await transport.send(0xe0, 0x44, 0x80, 0x02, Buffer.from('0138' + trusted_input + '00', 'hex'));
         ans = await transport.send(0xe0, 0x44, 0x80, 0x02, Buffer.from('FFFFFFFF', 'hex'));
 
         ans = await transport.send(0xe0, 0x4a, 0xFF, 0x00, Buffer.from('058000003180000002800000000000000100000000', 'hex'));
@@ -181,7 +184,7 @@ test('Test LTC swap to ETH', async () => {
         ans = await transport.send(0xe0, 0x4a, 0x80, 0x00, Buffer.from('dea62d5aa869f8f9c25e7054fe2c87', 'hex'));
 
         ans = await transport.send(0xe0, 0x44, 0x00, 0x80, Buffer.from('0100000001', 'hex'));
-        ans = await transport.send(0xe0, 0x44, 0x80, 0x80, Buffer.from('01383200212bd4b206cefa9cffac7b38c38a8cb5fa48ea5266b0009bd501a9ca0fdeccb4fc90000000003911c40400000000c6df9ee3ead4c36519', 'hex'));
+        ans = await transport.send(0xe0, 0x44, 0x80, 0x80, Buffer.from('0138' + trusted_input + '19', 'hex'));
         ans = await transport.send(0xe0, 0x44, 0x80, 0x80, Buffer.from('76A914C3722CEB74B4F5B583A690DDF05D01536B1CB8B488ACFFFFFFFF', 'hex'));
 
         await expect(transport.send(0xe0, 0x48, 0x00, 0x00, Buffer.from('05800000318000000280000000000000000000000C000000000001', 'hex')))
@@ -414,6 +417,128 @@ test('Test ETH swap to XRP', async () => {
         await swap.checkTransactionSignature(signature);
         const xrpAddressParams = getSerializedAddressParameters("44'/144'/0'/1/0");
         await swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, xrpAddressParams.addressParameters);
+
+        const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+        const checkRequest = swap.checkRefundAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+        // Wait until we are not in the main menu
+        await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickBoth();
+        await expect(checkRequest).resolves.toBe(undefined);
+
+        await swap.signCoinTransaction();
+
+        await Zemu.sleep(1000);
+
+        let transport = await sim.getTransport();
+        const eth = new Eth(transport);
+
+        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080', 'hex')))
+            .resolves.toEqual({
+                "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
+                "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
+                "v": "25"
+            });
+
+    } finally {
+        await sim.close();
+    }
+})
+
+test('Test XLM swap to ETH', async () => {
+    jest.setTimeout(100000);
+    const sim = new Zemu(APP_PATH, ALL_LIBS);
+    try {
+        await sim.start(sim_options);
+        const swap = new Exchange(sim.getTransport(), 0x00);
+        const transactionId: string = await swap.startNewTransaction();
+        await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+        await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+        let tr = new proto.ledger_swap.NewTransactionResponse();
+        tr.setPayinAddress("GC3JHKMIG7SWJEBAHFX35ILEFQJFSOKRSWFGTVXTPGCGDWG54FPXJ2Z6");
+        tr.setPayinExtraId("123456789123456");
+        tr.setRefundAddress("GCNCEJIAZ5D3APIF5XWAJ3JSSTHM4HPHE7GK3NAB6R6WWSZDB2A2BQ5B");
+        tr.setRefundExtraId("");
+        tr.setPayoutAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+        tr.setPayoutExtraId("");
+        tr.setCurrencyFrom("XLM");
+        tr.setCurrencyTo("ETH");
+        // 1.1234567 XLM to 1.1234 ETH
+        tr.setAmountToProvider(numberToBigEndianBuffer(11234567)); // 1 xlm == 10^7 drops
+        tr.setAmountToWallet(numberToBigEndianBuffer(1000000 * 1000000 * 1000000 * 1.1234)); // 10^18 wei == 1 ETH
+        tr.setDeviceTransactionId(transactionId);
+
+        const payload: Buffer = Buffer.from(tr.serializeBinary());
+        await swap.processTransaction(payload, 100);
+        const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+        const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+        await swap.checkTransactionSignature(signature);
+        const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+        await swap.checkPayoutAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+
+        const xlmAddressParams = getSerializedAddressParameters("44'/148'/0'");
+        const checkRequest = swap.checkRefundAddress(XLMConfig, XLMConfigSignature, xlmAddressParams.addressParameters);
+        // Wait until we are not in the main menu
+        await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickBoth();
+        await expect(checkRequest).resolves.toBe(undefined);
+
+        await swap.signCoinTransaction();
+
+        await Zemu.sleep(1000);
+
+        let transport = await sim.getTransport();
+
+        const xlm = new Xlm(transport);
+
+        await expect(xlm.signTransaction("44'/148'/0'", Buffer.from('7AC33997544E3175D266BD022439B22CDB16508C01163F26E5CB2A3E1045A97900000002000000009A222500CF47B03D05EDEC04ED3294CECE1DE727CCADB401F47D6B4B230E81A00000006401FA61520000000200000000000000010000000F3132333435363738393132333435360000000001000000000000000100000000B693A98837E5649020396fbea1642c12593951958a69d6f3798461d8dde15f74000000000000000000ab6d0700000000', 'hex')))
+            .resolves.toEqual({
+                "signature": Buffer.from("e5e0f224b5c9c85fa411c154f844cd309ee16af98a024ec65eb32e7d5a5b83e469b3085b6c3a4cf231d1e32733223a2a97c9b49fa9da1a58727301e562c90f0a", "hex")
+
+            });
+
+    } finally {
+        await sim.close();
+    }
+})
+
+test('Test ETH swap to XLM', async () => {
+    jest.setTimeout(100000);
+    const sim = new Zemu(APP_PATH, ALL_LIBS);
+    try {
+        await sim.start(sim_options);
+        const swap = new Exchange(sim.getTransport(), 0x00);
+        const transactionId: string = await swap.startNewTransaction();
+        await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+        await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+        let tr = new proto.ledger_swap.NewTransactionResponse();
+        tr.setPayinAddress("0xd692Cb1346262F584D17B4B470954501f6715a82");
+        tr.setPayinExtraId("");
+        tr.setRefundAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+        tr.setRefundExtraId("");
+        tr.setPayoutAddress("GCNCEJIAZ5D3APIF5XWAJ3JSSTHM4HPHE7GK3NAB6R6WWSZDB2A2BQ5B");
+        tr.setPayoutExtraId("");
+        tr.setCurrencyFrom("ETH");
+        tr.setCurrencyTo("XLM");
+        // 1.1234 ETH to 2.1 XLM
+        tr.setAmountToWallet(numberToBigEndianBuffer(21000000)); // 1 xlm == 10^7 drops
+        tr.setAmountToProvider(numberToBigEndianBuffer(1000000 * 1000000 * 1000000 * 1.1234)); // 10^18 wei == 1 ETH
+        tr.setDeviceTransactionId(transactionId);
+
+        const payload: Buffer = Buffer.from(tr.serializeBinary());
+        await swap.processTransaction(payload, 840000000000000);
+        const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+        const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+        await swap.checkTransactionSignature(signature);
+        const xlmAddressParams = getSerializedAddressParameters("44'/148'/0'");
+        await swap.checkPayoutAddress(XLMConfig, XLMConfigSignature, xlmAddressParams.addressParameters);
 
         const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
         const checkRequest = swap.checkRefundAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
