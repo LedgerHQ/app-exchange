@@ -10,6 +10,10 @@ void ux_init();
 
 void ui_idle(void);
 
+#define UX_SWAP          (1 << 0)
+#define UX_SELL          (1 << 1)
+#define UX_FLOATING_RATE (1 << 2)
+
 typedef void (*UserChoiseCallback)();
 
 void ui_validate_amounts(subcommand_e subcommand,  //

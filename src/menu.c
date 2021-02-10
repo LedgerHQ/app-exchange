@@ -118,7 +118,26 @@ UX_STEP_CB(ux_confirm_flow_6_step, pb, io_reject(NULL),
     &C_icon_crossmark,
     "Reject",
 });
+
 // clang-format on
+const ux_flow_step_t *ux_confirm_flow[8];
+
+void ux_confirm(uint8_t ux_flow) {
+    int step = 0;
+    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_1_step;
+    if (ux_flow && UX_SELL) {
+        ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_1_2_step;
+    }
+    // missing floating rates.
+    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_2_step;
+    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_3_step;
+    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_4_step;
+    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_5_step;
+    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_6_step;
+    ux_confirm_sign_block_flow[step++] = FLOW_END_STEP;
+
+    ux_flow_init(0, ux_confirm_flow, NULL);
+}
 
 UX_FLOW(ux_confirm_swap_flow,
         &ux_confirm_flow_1_step,
@@ -157,8 +176,9 @@ void ui_validate_amounts(subcommand_e subcommand,
     validationInfo.OnAccept = on_accept;
     validationInfo.OnReject = on_reject;
 
+    uint8_t ux_flow = 0;
     if (subcommand == SWAP) {
-        ux_flow_init(0, ux_confirm_swap_flow, NULL);
+        ux_flow |= UX_SWAP;
     }
 
     if (subcommand == SELL) {
@@ -166,8 +186,13 @@ void ui_validate_amounts(subcommand_e subcommand,
                 ctx->sell_transaction.trader_email,
                 sizeof(validationInfo.email));
         validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
-        ux_flow_init(0, ux_confirm_sell_flow, NULL);
+        ux_flow |= UX_SELL;
     }
+
+    if (0) {  // scott
+        ux_flow |= UX_FLOATING_RATE;
+    }
+    ux_confirm(ux_flow);
 }
 
 void ux_init() {
