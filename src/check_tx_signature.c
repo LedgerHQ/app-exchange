@@ -10,12 +10,12 @@
 // This function receive transaction signature
 // Input should be in the form of DER serialized signature
 // the length should be CURVE_SIZE_BYTES * 2 + 6 (DER encoding)
-int check_tx_signature(subcommand_e subcommand,
-                       rate_e rate,
+int check_tx_signature(rate_e P1,
+                       subcommand_e P2,
                        swap_app_context_t *ctx,
                        const buf_t *input,
                        SendFunction send) {
-    if (subcommand == SWAP) {
+    if (P2 == SWAP) {
         if (input->size < MIN_DER_SIGNATURE_LENGTH || input->size > MAX_DER_SIGNATURE_LENGTH ||
             input->bytes[1] + 2 != input->size) {
             PRINTF("Error: Input buffer length don't correspond to DER length");
@@ -33,7 +33,7 @@ int check_tx_signature(subcommand_e subcommand,
         }
     }
 
-    if (subcommand == SELL) {
+    if (P2 == SELL) {
         if (input->size != 64) {
             PRINTF("Error: Input buffer length don't correspond to (R, S) length");
             return reply_error(ctx, INCORRECT_COMMAND_DATA, send);

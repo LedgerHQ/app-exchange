@@ -51,8 +51,8 @@ void normalize_currencies(swap_app_context_t *ctx) {
     }
 }
 
-int process_transaction(subcommand_e subcommand,
-                        rate_e rate,
+int process_transaction(rate_e P1,
+                        subcommand_e P2,
                         swap_app_context_t *ctx,
                         const buf_t *input,
                         SendFunction send) {
@@ -76,7 +76,7 @@ int process_transaction(subcommand_e subcommand,
 
     PRINTF("len(payload): %d\n", payload_length);
 
-    if (subcommand == SWAP) {
+    if (P2 == SWAP) {
         stream = pb_istream_from_buffer(input->bytes + 1, payload_length);
 
         if (!pb_decode(&stream,
@@ -100,7 +100,7 @@ int process_transaction(subcommand_e subcommand,
         normalize_currencies(ctx);
     }
 
-    if (subcommand == SELL) {
+    if (P2 == SELL) {
         // arbitrary maximum payload size
         unsigned char payload[256];
 

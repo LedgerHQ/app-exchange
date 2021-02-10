@@ -2,8 +2,8 @@
 #include "init.h"
 #include "reply_error.h"
 
-int start_new_transaction(subcommand_e subcommand,
-                          rate_e rate,
+int start_new_transaction(rate_e P1,
+                          subcommand_e P2,
                           swap_app_context_t *ctx,
                           const buf_t *input,
                           SendFunction send) {
@@ -12,7 +12,7 @@ int start_new_transaction(subcommand_e subcommand,
 
     init_application_context(ctx);
 
-    if (subcommand == SWAP) {
+    if (P2 == SWAP) {
         output_buffer_size = sizeof(ctx->device_transaction_id.swap);
 
         for (unsigned int i = 0; i < output_buffer_size; ++i) {
@@ -24,7 +24,7 @@ int start_new_transaction(subcommand_e subcommand,
         }
     }
 
-    if (subcommand == SELL) {
+    if (P2 == SELL) {
         output_buffer_size = sizeof(ctx->device_transaction_id.sell);
 
 #ifdef TESTING
@@ -54,7 +54,7 @@ int start_new_transaction(subcommand_e subcommand,
     }
 
     ctx->state = WAITING_TRANSACTION;
-    ctx->subcommand = subcommand;
+    ctx->subcommand = P2;
 
     return 0;
 }

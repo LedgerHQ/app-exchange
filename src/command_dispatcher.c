@@ -17,23 +17,23 @@
 
 #include "reply_error.h"
 
-typedef int (*StateCommandDispatcher)(subcommand_e subcommand,
-                                      rate_e rate,
+typedef int (*StateCommandDispatcher)(rate_e P1,
+                                      subcommand_e P2,
                                       swap_app_context_t *ctx,
                                       const buf_t *input,
                                       SendFunction send);
 
 int dispatch_command(command_e command,
-                     rate_e rate,
-                     subcommand_e subcommand,
+                     subcommand_e P2,
+                     rate_e P1,
                      swap_app_context_t *context,
                      const buf_t *input,
                      SendFunction send) {
     StateCommandDispatcher handler;
 
-    PRINTF("command: %d, subcommand: %d, state: %d\n", command, subcommand, context->state);
+    PRINTF("command: %d, subcommand: %d, state: %d\n", command, P2, context->state);
 
-    if (subcommand != SWAP && subcommand != SELL) {
+    if (P2 != SWAP && P2 != SELL) {
         return reply_error(context, WRONG_P2, send);
     }
 
@@ -51,28 +51,28 @@ int dispatch_command(command_e command,
             }
             break;
         case SET_PARTNER_KEY_COMMAND:
-            if (context->state == WAITING_TRANSACTION && subcommand == context->subcommand) {
+            if (context->state == WAITING_TRANSACTION && P2 == context->subcommand) {
                 handler = (void *) PIC(set_partner_key);
             }
             break;
         case CHECK_PARTNER_COMMAND:
-            if (context->state == PROVIDER_SET && subcommand == context->subcommand) {
+            if (context->state == PROVIDER_SET && P2 == context->subcommand) {
                 handler = (void *) PIC(check_partner);
             }
             break;
         case PROCESS_TRANSACTION_RESPONSE_COMMAND:
-            if (context->state == PROVIDER_CHECKED && subcommand == context->subcommand) {
+            if (context->state == PROVIDER_CHECKED && P2 == context->subcommand) {
                 handler = (void *) PIC(process_transaction);
             }
             break;
         case CHECK_TRANSACTION_SIGNATURE_COMMAND:
-            if (context->state == TRANSACTION_RECIEVED && subcommand == context->subcommand) {
+            if (context->state == TRANSACTION_RECIEVED && P2 == context->subcommand) {
                 handler = (void *) PIC(check_tx_signature);
             }
             break;
         case CHECK_PAYOUT_ADDRESS:
-            if (context->state == SIGNATURE_CHECKED && subcommand == context->subcommand) {
-                if (subcommand == SELL) {
+            if (context->state == SIGNATURE_CHECKED && P2 == context->subcommand) {
+                if (P2 == SELL) {
                     handler = (void *) PIC(check_asset_in);
                 } else {
                     handler = (void *) PIC(check_payout_address);
@@ -80,12 +80,12 @@ int dispatch_command(command_e command,
             }
             break;
         case CHECK_REFUND_ADDRESS:
-            if (context->state == TO_ADDR_CHECKED && subcommand == context->subcommand) {
+            if (context->state == TO_ADDR_CHECKED && P2 == context->subcommand) {
                 handler = (void *) PIC(check_refund_address);
             }
             break;
         case START_SIGNING_TRANSACTION:
-            if (context->state == WAITING_SIGNING && subcommand == context->subcommand) {
+            if (context->state == WAITING_SIGNING && P2 == context->subcommand) {
                 handler = (void *) PIC(start_signing_transaction);
             }
             break;
@@ -93,5 +93,5 @@ int dispatch_command(command_e command,
             break;
     }
 
-    return handler(subcommand, rate, context, input, send);
+    return handler(P1, P2, context, input, send);
 }

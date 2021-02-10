@@ -5,8 +5,8 @@
 #include "send_function.h"
 #include "commands.h"
 
-int check_asset_in(subcommand_e subcommand,
-                   rate_e rate,
+int check_asset_in(rate_e P1,
+                   subcommand_e P2,
                    swap_app_context_t *ctx,
                    const buf_t *input,
                    SendFunction send);

@@ -2,8 +2,8 @@
 #include "currency_lib_calls.h"
 #include "reply_error.h"
 
-int start_signing_transaction(subcommand_e subcommand,
-                              rate_e rate,
+int start_signing_transaction(rate_e P1,
+                              subcommand_e P2,
                               swap_app_context_t *ctx,
                               const buf_t *input,
                               SendFunction send) {
@@ -18,14 +18,14 @@ int start_signing_transaction(subcommand_e subcommand,
     lib_in_out_params.coin_configuration = ctx->payin_coin_config.bytes;
     lib_in_out_params.coin_configuration_length = ctx->payin_coin_config.size;
 
-    if (subcommand == SWAP) {
+    if (P2 == SWAP) {
         lib_in_out_params.amount = ctx->received_transaction.amount_to_provider.bytes;
         lib_in_out_params.amount_length = ctx->received_transaction.amount_to_provider.size;
         lib_in_out_params.destination_address = ctx->received_transaction.payin_address;
         lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
     }
 
-    if (subcommand == SELL) {
+    if (P2 == SELL) {
         lib_in_out_params.amount = ctx->sell_transaction.in_amount.bytes;
         lib_in_out_params.amount_length = ctx->sell_transaction.in_amount.size;
         lib_in_out_params.destination_address = ctx->sell_transaction.in_address;

@@ -10,8 +10,8 @@
 #include "check_refund_address.h"
 #include "menu.h"
 
-int check_payout_address(subcommand_e subcommand,
-                         rate_e rate,
+int check_payout_address(rate_e P1,
+                         subcommand_e P2,
                          swap_app_context_t *ctx,
                          const buf_t *input,
                          SendFunction send) {

@@ -4,8 +4,8 @@
 #include "globals.h"
 #include "reply_error.h"
 
-int set_partner_key(subcommand_e subcommand,
-                    rate_e rate,
+int set_partner_key(rate_e P1,
+                    subcommand_e P2,
                     swap_app_context_t *ctx,
                     const buf_t *input,
                     SendFunction send) {
@@ -35,14 +35,14 @@ int set_partner_key(subcommand_e subcommand,
 
     os_memcpy(ctx->partner.name, input->bytes + 1, ctx->partner.name_length);
 
-    if (subcommand == SWAP) {
+    if (P2 == SWAP) {
         cx_ecfp_init_public_key(CX_CURVE_SECP256K1,
                                 input->bytes + 1 + ctx->partner.name_length,
                                 UNCOMPRESSED_KEY_LENGTH,
                                 &(ctx->partner.public_key));
     }
 
-    if (subcommand == SELL) {
+    if (P2 == SELL) {
         cx_ecfp_init_public_key(CX_CURVE_256R1,
                                 input->bytes + 1 + ctx->partner.name_length,
                                 UNCOMPRESSED_KEY_LENGTH,

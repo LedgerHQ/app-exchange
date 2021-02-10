@@ -148,8 +148,8 @@ void ux_confirm(uint8_t ux_flow) {
     ux_flow_init(0, ux_confirm_flow, NULL);
 }
 
-void ui_validate_amounts(subcommand_e subcommand,
-                         rate_e rate,
+void ui_validate_amounts(rate_e P1,
+                         subcommand_e P2,
                          swap_app_context_t *ctx,
                          char *send_amount,
                          char *fees_amount,
@@ -169,9 +169,9 @@ void ui_validate_amounts(subcommand_e subcommand,
     validationInfo.OnReject = on_reject;
 
     uint8_t ux_flow = 0;
-    if (subcommand == SWAP) {
+    if (P2 == SWAP) {
         ux_flow |= UX_SWAP;
-    } else if (subcommand == SELL) {
+    } else if (P2 == SELL) {
         strncpy(validationInfo.email,
                 ctx->sell_transaction.trader_email,
                 sizeof(validationInfo.email));

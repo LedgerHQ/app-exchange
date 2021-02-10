@@ -9,8 +9,8 @@
 #include "printable_amount.h"
 #include "menu.h"
 
-int check_asset_in(subcommand_e subcommand,
-                   rate_e rate,
+int check_asset_in(rate_e P1,
+                   subcommand_e P2,
                    swap_app_context_t *ctx,
                    const buf_t *input,
                    SendFunction send) {
@@ -131,8 +131,8 @@ int check_asset_in(subcommand_e subcommand,
 
     ctx->state = WAITING_USER_VALIDATION;
 
-    ui_validate_amounts(subcommand,  //
-                        rate,
+    ui_validate_amounts(P1,  //
+                        P2,
                         ctx,                    //
                         in_printable_amount,    //
                         printable_fees_amount,  //
