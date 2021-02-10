@@ -1,6 +1,6 @@
 #include "process_transaction.h"
 #include "pb_decode.h"
-#include "protocol.pb.h"
+#include "proto/protocol.pb.h"
 #include "swap_errors.h"
 #include "reply_error.h"
 #include "base64.h"
