@@ -3,6 +3,7 @@
 #include "reply_error.h"
 
 int start_new_transaction(subcommand_e subcommand,
+                          rate_e rate,
                           swap_app_context_t *ctx,
                           const buf_t *input,
                           SendFunction send) {

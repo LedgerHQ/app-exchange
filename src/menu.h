@@ -17,6 +17,7 @@ void ui_idle(void);
 typedef void (*UserChoiseCallback)();
 
 void ui_validate_amounts(subcommand_e subcommand,  //
+                         rate_e rate,
                          swap_app_context_t *ctx,  //
                          char *send_amount,        //
                          char *fees_amount,        //

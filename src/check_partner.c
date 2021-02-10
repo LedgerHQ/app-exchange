@@ -8,6 +8,7 @@
 // Input should be in the form of DER serialized signature
 // the length should be in [MIN_DER_SIGNATURE_LENGTH, MAX_DER_SIGNATURE_LENGTH]
 int check_partner(subcommand_e subcommand,
+                  rate_e rate,
                   swap_app_context_t *ctx,
                   const buf_t *input,
                   SendFunction send) {

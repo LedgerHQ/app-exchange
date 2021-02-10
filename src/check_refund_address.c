@@ -9,6 +9,7 @@
 #include "parse_coin_config.h"
 
 int check_refund_address(subcommand_e subcommand,
+                         rate_e rate,
                          swap_app_context_t *ctx,
                          const buf_t *input,
                          SendFunction send) {
@@ -120,7 +121,8 @@ int check_refund_address(subcommand_e subcommand,
 
     ctx->state = WAITING_USER_VALIDATION;
 
-    ui_validate_amounts(subcommand,             //
+    ui_validate_amounts(subcommand,  //
+                        rate,
                         ctx,                    //
                         printable_send_amount,  //
                         printable_fees_amount,  //

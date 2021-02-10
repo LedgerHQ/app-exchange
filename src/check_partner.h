@@ -6,6 +6,7 @@
 #include "commands.h"
 
 int check_partner(subcommand_e subcommand,
+                  rate_e rate,
                   swap_app_context_t *ctx,
                   const buf_t *input,
                   SendFunction send);

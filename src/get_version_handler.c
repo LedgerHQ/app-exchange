@@ -1,6 +1,7 @@
 #include "get_version_handler.h"
 
 int get_version_handler(subcommand_e subcommand,
+                        rate_e rate,
                         swap_app_context_t *ctx,
                         const buf_t *input,
                         SendFunction send) {

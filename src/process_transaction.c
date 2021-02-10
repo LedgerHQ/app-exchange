@@ -52,6 +52,7 @@ void normalize_currencies(swap_app_context_t *ctx) {
 }
 
 int process_transaction(subcommand_e subcommand,
+                        rate_e rate,
                         swap_app_context_t *ctx,
                         const buf_t *input,
                         SendFunction send) {

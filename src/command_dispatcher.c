@@ -18,11 +18,13 @@
 #include "reply_error.h"
 
 typedef int (*StateCommandDispatcher)(subcommand_e subcommand,
+                                      rate_e rate,
                                       swap_app_context_t *ctx,
                                       const buf_t *input,
                                       SendFunction send);
 
 int dispatch_command(command_e command,
+                     rate_e rate,
                      subcommand_e subcommand,
                      swap_app_context_t *context,
                      const buf_t *input,
@@ -91,5 +93,5 @@ int dispatch_command(command_e command,
             break;
     }
 
-    return handler(subcommand, context, input, send);
+    return handler(subcommand, rate, context, input, send);
 }

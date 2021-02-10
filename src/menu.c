@@ -102,6 +102,11 @@ UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
     .title = "Get",
     .text = validationInfo.get,
 });
+UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
+{
+    .title = "Get (estimated)",
+    .text = validationInfo.get,
+});
 UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
 {
     .title = "Fees",
@@ -125,12 +130,16 @@ const ux_flow_step_t *ux_confirm_flow[8];
 void ux_confirm(uint8_t ux_flow) {
     int step = 0;
     ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
-    if (ux_flow && UX_SELL) {
+    if (ux_flow & UX_SELL) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
     }
     // missing floating rates.
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
-    ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
+    if (ux_flow & UX_FLOATING_RATE) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
+    } else {
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
+    }
     ux_confirm_flow[step++] = &ux_confirm_flow_4_step;
     ux_confirm_flow[step++] = &ux_confirm_flow_5_step;
     ux_confirm_flow[step++] = &ux_confirm_flow_6_step;
@@ -140,11 +149,11 @@ void ux_confirm(uint8_t ux_flow) {
 }
 
 void ui_validate_amounts(subcommand_e subcommand,
+                         rate_e rate,
                          swap_app_context_t *ctx,
                          char *send_amount,
                          char *fees_amount,
                          SendFunction send) {
-    application_context = ctx;
     send_function = send;
 
     strncpy(validationInfo.send, send_amount, sizeof(validationInfo.send));
@@ -162,9 +171,7 @@ void ui_validate_amounts(subcommand_e subcommand,
     uint8_t ux_flow = 0;
     if (subcommand == SWAP) {
         ux_flow |= UX_SWAP;
-    }
-
-    if (subcommand == SELL) {
+    } else if (subcommand == SELL) {
         strncpy(validationInfo.email,
                 ctx->sell_transaction.trader_email,
                 sizeof(validationInfo.email));
@@ -172,7 +179,7 @@ void ui_validate_amounts(subcommand_e subcommand,
         ux_flow |= UX_SELL;
     }
 
-    if (0) {  // scott
+    if (ctx->floating_rate) {
         ux_flow |= UX_FLOATING_RATE;
     }
     ux_confirm(ux_flow);

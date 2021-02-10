@@ -11,6 +11,7 @@
 #include "menu.h"
 
 int check_payout_address(subcommand_e subcommand,
+                         rate_e rate,
                          swap_app_context_t *ctx,
                          const buf_t *input,
                          SendFunction send) {

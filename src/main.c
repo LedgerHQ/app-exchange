@@ -115,6 +115,7 @@ void app_main(void) {
             .size = input_length - OFFSET_CDATA,
         };
         if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],  //
+                             G_io_apdu_buffer[OFFSET_P1],   //
                              G_io_apdu_buffer[OFFSET_P2],   //
                              &swap_ctx,                     //
                              &input,                        //

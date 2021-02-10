@@ -6,6 +6,7 @@
 #include "swap_app_context.h"
 
 int dispatch_command(command_e command,
+                     rate_e rate,
                      subcommand_e subcommand,
                      swap_app_context_t *context,
                      const buf_t *input,

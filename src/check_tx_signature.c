@@ -11,6 +11,7 @@
 // Input should be in the form of DER serialized signature
 // the length should be CURVE_SIZE_BYTES * 2 + 6 (DER encoding)
 int check_tx_signature(subcommand_e subcommand,
+                       rate_e rate,
                        swap_app_context_t *ctx,
                        const buf_t *input,
                        SendFunction send) {
