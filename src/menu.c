@@ -127,15 +127,15 @@ UX_STEP_CB(ux_confirm_flow_6_step, pb, io_reject(NULL),
 // clang-format on
 const ux_flow_step_t *ux_confirm_flow[8];
 
-void ux_confirm(uint8_t ux_flow) {
+void ux_confirm(rate_e P1, subcommand_e P2) {
     int step = 0;
     ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
-    if (ux_flow & UX_SELL) {
+    if (P2 == SELL) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
     }
     // missing floating rates.
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
-    if (ux_flow & UX_FLOATING_RATE) {
+    if (P1 == FLOATING) {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
     } else {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
@@ -168,21 +168,14 @@ void ui_validate_amounts(rate_e P1,
     validationInfo.OnAccept = on_accept;
     validationInfo.OnReject = on_reject;
 
-    uint8_t ux_flow = 0;
-    if (P2 == SWAP) {
-        ux_flow |= UX_SWAP;
-    } else if (P2 == SELL) {
+    if (P2 == SELL) {
         strncpy(validationInfo.email,
                 ctx->sell_transaction.trader_email,
                 sizeof(validationInfo.email));
         validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
-        ux_flow |= UX_SELL;
     }
 
-    if (ctx->floating_rate) {
-        ux_flow |= UX_FLOATING_RATE;
-    }
-    ux_confirm(ux_flow);
+    ux_confirm(P1, P2);
 }
 
 void ux_init() {
