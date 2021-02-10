@@ -34,7 +34,6 @@ typedef struct swap_app_context_s {
     buf_t payin_coin_config;  // serialized coin configuration
     char payin_binary_name[16];
     char printable_get_amount[PRINTABLE_AMOUNT_SIZE];
-    bool floating_rate;
 } swap_app_context_t;
 
 extern swap_app_context_t swap_ctx;
