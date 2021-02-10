@@ -3,7 +3,7 @@
 
 #include "states.h"
 #include "os.h"
-#include "protocol.pb.h"
+#include "proto/protocol.pb.h"
 #include "cx.h"
 #include "commands.h"
 #include "globals.h"

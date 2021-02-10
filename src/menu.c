@@ -124,37 +124,20 @@ const ux_flow_step_t *ux_confirm_flow[8];
 
 void ux_confirm(uint8_t ux_flow) {
     int step = 0;
-    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_1_step;
+    ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
     if (ux_flow && UX_SELL) {
-        ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_1_2_step;
+        ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
     }
     // missing floating rates.
-    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_2_step;
-    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_3_step;
-    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_4_step;
-    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_5_step;
-    ux_confirm_sign_block_flow[step++] = &ux_confirm_sign_block_flow_6_step;
-    ux_confirm_sign_block_flow[step++] = FLOW_END_STEP;
+    ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
+    ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
+    ux_confirm_flow[step++] = &ux_confirm_flow_4_step;
+    ux_confirm_flow[step++] = &ux_confirm_flow_5_step;
+    ux_confirm_flow[step++] = &ux_confirm_flow_6_step;
+    ux_confirm_flow[step++] = FLOW_END_STEP;
 
     ux_flow_init(0, ux_confirm_flow, NULL);
 }
-
-UX_FLOW(ux_confirm_swap_flow,
-        &ux_confirm_flow_1_step,
-        &ux_confirm_flow_2_step,
-        &ux_confirm_flow_3_step,
-        &ux_confirm_flow_4_step,
-        &ux_confirm_flow_5_step,
-        &ux_confirm_flow_6_step);
-
-UX_FLOW(ux_confirm_sell_flow,
-        &ux_confirm_flow_1_step,
-        &ux_confirm_flow_1_2_step,
-        &ux_confirm_flow_2_step,
-        &ux_confirm_flow_3_step,
-        &ux_confirm_flow_4_step,
-        &ux_confirm_flow_5_step,
-        &ux_confirm_flow_6_step);
 
 void ui_validate_amounts(subcommand_e subcommand,
                          swap_app_context_t *ctx,
