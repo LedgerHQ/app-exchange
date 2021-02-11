@@ -27,7 +27,7 @@ test('Wrong Ethereum payout address should not be accepted', async () => {
     const sim = new Zemu(APP_PATH, ETH_LIB);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00);
+        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -64,7 +64,7 @@ test('Valid payout address ETH should be accepted', async () => {
     const sim = new Zemu(APP_PATH, ETH_LIB);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00);
+        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -102,7 +102,7 @@ test('Wrong refund address should be rejected', async () => {
     const sim = new Zemu(APP_PATH, ETH_LIB);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00);
+        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -141,7 +141,7 @@ test('Valid refund address should be accepted', async () => {
     const sim = new Zemu(APP_PATH, ETH_LIB);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00);
+        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
