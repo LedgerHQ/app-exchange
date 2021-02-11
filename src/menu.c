@@ -153,6 +153,7 @@ void ui_validate_amounts(rate_e P1,
                          char *send_amount,
                          char *fees_amount,
                          SendFunction send) {
+    application_context = ctx;
     send_function = send;
 
     strncpy(validationInfo.send, send_amount, sizeof(validationInfo.send));
