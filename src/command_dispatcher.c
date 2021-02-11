@@ -24,8 +24,8 @@ typedef int (*StateCommandDispatcher)(rate_e P1,
                                       SendFunction send);
 
 int dispatch_command(command_e command,
-                     subcommand_e P2,
                      rate_e P1,
+                     subcommand_e P2,
                      swap_app_context_t *context,
                      const buf_t *input,
                      SendFunction send) {
