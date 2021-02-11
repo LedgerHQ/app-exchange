@@ -135,7 +135,7 @@ test('Compare floating rate screenshot', async () => {
 
         // Compare expected results with actual data
         expect(expected_send).toEqual(send);
-        expect(expected_get).toEqual(expected_send);
+        expect(expected_get).toEqual(send);
         expect(expected_fees).toEqual(fees);
         expect(expected_accept).toEqual(accept);
 
