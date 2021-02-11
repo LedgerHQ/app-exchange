@@ -59,10 +59,14 @@ test('Compare fixed rate screenshot', async () => {
         await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
         // Capture screenshots
-        const send = await sim.clickRight("snapshots/tmp/send.png"); // Send screen
-        const get = await sim.clickRight("snapshots/tmp/get.png"); // Get screen
-        const fees = await sim.clickRight("snapshots/tmp/fees.png"); // Fees screen
-        const accept = await sim.clickRight("snapshots/tmp/accept.png"); // Accept screen
+        await sim.clickRight("snapshots/tmp/send.png"); // Send screen
+        const send = Zemu.LoadPng2RGB("snapshots/tmp/send.png");
+        await sim.clickRight("snapshots/tmp/get.png"); // Get screen
+        const get = Zemu.LoadPng2RGB("snapshots/tmp/get.png");
+        await sim.clickRight("snapshots/tmp/fees.png"); // Fees screen
+        const fees = Zemu.LoadPng2RGB("snapshots/tmp/fees.png");
+        await sim.clickRight("snapshots/tmp/accept.png"); // Accept screen
+        const accept = Zemu.LoadPng2RGB("snapshots/tmp/accept.png");
         await sim.clickBoth();
 
         // Load the expected results of the screenshots
@@ -70,7 +74,6 @@ test('Compare fixed rate screenshot', async () => {
         const expected_get = Zemu.LoadPng2RGB("snapshots/fixed_rate/get.png");
         const expected_fees = Zemu.LoadPng2RGB("snapshots/fixed_rate/fees.png");
         const expected_accept = Zemu.LoadPng2RGB("snapshots/fixed_rate/accept.png");
-
 
         // Compare expected results with actual data
         expect(expected_send).toEqual(send);
@@ -121,10 +124,14 @@ test('Compare floating rate screenshot', async () => {
         await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
 
         // Capture screenshots
-        const send = await sim.clickRight("snapshots/tmp/send.png"); // Send screen
-        const get = await sim.clickRight("snapshots/tmp/get.png"); // Get screen
-        const fees = await sim.clickRight("snapshots/tmp/fees.png"); // Fees screen
-        const accept = await sim.clickRight("snapshots/tmp/accept.png"); // Accept screen
+        await sim.clickRight("snapshots/tmp/send.png"); // Send screen
+        const send = Zemu.LoadPng2RGB("snapshots/tmp/send.png");
+        await sim.clickRight("snapshots/tmp/get.png"); // Get screen
+        const get = Zemu.LoadPng2RGB("snapshots/tmp/get.png");
+        await sim.clickRight("snapshots/tmp/fees.png"); // Fees screen
+        const fees = Zemu.LoadPng2RGB("snapshots/tmp/fees.png");
+        await sim.clickRight("snapshots/tmp/accept.png"); // Accept screen
+        const accept = Zemu.LoadPng2RGB("snapshots/tmp/accept.png");
         await sim.clickBoth();
 
         // Load the expected results of the screenshots
@@ -135,7 +142,7 @@ test('Compare floating rate screenshot', async () => {
 
         // Compare expected results with actual data
         expect(expected_send).toEqual(send);
-        expect(expected_get).toEqual(send);
+        expect(expected_get).toEqual(get);
         expect(expected_fees).toEqual(fees);
         expect(expected_accept).toEqual(accept);
 
