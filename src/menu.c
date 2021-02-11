@@ -133,7 +133,6 @@ void ux_confirm(rate_e P1, subcommand_e P2) {
     if (P2 == SELL) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
     }
-    // missing floating rates.
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
     if (P1 == FLOATING) {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
