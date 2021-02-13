@@ -195,7 +195,7 @@ export default class Exchange {
             0xe0,
             CHECK_REFUND_ADDRESS,
             this.transactionRate,
-            0x00,
+            this.transactionType,
             bufferToSend,
             this.allowedStatuses
         );
