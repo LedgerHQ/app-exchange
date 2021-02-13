@@ -2,17 +2,13 @@
 #include "init.h"
 #include "reply_error.h"
 
-int start_new_transaction(rate_e P1,
-                          subcommand_e P2,
-                          swap_app_context_t *ctx,
-                          const buf_t *input,
-                          SendFunction send) {
+int start_new_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     unsigned char output_buffer[sizeof(ctx->device_transaction_id) + 2];
     unsigned int output_buffer_size = 0;
 
     init_application_context(ctx);
 
-    if (P2 == SWAP) {
+    if (cmd->subcommand == SWAP) {
         output_buffer_size = sizeof(ctx->device_transaction_id.swap);
 
         for (unsigned int i = 0; i < output_buffer_size; ++i) {
@@ -24,7 +20,7 @@ int start_new_transaction(rate_e P1,
         }
     }
 
-    if (P2 == SELL) {
+    if (cmd->subcommand == SELL) {
         output_buffer_size = sizeof(ctx->device_transaction_id.sell);
 
 #ifdef TESTING
@@ -54,7 +50,7 @@ int start_new_transaction(rate_e P1,
     }
 
     ctx->state = WAITING_TRANSACTION;
-    ctx->subcommand = P2;
+    ctx->subcommand = cmd->subcommand;
 
     return 0;
 }
