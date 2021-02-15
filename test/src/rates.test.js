@@ -9,7 +9,12 @@ import {
     swapTestPrivateKey,
     partnerSerializedNameAndPubKey, DERSignatureOfPartnerNameAndPublicKey,
     XRPConfig, XRPConfigSignature
-} from "./common"; import Exchange from "./exchange.js";
+} from "./common";
+import Exchange from "./exchange.js";
+import {
+    TransactionRate,
+    TransactionType
+} from "./exchange.js";
 import Zemu from "@zondax/zemu";
 import { TransportStatusError } from "@ledgerhq/errors";
 
@@ -27,7 +32,7 @@ test('Compare fixed rate screenshot', async () => {
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -92,7 +97,7 @@ test('Compare floating rate screenshot', async () => {
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x01, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP, TransactionRate.FLOATING);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);

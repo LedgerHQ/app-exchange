@@ -4,16 +4,14 @@ import { BigNumber } from "bignumber.js";
 import { TransportStatusError } from "@ledgerhq/errors";
 import invariant from "invariant";
 
-const TRANSACTION_TYPES = {
+export const TransactionType = {
     SWAP: 0x00,
-    SELL: 0x01,
-};
-const TRANSACTION_RATES = {
+    SELL: 0x01
+}
+export const TransactionRate = {
     FIXED: 0x00,
-    FLOATING: 0x01,
-};
-type TransactionType = $Values<typeof TRANSACTION_TYPES>;
-type TransactionRate = $Values<typeof TRANSACTION_RATES>;
+    FLOATING: 0x01
+}
 
 const START_NEW_TRANSACTION_COMMAND: number = 0x03;
 const SET_PARTNER_KEY_COMMAND: number = 0x04;
@@ -50,9 +48,9 @@ export default class Exchange {
         0x9d1a,
     ];
 
-    constructor(transport: Transport<*>, transactionRate: TransactionRate, transactionType: TransactionType) {
+    constructor(transport: Transport<*>, transactionType: TransactionType, transactionRate: TransactionRate = TransactionRate.FIXED) {
         this.transactionType = transactionType;
-        this.transactionRate = transactionRate;
+        this.transactionRate = this.transactionType === TransactionType.SELL ? TransactionRate.FIXED : transactionRate;
         this.transport = transport;
     }
 
@@ -67,7 +65,7 @@ export default class Exchange {
         );
         maybeThrowProtocolError(result);
 
-        if (this.transactionType === TRANSACTION_TYPES.SELL) {
+        if (this.transactionType === TransactionType.SELL) {
             return result.subarray(0, 32).toString("base64");
         }
 
@@ -159,7 +157,7 @@ export default class Exchange {
 
         let result: Buffer = await this.transport.send(
             0xe0,
-            this.transactionType === TRANSACTION_TYPES.SWAP
+            this.transactionType === TransactionType.SWAP
                 ? CHECK_PAYOUT_ADDRESS
                 : CHECK_ASSET_IN,
             this.transactionRate,

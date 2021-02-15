@@ -22,6 +22,10 @@ import {
     XLMConfig, XLMConfigSignature
 } from "./common";
 import Exchange from "./exchange.js";
+import {
+    TransactionRate,
+    TransactionType
+} from "./exchange.js";
 import Zemu from "@zondax/zemu";
 import { TransportStatusError } from "@ledgerhq/errors";
 
@@ -39,7 +43,7 @@ test('Test BTC swap to LTC fails', async () => {
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -122,7 +126,7 @@ test('Test LTC swap to ETH', async () => {
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -205,7 +209,7 @@ test('Test ETH swap to BTC', async () => {
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -267,7 +271,7 @@ test('Test Aeternity ERC20 swap to BTC', async () => {
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
         jest.setTimeout(100000);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -333,7 +337,7 @@ test('Test XRP swap to ETH', async () => {
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -392,7 +396,7 @@ test('Test ETH swap to XRP', async () => {
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -453,7 +457,7 @@ test('Test XLM swap to ETH', async () => {
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -514,7 +518,7 @@ test('Test ETH swap to XLM', async () => {
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
-        const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+        const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);

@@ -3,6 +3,10 @@ import "core-js/stable";
 import "regenerator-runtime/runtime";
 
 import Exchange from "./exchange.js";
+import {
+  TransactionRate,
+  TransactionType
+} from "./exchange.js";
 import secp256k1 from "secp256k1";
 import sha256 from "js-sha256";
 import "./protocol_pb.js";
@@ -33,7 +37,7 @@ test('TransactionId should be 10 uppercase letters', async () => {
   const sim = new Zemu(APP_PATH);
   try {
     await sim.start(sim_options);
-    const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+    const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     expect(transactionId.length).toBe(10);
     expect(transactionId).toBe(transactionId.toUpperCase());
@@ -46,7 +50,7 @@ test('SetPartnerKey should not throw', async () => {
   const sim = new Zemu(APP_PATH);
   try {
     await sim.start(sim_options);
-    const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+    const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await expect(swap.setPartnerKey(partnerSerializedNameAndPubKey)).resolves.toBe(undefined);
   } finally {
@@ -58,7 +62,7 @@ test('Wrong partner data signature should not be accepted', async () => {
   const sim = new Zemu(APP_PATH);
   try {
     await sim.start(sim_options);
-    const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+    const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
     await expect(swap.checkPartner(Buffer.alloc(70)))
@@ -72,7 +76,7 @@ test('Correct signature of partner data should be accepted', async () => {
   const sim = new Zemu(APP_PATH);
   try {
     await sim.start(sim_options);
-    const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+    const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
     await expect(swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey)).resolves.toBe(undefined);
@@ -86,7 +90,7 @@ test('Process transaction should not fail', async () => {
   const sim = new Zemu(APP_PATH);
   try {
     await sim.start(sim_options);
-    const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+    const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
     await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -115,7 +119,7 @@ test('Transaction signature should be checked without errors', async () => {
   const sim = new Zemu(APP_PATH);
   try {
     await sim.start(sim_options);
-    const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+    const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
     await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -148,7 +152,7 @@ test('Wrong transactions signature should be rejected', async () => {
   const sim = new Zemu(APP_PATH);
   try {
     await sim.start(sim_options);
-    const swap = new Exchange(sim.getTransport(), 0x00, 0x00);
+    const swap = new Exchange(sim.getTransport(), TransactionType.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
     await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
