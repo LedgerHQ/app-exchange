@@ -5,10 +5,6 @@
 #include "send_function.h"
 #include "commands.h"
 
-int check_refund_address(rate_e P1,
-                         subcommand_e P2,
-                         swap_app_context_t *ctx,
-                         const buf_t *input,
-                         SendFunction send);
+int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send);
 
 #endif  // _CHECK_REFUND_ADDRESS_H_

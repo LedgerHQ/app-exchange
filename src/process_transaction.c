@@ -40,7 +40,7 @@ void normalize_currencies(swap_app_context_t *ctx) {
     set_ledger_currency_name(ctx->received_transaction.currency_from);
     set_ledger_currency_name(ctx->received_transaction.currency_to);
 
-    // strip bcash CashAddr header, and other bip21 like headers
+    // strip bcash CashAddr header, and other bicmd->subcommand1 like headers
     for (size_t i = 0; i < sizeof(ctx->received_transaction.payin_address); i++) {
         if (ctx->received_transaction.payin_address[i] == ':') {
             memmove(ctx->received_transaction.payin_address,
@@ -51,19 +51,15 @@ void normalize_currencies(swap_app_context_t *ctx) {
     }
 }
 
-int process_transaction(rate_e P1,
-                        subcommand_e P2,
-                        swap_app_context_t *ctx,
-                        const buf_t *input,
-                        SendFunction send) {
-    if (input->size < 1) {
+int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
+    if (cmd->data.size < 1) {
         PRINTF("Error: Can't parse process_transaction message, length should be more then 1\n");
 
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
 
-    size_t payload_length = input->bytes[0];
-    if (input->size < 1 + payload_length) {
+    size_t payload_length = cmd->data.bytes[0];
+    if (cmd->data.size < 1 + payload_length) {
         PRINTF("Error: Can't parse process_transaction message, invalid payload length\n");
 
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
@@ -76,15 +72,15 @@ int process_transaction(rate_e P1,
 
     PRINTF("len(payload): %d\n", payload_length);
 
-    if (P2 == SWAP) {
-        stream = pb_istream_from_buffer(input->bytes + 1, payload_length);
+    if (cmd->subcommand == SWAP) {
+        stream = pb_istream_from_buffer(cmd->data.bytes + 1, payload_length);
 
         if (!pb_decode(&stream,
                        ledger_swap_NewTransactionResponse_fields,
                        &ctx->received_transaction)) {
             PRINTF("Error: Can't parse SWAP transaction protobuf\n%.*H\n",
                    payload_length,
-                   input->bytes + 1);
+                   cmd->data.bytes + 1);
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
@@ -100,15 +96,15 @@ int process_transaction(rate_e P1,
         normalize_currencies(ctx);
     }
 
-    if (P2 == SELL) {
+    if (cmd->subcommand == SELL) {
         // arbitrary maximum payload size
         unsigned char payload[256];
 
-        PRINTF("payload (%d): %.*H\n", payload_length, payload_length, input->bytes + 1);
+        PRINTF("payload (%d): %.*H\n", payload_length, payload_length, cmd->data.bytes + 1);
 
         int n = base64_decode(payload,
                               sizeof(payload),
-                              (const unsigned char *) input->bytes + 1,
+                              (const unsigned char *) cmd->data.bytes + 1,
                               payload_length);
 
         PRINTF("len(base64_decode(payload)) = %d\n", n);
@@ -146,20 +142,20 @@ int process_transaction(rate_e P1,
 
     cx_hash(&sha256.header,
             CX_LAST,
-            input->bytes + 1,
+            cmd->data.bytes + 1,
             payload_length,
             ctx->sha256_digest,
             sizeof(ctx->sha256_digest));
 
     PRINTF("sha256_digest: %.*H\n", 32, ctx->sha256_digest);
 
-    if (input->size < 1 + payload_length + 1) {
+    if (cmd->data.size < 1 + payload_length + 1) {
         PRINTF("Error: Can't parse process_transaction message, should include fee\n");
 
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
 
-    ctx->transaction_fee_length = input->bytes[1 + payload_length];
+    ctx->transaction_fee_length = cmd->data.bytes[1 + payload_length];
 
     if (ctx->transaction_fee_length > sizeof(ctx->transaction_fee)) {
         PRINTF("Error: Transaction fee is to long\n");
@@ -167,7 +163,7 @@ int process_transaction(rate_e P1,
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
 
-    if (input->size < 1 + payload_length + 1 + ctx->transaction_fee_length) {
+    if (cmd->data.size < 1 + payload_length + 1 + ctx->transaction_fee_length) {
         PRINTF("Error: Input buffer is too small");
 
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
@@ -175,7 +171,7 @@ int process_transaction(rate_e P1,
 
     os_memset(ctx->transaction_fee, 0, sizeof(ctx->transaction_fee));
     os_memcpy(ctx->transaction_fee,
-              input->bytes + 1 + payload_length + 1,
+              cmd->data.bytes + 1 + payload_length + 1,
               ctx->transaction_fee_length);
 
     PRINTF("Transaction fees BE = %.*H\n", ctx->transaction_fee_length, ctx->transaction_fee);

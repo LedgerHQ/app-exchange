@@ -8,18 +8,14 @@
 #include "menu.h"
 #include "parse_coin_config.h"
 
-int check_refund_address(rate_e P1,
-                         subcommand_e P2,
-                         swap_app_context_t *ctx,
-                         const buf_t *input,
-                         SendFunction send) {
+int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
     static buf_t der;
     static buf_t address_parameters;
     static buf_t ticker;
     static buf_t application_name;
 
-    if (parse_check_address_message(input, &config, &der, &address_parameters) == 0) {
+    if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
@@ -121,8 +117,8 @@ int check_refund_address(rate_e P1,
 
     ctx->state = WAITING_USER_VALIDATION;
 
-    ui_validate_amounts(P1,  //
-                        P2,
+    ui_validate_amounts(cmd->rate,  //
+                        cmd->subcommand,
                         ctx,                    //
                         printable_send_amount,  //
                         printable_fees_amount,  //

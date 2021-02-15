@@ -60,7 +60,7 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             START_NEW_TRANSACTION_COMMAND,
-            this.transactionRate,
+            0x00,
             this.transactionType,
             Buffer.alloc(0),
             this.allowedStatuses
@@ -78,7 +78,7 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             SET_PARTNER_KEY_COMMAND,
-            this.transactionRate,
+            0x00,
             this.transactionType,
             partnerNameAndPublicKey,
             this.allowedStatuses
@@ -91,7 +91,7 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             CHECK_PARTNER_COMMAND,
-            this.transactionRate,
+            0x00,
             this.transactionType,
             signatureOfPartnerData,
             this.allowedStatuses
@@ -115,7 +115,7 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             PROCESS_TRANSACTION_RESPONSE,
-            this.transactionRate,
+            0x00,
             this.transactionType,
             bufferToSend,
             this.allowedStatuses
@@ -128,7 +128,7 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             CHECK_TRANSACTION_SIGNATURE,
-            this.transactionRate,
+            0x00,
             this.transactionType,
             transactionSignature,
             this.allowedStatuses

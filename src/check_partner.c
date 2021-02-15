@@ -7,12 +7,8 @@
 // This function receive signature of
 // Input should be in the form of DER serialized signature
 // the length should be in [MIN_DER_SIGNATURE_LENGTH, MAX_DER_SIGNATURE_LENGTH]
-int check_partner(rate_e P1,
-                  subcommand_e P2,
-                  swap_app_context_t *ctx,
-                  const buf_t *input,
-                  SendFunction send) {
-    if (input->size < MIN_DER_SIGNATURE_LENGTH || input->size > MAX_DER_SIGNATURE_LENGTH) {
+int check_partner(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
+    if (cmd->data.size < MIN_DER_SIGNATURE_LENGTH || cmd->data.size > MAX_DER_SIGNATURE_LENGTH) {
         PRINTF("Error: Input buffer length don't correspond to DER length\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
@@ -23,8 +19,8 @@ int check_partner(rate_e P1,
                         CX_SHA256,
                         ctx->sha256_digest,
                         CURVE_SIZE_BYTES,
-                        input->bytes,
-                        input->size) == 0) {
+                        cmd->data.bytes,
+                        cmd->data.size) == 0) {
         PRINTF("Error: Failed to verify signature of partner data\n");
 
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);

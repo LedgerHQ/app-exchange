@@ -127,14 +127,14 @@ UX_STEP_CB(ux_confirm_flow_6_step, pb, io_reject(NULL),
 // clang-format on
 const ux_flow_step_t *ux_confirm_flow[8];
 
-void ux_confirm(rate_e P1, subcommand_e P2) {
+void ux_confirm(rate_e rate, subcommand_e subcommand) {
     int step = 0;
     ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
-    if (P2 == SELL) {
+    if (subcommand == SELL) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
     }
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
-    if (P1 == FLOATING) {
+    if (rate == FLOATING) {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
     } else {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
@@ -147,8 +147,8 @@ void ux_confirm(rate_e P1, subcommand_e P2) {
     ux_flow_init(0, ux_confirm_flow, NULL);
 }
 
-void ui_validate_amounts(rate_e P1,
-                         subcommand_e P2,
+void ui_validate_amounts(rate_e rate,
+                         subcommand_e subcommand,
                          swap_app_context_t *ctx,
                          char *send_amount,
                          char *fees_amount,
@@ -168,14 +168,14 @@ void ui_validate_amounts(rate_e P1,
     validationInfo.OnAccept = on_accept;
     validationInfo.OnReject = on_reject;
 
-    if (P2 == SELL) {
+    if (subcommand == SELL) {
         strncpy(validationInfo.email,
                 ctx->sell_transaction.trader_email,
                 sizeof(validationInfo.email));
         validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
     }
 
-    ux_confirm(P1, P2);
+    ux_confirm(rate, subcommand);
 }
 
 void ux_init() {

@@ -10,18 +10,14 @@
 #include "check_refund_address.h"
 #include "menu.h"
 
-int check_payout_address(rate_e P1,
-                         subcommand_e P2,
-                         swap_app_context_t *ctx,
-                         const buf_t *input,
-                         SendFunction send) {
+int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
     static buf_t der;
     static buf_t address_parameters;
     static buf_t ticker;
     static buf_t application_name;
 
-    if (parse_check_address_message(input, &config, &der, &address_parameters) == 0) {
+    if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         PRINTF("Error: Can't parse CHECK_PAYOUT_ADDRESS command\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
