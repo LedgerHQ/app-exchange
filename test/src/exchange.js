@@ -4,14 +4,16 @@ import { BigNumber } from "bignumber.js";
 import { TransportStatusError } from "@ledgerhq/errors";
 import invariant from "invariant";
 
-export const TransactionType = {
-    SWAP: 0x00,
-    SELL: 0x01
-}
-export const TransactionRate = {
+export const TRANSACTION_RATES = {
     FIXED: 0x00,
-    FLOATING: 0x01
-}
+    FLOATING: 0x01,
+};
+export const TRANSACTION_TYPES = {
+    SWAP: 0x00,
+    SELL: 0x01,
+};
+type TransactionRate = $Values<typeof TRANSACTION_RATES>;
+type TransactionType = $Values<typeof TRANSACTION_TYPES>;
 
 const START_NEW_TRANSACTION_COMMAND: number = 0x03;
 const SET_PARTNER_KEY_COMMAND: number = 0x04;
@@ -48,9 +50,13 @@ export default class Exchange {
         0x9d1a,
     ];
 
-    constructor(transport: Transport<*>, transactionType: TransactionType, transactionRate: TransactionRate = TransactionRate.FIXED) {
+    constructor(
+        transport: Transport<*>,
+        transactionType: TransactionType,
+        transactionRate?: TransactionRate
+    ) {
         this.transactionType = transactionType;
-        this.transactionRate = this.transactionType === TransactionType.SELL ? TransactionRate.FIXED : transactionRate;
+        this.transactionRate = transactionRate || TRANSACTION_RATES.FIXED;
         this.transport = transport;
     }
 
@@ -58,14 +64,14 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             START_NEW_TRANSACTION_COMMAND,
-            0x00,
+            this.transactionRate,
             this.transactionType,
             Buffer.alloc(0),
             this.allowedStatuses
         );
         maybeThrowProtocolError(result);
 
-        if (this.transactionType === TransactionType.SELL) {
+        if (this.transactionType === TRANSACTION_TYPES.SELL) {
             return result.subarray(0, 32).toString("base64");
         }
 
@@ -76,7 +82,7 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             SET_PARTNER_KEY_COMMAND,
-            0x00,
+            this.transactionRate,
             this.transactionType,
             partnerNameAndPublicKey,
             this.allowedStatuses
@@ -89,7 +95,7 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             CHECK_PARTNER_COMMAND,
-            0x00,
+            this.transactionRate,
             this.transactionType,
             signatureOfPartnerData,
             this.allowedStatuses
@@ -113,7 +119,7 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             PROCESS_TRANSACTION_RESPONSE,
-            0x00,
+            this.transactionRate,
             this.transactionType,
             bufferToSend,
             this.allowedStatuses
@@ -126,7 +132,7 @@ export default class Exchange {
         let result: Buffer = await this.transport.send(
             0xe0,
             CHECK_TRANSACTION_SIGNATURE,
-            0x00,
+            this.transactionRate,
             this.transactionType,
             transactionSignature,
             this.allowedStatuses
@@ -157,7 +163,7 @@ export default class Exchange {
 
         let result: Buffer = await this.transport.send(
             0xe0,
-            this.transactionType === TransactionType.SWAP
+            this.transactionType === TRANSACTION_TYPES.SWAP
                 ? CHECK_PAYOUT_ADDRESS
                 : CHECK_ASSET_IN,
             this.transactionRate,
