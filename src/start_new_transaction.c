@@ -23,8 +23,8 @@ int start_new_transaction(subcommand_e subcommand,
         }
     }
 
-    if (subcommand == SELL) {
-        output_buffer_size = sizeof(ctx->device_transaction_id.sell);
+    if (subcommand == SELL || subcommand == FUND) {
+        output_buffer_size = sizeof(ctx->device_transaction_id.sell_fund);
 
 #ifdef TESTING
         unsigned char tx_id[32] = {
@@ -33,9 +33,9 @@ int start_new_transaction(subcommand_e subcommand,
             0x23, 0x80, 0x1b, 0x1a, 0xeb, 0x7d, 0x0b, 0xcb,  //
             0xba, 0xa2, 0xa4, 0xf4, 0x6b, 0xf8, 0x18, 0x4b   //
         };
-        os_memmove(ctx->device_transaction_id.sell, tx_id, sizeof(tx_id));
+        os_memmove(ctx->device_transaction_id.sell_fund, tx_id, sizeof(tx_id));
 #else
-        cx_rng(ctx->device_transaction_id.sell, output_buffer_size);
+        cx_rng(ctx->device_transaction_id.sell_fund, output_buffer_size);
 #endif
     }
 

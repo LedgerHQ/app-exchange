@@ -14,10 +14,10 @@ int check_tx_signature(subcommand_e subcommand,
                        swap_app_context_t *ctx,
                        const buf_t *input,
                        SendFunction send) {
-    if (subcommand == SWAP) {
+    if (subcommand == SWAP || subcommand == FUND) {
         if (input->size < MIN_DER_SIGNATURE_LENGTH || input->size > MAX_DER_SIGNATURE_LENGTH ||
             input->bytes[1] + 2 != input->size) {
-            PRINTF("Error: Input buffer length don't correspond to DER length");
+            PRINTF("Error: Input buffer length don't correspond to DER length\n");
             return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
         }
         if (cx_ecdsa_verify(&ctx->partner.public_key,
@@ -27,14 +27,14 @@ int check_tx_signature(subcommand_e subcommand,
                             CURVE_SIZE_BYTES,
                             input->bytes,
                             input->size) == 0) {
-            PRINTF("Error: Failed to verify signature of received transaction");
+            PRINTF("Error: Failed to verify signature of received transaction\n");
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }
     }
 
-    if (subcommand == SELL) {
+    if (subcommand == SELL ) {
         if (input->size != 64) {
-            PRINTF("Error: Input buffer length don't correspond to (R, S) length");
+            PRINTF("Error: Input buffer %d length don't correspond to (R, S) length\n", input->size);
             return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
         }
 
@@ -44,7 +44,7 @@ int check_tx_signature(subcommand_e subcommand,
 
         unsigned char der_sig[MAX_DER_INT_SIZE(32) * 2 + 2];
         if (size > sizeof(der_sig)) {
-            PRINTF("Error: Unexpected der integer size");
+            PRINTF("Error: Unexpected der integer size\n");
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }
 
@@ -60,7 +60,7 @@ int check_tx_signature(subcommand_e subcommand,
                             CURVE_SIZE_BYTES,
                             der_sig,
                             size) == 0) {
-            PRINTF("Error: Failed to verify signature of received transaction");
+            PRINTF("Error: Failed to verify signature of received transaction\n");
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }
     }
@@ -68,7 +68,7 @@ int check_tx_signature(subcommand_e subcommand,
     unsigned char output_buffer[2] = {0x90, 0x00};
 
     if (send(output_buffer, 2) < 0) {
-        PRINTF("Error: Can't send message");
+        PRINTF("Error: Can't send message\n");
         return -1;
     }
 

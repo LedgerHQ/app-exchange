@@ -102,6 +102,11 @@ UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
     .title = "Get",
     .text = validationInfo.get,
 });
+UX_STEP_NOCB(ux_confirm_flow_3_2_step, bnnn_paging,
+{
+    .title = "To",
+    .text = validationInfo.get,
+});
 UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
 {
     .title = "Fees",
@@ -137,6 +142,14 @@ UX_FLOW(ux_confirm_sell_flow,
         &ux_confirm_flow_5_step,
         &ux_confirm_flow_6_step);
 
+UX_FLOW(ux_confirm_fund_flow,
+        &ux_confirm_flow_1_step,
+        &ux_confirm_flow_2_step,
+        &ux_confirm_flow_3_2_step,
+        &ux_confirm_flow_4_step,
+        &ux_confirm_flow_5_step,
+        &ux_confirm_flow_6_step);
+
 void ui_validate_amounts(subcommand_e subcommand,
                          swap_app_context_t *ctx,
                          char *send_amount,
@@ -167,6 +180,10 @@ void ui_validate_amounts(subcommand_e subcommand,
                 sizeof(validationInfo.email));
         validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
         ux_flow_init(0, ux_confirm_sell_flow, NULL);
+    }
+
+    if (subcommand == FUND) {
+        ux_flow_init(0, ux_confirm_fund_flow, NULL);
     }
 }
 

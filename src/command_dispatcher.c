@@ -31,7 +31,7 @@ int dispatch_command(command_e command,
 
     PRINTF("command: %d, subcommand: %d, state: %d\n", command, subcommand, context->state);
 
-    if (subcommand != SWAP && subcommand != SELL) {
+    if (subcommand != SWAP && subcommand != SELL && subcommand != FUND) {
         return reply_error(context, WRONG_P2, send);
     }
 
@@ -70,7 +70,7 @@ int dispatch_command(command_e command,
             break;
         case CHECK_PAYOUT_ADDRESS:
             if (context->state == SIGNATURE_CHECKED && subcommand == context->subcommand) {
-                if (subcommand == SELL) {
+                if (subcommand == SELL || subcommand == FUND) {
                     handler = (void *) PIC(check_asset_in);
                 } else {
                     handler = (void *) PIC(check_payout_address);

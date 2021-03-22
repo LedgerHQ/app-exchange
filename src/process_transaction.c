@@ -99,7 +99,7 @@ int process_transaction(subcommand_e subcommand,
         normalize_currencies(ctx);
     }
 
-    if (subcommand == SELL) {
+    if (subcommand == SELL || subcommand == FUND) {
         // arbitrary maximum payload size
         unsigned char payload[256];
 
@@ -113,7 +113,7 @@ int process_transaction(subcommand_e subcommand,
         PRINTF("len(base64_decode(payload)) = %d\n", n);
 
         if (n < 0) {
-            PRINTF("Error: Can't decode SELL transaction base64\n");
+            PRINTF("Error: Can't decode SELL/FUND transaction base64\n");
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
@@ -126,18 +126,30 @@ int process_transaction(subcommand_e subcommand,
 
         stream = pb_istream_from_buffer(payload, n);
 
-        if (!pb_decode(&stream, ledger_swap_NewSellResponse_fields, &ctx->sell_transaction)) {
-            PRINTF("Error: Can't parse SELL transaction protobuf\n");
+        pb_field_t * pb_fields = (subcommand == SELL ? ledger_swap_NewSellResponse_fields : ledger_swap_NewFundResponse_fields);
+        void * dest= (subcommand == SELL ? &ctx->sell_transaction : &ctx->fund_transaction);
+
+        if (!pb_decode(&stream, pb_fields, dest)) {
+            PRINTF("Error: Can't parse SELL/FUND transaction protobuf\n");
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
 
-        PRINTF("ctx->device_transaction_id: %.*H\n", 32, ctx->device_transaction_id.sell);
 
-        if (os_memcmp(ctx->device_transaction_id.sell,
-                      ctx->sell_transaction.device_transaction_id.bytes,
-                      sizeof(ctx->device_transaction_id.sell)) != 0) {
-            PRINTF("Error: Device transaction IDs (SELL) doesn't match\n");
+        pb_byte_t * device_transaction_id_to_check =  ( subcommand == SELL ?
+             ctx->sell_transaction.device_transaction_id.bytes :
+             ctx->fund_transaction.device_transaction_id.bytes );
+
+        PRINTF("ctx->%s->device_transaction_id @%p: %.*H\n",
+               (subcommand == SELL ? "sell_transaction" : "fund_transaction"),
+               device_transaction_id_to_check,
+               32, device_transaction_id_to_check);
+
+        if (os_memcmp(ctx->device_transaction_id.sell_fund,
+                      device_transaction_id_to_check,
+                      32) != 0) {
+            PRINTF("Error: Device transaction IDs (SELL/FUND) don't match\n");
+            PRINTF("ctx->device_transaction_id @%p: %.*H\n", ctx->device_transaction_id.sell_fund, 32, ctx->device_transaction_id.sell_fund);
 
             return reply_error(ctx, WRONG_TRANSACTION_ID, send);
         }

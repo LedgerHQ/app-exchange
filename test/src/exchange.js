@@ -7,6 +7,7 @@ import invariant from "invariant";
 const TRANSACTION_TYPES = {
     SWAP: 0x00,
     SELL: 0x01,
+    FUND: 0x02,
 };
 type TransactionType = $Values<typeof TRANSACTION_TYPES>;
 
@@ -60,7 +61,7 @@ export default class Exchange {
         );
         maybeThrowProtocolError(result);
 
-        if (this.transactionType === TRANSACTION_TYPES.SELL) {
+        if (this.transactionType === TRANSACTION_TYPES.SELL || this.transactionType === TRANSACTION_TYPES.FUND) {
             return result.subarray(0, 32).toString("base64");
         }
 

@@ -41,7 +41,7 @@ int set_partner_key(subcommand_e subcommand,
                                 &(ctx->partner.public_key));
     }
 
-    if (subcommand == SELL) {
+    if (subcommand == SELL || subcommand == FUND) {
         cx_ecfp_init_public_key(CX_CURVE_256R1,
                                 input->bytes + 1 + ctx->partner.name_length,
                                 UNCOMPRESSED_KEY_LENGTH,

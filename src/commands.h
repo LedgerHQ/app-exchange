@@ -14,6 +14,6 @@ typedef enum {
 } command_e;
 
 // subcommands
-typedef enum { SWAP = 0x00, SELL = 0x01 } subcommand_e;
+typedef enum { SWAP = 0x00, SELL = 0x01, FUND = 0x02 } subcommand_e;
 
 #endif  //_COMMANDS_H_
