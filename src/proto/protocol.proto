@@ -30,3 +30,11 @@ message NewSellResponse {
     UDecimal out_amount = 6;             // outAmount
     bytes    device_transaction_id = 7;  // nonce
 }
+
+message NewFundResponse {
+    string   account_name = 1;           // funded account name ex: Card 1234
+    string   in_currency = 2;            // inCurrency
+    bytes    in_amount = 3;              // inAmount
+    string   in_address = 4;             // account
+    bytes    device_transaction_id = 5;  // nonce
+}

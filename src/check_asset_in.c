@@ -57,8 +57,12 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
     }
 
     // Check that given ticker match current context
-    if (strlen(ctx->sell_transaction.in_currency) != ticker.size ||
-        strncmp(ctx->sell_transaction.in_currency, (const char *) ticker.bytes, ticker.size) != 0) {
+    char * in_currency = (ctx->subcommand == SELL ?
+         ctx->sell_transaction.in_currency :
+         ctx->fund_transaction.in_currency);
+
+    if (strlen(in_currency) != ticker.size ||
+        strncmp(in_currency, (const char *) ticker.bytes, ticker.size) != 0) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
@@ -74,11 +78,15 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
 
     static char in_printable_amount[PRINTABLE_AMOUNT_SIZE];
 
+    pb_bytes_array_t * in_amount = (ctx->subcommand == SELL ?
+        &ctx->sell_transaction.in_amount :
+        &ctx->fund_transaction.in_amount );
+
     // getting printable amount
     if (get_printable_amount(&config,
                              ctx->payin_binary_name,
-                             ctx->sell_transaction.in_amount.bytes,
-                             ctx->sell_transaction.in_amount.size,
+                             in_amount->bytes,
+                             in_amount->size,
                              in_printable_amount,
                              sizeof(in_printable_amount),
                              false) < 0) {
@@ -103,27 +111,46 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
 
-    size_t len = strlen(ctx->sell_transaction.out_currency);
-    if (len + 1 >= sizeof(ctx->printable_get_amount)) {
-        return reply_error(ctx, INTERNAL_ERROR, send);
+
+    if (subcommand == SELL) {
+        size_t len = strlen(ctx->sell_transaction.out_currency);
+        if (len + 1 >= sizeof(ctx->printable_get_amount)) {
+            return reply_error(ctx, INTERNAL_ERROR, send);
+        }
+
+        strncpy(ctx->printable_get_amount,
+                ctx->sell_transaction.out_currency,
+                sizeof(ctx->printable_get_amount));
+        ctx->printable_get_amount[len] = ' ';
+        ctx->printable_get_amount[len + 1] = '\x00';
+
+        if (get_fiat_printable_amount(ctx->sell_transaction.out_amount.coefficient.bytes,
+                                      ctx->sell_transaction.out_amount.coefficient.size,
+                                      ctx->sell_transaction.out_amount.exponent,
+                                      ctx->printable_get_amount + len + 1,
+                                      sizeof(ctx->printable_get_amount) - (len + 1)) < 0) {
+            PRINTF("Error: Failed to get source currency printable amount\n");
+            return reply_error(ctx, INTERNAL_ERROR, send);
+        }
+
+        PRINTF("%s\n", ctx->printable_get_amount);
+    } else {
+        // Prepare message for account funding
+        size_t account_len = strlen(ctx->fund_transaction.account_name);
+
+        if (account_len + ctx->partner.name_length + 1 >= sizeof(ctx->printable_get_amount)) {
+            return reply_error(ctx, INTERNAL_ERROR, send);
+        }
+
+        strncpy(ctx->printable_get_amount,
+                ctx->partner.name,
+                sizeof(ctx->printable_get_amount));
+        ctx->printable_get_amount[ctx->partner.name_length] = ' ';
+        strncpy(ctx->printable_get_amount + ctx->partner.name_length + 1,
+                ctx->fund_transaction.account_name,
+                sizeof(ctx->printable_get_amount - ctx->partner.name_length - 1));
+        ctx->printable_get_amount[account_len + ctx->partner.name_length + 1] = '\x00';
     }
-
-    strncpy(ctx->printable_get_amount,
-            ctx->sell_transaction.out_currency,
-            sizeof(ctx->printable_get_amount));
-    ctx->printable_get_amount[len] = ' ';
-    ctx->printable_get_amount[len + 1] = '\x00';
-
-    if (get_fiat_printable_amount(ctx->sell_transaction.out_amount.coefficient.bytes,
-                                  ctx->sell_transaction.out_amount.coefficient.size,
-                                  ctx->sell_transaction.out_amount.exponent,
-                                  ctx->printable_get_amount + len + 1,
-                                  sizeof(ctx->printable_get_amount) - (len + 1)) < 0) {
-        PRINTF("Error: Failed to get source currency printable amount\n");
-        return reply_error(ctx, INTERNAL_ERROR, send);
-    }
-
-    PRINTF("%s\n", ctx->printable_get_amount);
 
     ctx->state = WAITING_USER_VALIDATION;
 

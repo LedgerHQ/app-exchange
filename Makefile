@@ -20,7 +20,7 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --path "" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
+APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --curve secp256r1 --path "" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
 
 APPVERSION_M=2
 APPVERSION_N=0
@@ -29,6 +29,11 @@ APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Exchange"
 
 DEFINES += $(DEFINES_LIB)
+<<<<<<< HEAD
+=======
+#DEFINES += TESTING
+DEFINES += TEST_PUBLIC_KEY
+>>>>>>> 844e644 (Add support for secure funding of an external account using exchange app)
 
 ifdef TESTING
     DEFINES += TESTING
@@ -86,11 +91,15 @@ endif
 DEFINES       += HAVE_UX_FLOW
 DEFINES       += HAVE_STACK_OVERFLOW_CHECK
 # Enabling debug PRINTF
+<<<<<<< HEAD
 
 ifndef DEBUG
         DEBUG = 0
 endif
 
+=======
+DEBUG = 1
+>>>>>>> 844e644 (Add support for secure funding of an external account using exchange app)
 ifneq ($(DEBUG),0)
         DEFINES   += HAVE_STACK_OVERFLOW_CHECK
         ifeq ($(TARGET_NAME),TARGET_NANOS)
@@ -128,6 +137,7 @@ AS     := $(GCCPATH)arm-none-eabi-gcc
 
 LD       := $(GCCPATH)arm-none-eabi-gcc
 LDFLAGS  += -O3 -Os
+#LDFLAGS  += -O0
 LDLIBS   += -lm -lgcc -lc
 
 # import rules to compile glyphs(/pone)

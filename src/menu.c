@@ -105,6 +105,9 @@ UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
 UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
 {
     .title = "Get estimated",
+UX_STEP_NOCB(ux_confirm_flow_3_2_step, bnnn_paging,
+{
+    .title = "To",
     .text = validationInfo.get,
 });
 UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
@@ -134,8 +137,10 @@ void ux_confirm(rate_e rate, subcommand_e subcommand) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
     }
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
-    if (rate == FLOATING) {
+    if (subcommand == SWAP && rate == FLOATING) {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
+    } else if (subcommand == FUND) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_2_step;
     } else {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
     }
