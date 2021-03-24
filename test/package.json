@@ -16,6 +16,7 @@
     "@ledgerhq/hw-app-eth": "^5.30.0",
     "@ledgerhq/hw-app-str": "^5.36.0",
     "@ledgerhq/hw-app-xrp": "^5.30.0",
+    "@ledgerhq/hw-app-tezos": "^5.46.0",
     "@ledgerhq/hw-transport-http": "^4.74.2",
     "@ledgerhq/logs": "^5.30.0",
     "@zondax/zemu": "^0.10.0",
