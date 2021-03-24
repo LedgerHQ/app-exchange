@@ -1,6 +1,6 @@
 # Adding tests
 
-Start by `tools/index.js` to add your coin.
+Start by adding your coin to `tools/index.js`.
 You can generate the appropriate keys using this link: https://iancoleman.io/bip39/#english.
 
 The seed for speculos is : `glory promote mansion idle axis finger extra february uncover one trip resource lawn turtle enact monster seven myth punch hobby comfort wild raise skin`
