@@ -10,13 +10,10 @@
 // This function receive transaction signature
 // Input should be in the form of DER serialized signature
 // the length should be CURVE_SIZE_BYTES * 2 + 6 (DER encoding)
-int check_tx_signature(subcommand_e subcommand,
-                       swap_app_context_t *ctx,
-                       const buf_t *input,
-                       SendFunction send) {
-    if (subcommand == SWAP) {
-        if (input->size < MIN_DER_SIGNATURE_LENGTH || input->size > MAX_DER_SIGNATURE_LENGTH ||
-            input->bytes[1] + 2 != input->size) {
+int check_tx_signature(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
+    if (cmd->subcommand == SWAP) {
+        if (cmd->data.size < MIN_DER_SIGNATURE_LENGTH ||
+            cmd->data.size > MAX_DER_SIGNATURE_LENGTH || cmd->data.bytes[1] + 2 != cmd->data.size) {
             PRINTF("Error: Input buffer length don't correspond to DER length");
             return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
         }
@@ -25,21 +22,21 @@ int check_tx_signature(subcommand_e subcommand,
                             CX_SHA256,
                             ctx->sha256_digest,
                             CURVE_SIZE_BYTES,
-                            input->bytes,
-                            input->size) == 0) {
+                            cmd->data.bytes,
+                            cmd->data.size) == 0) {
             PRINTF("Error: Failed to verify signature of received transaction");
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }
     }
 
-    if (subcommand == SELL) {
-        if (input->size != 64) {
+    if (cmd->subcommand == SELL) {
+        if (cmd->data.size != 64) {
             PRINTF("Error: Input buffer length don't correspond to (R, S) length");
             return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
         }
 
-        size_t der_r_len = asn1_get_encoded_integer_size(input->bytes, 32);
-        size_t der_s_len = asn1_get_encoded_integer_size(input->bytes + 32, 32);
+        size_t der_r_len = asn1_get_encoded_integer_size(cmd->data.bytes, 32);
+        size_t der_s_len = asn1_get_encoded_integer_size(cmd->data.bytes + 32, 32);
         size_t size = der_r_len + der_s_len + 2;
 
         unsigned char der_sig[MAX_DER_INT_SIZE(32) * 2 + 2];
@@ -48,7 +45,7 @@ int check_tx_signature(subcommand_e subcommand,
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }
 
-        encode_sig_der(der_sig, size, input->bytes, 32, input->bytes + 32, 32);
+        encode_sig_der(der_sig, size, cmd->data.bytes, 32, cmd->data.bytes + 32, 32);
 
         PRINTF("DER sig: %.*H\n", size, der_sig);
         PRINTF("SHA256(payload): %.*H\n", sizeof(ctx->sha256_digest), ctx->sha256_digest);

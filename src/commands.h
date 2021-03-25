@@ -1,5 +1,7 @@
 #ifndef _COMMANDS_H_
 #define _COMMANDS_H_
+
+#include "buffer.h"
 // commands
 typedef enum {
     GET_VERSION_COMMAND = 0x02,
@@ -15,5 +17,18 @@ typedef enum {
 
 // subcommands
 typedef enum { SWAP = 0x00, SELL = 0x01 } subcommand_e;
+
+// Different rates possible
+typedef enum { FIXED = 0x00, FLOATING = 0x01 } rate_e;
+
+/**
+ * Structure with fields of APDU command.
+ */
+typedef struct {
+    command_e ins;            /// Instruction code
+    rate_e rate;              /// P1
+    subcommand_e subcommand;  /// P2
+    buf_t data;               /// Command data
+} command_t;
 
 #endif  //_COMMANDS_H_

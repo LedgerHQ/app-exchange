@@ -110,14 +110,19 @@ void app_main(void) {
             continue;
         }
 
-        const buf_t input = {
-            .bytes = G_io_apdu_buffer + OFFSET_CDATA,
-            .size = input_length - OFFSET_CDATA,
+        const command_t cmd = {
+            .ins = (command_e) G_io_apdu_buffer[OFFSET_INS],
+            .rate = G_io_apdu_buffer[OFFSET_P1],
+            .subcommand = G_io_apdu_buffer[OFFSET_P2],
+            .data =
+                {
+                    .bytes = G_io_apdu_buffer + OFFSET_CDATA,
+                    .size = input_length - OFFSET_CDATA,
+                },
         };
-        if (dispatch_command(G_io_apdu_buffer[OFFSET_INS],  //
-                             G_io_apdu_buffer[OFFSET_P2],   //
-                             &swap_ctx,                     //
-                             &input,                        //
+
+        if (dispatch_command(&swap_ctx,  //
+                             &cmd,       //
                              send_apdu) < 0)
             return;  // some non recoverable error happened
 

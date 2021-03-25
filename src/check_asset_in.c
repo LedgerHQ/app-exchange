@@ -9,17 +9,14 @@
 #include "printable_amount.h"
 #include "menu.h"
 
-int check_asset_in(subcommand_e subcommand,
-                   swap_app_context_t *ctx,
-                   const buf_t *input,
-                   SendFunction send) {
+int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
     static buf_t der;
     static buf_t address_parameters;
     static buf_t ticker;
     static buf_t application_name;
 
-    if (parse_check_address_message(input, &config, &der, &address_parameters) == 0) {
+    if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         PRINTF("Error: Can't parse CHECK_ASSET_IN command\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
@@ -130,7 +127,8 @@ int check_asset_in(subcommand_e subcommand,
 
     ctx->state = WAITING_USER_VALIDATION;
 
-    ui_validate_amounts(subcommand,             //
+    ui_validate_amounts(cmd->rate,  //
+                        cmd->subcommand,
                         ctx,                    //
                         in_printable_amount,    //
                         printable_fees_amount,  //
