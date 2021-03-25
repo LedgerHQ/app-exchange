@@ -41,11 +41,10 @@ endif
 
 PROTO_C_FILE = src/proto/protocol.pb.c
 
-
 ################
 # Default rule #
 ################
-all: $(PROTO_C_FILE) default 
+all: $(PROTO_C_FILE) default
 
 ############
 # Platform #
