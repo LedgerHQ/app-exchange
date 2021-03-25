@@ -63,7 +63,11 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
         strncmp(ctx->received_transaction.currency_from,  //
                 (const char *) ticker.bytes,              //
                 ticker.size) != 0) {
-        PRINTF("Error: Refund ticker doesn't match configuration ticker\n");
+        PRINTF("Error: Refund ticker doesn't match configuration ticker\n %.*H vs %.*H\n",
+               10,
+               ctx->received_transaction.currency_from,
+               ticker.size,
+               ticker.bytes);
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
