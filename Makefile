@@ -39,11 +39,12 @@ else
 	ICONNAME=icons/nanos_app_exchange.gif
 endif
 
+PROTO_C_FILE = src/proto/protocol.pb.c
 
 ################
 # Default rule #
 ################
-all: default
+all: $(PROTO_C_FILE) default
 
 ############
 # Platform #
@@ -129,6 +130,13 @@ ifeq ($(TARGET_NAME),TARGET_NANOX)
 SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 SDK_SOURCE_PATH  += lib_ux
 endif
+
+PROTO_FILE = src/proto/protocol.proto
+
+# This will generate both the .pb.c and the .pb.h files
+$(PROTO_C_FILE): $(PROTO_FILE)
+	protoc --nanopb_out=. $(PROTO_FILE) --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
+
 
 load: all
 	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
