@@ -27,6 +27,11 @@ yarn install
 
 ## Run tests
 
+First ensure `dockerd` is running:
+```
+sudo dockerd
+```
+
 To run the whole test suite:
 ```
 yarn test
