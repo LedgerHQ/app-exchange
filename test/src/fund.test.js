@@ -28,6 +28,12 @@ const sim_options = {
     X11: true
 };
 
+function sleep(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 test('Valid funding transaction should be accepted', async () => {
 
     jest.setTimeout(100000);
@@ -45,6 +51,7 @@ test('Valid funding transaction should be accepted', async () => {
 
         var tr = new proto.ledger_swap.NewFundResponse();
 
+        tr.setUserId("lcastillo");
         tr.setAccountName("Card 1234");
         tr.setInAddress("LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD");
         tr.setInCurrency("BTC");
@@ -76,6 +83,7 @@ test('Valid funding transaction should be accepted', async () => {
         // Wait until we are not in the main menu
         await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot(),500);
 
+        await sim.clickRight();
         await sim.clickRight();
         await sim.clickRight();
         await sim.clickRight();

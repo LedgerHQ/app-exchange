@@ -136,20 +136,10 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
         PRINTF("%s\n", ctx->printable_get_amount);
     } else {
         // Prepare message for account funding
-        size_t account_len = strlen(ctx->fund_transaction.account_name);
-
-        if (account_len + ctx->partner.name_length + 1 >= sizeof(ctx->printable_get_amount)) {
-            return reply_error(ctx, INTERNAL_ERROR, send);
-        }
-
         strncpy(ctx->printable_get_amount,
-                ctx->partner.name,
-                sizeof(ctx->printable_get_amount));
-        ctx->printable_get_amount[ctx->partner.name_length] = ' ';
-        strncpy(ctx->printable_get_amount + ctx->partner.name_length + 1,
                 ctx->fund_transaction.account_name,
-                sizeof(ctx->printable_get_amount - ctx->partner.name_length - 1));
-        ctx->printable_get_amount[account_len + ctx->partner.name_length + 1] = '\x00';
+                sizeof(ctx->printable_get_amount));
+        ctx->printable_get_amount[sizeof(ctx->printable_get_amount) - 1] = '\x00';
     }
 
     ctx->state = WAITING_USER_VALIDATION;

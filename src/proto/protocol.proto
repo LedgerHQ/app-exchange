@@ -32,9 +32,10 @@ message NewSellResponse {
 }
 
 message NewFundResponse {
-    string   account_name = 1;           // funded account name ex: Card 1234
-    string   in_currency = 2;            // inCurrency
-    bytes    in_amount = 3;              // inAmount
-    string   in_address = 4;             // account
-    bytes    device_transaction_id = 5;  // nonce
+    string   user_id = 1;                // user ID
+    string   account_name = 2;           // funded account name ex: Card 1234
+    string   in_currency = 3;            // inCurrency
+    bytes    in_amount = 4;              // inAmount
+    string   in_address = 5;             // account
+    bytes    device_transaction_id = 6;  // nonce
 }
