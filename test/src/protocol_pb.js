@@ -1084,10 +1084,11 @@ proto.ledger_swap.NewFundResponse.prototype.toObject = function(opt_includeInsta
  */
 proto.ledger_swap.NewFundResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    accountName: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    inCurrency: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    userId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    accountName: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    inCurrency: jspb.Message.getFieldWithDefault(msg, 3, ""),
     inAmount: msg.getInAmount_asB64(),
-    inAddress: jspb.Message.getFieldWithDefault(msg, 4, ""),
+    inAddress: jspb.Message.getFieldWithDefault(msg, 5, ""),
     deviceTransactionId: msg.getDeviceTransactionId_asB64()
   };
 
@@ -1127,21 +1128,25 @@ proto.ledger_swap.NewFundResponse.deserializeBinaryFromReader = function(msg, re
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setAccountName(value);
+      msg.setUserId(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setInCurrency(value);
+      msg.setAccountName(value);
       break;
     case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInCurrency(value);
+      break;
+    case 4:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setInAmount(value);
       break;
-    case 4:
+    case 5:
       var value = /** @type {string} */ (reader.readString());
       msg.setInAddress(value);
       break;
-    case 5:
+    case 6:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setDeviceTransactionId(value);
       break;
@@ -1174,38 +1179,45 @@ proto.ledger_swap.NewFundResponse.prototype.serializeBinary = function() {
  */
 proto.ledger_swap.NewFundResponse.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getAccountName();
+  f = message.getUserId();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getInCurrency();
+  f = message.getAccountName();
   if (f.length > 0) {
     writer.writeString(
       2,
       f
     );
   }
+  f = message.getInCurrency();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
   f = message.getInAmount_asU8();
   if (f.length > 0) {
     writer.writeBytes(
-      3,
+      4,
       f
     );
   }
   f = message.getInAddress();
   if (f.length > 0) {
     writer.writeString(
-      4,
+      5,
       f
     );
   }
   f = message.getDeviceTransactionId_asU8();
   if (f.length > 0) {
     writer.writeBytes(
-      5,
+      6,
       f
     );
   }
@@ -1213,46 +1225,61 @@ proto.ledger_swap.NewFundResponse.serializeBinaryToWriter = function(message, wr
 
 
 /**
- * optional string account_name = 1;
+ * optional string user_id = 1;
  * @return {string}
  */
-proto.ledger_swap.NewFundResponse.prototype.getAccountName = function() {
+proto.ledger_swap.NewFundResponse.prototype.getUserId = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
-proto.ledger_swap.NewFundResponse.prototype.setAccountName = function(value) {
+proto.ledger_swap.NewFundResponse.prototype.setUserId = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string in_currency = 2;
+ * optional string account_name = 2;
  * @return {string}
  */
-proto.ledger_swap.NewFundResponse.prototype.getInCurrency = function() {
+proto.ledger_swap.NewFundResponse.prototype.getAccountName = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /** @param {string} value */
-proto.ledger_swap.NewFundResponse.prototype.setInCurrency = function(value) {
+proto.ledger_swap.NewFundResponse.prototype.setAccountName = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
 /**
- * optional bytes in_amount = 3;
- * @return {!(string|Uint8Array)}
+ * optional string in_currency = 3;
+ * @return {string}
  */
-proto.ledger_swap.NewFundResponse.prototype.getInAmount = function() {
-  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+proto.ledger_swap.NewFundResponse.prototype.getInCurrency = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.ledger_swap.NewFundResponse.prototype.setInCurrency = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
 };
 
 
 /**
- * optional bytes in_amount = 3;
+ * optional bytes in_amount = 4;
+ * @return {!(string|Uint8Array)}
+ */
+proto.ledger_swap.NewFundResponse.prototype.getInAmount = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/**
+ * optional bytes in_amount = 4;
  * This is a type-conversion wrapper around `getInAmount()`
  * @return {string}
  */
@@ -1263,7 +1290,7 @@ proto.ledger_swap.NewFundResponse.prototype.getInAmount_asB64 = function() {
 
 
 /**
- * optional bytes in_amount = 3;
+ * optional bytes in_amount = 4;
  * Note that Uint8Array is not supported on all browsers.
  * @see http://caniuse.com/Uint8Array
  * This is a type-conversion wrapper around `getInAmount()`
@@ -1277,36 +1304,36 @@ proto.ledger_swap.NewFundResponse.prototype.getInAmount_asU8 = function() {
 
 /** @param {!(string|Uint8Array)} value */
 proto.ledger_swap.NewFundResponse.prototype.setInAmount = function(value) {
-  jspb.Message.setProto3BytesField(this, 3, value);
+  jspb.Message.setProto3BytesField(this, 4, value);
 };
 
 
 /**
- * optional string in_address = 4;
+ * optional string in_address = 5;
  * @return {string}
  */
 proto.ledger_swap.NewFundResponse.prototype.getInAddress = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
 };
 
 
 /** @param {string} value */
 proto.ledger_swap.NewFundResponse.prototype.setInAddress = function(value) {
-  jspb.Message.setProto3StringField(this, 4, value);
+  jspb.Message.setProto3StringField(this, 5, value);
 };
 
 
 /**
- * optional bytes device_transaction_id = 5;
+ * optional bytes device_transaction_id = 6;
  * @return {!(string|Uint8Array)}
  */
 proto.ledger_swap.NewFundResponse.prototype.getDeviceTransactionId = function() {
-  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 6, ""));
 };
 
 
 /**
- * optional bytes device_transaction_id = 5;
+ * optional bytes device_transaction_id = 6;
  * This is a type-conversion wrapper around `getDeviceTransactionId()`
  * @return {string}
  */
@@ -1317,7 +1344,7 @@ proto.ledger_swap.NewFundResponse.prototype.getDeviceTransactionId_asB64 = funct
 
 
 /**
- * optional bytes device_transaction_id = 5;
+ * optional bytes device_transaction_id = 6;
  * Note that Uint8Array is not supported on all browsers.
  * @see http://caniuse.com/Uint8Array
  * This is a type-conversion wrapper around `getDeviceTransactionId()`
@@ -1331,7 +1358,7 @@ proto.ledger_swap.NewFundResponse.prototype.getDeviceTransactionId_asU8 = functi
 
 /** @param {!(string|Uint8Array)} value */
 proto.ledger_swap.NewFundResponse.prototype.setDeviceTransactionId = function(value) {
-  jspb.Message.setProto3BytesField(this, 5, value);
+  jspb.Message.setProto3BytesField(this, 6, value);
 };
 
 
