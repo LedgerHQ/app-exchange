@@ -108,6 +108,11 @@ UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
     .title = "Get",
     .text = validationInfo.get,
 });
+UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
+{
+    .title = "Get estimated",
+    .text = validationInfo.get,
+});
 UX_STEP_NOCB(ux_confirm_flow_3_2_step, bnnn_paging,
 {
     .title = validationInfo.provider,
@@ -129,35 +134,36 @@ UX_STEP_CB(ux_confirm_flow_6_step, pb, io_reject(NULL),
     &C_icon_crossmark,
     "Reject",
 });
+
 // clang-format on
+const ux_flow_step_t *ux_confirm_flow[8];
 
-UX_FLOW(ux_confirm_swap_flow,
-        &ux_confirm_flow_1_step,
-        &ux_confirm_flow_2_step,
-        &ux_confirm_flow_3_step,
-        &ux_confirm_flow_4_step,
-        &ux_confirm_flow_5_step,
-        &ux_confirm_flow_6_step);
+void ux_confirm(rate_e rate, subcommand_e subcommand) {
+    int step = 0;
+    ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
+    if (subcommand == SELL) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
+    } else if (subcommand == FUND) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_1_3_step;
+    }
+    ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
+    if (subcommand == FUND) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_2_step;
+    } else if (rate == FLOATING) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
+    } else {
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
+    }
+    ux_confirm_flow[step++] = &ux_confirm_flow_4_step;
+    ux_confirm_flow[step++] = &ux_confirm_flow_5_step;
+    ux_confirm_flow[step++] = &ux_confirm_flow_6_step;
+    ux_confirm_flow[step++] = FLOW_END_STEP;
 
-UX_FLOW(ux_confirm_sell_flow,
-        &ux_confirm_flow_1_step,
-        &ux_confirm_flow_1_2_step,
-        &ux_confirm_flow_2_step,
-        &ux_confirm_flow_3_step,
-        &ux_confirm_flow_4_step,
-        &ux_confirm_flow_5_step,
-        &ux_confirm_flow_6_step);
+    ux_flow_init(0, ux_confirm_flow, NULL);
+}
 
-UX_FLOW(ux_confirm_fund_flow,
-        &ux_confirm_flow_1_step,
-        &ux_confirm_flow_1_3_step,
-        &ux_confirm_flow_2_step,
-        &ux_confirm_flow_3_2_step,
-        &ux_confirm_flow_4_step,
-        &ux_confirm_flow_5_step,
-        &ux_confirm_flow_6_step);
-
-void ui_validate_amounts(subcommand_e subcommand,
+void ui_validate_amounts(rate_e rate,
+                         subcommand_e subcommand,
                          swap_app_context_t *ctx,
                          char *send_amount,
                          char *fees_amount,
@@ -177,16 +183,11 @@ void ui_validate_amounts(subcommand_e subcommand,
     validationInfo.OnAccept = on_accept;
     validationInfo.OnReject = on_reject;
 
-    if (subcommand == SWAP) {
-        ux_flow_init(0, ux_confirm_swap_flow, NULL);
-    }
-
     if (subcommand == SELL) {
         strncpy(validationInfo.email,
                 ctx->sell_transaction.trader_email,
                 sizeof(validationInfo.email));
         validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
-        ux_flow_init(0, ux_confirm_sell_flow, NULL);
     }
 
     if (subcommand == FUND) {
@@ -203,9 +204,8 @@ void ui_validate_amounts(subcommand_e subcommand,
                 ctx->partner.name,
                 sizeof(validationInfo.provider)-4);
         validationInfo.provider[sizeof(validationInfo.provider) - 1] = '\x00';
-
-        ux_flow_init(0, ux_confirm_fund_flow, NULL);
     }
+    ux_confirm(rate, subcommand);
 }
 
 void ux_init() {

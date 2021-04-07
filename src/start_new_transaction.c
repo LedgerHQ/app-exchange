@@ -2,29 +2,28 @@
 #include "init.h"
 #include "reply_error.h"
 
-int start_new_transaction(subcommand_e subcommand,
-                          swap_app_context_t *ctx,
-                          const buf_t *input,
-                          SendFunction send) {
+int start_new_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     unsigned char output_buffer[sizeof(ctx->device_transaction_id) + 2];
     unsigned int output_buffer_size = 0;
 
     init_application_context(ctx);
 
-    if (subcommand == SWAP) {
+    if (cmd->subcommand == SWAP) {
         output_buffer_size = sizeof(ctx->device_transaction_id.swap);
 
         for (unsigned int i = 0; i < output_buffer_size; ++i) {
 #ifdef TESTING
             ctx->device_transaction_id.swap[i] = (char) ((int) 'A' + 42 % 26);
+            // uint8_t replay_id[] = {0x48, 0x58, 0x4b, 0x5a, 0x50, 0x59, 0x4b, 0x56, 0x45, 0x42};
+            // memcpy(ctx->device_transaction_id.swap, replay_id, sizeof(replay_id));
 #else
             ctx->device_transaction_id.swap[i] = (char) ((int) 'A' + cx_rng_u8() % 26);
 #endif
         }
     }
 
-    if (subcommand == SELL || subcommand == FUND) {
-        output_buffer_size = sizeof(ctx->device_transaction_id.sell_fund);
+    if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
+        output_buffer_size = sizeof(ctx->device_transaction_id.sell);
 
 #ifdef TESTING
         unsigned char tx_id[32] = {
@@ -53,7 +52,7 @@ int start_new_transaction(subcommand_e subcommand,
     }
 
     ctx->state = WAITING_TRANSACTION;
-    ctx->subcommand = subcommand;
+    ctx->subcommand = cmd->subcommand;
 
     return 0;
 }
