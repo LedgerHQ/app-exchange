@@ -22,7 +22,7 @@ int start_new_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFun
         }
     }
 
-    if (subcommand == SELL || subcommand == FUND) {
+    if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
         output_buffer_size = sizeof(ctx->device_transaction_id.sell_fund);
 
 #ifdef TESTING

@@ -112,7 +112,7 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
     }
 
 
-    if (subcommand == SELL) {
+    if (cmd->subcommand == SELL) {
         size_t len = strlen(ctx->sell_transaction.out_currency);
         if (len + 1 >= sizeof(ctx->printable_get_amount)) {
             return reply_error(ctx, INTERNAL_ERROR, send);
