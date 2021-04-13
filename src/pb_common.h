@@ -1,5 +1,3 @@
-/* clang-format off */
-
 /* pb_common.h: Common support functions for pb_encode.c and pb_decode.c.
  * These functions are rarely needed by applications directly.
  */
@@ -36,9 +34,13 @@ bool pb_field_iter_next(pb_field_iter_t *iter);
  * Returns false if no such field exists. */
 bool pb_field_iter_find(pb_field_iter_t *iter, uint32_t tag);
 
+/* Check if there is at least min_bss_stack_gap bytes available
+ * between stack's top and bss segment.
+ * Return true if the condition fails. */
+bool check_stack_overflow(uint16_t min_bss_stack_gap);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
 #endif
-
