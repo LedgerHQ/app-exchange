@@ -20,7 +20,7 @@ const sim_options = {
 };
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
-const XTZ_LIB = { "Tezos": Resolve("elfs/tezos.elf") };
+const XTZ_LIB = { "\"Tezos Wallet\"": Resolve("elfs/tezos.elf") };
 
 export const TEZOS_DERIVATION_PATH = "44'/1729'/0'/0'";
 export const TEZOS_PAYOUT_ADDRESS = "tz1RVYaHiobUKXMfJ47F7Rjxx5tu3LC35WSA";
