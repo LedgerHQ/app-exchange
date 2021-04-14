@@ -44,7 +44,7 @@ const sim_options = {
 };
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
-const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf"), "Stellar": Resolve("elfs/stellar.elf"), "Tezos": Resolve("elfs/tezos.elf") };
+const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf"), "Stellar": Resolve("elfs/stellar.elf"), "\"Tezos Wallet\"": Resolve("elfs/tezos.elf") };
 
 test('Test BTC swap to LTC fails', async () => {
     jest.setTimeout(100000);
