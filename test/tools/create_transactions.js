@@ -5,7 +5,7 @@ const default_speculos_memonic = 'glory promote mansion idle axis finger extra f
 bip39.mnemonicToSeed(default_speculos_memonic).then(bytes => {
     var master_node = bitcoin.bip32.fromSeed(bytes)
     var derivedNode = master_node.derivePath("m/44'/0'/0'/0/0")
-    var payment = bitcoin.payments.p2pkh({pubkey: derivedNode.publicKey, network: bitcoin.networks.bitcoin});
+    var payment = bitcoin.payments.p2pkh({ pubkey: derivedNode.publicKey, network: bitcoin.networks.bitcoin });
     console.log(payment);
     console.log(payment.output);
     console.log(payment.input);
