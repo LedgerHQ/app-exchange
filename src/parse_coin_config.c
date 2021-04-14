@@ -13,9 +13,6 @@ const app_name_alias_t const appnames_aliases[] = {
 
 void set_ledger_application_name(buf_t *application_name) {
     for (size_t i = 0; i < sizeof(appnames_aliases) / sizeof(appnames_aliases[0]); i++) {
-        PRINTF("Name: |%s|\n", application_name->bytes);
-        PRINTF("Foreign: |%s|\n", (PIC(appnames_aliases[i].foreign_name)));
-
         if (!strcmp((const char *) application_name->bytes,
                     (char *) (PIC(appnames_aliases[i].foreign_name)))) {
             // Copy the correct application name.
