@@ -28,7 +28,7 @@ typedef struct _ledger_swap_NewTransactionResponse {
     char currency_to[10];
     ledger_swap_NewTransactionResponse_amount_to_provider_t amount_to_provider;
     ledger_swap_NewTransactionResponse_amount_to_wallet_t amount_to_wallet;
-    char device_transaction_id[11];
+    char device_transaction_id[12];
 /* @@protoc_insertion_point(struct:ledger_swap_NewTransactionResponse) */
 } ledger_swap_NewTransactionResponse;
 

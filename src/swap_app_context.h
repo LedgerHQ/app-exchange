@@ -19,7 +19,7 @@ typedef struct swap_app_context_s {
     unsigned char transaction_fee[16];
     unsigned char transaction_fee_length;
     union {
-        char swap[10];           // device_transaction_id (SWAP)
+        char swap[11];           // device_transaction_id (SWAP)
         unsigned char sell[32];  // device_transaction_id (SELL)
     } device_transaction_id;
     partner_data_t partner;
