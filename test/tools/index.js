@@ -69,6 +69,7 @@ const main = () => {
     var ltcConfig = createCurrencyConfig("LTC", "Litecoin", Buffer(0), ledgerTestPrivateKey);
     var xrpConfig = createCurrencyConfig("XRP", "XRP", Buffer(0), ledgerTestPrivateKey);
     var xlmConfig = createCurrencyConfig("XLM", "Stellar", Buffer(0), ledgerTestPrivateKey);
+    var xtzConfig = createCurrencyConfig("XTZ", "Tezos Wallet", Buffer(0), ledgerTestPrivateKey);
 
     ethSubConfig = Buffer.concat([Buffer.from(["ETH".length]), Buffer.from("ETH"), Buffer.from([18])])
     var ethConfig = createCurrencyConfig("ETH", "Ethereum", ethSubConfig, ledgerTestPrivateKey);

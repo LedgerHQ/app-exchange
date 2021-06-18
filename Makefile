@@ -24,7 +24,7 @@ APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --path "" --appFlags 0x240 $(
 
 APPVERSION_M=2
 APPVERSION_N=0
-APPVERSION_P=6
+APPVERSION_P=7
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 APPNAME = "Exchange"
 
@@ -139,13 +139,13 @@ $(PROTO_C_FILE): $(PROTO_FILE)
 
 
 load: all
-	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
+	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
 
 load-offline: all
-	python -m ledgerblue.loadApp $(APP_LOAD_PARAMS) --offline
+	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS) --offline
 
 delete:
-	python -m ledgerblue.deleteApp $(COMMON_DELETE_PARAMS)
+	python3 -m ledgerblue.deleteApp $(COMMON_DELETE_PARAMS)
 
 release: all
 	export APP_LOAD_PARAMS_EVALUATED="$(shell printf '\\"%s\\" ' $(APP_LOAD_PARAMS))"; \

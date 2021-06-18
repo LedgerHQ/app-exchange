@@ -4,10 +4,12 @@ import Btc from "@ledgerhq/hw-app-btc";
 import Eth from "@ledgerhq/hw-app-eth";
 import Xrp from "@ledgerhq/hw-app-xrp";
 import Xlm from "@ledgerhq/hw-app-str";
+import Xtz from "@ledgerhq/hw-app-tezos";
 import { byContractAddress } from "@ledgerhq/hw-app-eth/erc20";
 import secp256k1 from "secp256k1";
 import sha256 from "js-sha256";
 import "./protocol_pb.js";
+
 import {
     getSerializedAddressParametersBTC,
     getSerializedAddressParameters,
@@ -19,13 +21,19 @@ import {
     ETHConfig, ETHConfigSignature,
     AEConfig, AEConfigSignature,
     XRPConfig, XRPConfigSignature,
-    XLMConfig, XLMConfigSignature
+    XLMConfig, XLMConfigSignature,
+    XTZConfig, XTZConfigSignature
 } from "./common";
 import Exchange from "./exchange.js";
 import {
     TRANSACTION_RATES,
     TRANSACTION_TYPES
 } from "./exchange.js";
+
+const TEZOS_ADDRESS_1 = "tz1RVYaHiobUKXMfJ47F7Rjxx5tu3LC35WSA";
+const TEZOS_ADDRESS_2 = "tz1RjJLvt7iguJQnVVWYca2AHDpHYmPJYz4d";
+const TEZOS_DERIVATION_PATH_1 = "44'/1729'/0'/0'";
+
 import Zemu from "@zondax/zemu";
 import { TransportStatusError } from "@ledgerhq/errors";
 
@@ -36,7 +44,7 @@ const sim_options = {
 };
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
-const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf"), "Stellar": Resolve("elfs/stellar.elf") };
+const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf"), "Stellar": Resolve("elfs/stellar.elf"), "\"Tezos Wallet\"": Resolve("elfs/tezos.elf") };
 
 test('Test BTC swap to LTC fails', async () => {
     jest.setTimeout(100000);
@@ -543,6 +551,127 @@ test('Test ETH swap to XLM', async () => {
         await swap.checkTransactionSignature(signature);
         const xlmAddressParams = getSerializedAddressParameters("44'/148'/0'");
         await swap.checkPayoutAddress(XLMConfig, XLMConfigSignature, xlmAddressParams.addressParameters);
+
+        const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+        const checkRequest = swap.checkRefundAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+        // Wait until we are not in the main menu
+        await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickBoth();
+        await expect(checkRequest).resolves.toBe(undefined);
+
+        await swap.signCoinTransaction();
+
+        await Zemu.sleep(1000);
+
+        let transport = await sim.getTransport();
+        const eth = new Eth(transport);
+
+        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080', 'hex')))
+            .resolves.toEqual({
+                "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
+                "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
+                "v": "25"
+            });
+
+    } finally {
+        await sim.close();
+    }
+})
+
+test('Test XTZ swap to ETH', async () => {
+    jest.setTimeout(100000);
+    const sim = new Zemu(APP_PATH, ALL_LIBS);
+    try {
+        await sim.start(sim_options);
+        const swap = new Exchange(sim.getTransport(), 0x00);
+        const transactionId: string = await swap.startNewTransaction();
+        await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+        await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+        let tr = new proto.ledger_swap.NewTransactionResponse();
+        tr.setPayinAddress(TEZOS_ADDRESS_2); // The address to which we're sending too
+        tr.setPayinExtraId("123456789123456");
+        tr.setRefundAddress(TEZOS_ADDRESS_1); // A valid refund address, derived from TEZOS_DERIVATION_PATH_1
+        tr.setRefundExtraId("");
+        tr.setPayoutAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+        tr.setPayoutExtraId("");
+        tr.setCurrencyFrom("XTZ");
+        tr.setCurrencyTo("ETH");
+        // 0.0123 XTZ to 1.1234 ETH
+        tr.setAmountToProvider(numberToBigEndianBuffer(0.0123 * 1000000)); // 1 xtz == 10^6 microtez
+        tr.setAmountToWallet(numberToBigEndianBuffer(1000000 * 1000000 * 1000000 * 1.1234)); // 10^18 wei == 1 ETH
+        tr.setDeviceTransactionId(transactionId);
+
+        const payload: Buffer = Buffer.from(tr.serializeBinary());
+        let fees = 0.06 * 1000000;
+        await swap.processTransaction(payload, fees);
+        const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+        const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+        await swap.checkTransactionSignature(signature);
+        const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+        await swap.checkPayoutAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+
+        const xtzAddressParams = getSerializedAddressParameters(TEZOS_DERIVATION_PATH_1);
+        const checkRequest = swap.checkRefundAddress(XTZConfig, XTZConfigSignature, xtzAddressParams.addressParameters);
+        // Wait until we are not in the main menu
+        await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickBoth();
+        await expect(checkRequest).resolves.toBe(undefined);
+
+        await swap.signCoinTransaction();
+
+        await Zemu.sleep(1000);
+
+        let transport = await sim.getTransport();
+
+        const xtz = new Xtz(transport);
+
+        await expect(xtz.signOperation(TEZOS_DERIVATION_PATH_1, Buffer.from("032e3ed0be2a6f7e196f965f3915ef1afb8ac2316aa3e74ecad93a9328bab80f176b004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dae3d805d08c0100001dbfcc527042205a12508a62f37a72080e512c9338a9e7db3adeb6cae73e3ca56c004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dbe3d805d08c0181028c60000042cfe66ab45deadb496e7b8cddc172e2be0ad3b200", 'hex')))
+            .resolves.toEqual({
+                "signature": "10b156dfed4f0934f3e0bbb4f62f9c78fb5bee84e685700d2f19f6bf9a5c9712d3b187ed87d0d78e03930dc8e66b78958c91e6bd71dfe6919adaf90f5dff270c"
+            });
+    } finally {
+        await sim.close();
+    }
+})
+
+test('Test ETH swap to XTZ', async () => {
+    jest.setTimeout(100000);
+    const sim = new Zemu(APP_PATH, ALL_LIBS);
+    try {
+        await sim.start(sim_options);
+        const swap = new Exchange(sim.getTransport(), 0x00);
+        const transactionId: string = await swap.startNewTransaction();
+        await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+        await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+        let tr = new proto.ledger_swap.NewTransactionResponse();
+        tr.setPayinAddress("0xd692Cb1346262F584D17B4B470954501f6715a82");
+        tr.setPayinExtraId("");
+        tr.setRefundAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+        tr.setRefundExtraId("");
+        tr.setPayoutAddress(TEZOS_ADDRESS_1);
+        tr.setPayoutExtraId("");
+        tr.setCurrencyFrom("ETH");
+        tr.setCurrencyTo("XTZ");
+        // 1.1234 ETH to 2.1 XTZ
+        tr.setAmountToWallet(numberToBigEndianBuffer(21000000)); // 1 xtz == 10^6 microtez
+        tr.setAmountToProvider(numberToBigEndianBuffer(1000000 * 1000000 * 1000000 * 1.1234)); // 10^18 wei == 1 ETH
+        tr.setDeviceTransactionId(transactionId);
+
+        const payload: Buffer = Buffer.from(tr.serializeBinary());
+        await swap.processTransaction(payload, 840000000000000);
+        const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+        const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+        await swap.checkTransactionSignature(signature);
+        const xtzAddressParams = getSerializedAddressParameters(TEZOS_DERIVATION_PATH_1);
+        await swap.checkPayoutAddress(XTZConfig, XTZConfigSignature, xtzAddressParams.addressParameters);
 
         const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
         const checkRequest = swap.checkRefundAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
