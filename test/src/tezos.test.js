@@ -60,7 +60,6 @@ test('Wrong payout address XTZ should not be accepted', async () => {
         const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
         await swap.checkTransactionSignature(signature);
         const params = await getSerializedAddressParameters(TEZOS_DERIVATION_PATH);
-        console.log(params);
         await expect(swap.checkPayoutAddress(XTZConfig, XTZConfigSignature, params.addressParameters))
             .rejects.toEqual(new TransportStatusError(0x6a83));
     } finally {
@@ -97,7 +96,6 @@ test('Valid payout address XTZ should be accepted', async () => {
         const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
         await swap.checkTransactionSignature(signature);
         const params = await getSerializedAddressParameters(TEZOS_DERIVATION_PATH);
-        console.log(params);
         await expect(swap.checkPayoutAddress(XTZConfig, XTZConfigSignature, params.addressParameters)).resolves.toBe(undefined);
     } finally {
         await sim.close();

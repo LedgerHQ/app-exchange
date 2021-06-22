@@ -57,7 +57,6 @@ test('Wrong payout address XRP should not be accepted', async () => {
         const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
         await swap.checkTransactionSignature(signature);
         const params = await getSerializedAddressParameters("44'/144'/0'/0/0");
-        console.log(params);
         await expect(swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, params.addressParameters))
             .rejects.toEqual(new TransportStatusError(0x6a83));
     } finally {
@@ -94,7 +93,6 @@ test('Valid payout address XRP should be accepted', async () => {
         const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
         await swap.checkTransactionSignature(signature);
         const params = await getSerializedAddressParameters("44'/144'/0'/0/0");
-        console.log(params);
         await expect(swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, params.addressParameters)).resolves.toBe(undefined);
     } finally {
         await sim.close();
