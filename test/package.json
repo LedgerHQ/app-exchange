@@ -19,7 +19,7 @@
     "@ledgerhq/hw-app-tezos": "^5.46.0",
     "@ledgerhq/hw-transport-http": "^4.74.2",
     "@ledgerhq/logs": "^5.30.0",
-    "@zondax/zemu": "^0.10.0",
+    "@zondax/zemu": "^0.14.5",
     "bignumber.js": "^9.0.0",
     "bip32-path": "^0.4.2",
     "core-js": "^3.7.0",
