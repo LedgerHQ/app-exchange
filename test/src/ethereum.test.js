@@ -182,7 +182,6 @@ test('Valid refund address should be accepted', async () => {
         await sim.clickRight();
         await sim.clickRight();
         await sim.clickRight();
-        await sim.clickRight();
         await sim.clickBoth();
 
         await expect(checkRequest).resolves.toBe(undefined);
