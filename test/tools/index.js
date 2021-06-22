@@ -91,6 +91,8 @@ const main = () => {
     console.log("const XRPConfigSignature = Buffer.from(" + toHexPrintableConst(xrpConfig.signature));
     console.log("\nconst XLMConfig = Buffer.from(" + toHexPrintableConst(xlmConfig.coinConfig));
     console.log("const XLMConfigSignature = Buffer.from(" + toHexPrintableConst(xlmConfig.signature));
+    console.log("\nconst XTZConfig = Buffer.from(" + toHexPrintableConst(xtzConfig.coinConfig));
+    console.log("const XTZConfigSignature = Buffer.from(" + toHexPrintableConst(xtzConfig.signature));
     console.log("\nconst ETHConfig = Buffer.from(" + toHexPrintableConst(ethConfig.coinConfig));
     console.log("const ETHConfigSignature = Buffer.from(" + toHexPrintableConst(ethConfig.signature));
     console.log("\nconst AEConfig = Buffer.from(" + toHexPrintableConst(aeConfig.coinConfig));
