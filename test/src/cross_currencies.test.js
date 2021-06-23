@@ -201,9 +201,7 @@ test('Test LTC swap to ETH', async () => {
         ans = await transport.send(0xe0, 0x44, 0x80, 0x80, Buffer.from('76A914C3722CEB74B4F5B583A690DDF05D01536B1CB8B488ACFFFFFFFF', 'hex'));
 
         await expect(transport.send(0xe0, 0x48, 0x00, 0x00, Buffer.from('05800000318000000280000000000000000000000C000000000001', 'hex')))
-            .resolves.toEqual(
-                Buffer.from('3045022100e01f45183c1e4fa647418420ae7dae7b6c1486377a0f9bc5530772a05a22206a02201194578e4d9bb4c137b7e072488a2ca50e4c85e1c4934785110b9ad8024f5038019000', 'hex')
-            );
+            .resolves.toEqual(Buffer.from('3045022100e01f45183c1e4fa647418420ae7dae7b6c1486377a0f9bc5530772a05a22206a02201194578e4d9bb4c137b7e072488a2ca50e4c85e1c4934785110b9ad8024f5038019000', 'hex'));
 
 
     } finally {
@@ -262,7 +260,7 @@ test('Test ETH swap to BTC', async () => {
         let transport = await sim.getTransport();
         const eth = new Eth(transport);
 
-        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080', 'hex')))
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
             .resolves.toEqual({
                 "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
                 "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
@@ -328,7 +326,7 @@ test('Test Aeternity ERC20 swap to BTC', async () => {
         const aeInfo = byContractAddress("0x5CA9a71B1d01849C0a95490Cc00559717fCF0D1d")
         if (aeInfo) await eth.provideERC20TokenInformation(aeInfo)
 
-        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('F8690385098BCA5A00828CCD945CA9a71B1d01849C0a95490Cc00559717fCF0D1d80B844A9059CBB000000000000000000000000d692Cb1346262F584D17B4B470954501f6715a820000000000000000000000000000000000000000000000000F971E5914AC8000038080', 'hex')))
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'F8690385098BCA5A00828CCD945CA9a71B1d01849C0a95490Cc00559717fCF0D1d80B844A9059CBB000000000000000000000000d692Cb1346262F584D17B4B470954501f6715a820000000000000000000000000000000000000000000000000F971E5914AC8000038080'))
             .resolves.toEqual({
                 "r": "6e766ca0c8474da1dc5dc0d057e0f97711fd70aed7cb9965ff6dc423d8f4daad",
                 "s": "63a0893b73e752965b65ebe13e1be8b5838e2113006656ea2eefa55fe0fa2919",
@@ -391,7 +389,7 @@ test('Test XRP swap to ETH', async () => {
 
         const xrp = new Xrp(transport);
 
-        await expect(xrp.signTransaction("44'/144'/0'/0/0", Buffer.from('120000228000000024038DE6A32E05E30A78201B0390AAB9614000000001406F4068400000000000007B7321038368B6F1151E0CD559126AE13910B8B8D790652EB5CC0B5019A63D2E6079296181143C0E955DFA24367806070434D8BE16A12E410C3B831422F866F3831E896120510409164B75B5673BF0F4', 'hex')))
+        await expect(xrp.signTransaction("44'/144'/0'/0/0", '120000228000000024038DE6A32E05E30A78201B0390AAB9614000000001406F4068400000000000007B7321038368B6F1151E0CD559126AE13910B8B8D790652EB5CC0B5019A63D2E6079296181143C0E955DFA24367806070434D8BE16A12E410C3B831422F866F3831E896120510409164B75B5673BF0F4'))
             .resolves.toEqual("3045022100eefd26a52281c64a2b6d1d89f1e9a0aaeb1afe4aa3a55f4ed22d0a645d03e1ef0220632d06f22f8028c82f05b5ef46b10bd7851166b75c61582362001250fe89d18c");
 
     } finally {
@@ -449,7 +447,7 @@ test('Test ETH swap to XRP', async () => {
         let transport = await sim.getTransport();
         const eth = new Eth(transport);
 
-        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080', 'hex')))
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
             .resolves.toEqual({
                 "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
                 "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
@@ -571,7 +569,7 @@ test('Test ETH swap to XLM', async () => {
         let transport = await sim.getTransport();
         const eth = new Eth(transport);
 
-        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080', 'hex')))
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
             .resolves.toEqual({
                 "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
                 "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
@@ -634,7 +632,7 @@ test('Test XTZ swap to ETH', async () => {
 
         const xtz = new Xtz(transport);
 
-        await expect(xtz.signOperation(TEZOS_DERIVATION_PATH_1, Buffer.from("032e3ed0be2a6f7e196f965f3915ef1afb8ac2316aa3e74ecad93a9328bab80f176b004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dae3d805d08c0100001dbfcc527042205a12508a62f37a72080e512c9338a9e7db3adeb6cae73e3ca56c004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dbe3d805d08c0181028c60000042cfe66ab45deadb496e7b8cddc172e2be0ad3b200", 'hex')))
+        await expect(xtz.signOperation(TEZOS_DERIVATION_PATH_1, '032e3ed0be2a6f7e196f965f3915ef1afb8ac2316aa3e74ecad93a9328bab80f176b004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dae3d805d08c0100001dbfcc527042205a12508a62f37a72080e512c9338a9e7db3adeb6cae73e3ca56c004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dbe3d805d08c0181028c60000042cfe66ab45deadb496e7b8cddc172e2be0ad3b200'))
             .resolves.toEqual({
                 "signature": "10b156dfed4f0934f3e0bbb4f62f9c78fb5bee84e685700d2f19f6bf9a5c9712d3b187ed87d0d78e03930dc8e66b78958c91e6bd71dfe6919adaf90f5dff270c"
             });
@@ -692,7 +690,7 @@ test('Test ETH swap to XTZ', async () => {
         let transport = await sim.getTransport();
         const eth = new Eth(transport);
 
-        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080', 'hex')))
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
             .resolves.toEqual({
                 "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
                 "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
