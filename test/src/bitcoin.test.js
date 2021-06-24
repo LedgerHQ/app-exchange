@@ -29,9 +29,9 @@ const sim_options = {
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
 const BTC_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf") };
+jest.setTimeout(50000);
 
 test('Wrong payout address should be rejected', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, BTC_LIBS);
     try {
         await sim.start(sim_options);
@@ -69,7 +69,6 @@ test('Wrong payout address should be rejected', async () => {
 
 
 test('Valid payout address should be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, BTC_LIBS);
     try {
         await sim.start(sim_options);
@@ -106,7 +105,6 @@ test('Valid payout address should be accepted', async () => {
 
 
 test('Wrong refund address should be rejected', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, BTC_LIBS);
     try {
         await sim.start(sim_options);
@@ -146,7 +144,6 @@ test('Wrong refund address should be rejected', async () => {
 
 
 test('Valid refund address should be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, BTC_LIBS);
     try {
         await sim.start(sim_options);

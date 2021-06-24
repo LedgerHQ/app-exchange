@@ -27,9 +27,9 @@ const sim_options = {
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
 const XRP_LIB = { "XRP": Resolve("elfs/xrp.elf") };
+jest.setTimeout(50000);
 
 test('Wrong payout address XRP should not be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
@@ -65,7 +65,6 @@ test('Wrong payout address XRP should not be accepted', async () => {
 })
 
 test('Valid payout address XRP should be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
@@ -102,7 +101,6 @@ test('Valid payout address XRP should be accepted', async () => {
 
 
 test('Wrong refund address should be rejected', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
@@ -141,7 +139,6 @@ test('Wrong refund address should be rejected', async () => {
 })
 
 test('Valid refund address should be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);

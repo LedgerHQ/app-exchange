@@ -27,9 +27,9 @@ const sim_options = {
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
 const XRP_LIB = { "XRP": Resolve("elfs/xrp.elf") };
+jest.setTimeout(50000);
 
 test('Compare fixed rate screenshot', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
@@ -94,7 +94,6 @@ test('Compare fixed rate screenshot', async () => {
 })
 
 test('Compare floating rate screenshot', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);

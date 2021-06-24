@@ -46,9 +46,9 @@ const sim_options = {
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
 const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf"), "Stellar": Resolve("elfs/stellar.elf"), "\"Tezos Wallet\"": Resolve("elfs/tezos.elf") };
+jest.setTimeout(50000);
 
 test('Test BTC swap to LTC fails', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -131,7 +131,6 @@ test('Test BTC swap to LTC fails', async () => {
 
 
 test('Test LTC swap to ETH', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -212,7 +211,6 @@ test('Test LTC swap to ETH', async () => {
 
 
 test('Test ETH swap to BTC', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -274,12 +272,10 @@ test('Test ETH swap to BTC', async () => {
 
 
 test('Test Aeternity ERC20 swap to BTC', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
         const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
-        jest.setTimeout(100000);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -340,7 +336,6 @@ test('Test Aeternity ERC20 swap to BTC', async () => {
 
 
 test('Test XRP swap to ETH', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -399,7 +394,6 @@ test('Test XRP swap to ETH', async () => {
 
 
 test('Test ETH swap to XRP', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -460,7 +454,6 @@ test('Test ETH swap to XRP', async () => {
 })
 
 test('Test XLM swap to ETH', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -521,7 +514,6 @@ test('Test XLM swap to ETH', async () => {
 })
 
 test('Test ETH swap to XLM', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -582,7 +574,6 @@ test('Test ETH swap to XLM', async () => {
 })
 
 test('Test XTZ swap to ETH', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -642,7 +633,6 @@ test('Test XTZ swap to ETH', async () => {
 })
 
 test('Test ETH swap to XTZ', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);

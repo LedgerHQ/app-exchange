@@ -20,9 +20,11 @@ import {
 const sim_options = {
   logging: true,
   start_delay: 1500,
+  model: 'nanos',
 };
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("../bin/app.elf");
+jest.setTimeout(50000);
 
 test('can start and stop container', async function () {
   const sim = new Zemu(APP_PATH);
