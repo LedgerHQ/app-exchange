@@ -21,14 +21,15 @@ import { TransportStatusError } from "@ledgerhq/errors";
 const sim_options = {
     logging: true,
     start_delay: 1500,
-    X11: true
+    X11: true,
+    model: "nanos",
 };
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
 const XLM_LIB = { "Stellar": Resolve("elfs/stellar.elf") };
+jest.setTimeout(50000);
 
 test('Wrong payout address XLM should not be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XLM_LIB);
     try {
         await sim.start(sim_options);
@@ -65,7 +66,6 @@ test('Wrong payout address XLM should not be accepted', async () => {
 })
 
 test('Valid payout address XLM should be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XLM_LIB);
     try {
         await sim.start(sim_options);
@@ -103,7 +103,6 @@ test('Valid payout address XLM should be accepted', async () => {
 
 
 test('Wrong refund address should be rejected', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XLM_LIB);
     try {
         await sim.start(sim_options);
@@ -142,7 +141,6 @@ test('Wrong refund address should be rejected', async () => {
 })
 
 test('Valid refund address should be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XLM_LIB);
     try {
         await sim.start(sim_options);

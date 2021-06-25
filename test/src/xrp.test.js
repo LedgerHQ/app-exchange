@@ -21,14 +21,15 @@ import { TransportStatusError } from "@ledgerhq/errors";
 const sim_options = {
     logging: true,
     start_delay: 1500,
-    X11: true
+    X11: true,
+    model: "nanos",
 };
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
 const XRP_LIB = { "XRP": Resolve("elfs/xrp.elf") };
+jest.setTimeout(50000);
 
 test('Wrong payout address XRP should not be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
@@ -56,7 +57,6 @@ test('Wrong payout address XRP should not be accepted', async () => {
         const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
         await swap.checkTransactionSignature(signature);
         const params = await getSerializedAddressParameters("44'/144'/0'/0/0");
-        console.log(params);
         await expect(swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, params.addressParameters))
             .rejects.toEqual(new TransportStatusError(0x6a83));
     } finally {
@@ -65,7 +65,6 @@ test('Wrong payout address XRP should not be accepted', async () => {
 })
 
 test('Valid payout address XRP should be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
@@ -93,7 +92,6 @@ test('Valid payout address XRP should be accepted', async () => {
         const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
         await swap.checkTransactionSignature(signature);
         const params = await getSerializedAddressParameters("44'/144'/0'/0/0");
-        console.log(params);
         await expect(swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, params.addressParameters)).resolves.toBe(undefined);
     } finally {
         await sim.close();
@@ -103,7 +101,6 @@ test('Valid payout address XRP should be accepted', async () => {
 
 
 test('Wrong refund address should be rejected', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
@@ -142,7 +139,6 @@ test('Wrong refund address should be rejected', async () => {
 })
 
 test('Valid refund address should be accepted', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, XRP_LIB);
     try {
         await sim.start(sim_options);
