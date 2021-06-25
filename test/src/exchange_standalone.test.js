@@ -23,7 +23,7 @@ const sim_options = {
   model: 'nanos',
 };
 const Resolve = require("path").resolve;
-const APP_PATH = Resolve("../bin/app.elf");
+const APP_PATH = Resolve("elfs/exchange.elf");
 jest.setTimeout(50000);
 
 test('can start and stop container', async function () {
