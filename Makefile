@@ -92,6 +92,7 @@ DEFINES       += HAVE_UX_FLOW
 DEFINES       += HAVE_STACK_OVERFLOW_CHECK
 # Enabling debug PRINTF
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 ifndef DEBUG
         DEBUG = 0
@@ -100,6 +101,9 @@ endif
 =======
 DEBUG = 1
 >>>>>>> 844e644 (Add support for secure funding of an external account using exchange app)
+=======
+DEBUG = 0
+>>>>>>> cd3157d (Disable debugging)
 ifneq ($(DEBUG),0)
         DEFINES   += HAVE_STACK_OVERFLOW_CHECK
         ifeq ($(TARGET_NAME),TARGET_NANOS)
