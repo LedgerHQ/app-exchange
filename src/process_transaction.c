@@ -53,7 +53,7 @@ void normalize_currencies(swap_app_context_t *ctx) {
 
 int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     if (cmd->data.size < 1) {
-        PRINTF("Error: Can't parse process_transaction message, length should be more then 1\n");
+        PRINTF("Error: Can't parse process_transaction message, length should be more than 1\n");
 
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
@@ -88,7 +88,13 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
         if (os_memcmp(ctx->device_transaction_id.swap,
                       ctx->received_transaction.device_transaction_id,
                       sizeof(ctx->device_transaction_id.swap)) != 0) {
-            PRINTF("Error: Device transaction IDs (SWAP) doesn't match");
+            PRINTF(
+                "Error: Device transaction IDs (SWAP) doesn't match. Expected: {%.*H}, got "
+                "{%.*H}\n",
+                sizeof(ctx->device_transaction_id.swap),
+                ctx->device_transaction_id.swap,
+                sizeof(ctx->device_transaction_id.swap),
+                ctx->received_transaction.device_transaction_id);
 
             return reply_error(ctx, WRONG_TRANSACTION_ID, send);
         }

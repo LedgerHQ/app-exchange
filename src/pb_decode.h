@@ -1,5 +1,3 @@
-/* clang-format off */
-
 /* pb_decode.h: Functions to decode protocol buffers. Depends on pb_decode.c.
  * The main function is pb_decode. You also need an input stream, and the
  * field descriptions created by nanopb_generator.py.
@@ -21,7 +19,7 @@ extern int G_depth;
 /* Structure for defining custom input streams. You will need to provide
  * a callback function to read the bytes from your storage, which can be
  * for example a file or a network socket.
- * 
+ *
  * The callback must conform to these rules:
  *
  * 1) Return false on IO errors. This will cause decoding to abort.
@@ -31,8 +29,7 @@ extern int G_depth;
  *    is different than from the main stream. Don't use bytes_left to compute
  *    any pointers.
  */
-struct pb_istream_s
-{
+struct pb_istream_s {
 #ifdef PB_BUFFER_ONLY
     /* Callback pointer is not used in buffer-only configuration.
      * Having an int pointer here allows binary compatibility but
@@ -45,17 +42,16 @@ struct pb_istream_s
 
     void *state; /* Free field for use by callback implementation */
     size_t bytes_left;
-    
+
 #ifndef PB_NO_ERRMSG
     const char *errmsg;
 #endif
 };
 
-
 /***************************
  * Main decoding functions *
  ***************************/
- 
+
 /* Decode a single protocol buffers message from input stream into a C structure.
  * Returns true on success, false on any failure.
  * The actual struct pointed to by dest must match the description in fields.
@@ -66,7 +62,7 @@ struct pb_istream_s
  *    MyMessage msg = {};
  *    uint8_t buffer[64];
  *    pb_istream_t stream;
- *    
+ *
  *    // ... read some data into buffer ...
  *
  *    stream = pb_istream_from_buffer(buffer, count);
@@ -139,18 +135,20 @@ bool pb_decode_tag(pb_istream_t *stream, pb_wire_type_t *wire_type, uint32_t *ta
 /* Skip the field payload data, given the wire type. */
 bool pb_skip_field(pb_istream_t *stream, pb_wire_type_t wire_type);
 
-/* Decode an integer in the varint format. This works for bool, enum, int32,
+/* Decode an integer in the varint format. This works for enum, int32,
  * int64, uint32 and uint64 field types. */
 #ifndef PB_WITHOUT_64BIT
 bool pb_decode_varint(pb_istream_t *stream, uint64_t *dest);
 #else
 #define pb_decode_varint pb_decode_varint32
 #endif
-// uint64_t val2;
 
-/* Decode an integer in the varint format. This works for bool, enum, int32,
+/* Decode an integer in the varint format. This works for enum, int32,
  * and uint32 field types. */
 bool pb_decode_varint32(pb_istream_t *stream, uint32_t *dest);
+
+/* Decode a bool value in varint format. */
+bool pb_decode_bool(pb_istream_t *stream, bool *dest);
 
 /* Decode an integer in the zig-zagged svarint format. This works for sint32
  * and sint64. */

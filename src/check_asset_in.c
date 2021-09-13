@@ -45,7 +45,7 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
     }
 
     if (ticker.size < 2 || ticker.size > 9) {
-        PRINTF("Error: Ticker length should be in [3, 9]\n");
+        PRINTF("Error: Ticker length should be in [2, 9]\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }

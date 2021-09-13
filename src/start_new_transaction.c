@@ -14,7 +14,7 @@ int start_new_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFun
         for (unsigned int i = 0; i < output_buffer_size; ++i) {
 #ifdef TESTING
             ctx->device_transaction_id.swap[i] = (char) ((int) 'A' + 42 % 26);
-            // uint8_t replay_id[] = {0x48, 0x58, 0x4b, 0x5a, 0x50, 0x59, 0x4b, 0x56, 0x45, 0x42};
+            // uint8_t replay_id[] = {0x61, 0x71, 0x65, 0x75, 0x6c, 0x63, 0x68, 0x71, 0x65, 0x6b};
             // memcpy(ctx->device_transaction_id.swap, replay_id, sizeof(replay_id));
 #else
             ctx->device_transaction_id.swap[i] = (char) ((int) 'A' + cx_rng_u8() % 26);

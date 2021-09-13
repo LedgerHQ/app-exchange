@@ -14,7 +14,7 @@ int check_tx_signature(swap_app_context_t *ctx, const command_t *cmd, SendFuncti
     if (cmd->subcommand == SWAP || cmd->subcommand == FUND) {
         if (cmd->data.size < MIN_DER_SIGNATURE_LENGTH ||
             cmd->data.size > MAX_DER_SIGNATURE_LENGTH || cmd->data.bytes[1] + 2 != cmd->data.size) {
-            PRINTF("Error: Input buffer length don't correspond to DER length");
+            PRINTF("Error: Input buffer length don't correspond to DER length\n");
             return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
         }
         if (cx_ecdsa_verify(&ctx->partner.public_key,
@@ -24,14 +24,14 @@ int check_tx_signature(swap_app_context_t *ctx, const command_t *cmd, SendFuncti
                             CURVE_SIZE_BYTES,
                             cmd->data.bytes,
                             cmd->data.size) == 0) {
-            PRINTF("Error: Failed to verify signature of received transaction");
+            PRINTF("Error: Failed to verify signature of received transaction\n");
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }
     }
 
     if (cmd->subcommand == SELL) {
         if (cmd->data.size != 64) {
-            PRINTF("Error: Input buffer length don't correspond to (R, S) length");
+            PRINTF("Error: Input buffer length don't correspond to (R, S) length\n");
             return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
         }
 

@@ -4,10 +4,12 @@ import Btc from "@ledgerhq/hw-app-btc";
 import Eth from "@ledgerhq/hw-app-eth";
 import Xrp from "@ledgerhq/hw-app-xrp";
 import Xlm from "@ledgerhq/hw-app-str";
+import Xtz from "@ledgerhq/hw-app-tezos";
 import { byContractAddress } from "@ledgerhq/hw-app-eth/erc20";
 import secp256k1 from "secp256k1";
 import sha256 from "js-sha256";
 import "./protocol_pb.js";
+
 import {
     getSerializedAddressParametersBTC,
     getSerializedAddressParameters,
@@ -19,27 +21,34 @@ import {
     ETHConfig, ETHConfigSignature,
     AEConfig, AEConfigSignature,
     XRPConfig, XRPConfigSignature,
-    XLMConfig, XLMConfigSignature
+    XLMConfig, XLMConfigSignature,
+    XTZConfig, XTZConfigSignature
 } from "./common";
 import Exchange from "./exchange.js";
 import {
     TRANSACTION_RATES,
     TRANSACTION_TYPES
 } from "./exchange.js";
+
+const TEZOS_ADDRESS_1 = "tz1RVYaHiobUKXMfJ47F7Rjxx5tu3LC35WSA";
+const TEZOS_ADDRESS_2 = "tz1RjJLvt7iguJQnVVWYca2AHDpHYmPJYz4d";
+const TEZOS_DERIVATION_PATH_1 = "44'/1729'/0'/0'";
+
 import Zemu from "@zondax/zemu";
 import { TransportStatusError } from "@ledgerhq/errors";
 
 const sim_options = {
     logging: true,
     start_delay: 4000,
-    X11: true
+    X11: true,
+    model: "nanos",
 };
 const Resolve = require("path").resolve;
 const APP_PATH = Resolve("elfs/exchange.elf");
-const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf"), "Stellar": Resolve("elfs/stellar.elf") };
+const ALL_LIBS = { "Bitcoin": Resolve("elfs/bitcoin.elf"), "Litecoin": Resolve("elfs/litecoin.elf"), "Ethereum": Resolve("elfs/ethereum.elf"), "XRP": Resolve("elfs/xrp.elf"), "Stellar": Resolve("elfs/stellar.elf"), "\"Tezos Wallet\"": Resolve("elfs/tezos.elf") };
+jest.setTimeout(50000);
 
 test('Test BTC swap to LTC fails', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -122,7 +131,6 @@ test('Test BTC swap to LTC fails', async () => {
 
 
 test('Test LTC swap to ETH', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -192,9 +200,7 @@ test('Test LTC swap to ETH', async () => {
         ans = await transport.send(0xe0, 0x44, 0x80, 0x80, Buffer.from('76A914C3722CEB74B4F5B583A690DDF05D01536B1CB8B488ACFFFFFFFF', 'hex'));
 
         await expect(transport.send(0xe0, 0x48, 0x00, 0x00, Buffer.from('05800000318000000280000000000000000000000C000000000001', 'hex')))
-            .resolves.toEqual(
-                Buffer.from('3045022100e01f45183c1e4fa647418420ae7dae7b6c1486377a0f9bc5530772a05a22206a02201194578e4d9bb4c137b7e072488a2ca50e4c85e1c4934785110b9ad8024f5038019000', 'hex')
-            );
+            .resolves.toEqual(Buffer.from('3045022100e01f45183c1e4fa647418420ae7dae7b6c1486377a0f9bc5530772a05a22206a02201194578e4d9bb4c137b7e072488a2ca50e4c85e1c4934785110b9ad8024f5038019000', 'hex'));
 
 
     } finally {
@@ -205,7 +211,6 @@ test('Test LTC swap to ETH', async () => {
 
 
 test('Test ETH swap to BTC', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -253,7 +258,7 @@ test('Test ETH swap to BTC', async () => {
         let transport = await sim.getTransport();
         const eth = new Eth(transport);
 
-        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080', 'hex')))
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
             .resolves.toEqual({
                 "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
                 "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
@@ -267,12 +272,10 @@ test('Test ETH swap to BTC', async () => {
 
 
 test('Test Aeternity ERC20 swap to BTC', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
         const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
-        jest.setTimeout(100000);
         const transactionId: string = await swap.startNewTransaction();
         await swap.setPartnerKey(partnerSerializedNameAndPubKey);
         await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
@@ -319,7 +322,7 @@ test('Test Aeternity ERC20 swap to BTC', async () => {
         const aeInfo = byContractAddress("0x5CA9a71B1d01849C0a95490Cc00559717fCF0D1d")
         if (aeInfo) await eth.provideERC20TokenInformation(aeInfo)
 
-        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('F8690385098BCA5A00828CCD945CA9a71B1d01849C0a95490Cc00559717fCF0D1d80B844A9059CBB000000000000000000000000d692Cb1346262F584D17B4B470954501f6715a820000000000000000000000000000000000000000000000000F971E5914AC8000038080', 'hex')))
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'F8690385098BCA5A00828CCD945CA9a71B1d01849C0a95490Cc00559717fCF0D1d80B844A9059CBB000000000000000000000000d692Cb1346262F584D17B4B470954501f6715a820000000000000000000000000000000000000000000000000F971E5914AC8000038080'))
             .resolves.toEqual({
                 "r": "6e766ca0c8474da1dc5dc0d057e0f97711fd70aed7cb9965ff6dc423d8f4daad",
                 "s": "63a0893b73e752965b65ebe13e1be8b5838e2113006656ea2eefa55fe0fa2919",
@@ -333,7 +336,6 @@ test('Test Aeternity ERC20 swap to BTC', async () => {
 
 
 test('Test XRP swap to ETH', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -382,7 +384,7 @@ test('Test XRP swap to ETH', async () => {
 
         const xrp = new Xrp(transport);
 
-        await expect(xrp.signTransaction("44'/144'/0'/0/0", Buffer.from('120000228000000024038DE6A32E05E30A78201B0390AAB9614000000001406F4068400000000000007B7321038368B6F1151E0CD559126AE13910B8B8D790652EB5CC0B5019A63D2E6079296181143C0E955DFA24367806070434D8BE16A12E410C3B831422F866F3831E896120510409164B75B5673BF0F4', 'hex')))
+        await expect(xrp.signTransaction("44'/144'/0'/0/0", '120000228000000024038DE6A32E05E30A78201B0390AAB9614000000001406F4068400000000000007B7321038368B6F1151E0CD559126AE13910B8B8D790652EB5CC0B5019A63D2E6079296181143C0E955DFA24367806070434D8BE16A12E410C3B831422F866F3831E896120510409164B75B5673BF0F4'))
             .resolves.toEqual("3045022100eefd26a52281c64a2b6d1d89f1e9a0aaeb1afe4aa3a55f4ed22d0a645d03e1ef0220632d06f22f8028c82f05b5ef46b10bd7851166b75c61582362001250fe89d18c");
 
     } finally {
@@ -392,7 +394,6 @@ test('Test XRP swap to ETH', async () => {
 
 
 test('Test ETH swap to XRP', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -440,7 +441,7 @@ test('Test ETH swap to XRP', async () => {
         let transport = await sim.getTransport();
         const eth = new Eth(transport);
 
-        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080', 'hex')))
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
             .resolves.toEqual({
                 "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
                 "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
@@ -453,7 +454,6 @@ test('Test ETH swap to XRP', async () => {
 })
 
 test('Test XLM swap to ETH', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -514,7 +514,6 @@ test('Test XLM swap to ETH', async () => {
 })
 
 test('Test ETH swap to XLM', async () => {
-    jest.setTimeout(100000);
     const sim = new Zemu(APP_PATH, ALL_LIBS);
     try {
         await sim.start(sim_options);
@@ -562,7 +561,126 @@ test('Test ETH swap to XLM', async () => {
         let transport = await sim.getTransport();
         const eth = new Eth(transport);
 
-        await expect(eth.signTransaction("44'/60'/0'/0/0", Buffer.from('ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080', 'hex')))
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
+            .resolves.toEqual({
+                "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
+                "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
+                "v": "25"
+            });
+
+    } finally {
+        await sim.close();
+    }
+})
+
+test('Test XTZ swap to ETH', async () => {
+    const sim = new Zemu(APP_PATH, ALL_LIBS);
+    try {
+        await sim.start(sim_options);
+        const swap = new Exchange(sim.getTransport(), 0x00);
+        const transactionId: string = await swap.startNewTransaction();
+        await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+        await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+        let tr = new proto.ledger_swap.NewTransactionResponse();
+        tr.setPayinAddress(TEZOS_ADDRESS_2); // The address to which we're sending too
+        tr.setPayinExtraId("123456789123456");
+        tr.setRefundAddress(TEZOS_ADDRESS_1); // A valid refund address, derived from TEZOS_DERIVATION_PATH_1
+        tr.setRefundExtraId("");
+        tr.setPayoutAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+        tr.setPayoutExtraId("");
+        tr.setCurrencyFrom("XTZ");
+        tr.setCurrencyTo("ETH");
+        // 0.0123 XTZ to 1.1234 ETH
+        tr.setAmountToProvider(numberToBigEndianBuffer(0.0123 * 1000000)); // 1 xtz == 10^6 microtez
+        tr.setAmountToWallet(numberToBigEndianBuffer(1000000 * 1000000 * 1000000 * 1.1234)); // 10^18 wei == 1 ETH
+        tr.setDeviceTransactionId(transactionId);
+
+        const payload: Buffer = Buffer.from(tr.serializeBinary());
+        let fees = 0.06 * 1000000;
+        await swap.processTransaction(payload, fees);
+        const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+        const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+        await swap.checkTransactionSignature(signature);
+        const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+        await swap.checkPayoutAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+
+        const xtzAddressParams = getSerializedAddressParameters(TEZOS_DERIVATION_PATH_1);
+        const checkRequest = swap.checkRefundAddress(XTZConfig, XTZConfigSignature, xtzAddressParams.addressParameters);
+        // Wait until we are not in the main menu
+        await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickBoth();
+        await expect(checkRequest).resolves.toBe(undefined);
+
+        await swap.signCoinTransaction();
+
+        await Zemu.sleep(1000);
+
+        let transport = await sim.getTransport();
+
+        const xtz = new Xtz(transport);
+
+        await expect(xtz.signOperation(TEZOS_DERIVATION_PATH_1, '032e3ed0be2a6f7e196f965f3915ef1afb8ac2316aa3e74ecad93a9328bab80f176b004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dae3d805d08c0100001dbfcc527042205a12508a62f37a72080e512c9338a9e7db3adeb6cae73e3ca56c004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dbe3d805d08c0181028c60000042cfe66ab45deadb496e7b8cddc172e2be0ad3b200'))
+            .resolves.toEqual({
+                "signature": "10b156dfed4f0934f3e0bbb4f62f9c78fb5bee84e685700d2f19f6bf9a5c9712d3b187ed87d0d78e03930dc8e66b78958c91e6bd71dfe6919adaf90f5dff270c"
+            });
+    } finally {
+        await sim.close();
+    }
+})
+
+test('Test ETH swap to XTZ', async () => {
+    const sim = new Zemu(APP_PATH, ALL_LIBS);
+    try {
+        await sim.start(sim_options);
+        const swap = new Exchange(sim.getTransport(), 0x00);
+        const transactionId: string = await swap.startNewTransaction();
+        await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+        await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+        let tr = new proto.ledger_swap.NewTransactionResponse();
+        tr.setPayinAddress("0xd692Cb1346262F584D17B4B470954501f6715a82");
+        tr.setPayinExtraId("");
+        tr.setRefundAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+        tr.setRefundExtraId("");
+        tr.setPayoutAddress(TEZOS_ADDRESS_1);
+        tr.setPayoutExtraId("");
+        tr.setCurrencyFrom("ETH");
+        tr.setCurrencyTo("XTZ");
+        // 1.1234 ETH to 2.1 XTZ
+        tr.setAmountToWallet(numberToBigEndianBuffer(21000000)); // 1 xtz == 10^6 microtez
+        tr.setAmountToProvider(numberToBigEndianBuffer(1000000 * 1000000 * 1000000 * 1.1234)); // 10^18 wei == 1 ETH
+        tr.setDeviceTransactionId(transactionId);
+
+        const payload: Buffer = Buffer.from(tr.serializeBinary());
+        await swap.processTransaction(payload, 840000000000000);
+        const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+        const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+        await swap.checkTransactionSignature(signature);
+        const xtzAddressParams = getSerializedAddressParameters(TEZOS_DERIVATION_PATH_1);
+        await swap.checkPayoutAddress(XTZConfig, XTZConfigSignature, xtzAddressParams.addressParameters);
+
+        const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+        const checkRequest = swap.checkRefundAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+        // Wait until we are not in the main menu
+        await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot());
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickRight();
+        await sim.clickBoth();
+        await expect(checkRequest).resolves.toBe(undefined);
+
+        await swap.signCoinTransaction();
+
+        await Zemu.sleep(1000);
+
+        let transport = await sim.getTransport();
+        const eth = new Eth(transport);
+
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
             .resolves.toEqual({
                 "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
                 "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
