@@ -24,14 +24,18 @@ APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --curve secp256r1 --path "" -
 
 APPVERSION_M=2
 APPVERSION_N=0
-APPVERSION_P=7
-APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
+APPVERSION_P=8
+APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-baanx
 APPNAME = "Exchange"
 
 DEFINES += $(DEFINES_LIB)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 #DEFINES += TESTING
+=======
+DEFINES += TESTING
+>>>>>>> 76e1ea4 (bump 2.0.8-banx)
 DEFINES += TEST_PUBLIC_KEY
 >>>>>>> 844e644 (Add support for secure funding of an external account using exchange app)
 
@@ -90,20 +94,13 @@ endif
 
 DEFINES       += HAVE_UX_FLOW
 DEFINES       += HAVE_STACK_OVERFLOW_CHECK
+
 # Enabling debug PRINTF
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 ifndef DEBUG
         DEBUG = 0
 endif
 
-=======
-DEBUG = 1
->>>>>>> 844e644 (Add support for secure funding of an external account using exchange app)
-=======
-DEBUG = 0
->>>>>>> cd3157d (Disable debugging)
 ifneq ($(DEBUG),0)
         DEFINES   += HAVE_STACK_OVERFLOW_CHECK
         ifeq ($(TARGET_NAME),TARGET_NANOS)
