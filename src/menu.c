@@ -109,7 +109,7 @@ UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
 });
 UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
 {
-    .title = "Fees",
+    .title = "Network Fees",
     .text = validationInfo.fees,
 });
 UX_STEP_CB(ux_confirm_flow_5_step, pbb, io_accept(NULL),
