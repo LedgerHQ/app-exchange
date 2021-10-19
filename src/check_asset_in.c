@@ -57,9 +57,8 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
     }
 
     // Check that given ticker match current context
-    char * in_currency = (ctx->subcommand == SELL ?
-         ctx->sell_transaction.in_currency :
-         ctx->fund_transaction.in_currency);
+    char *in_currency = (ctx->subcommand == SELL ? ctx->sell_transaction.in_currency
+                                                 : ctx->fund_transaction.in_currency);
 
     if (strlen(in_currency) != ticker.size ||
         strncmp(in_currency, (const char *) ticker.bytes, ticker.size) != 0) {
@@ -78,9 +77,8 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
 
     static char in_printable_amount[PRINTABLE_AMOUNT_SIZE];
 
-    pb_bytes_array_t * in_amount = (ctx->subcommand == SELL ?
-        &ctx->sell_transaction.in_amount :
-        &ctx->fund_transaction.in_amount );
+    pb_bytes_array_t *in_amount = (ctx->subcommand == SELL ? &ctx->sell_transaction.in_amount
+                                                           : &ctx->fund_transaction.in_amount);
 
     // getting printable amount
     if (get_printable_amount(&config,
@@ -110,7 +108,6 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
         PRINTF("Error: Failed to get source currency fees amount");
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
-
 
     if (cmd->subcommand == SELL) {
         size_t len = strlen(ctx->sell_transaction.out_currency);

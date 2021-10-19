@@ -187,18 +187,14 @@ void ui_validate_amounts(rate_e rate,
     }
 
     if (subcommand == FUND) {
-        strncpy(validationInfo.email,
-                ctx->fund_transaction.user_id,
-                sizeof(validationInfo.email));
+        strncpy(validationInfo.email, ctx->fund_transaction.user_id, sizeof(validationInfo.email));
         validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
 
-        strncpy(validationInfo.provider,
-                "To ",
-                3);
+        strncpy(validationInfo.provider, "To ", 3);
 
         strncpy(validationInfo.provider + 3,
                 ctx->partner.name,
-                sizeof(validationInfo.provider)-4);
+                sizeof(validationInfo.provider) - 4);
         validationInfo.provider[sizeof(validationInfo.provider) - 1] = '\x00';
     }
 
