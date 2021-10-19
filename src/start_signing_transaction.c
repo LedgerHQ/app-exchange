@@ -26,7 +26,8 @@ int start_signing_transaction(swap_app_context_t *ctx, const command_t *cmd, Sen
         lib_in_out_params.amount_length = ctx->sell_transaction.in_amount.size;
         lib_in_out_params.destination_address = ctx->sell_transaction.in_address;
 
-        // extraid field seems weird here shouldn't be cast to ctx->received_transaction in this context
+        // extraid field seems weird here shouldn't be cast to ctx->received_transaction in this
+        // context
         lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
     }
 
@@ -35,7 +36,8 @@ int start_signing_transaction(swap_app_context_t *ctx, const command_t *cmd, Sen
         lib_in_out_params.amount_length = ctx->fund_transaction.in_amount.size;
         lib_in_out_params.destination_address = ctx->fund_transaction.in_address;
 
-        // extraid field seems weird here shouldn't be cast to ctx->received_transaction in this context
+        // extraid field seems weird here shouldn't be cast to ctx->received_transaction in this
+        // context
         lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
     }
 
