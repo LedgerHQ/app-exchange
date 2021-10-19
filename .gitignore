@@ -37,3 +37,4 @@ src/glyphs.c
 src/glyphs.h
 node_modules
 test/lib
+test/snapshots-tmp
