@@ -1,6 +1,6 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
-import secp256r1 from "secp256k1";
+import secp256r1 from "secp256r1";
 import sha256 from "js-sha256";
 import "./protocol_pb.js";
 import {
@@ -28,7 +28,7 @@ test('[Nano S] Valid funding transaction should be accepted', zemu("nanos", asyn
 
     var tr = new proto.ledger_swap.NewFundResponse();
 
-    tr.setUserId("lcastillo");
+    tr.setUserId("John Doe");
     tr.setAccountName("Card 1234");
     tr.setInAddress("LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD");
     tr.setInCurrency("BTC");
@@ -59,7 +59,7 @@ test('[Nano S] Valid funding transaction should be accepted', zemu("nanos", asyn
 
     // Wait until we are not in the main menu
     await waitForAppScreen(sim);
-    await sim.navigateAndCompareSnapshots('.', 'nanos_xlm_valid_refund_address_is_accepted', [4, 0]);
+    await sim.navigateAndCompareSnapshots('.', 'nanos_valid_funding_is_accepted', [5, 0]);
 
     await swap.signCoinTransaction();
 }));
