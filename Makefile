@@ -29,15 +29,8 @@ APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-baanx
 APPNAME = "Exchange"
 
 DEFINES += $(DEFINES_LIB)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
+
 #DEFINES += TESTING
-=======
-DEFINES += TESTING
->>>>>>> 76e1ea4 (bump 2.0.8-banx)
-DEFINES += TEST_PUBLIC_KEY
->>>>>>> 844e644 (Add support for secure funding of an external account using exchange app)
 
 ifdef TESTING
     DEFINES += TESTING
