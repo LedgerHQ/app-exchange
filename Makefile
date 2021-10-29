@@ -29,9 +29,14 @@ APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-baanx
 APPNAME = "Exchange"
 
 DEFINES += $(DEFINES_LIB)
-DEFINES += TESTING
-DEFINES += TEST_PUBLIC_KEY
 
+ifdef TESTING
+    DEFINES += TESTING
+endif
+
+ifdef TEST_PUBLIC_KEY
+    DEFINES += TEST_PUBLIC_KEY
+endif
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 	ICONNAME=icons/nanox_app_exchange.gif
@@ -79,7 +84,11 @@ endif
 DEFINES		  += HAVE_UX_FLOW
 DEFINES	      += HAVE_STACK_OVERFLOW_CHECK
 # Enabling debug PRINTF
-DEBUG = 0
+
+ifndef DEBUG
+        DEBUG = 0
+endif
+
 ifneq ($(DEBUG),0)
 		DEFINES   += HAVE_STACK_OVERFLOW_CHECK
         ifeq ($(TARGET_NAME),TARGET_NANOX)
