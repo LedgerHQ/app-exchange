@@ -20,18 +20,23 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --path "" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
+APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --curve secp256r1 --path "" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
 
 APPVERSION_M=2
 APPVERSION_N=0
-APPVERSION_P=7
-APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
+APPVERSION_P=8
+APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-baanx
 APPNAME = "Exchange"
 
 DEFINES += $(DEFINES_LIB)
-#DEFINES += TESTING
-#DEFINES += TEST_PUBLIC_KEY
 
+ifdef TESTING
+    DEFINES += TESTING
+endif
+
+ifdef TEST_PUBLIC_KEY
+    DEFINES += TEST_PUBLIC_KEY
+endif
 
 ifeq ($(TARGET_NAME),TARGET_NANOX)
 	ICONNAME=icons/nanox_app_exchange.gif
@@ -79,7 +84,11 @@ endif
 DEFINES		  += HAVE_UX_FLOW
 DEFINES	      += HAVE_STACK_OVERFLOW_CHECK
 # Enabling debug PRINTF
-DEBUG = 0
+
+ifndef DEBUG
+        DEBUG = 0
+endif
+
 ifneq ($(DEBUG),0)
 		DEFINES   += HAVE_STACK_OVERFLOW_CHECK
         ifeq ($(TARGET_NAME),TARGET_NANOX)
@@ -117,6 +126,7 @@ AS     := $(GCCPATH)arm-none-eabi-gcc
 
 LD       := $(GCCPATH)arm-none-eabi-gcc
 LDFLAGS  += -O3 -Os
+#LDFLAGS  += -O0
 LDLIBS   += -lm -lgcc -lc
 
 # import rules to compile glyphs(/pone)
