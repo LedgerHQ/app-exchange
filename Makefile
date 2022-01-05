@@ -31,10 +31,12 @@ APPNAME = "Exchange"
 DEFINES += $(DEFINES_LIB)
 
 ifdef TESTING
+    $(info [INFO] TESTING enabled)
     DEFINES += TESTING
 endif
 
 ifdef TEST_PUBLIC_KEY
+    $(info [INFO] TEST_PUBLIC_KEY enabled)
     DEFINES += TEST_PUBLIC_KEY
 endif
 
