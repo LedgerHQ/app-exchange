@@ -12,8 +12,8 @@ on:
     - develop
 
 jobs:
-  job_build_debug:
-    name: Build debug
+  job_build_debug_nano_S:
+    name: Build debug NanoS
     runs-on: ubuntu-latest
 
     container:
@@ -31,38 +31,68 @@ jobs:
       - name: Upload app binary
         uses: actions/upload-artifact@v2
         with:
-          name: exchange
+          name: exchange-nanoS
+          path: ./exchange.elf
+          if-no-files-found: error
+
+  job_build_debug_nano_X:
+    name: Build debug NanoX
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          make BOLOS_SDK=$NANOX_SDK DEBUG=1 TESTING=1 TEST_PUBLIC_KEY=1
+          cp bin/app.elf exchange.elf
+
+      - name: Upload app binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: exchange-nanoX
           path: ./exchange.elf
           if-no-files-found: error
 
   jobs-e2e-tests:
-    needs: [job_build_debug]
+    needs:
+      - job_build_debug_nano_S
+      - job_build_debug_nano_X
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Clone
         uses: actions/checkout@v2
-      - run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
-      - name: Install node
+
+      - name: Install APT dependencies
+        run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
+
+      - name: Install Node
         uses: actions/setup-node@v2
         with:
-          node-version: "14.4.0"
-      - name: Install yarn
-        run: |
-          npm install -g yarn
-      - name: Build/Install build js deps
-        run: |
-          cd test && yarn install
+          node-version: 16
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install JS dependencies
+        run: cd test && yarn install
+
       - name: Create tmp folder for artifacts
-        run: |
-          mkdir test/elfs/tmp
+        run: mkdir test/elfs/tmp
+
       - name: Download app binaries
         uses: actions/download-artifact@v2
         with:
+          name: exchange-nanoS
           path: test/elfs/tmp
+
       - name: Gather elfs
-        run: |
-          cd test/elfs/tmp
-          cp `find . -name "*.elf"` ..
+        run: cd test/elfs/tmp && cp `find . -name "*.elf"` ..
+
       - name: Run zemu tests
-        run: |
-          cd test && yarn test
+        run: cd test && yarn test
