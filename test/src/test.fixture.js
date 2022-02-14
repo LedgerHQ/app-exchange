@@ -11,6 +11,7 @@ const sim_options_nanos = {
     logging: true,
     X11: true,
     startDelay: 5000,
+    startText: 'is ready',
     custom: '',
 };
 
@@ -19,6 +20,7 @@ const sim_options_nanox = {
     logging: true,
     X11: true,
     startDelay: 5000,
+    startText: 'is ready',
     custom: '',
 };
 
