@@ -148,3 +148,42 @@ test('[Nano S] Valid refund address should be accepted', zemu("nanos", async (si
 
     await expect(checkRequest).resolves.toBe(undefined);
 }));
+
+// tests with taproot addresses
+
+test('[Nano S] Valid taproot refund address should be accepted', zemu("nanos", async (sim) => {
+    const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
+    const transactionId: string = await swap.startNewTransaction();
+    await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+    await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+    var tr = new proto.ledger_swap.NewTransactionResponse();
+    tr.setPayinAddress("2324234324324234");
+    tr.setPayinExtraId("");
+    tr.setRefundAddress("bc1p3a2hvrnu9pddga5umef49keepgcw7yvz5a7m2uxx6vsrmth4p40qzrgjwr");
+    tr.setRefundExtraId("");
+    tr.setPayoutAddress("LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD");
+    tr.setPayoutExtraId("");
+    tr.setCurrencyFrom("BTC");
+    tr.setCurrencyTo("LTC");
+    // 1 BTC to 10 LTC
+    tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
+    tr.setAmountToWallet(numberToBigEndianBuffer(1000000000));
+    tr.setDeviceTransactionId(transactionId);
+
+    const payload: Buffer = Buffer.from(tr.serializeBinary());
+    await swap.processTransaction(payload, 10000000);
+    const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+    const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+    await swap.checkTransactionSignature(signature);
+    const ltcAddressParams = await getSerializedAddressParametersBTC("49'/0'/0'/0/0");
+    await swap.checkPayoutAddress(LTCConfig, LTCConfigSignature, ltcAddressParams.addressParameters);
+
+    const btcAddressParams = await getSerializedAddressParametersBTC("86'/0'/0'/0/6", "bech32m");
+    const checkRequest = swap.checkRefundAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters);
+
+    // Wait until we are not in the main menu
+    await waitForAppScreen(sim);
+    await sim.navigateAndCompareSnapshots('.', 'nanos_btc_valid_taproot_refund_address_is_accepted', [4, 0]);
+
+    await expect(checkRequest).resolves.toBe(undefined);
+}));

@@ -1,0 +1,109 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.hashLeaf = exports.Merkle = void 0;
+const bitcoinjs_lib_1 = require("bitcoinjs-lib");
+/**
+ * This class implements the merkle tree used by Ledger Bitcoin app v2+,
+ * which is documented at
+ * https://github.com/LedgerHQ/app-bitcoin-new/blob/master/doc/merkle.md
+ */
+class Merkle {
+    constructor(leaves, hasher = bitcoinjs_lib_1.crypto.sha256) {
+        this.leaves = leaves;
+        this.h = hasher;
+        const nodes = this.calculateRoot(leaves);
+        this.rootNode = nodes.root;
+        this.leafNodes = nodes.leaves;
+    }
+    getRoot() {
+        return this.rootNode.hash;
+    }
+    size() {
+        return this.leaves.length;
+    }
+    getLeaves() {
+        return this.leaves;
+    }
+    getLeafHash(index) {
+        return this.leafNodes[index].hash;
+    }
+    getProof(index) {
+        if (index >= this.leaves.length)
+            throw Error('Index out of bounds');
+        return proveNode(this.leafNodes[index]);
+    }
+    calculateRoot(leaves) {
+        const n = leaves.length;
+        if (n == 0) {
+            return {
+                root: new Node(undefined, undefined, Buffer.alloc(32, 0)),
+                leaves: [],
+            };
+        }
+        if (n == 1) {
+            const newNode = new Node(undefined, undefined, leaves[0]);
+            return { root: newNode, leaves: [newNode] };
+        }
+        const leftCount = highestPowerOf2LessThan(n);
+        const leftBranch = this.calculateRoot(leaves.slice(0, leftCount));
+        const rightBranch = this.calculateRoot(leaves.slice(leftCount));
+        const leftChild = leftBranch.root;
+        const rightChild = rightBranch.root;
+        const hash = this.hashNode(leftChild.hash, rightChild.hash);
+        const node = new Node(leftChild, rightChild, hash);
+        leftChild.parent = node;
+        rightChild.parent = node;
+        return { root: node, leaves: leftBranch.leaves.concat(rightBranch.leaves) };
+    }
+    hashNode(left, right) {
+        return this.h(Buffer.concat([Buffer.from([1]), left, right]));
+    }
+}
+exports.Merkle = Merkle;
+function hashLeaf(buf, hashFunction = bitcoinjs_lib_1.crypto.sha256) {
+    return hashConcat(Buffer.from([0]), buf, hashFunction);
+}
+exports.hashLeaf = hashLeaf;
+function hashConcat(bufA, bufB, hashFunction) {
+    return hashFunction(Buffer.concat([bufA, bufB]));
+}
+class Node {
+    constructor(left, right, hash) {
+        this.leftChild = left;
+        this.rightChild = right;
+        this.hash = hash;
+    }
+    isLeaf() {
+        return this.leftChild == undefined;
+    }
+}
+function proveNode(node) {
+    if (!node.parent) {
+        return [];
+    }
+    if (node.parent.leftChild == node) {
+        if (!node.parent.rightChild) {
+            throw new Error('Expected right child to exist');
+        }
+        return [node.parent.rightChild.hash, ...proveNode(node.parent)];
+    }
+    else {
+        if (!node.parent.leftChild) {
+            throw new Error('Expected left child to exist');
+        }
+        return [node.parent.leftChild.hash, ...proveNode(node.parent)];
+    }
+}
+function highestPowerOf2LessThan(n) {
+    if (n < 2) {
+        throw Error('Expected n >= 2');
+    }
+    if (isPowerOf2(n)) {
+        return n / 2;
+    }
+    return 1 << Math.floor(Math.log2(n));
+}
+function isPowerOf2(n) {
+    return (n & (n - 1)) == 0;
+}
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWVya2xlLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vLi4vc3JjL2xpYi9tZXJrbGUudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBQUEsaURBQXVDO0FBRXZDOzs7O0dBSUc7QUFDSCxNQUFhLE1BQU07SUFLakIsWUFDRSxNQUFnQixFQUNoQixTQUFrQyxzQkFBTSxDQUFDLE1BQU07UUFFL0MsSUFBSSxDQUFDLE1BQU0sR0FBRyxNQUFNLENBQUM7UUFDckIsSUFBSSxDQUFDLENBQUMsR0FBRyxNQUFNLENBQUM7UUFDaEIsTUFBTSxLQUFLLEdBQUcsSUFBSSxDQUFDLGFBQWEsQ0FBQyxNQUFNLENBQUMsQ0FBQztRQUN6QyxJQUFJLENBQUMsUUFBUSxHQUFHLEtBQUssQ0FBQyxJQUFJLENBQUM7UUFDM0IsSUFBSSxDQUFDLFNBQVMsR0FBRyxLQUFLLENBQUMsTUFBTSxDQUFDO0lBQ2hDLENBQUM7SUFDRCxPQUFPO1FBQ0wsT0FBTyxJQUFJLENBQUMsUUFBUSxDQUFDLElBQUksQ0FBQztJQUM1QixDQUFDO0lBQ0QsSUFBSTtRQUNGLE9BQU8sSUFBSSxDQUFDLE1BQU0sQ0FBQyxNQUFNLENBQUM7SUFDNUIsQ0FBQztJQUNELFNBQVM7UUFDUCxPQUFPLElBQUksQ0FBQyxNQUFNLENBQUM7SUFDckIsQ0FBQztJQUNELFdBQVcsQ0FBQyxLQUFhO1FBQ3ZCLE9BQU8sSUFBSSxDQUFDLFNBQVMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxJQUFJLENBQUM7SUFDcEMsQ0FBQztJQUNELFFBQVEsQ0FBQyxLQUFhO1FBQ3BCLElBQUksS0FBSyxJQUFJLElBQUksQ0FBQyxNQUFNLENBQUMsTUFBTTtZQUFFLE1BQU0sS0FBSyxDQUFDLHFCQUFxQixDQUFDLENBQUM7UUFDcEUsT0FBTyxTQUFTLENBQUMsSUFBSSxDQUFDLFNBQVMsQ0FBQyxLQUFLLENBQUMsQ0FBQyxDQUFDO0lBQzFDLENBQUM7SUFFRCxhQUFhLENBQUMsTUFBZ0I7UUFJNUIsTUFBTSxD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
