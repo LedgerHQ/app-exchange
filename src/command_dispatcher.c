@@ -62,7 +62,7 @@ int dispatch_command(swap_app_context_t *context, const command_t *cmd, SendFunc
             }
             break;
         case CHECK_TRANSACTION_SIGNATURE_COMMAND:
-            if (context->state == TRANSACTION_RECIEVED && cmd->subcommand == context->subcommand) {
+            if (context->state == TRANSACTION_RECEIVED && cmd->subcommand == context->subcommand) {
                 handler = (void *) PIC(check_tx_signature);
             }
             break;

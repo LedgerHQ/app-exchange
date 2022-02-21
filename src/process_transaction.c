@@ -205,7 +205,7 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
         return -1;
     }
 
-    ctx->state = TRANSACTION_RECIEVED;
+    ctx->state = TRANSACTION_RECEIVED;
 
     return 0;
 }
