@@ -20,12 +20,12 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --path "" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
+APP_LOAD_PARAMS= --curve ed25519 --curve secp256k1 --curve secp256r1 --path "" --appFlags 0x240 $(COMMON_LOAD_PARAMS)
 
 APPVERSION_M=2
 APPVERSION_N=0
-APPVERSION_P=7
-APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
+APPVERSION_P=8
+APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-baanx
 APPNAME = "Exchange"
 
 DEFINES += $(DEFINES_LIB)
@@ -128,6 +128,7 @@ AS     := $(GCCPATH)arm-none-eabi-gcc
 
 LD       := $(GCCPATH)arm-none-eabi-gcc
 LDFLAGS  += -O3 -Os
+#LDFLAGS  += -O0
 LDLIBS   += -lm -lgcc -lc
 
 # import rules to compile glyphs(/pone)

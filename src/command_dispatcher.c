@@ -29,7 +29,7 @@ int dispatch_command(swap_app_context_t *context, const command_t *cmd, SendFunc
     if (cmd->rate != FIXED && cmd->rate != FLOATING) {
         return reply_error(context, WRONG_P1, send);
     }
-    if (cmd->subcommand != SWAP && cmd->subcommand != SELL) {
+    if (cmd->subcommand != SWAP && cmd->subcommand != SELL && cmd->subcommand != FUND) {
         return reply_error(context, WRONG_P2, send);
     }
 
@@ -68,7 +68,7 @@ int dispatch_command(swap_app_context_t *context, const command_t *cmd, SendFunc
             break;
         case CHECK_PAYOUT_ADDRESS:
             if (context->state == SIGNATURE_CHECKED && cmd->subcommand == context->subcommand) {
-                if (cmd->subcommand == SELL) {
+                if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
                     handler = (void *) PIC(check_asset_in);
                 } else {
                     handler = (void *) PIC(check_payout_address);

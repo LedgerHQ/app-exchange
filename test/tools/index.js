@@ -1,4 +1,6 @@
 const secp256k1 = require('secp256k1');
+const secp256r1 = require('secp256r1');
+
 const sha256 = require('js-sha256').sha256;
 
 const toHexPrintableConst = (buffer) => {
@@ -18,13 +20,13 @@ const serializeSignedPartnerPublicKeyAndName = (partnerName, swapPartnerPublicKe
     return { "privKey": "NONONO", "serializedPubKeyAndName": binaryNameAndPublicKey, "signatureInDER": der };
 }
 
-const createSignedPartnerPublicKeyAndName = (partnerName, ledgerPrivateKey) => {
+const createSignedPartnerPublicKeyAndName = (partnerName, ledgerPrivateKey, curve) => {
     var swapPartnerPrivateKey = Buffer.from(sha256.sha256.array(partnerName));
-    while (!secp256k1.privateKeyVerify(swapPartnerPrivateKey)) {
+    while (!curve.privateKeyVerify(swapPartnerPrivateKey)) {
         swapPartnerPrivateKey = Buffer.from(sha256.sha256.array(swapPartnerPrivateKey));
     }
 
-    const swapPartnerPublicKey = secp256k1.publicKeyCreate(swapPartnerPrivateKey, false);
+    const swapPartnerPublicKey = curve.publicKeyCreate(swapPartnerPrivateKey, false);
 
     return { ...serializeSignedPartnerPublicKeyAndName(partnerName, swapPartnerPublicKey, ledgerPrivateKey), "privKey": swapPartnerPrivateKey, };
 }
@@ -41,7 +43,7 @@ const createCurrencyConfig = (ticker, applicationName, coinConfig, ledgerPrivate
 
 const main = () => {
     const changellyPubKey = secp256k1.publicKeyConvert(Buffer.from('0380d7c0d3a9183597395f58dda05999328da6f18fabd5cda0aff8e8e3fc633436', 'hex'), false)
-    const oldLedgerTestPrivateKey = Buffer.from(sha256.sha256.array('Ledger'))
+    //const oldLedgerTestPrivateKey = Buffer.from(sha256.sha256.array('Ledger'))
     const ledgerTestPrivateKey = Buffer.from('b1ed47ef58f782e2bc4d5abe70ef66d9009c2957967017054470e0f3e10f5833', 'hex')
 
     if (!secp256k1.privateKeyVerify(ledgerTestPrivateKey))
@@ -53,13 +55,19 @@ const main = () => {
     console.log("Ledger test compressed public key: " + toHexPrintableConst(ledgerPublicKey) + "\n");
     console.log("Ledger test public key: " + toHexPrintableConst(uncompressed) + "\n");
     console.log("===========\n");
-    /*
-    swapTestData = createSignedPartnerPublicKeyAndName("SWAP_TEST", ledgerTestPrivateKey);
+
+    swapTestData = createSignedPartnerPublicKeyAndName("SWAP_TEST", ledgerTestPrivateKey, secp256k1);
     console.log("SWAP_TEST private key: " + toHexPrintableConst(swapTestData.privKey));
     console.log("SWAP_TEST signed name and pub key: " + toHexPrintableConst(swapTestData.serializedPubKeyAndName));
     console.log("DER signature: " + toHexPrintableConst(swapTestData.signatureInDER));
     console.log("===========\n");
-    */
+
+    fundTestData = createSignedPartnerPublicKeyAndName("FUND_TEST", ledgerTestPrivateKey, secp256r1);
+    console.log("FUND_TEST private key: " + toHexPrintableConst(fundTestData.privKey));
+    console.log("FUND_TEST signed name and pub key: " + toHexPrintableConst(fundTestData.serializedPubKeyAndName));
+    console.log("DER signature: " + toHexPrintableConst(fundTestData.signatureInDER));
+    console.log("===========\n");
+
     changellyData = serializeSignedPartnerPublicKeyAndName("Changelly", changellyPubKey, ledgerTestPrivateKey);
     console.log("Changelly private key: " + toHexPrintableConst(changellyData.privKey));
     console.log("Changelly serialized name and pub key: " + toHexPrintableConst(changellyData.serializedPubKeyAndName));
