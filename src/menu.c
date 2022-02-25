@@ -64,6 +64,7 @@ struct ValidationInfo {
     char send[PRINTABLE_AMOUNT_SIZE];
     char get[member_size(swap_app_context_t, printable_get_amount)];
     char fees[PRINTABLE_AMOUNT_SIZE];
+    char provider[PRINTABLE_AMOUNT_SIZE];
     UserChoiseCallback OnAccept;
     UserChoiseCallback OnReject;
 } validationInfo;
@@ -92,6 +93,11 @@ UX_STEP_NOCB(ux_confirm_flow_1_2_step, bnnn_paging,
     .title = "Email",
     .text = validationInfo.email,
 });
+UX_STEP_NOCB(ux_confirm_flow_1_3_step, bnnn_paging,
+{
+    .title = "User",
+    .text = validationInfo.email,
+});
 UX_STEP_NOCB(ux_confirm_flow_2_step, bnnn_paging,
 {
     .title = "Send",
@@ -105,6 +111,11 @@ UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
 UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
 {
     .title = "Get estimated",
+    .text = validationInfo.get,
+});
+UX_STEP_NOCB(ux_confirm_flow_3_2_step, bnnn_paging,
+{
+    .title = validationInfo.provider,
     .text = validationInfo.get,
 });
 UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
@@ -132,9 +143,13 @@ void ux_confirm(rate_e rate, subcommand_e subcommand) {
     ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
     if (subcommand == SELL) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
+    } else if (subcommand == FUND) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_1_3_step;
     }
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
-    if (rate == FLOATING) {
+    if (subcommand == FUND) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_2_step;
+    } else if (rate == FLOATING) {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
     } else {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
@@ -175,6 +190,17 @@ void ui_validate_amounts(rate_e rate,
         validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
     }
 
+    if (subcommand == FUND) {
+        strncpy(validationInfo.email, ctx->fund_transaction.user_id, sizeof(validationInfo.email));
+        validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
+
+        strncpy(validationInfo.provider, "To ", 3);
+
+        strncpy(validationInfo.provider + 3,
+                ctx->partner.name,
+                sizeof(validationInfo.provider) - 4);
+        validationInfo.provider[sizeof(validationInfo.provider) - 1] = '\x00';
+    }
     ux_confirm(rate, subcommand);
 }
 

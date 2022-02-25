@@ -15,6 +15,18 @@ extern "C" {
 #endif
 
 /* Struct definitions */
+typedef PB_BYTES_ARRAY_T(16) ledger_swap_NewFundResponse_in_amount_t;
+typedef PB_BYTES_ARRAY_T(32) ledger_swap_NewFundResponse_device_transaction_id_t;
+typedef struct _ledger_swap_NewFundResponse {
+    char user_id[50];
+    char account_name[50];
+    char in_currency[10];
+    ledger_swap_NewFundResponse_in_amount_t in_amount;
+    char in_address[50];
+    ledger_swap_NewFundResponse_device_transaction_id_t device_transaction_id;
+/* @@protoc_insertion_point(struct:ledger_swap_NewFundResponse) */
+} ledger_swap_NewFundResponse;
+
 typedef PB_BYTES_ARRAY_T(16) ledger_swap_NewTransactionResponse_amount_to_provider_t;
 typedef PB_BYTES_ARRAY_T(16) ledger_swap_NewTransactionResponse_amount_to_wallet_t;
 typedef struct _ledger_swap_NewTransactionResponse {
@@ -58,11 +70,19 @@ typedef struct _ledger_swap_NewSellResponse {
 #define ledger_swap_NewTransactionResponse_init_default {"", "", "", "", "", "", "", "", {0, {0}}, {0, {0}}, ""}
 #define ledger_swap_UDecimal_init_default        {{0, {0}}, 0}
 #define ledger_swap_NewSellResponse_init_default {"", "", {0, {0}}, "", "", ledger_swap_UDecimal_init_default, {0, {0}}}
+#define ledger_swap_NewFundResponse_init_default {"", "", "", {0, {0}}, "", {0, {0}}}
 #define ledger_swap_NewTransactionResponse_init_zero {"", "", "", "", "", "", "", "", {0, {0}}, {0, {0}}, ""}
 #define ledger_swap_UDecimal_init_zero           {{0, {0}}, 0}
 #define ledger_swap_NewSellResponse_init_zero    {"", "", {0, {0}}, "", "", ledger_swap_UDecimal_init_zero, {0, {0}}}
+#define ledger_swap_NewFundResponse_init_zero    {"", "", "", {0, {0}}, "", {0, {0}}}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define ledger_swap_NewFundResponse_user_id_tag  1
+#define ledger_swap_NewFundResponse_account_name_tag 2
+#define ledger_swap_NewFundResponse_in_currency_tag 3
+#define ledger_swap_NewFundResponse_in_amount_tag 4
+#define ledger_swap_NewFundResponse_in_address_tag 5
+#define ledger_swap_NewFundResponse_device_transaction_id_tag 6
 #define ledger_swap_NewTransactionResponse_payin_address_tag 1
 #define ledger_swap_NewTransactionResponse_payin_extra_id_tag 2
 #define ledger_swap_NewTransactionResponse_refund_address_tag 3
@@ -88,11 +108,13 @@ typedef struct _ledger_swap_NewSellResponse {
 extern const pb_field_t ledger_swap_NewTransactionResponse_fields[12];
 extern const pb_field_t ledger_swap_UDecimal_fields[3];
 extern const pb_field_t ledger_swap_NewSellResponse_fields[8];
+extern const pb_field_t ledger_swap_NewFundResponse_fields[7];
 
 /* Maximum encoded size of messages (where known) */
 #define ledger_swap_NewTransactionResponse_size  316
 #define ledger_swap_UDecimal_size                24
 #define ledger_swap_NewSellResponse_size         206
+#define ledger_swap_NewFundResponse_size         220
 
 /* Message IDs (where set with "msgid" option) */
 #ifdef PB_MSGID
