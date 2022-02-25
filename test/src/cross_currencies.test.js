@@ -39,7 +39,7 @@ const TEZOS_DERIVATION_PATH_1 = "44'/1729'/0'/0'";
 import Zemu from "@zondax/zemu";
 import { waitForAppScreen, zemu } from './test.fixture';
 
-test('[Nano S] BTC swap to LTC fails', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (legacy protocol) swap to LTC fails', zemu("nanos", async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -171,7 +171,7 @@ test('[Nano S] LTC swap to ETH', zemu("nanos", async (sim) => {
         .resolves.toEqual(Buffer.from('3045022100e01f45183c1e4fa647418420ae7dae7b6c1486377a0f9bc5530772a05a22206a02201194578e4d9bb4c137b7e072488a2ca50e4c85e1c4934785110b9ad8024f5038019000', 'hex'));
 }));
 
-test('[Nano S] BTC swap to ETH', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (legacy protocol) swap to ETH', zemu("nanos", async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -638,7 +638,7 @@ test('[Nano S] ETH swap to XTZ', zemu("nanos", async (sim) => {
 
 // The following tests use the new protocol native to the Ledger 2.0.x application.
 
-test('[Nano S] BTC swap to ETH (new protocol, segwit address)', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (new protocol, segwit address) swap to ETH', zemu("nanos", async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -694,7 +694,7 @@ test('[Nano S] BTC swap to ETH (new protocol, segwit address)', zemu("nanos", as
 }));
 
 
-test('[Nano S] BTC swap to ETH (new protocol, taproot address)', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (new protocol, taproot address) swap to ETH', zemu("nanos", async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
