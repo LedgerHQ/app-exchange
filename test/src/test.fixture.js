@@ -12,6 +12,7 @@ const sim_options_nanos = {
     X11: true,
     startDelay: 5000,
     startText: 'is ready',
+    sdk: '2.1',
     custom: '',
 };
 

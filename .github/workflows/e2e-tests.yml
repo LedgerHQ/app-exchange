@@ -1,12 +1,15 @@
 name: End-to-end tests
 
 on:
+  workflow_dispatch:
   push:
     branches:
     - master
+    - develop
   pull_request:
     branches:
     - master
+    - develop
 
 jobs:
   e2e-tests:

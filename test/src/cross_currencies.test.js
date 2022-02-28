@@ -30,6 +30,8 @@ import {
     TRANSACTION_TYPES
 } from "./exchange.js";
 
+import { AppClient as BtcAppAclient, PsbtV2, DefaultWalletPolicy } from "./AppBtc"
+
 const TEZOS_ADDRESS_1 = "tz1RVYaHiobUKXMfJ47F7Rjxx5tu3LC35WSA";
 const TEZOS_ADDRESS_2 = "tz1RjJLvt7iguJQnVVWYca2AHDpHYmPJYz4d";
 const TEZOS_DERIVATION_PATH_1 = "44'/1729'/0'/0'";
@@ -37,7 +39,7 @@ const TEZOS_DERIVATION_PATH_1 = "44'/1729'/0'/0'";
 import Zemu from "@zondax/zemu";
 import { waitForAppScreen, zemu } from './test.fixture';
 
-test('[Nano S] BTC swap to LTC fails', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (legacy protocol) swap to LTC fails', zemu("nanos", async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -54,6 +56,7 @@ test('[Nano S] BTC swap to LTC fails', zemu("nanos", async (sim) => {
     tr.setAmountToProvider(numberToBigEndianBuffer(500000));
     tr.setAmountToWallet(numberToBigEndianBuffer(10000000));
     tr.setDeviceTransactionId(transactionId);
+
 
     const payload: Buffer = Buffer.from(tr.serializeBinary());
     await swap.processTransaction(payload, 1070);
@@ -168,7 +171,7 @@ test('[Nano S] LTC swap to ETH', zemu("nanos", async (sim) => {
         .resolves.toEqual(Buffer.from('3045022100e01f45183c1e4fa647418420ae7dae7b6c1486377a0f9bc5530772a05a22206a02201194578e4d9bb4c137b7e072488a2ca50e4c85e1c4934785110b9ad8024f5038019000', 'hex'));
 }));
 
-test('[Nano S] BTC swap to ETH', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (legacy protocol) swap to ETH', zemu("nanos", async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -630,4 +633,118 @@ test('[Nano S] ETH swap to XTZ', zemu("nanos", async (sim) => {
             "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
             "v": "25"
         });
+}));
+
+
+// The following tests use the new protocol native to the Ledger 2.0.x application.
+
+test('[Nano S] BTC (new protocol, segwit address) swap to ETH', zemu("nanos", async (sim) => {
+    const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
+    const transactionId: string = await swap.startNewTransaction();
+    await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+    await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+    var tr = new proto.ledger_swap.NewTransactionResponse();
+    tr.setPayinAddress("bc1qqtl9jlrwcr3fsfcjj2du7pu6fcgaxl5dsw2vyg");
+    tr.setPayinExtraId("");
+    tr.setRefundAddress("bc1qmwu9n0kx73cte4wt7mgxhkereqgqerumh2q86x");
+    tr.setRefundExtraId("");
+    tr.setPayoutAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+    tr.setPayoutExtraId("");
+    tr.setCurrencyFrom("BTC");
+    tr.setCurrencyTo("ETH");
+    tr.setAmountToProvider(numberToBigEndianBuffer(9999));
+    tr.setAmountToWallet(numberToBigEndianBuffer((10 ** 18) * 0.04321)); // 10^18 wei == 1 ETH
+    tr.setDeviceTransactionId(transactionId);
+
+    const payload: Buffer = Buffer.from(tr.serializeBinary());
+    await swap.processTransaction(payload, 3);
+    const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+    const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+    await swap.checkTransactionSignature(signature);
+    const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+    await swap.checkPayoutAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+
+    const BTCAddressParams = getSerializedAddressParametersBTC("84'/0'/0'/0/10", "bech32");
+    const checkRequest = swap.checkRefundAddress(BTCConfig, BTCConfigSignature, BTCAddressParams.addressParameters);
+
+    // Wait until we are not in the main menu
+    await waitForAppScreen(sim);
+    await sim.navigateAndCompareSnapshots('.', 'nanos_btc_to_eth_swap_newprotocol', [4, 0]);
+    await expect(checkRequest).resolves.toBe(undefined);
+
+    await swap.signCoinTransaction();
+
+    await Zemu.sleep(1000);
+
+    const transport = await sim.getTransport();
+    const appClient = new BtcAppAclient(transport);
+    const psbt = new PsbtV2();
+
+    const psbtBase64 = "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";
+
+    psbt.deserialize(Buffer.from(psbtBase64, 'base64'));
+
+    const policy = new DefaultWalletPolicy("wpkh(@0)", "[f5acc2fd/84'/0'/0']xpub6DUYn4moKgHkK2d7bXX3mHTPb6XQwRVFRMdZ6ZwLS5u3nonGVpJiFeZiQkHutwdFqxKP75jex8gvVm7ed4euYeDtMnoiF1Cz1z4CeBJYWin/**");
+
+    const sigs = await appClient.signPsbt(psbt, policy, Buffer.alloc(32, 0));
+
+    await expect(sigs.size).toEqual(2)
+    await expect(sigs.get(0)).toEqual(Buffer.from("304402200ce6e00eeb7e54737a021240d6ccf63d1b3d07cbaa78d83356086042220fa70602201ea8c4f43a808be7a2ace708a46117cd98fa430cb7caca1d04b7849fefeeb64601", "hex"));
+    await expect(sigs.get(1)).toEqual(Buffer.from("304402201eb8ae6458dd2d8bb596012cf6a2761be55824943cbecc72566f89a12564f706022029ec920b8e728ecd0c47194299ab77f6014af05924ad220c1ff48067eb4eac5501", "hex"));
+}));
+
+
+test('[Nano S] BTC (new protocol, taproot address) swap to ETH', zemu("nanos", async (sim) => {
+    const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
+    const transactionId: string = await swap.startNewTransaction();
+    await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+    await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+    var tr = new proto.ledger_swap.NewTransactionResponse();
+    // tr.setPayinAddress("bc1qnjg0jd8228aq7egyzacy8cys3knf9xvrerkf9g");
+    tr.setPayinAddress("bc1qnjg0jd8228aq7egyzacy8cys3knf9xvrerkf9g");
+    tr.setPayinExtraId("");
+    tr.setRefundAddress("bc1p3a2hvrnu9pddga5umef49keepgcw7yvz5a7m2uxx6vsrmth4p40qzrgjwr");
+    tr.setRefundExtraId("");
+    tr.setPayoutAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+    tr.setPayoutExtraId("");
+    tr.setCurrencyFrom("BTC");
+    tr.setCurrencyTo("ETH");
+    tr.setAmountToProvider(numberToBigEndianBuffer(14460));
+    tr.setAmountToWallet(numberToBigEndianBuffer((10 ** 18) * 0.04321)); // 10^18 wei == 1 ETH
+    tr.setDeviceTransactionId(transactionId);
+
+    const payload: Buffer = Buffer.from(tr.serializeBinary());
+    await swap.processTransaction(payload, 114);
+    const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+    const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+    await swap.checkTransactionSignature(signature);
+    const ethAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+    await swap.checkPayoutAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+
+    const BTCAddressParams = getSerializedAddressParametersBTC("86'/0'/0'/0/6", "bech32m");
+    const checkRequest = swap.checkRefundAddress(BTCConfig, BTCConfigSignature, BTCAddressParams.addressParameters);
+
+    // Wait until we are not in the main menu
+    await waitForAppScreen(sim);
+    await sim.navigateAndCompareSnapshots('.', 'nanos_btc_to_eth_swap_newprotocol_taproot', [4, 0]);
+    await expect(checkRequest).resolves.toBe(undefined);
+
+    await swap.signCoinTransaction();
+
+    await Zemu.sleep(1000);
+
+    const transport = await sim.getTransport();
+    const appClient = new BtcAppAclient(transport);
+    const psbt = new PsbtV2();
+
+    const psbtBase64 = "cHNidP8BAAoBAAAAAAAAAAAAAQIEAQAAAAEDBAAAAAABBAECAQUBAgH7BAIAAAAAAQEr1xEAAAAAAAAiUSD3Y9aVNfDDp/zNGyG5Rcy3gnt0PgEBedaYlLwQUziXogEOIFU4EAs2lLBmKvcTBNmyMYQ+evUOki7PVHbV4jFjld7AAQ8EAAAAAAEQBAAAAAABEgQAAAAAIRb3Y9aVNfDDp/zNGyG5Rcy3gnt0PgEBedaYlLwQUziXohkA9azC/VYAAIAAAACAAAAAgAEAAAC4IAAAAAEBK+c4AAAAAAAAIlEgcJAKXN6uSqujxSv/5/QCnBWS0zpq2smeWWCplTx/s8IBDiCyhHpHRzwa5b+9CkwpqRzrgBhXlnIM3le73HuL1cNKkwEPBAMAAAABEAQAAAAAARIEAAAAACEWcJAKXN6uSqujxSv/5/QCnBWS0zpq2smeWWCplTx/s8IZAPWswv1WAACAAAAAgAAAAIAAAAAApiMAAAABAwjQEQAAAAAAAAEEIlEgx9j622ryUFyy0KHN0W8KNsE2oan3VpvM6Uug+TvXmTshB8fY+ttq8lBcstChzdFvCjbBNqGp91abzOlLoPk715k7GQD1rML9VgAAgAAAAIAAAACAAQAAAAAAAAAAAQMIfDgAAAAAAAABBBYAFJyQ+TTqUfoPZQQXcEPgkI2mkpmDAA==";
+    psbt.deserialize(Buffer.from(psbtBase64, 'base64'));
+
+    const policy = new DefaultWalletPolicy("tr(@0)", "[f5acc2fd/86'/0'/0']xpub6C6unosUbSTkybyZTDLRNFKcWhcEWm5P6QdjuL26ZiL5mzt9c8eMHH3BGBCAhiaxMiC3h2xcMbdJjY7TbwtvxAhRfTTchyprB2JciaN6YrC/**");
+
+    const sigs = await appClient.signPsbt(psbt, policy, Buffer.alloc(32, 0));
+
+    await expect(sigs.size).toEqual(2)
+    // taproot signatures are not deterministic, so they change at every execution
+    // checking that the transaction was signed is anyway good enough
 }));

@@ -84,11 +84,13 @@ export function numberToBigEndianBuffer(x: number): Uint8Array {
 export function getSerializedAddressParametersBTC(
     path: string, format?: AddressFormat
 ): { addressParameters: Buffer } {
-    type AddressFormat = "legacy" | "p2sh" | "bech32";
+    type AddressFormat = "legacy" | "p2sh" | "bech32" | "bech32m";
     const addressFormatMap = {
         legacy: 0,
         p2sh: 1,
-        bech32: 2
+        bech32: 2,
+        // 3 is skipped as it was used for "cashaddr" format
+        bech32m: 4
     };
     format = format || "legacy";
     if (!(format in addressFormatMap)) {
