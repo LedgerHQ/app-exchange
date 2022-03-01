@@ -31,12 +31,38 @@ void set_ledger_currency_name(char *currency) {
     }
 }
 
+/*
+ * Trims leading 0s on `PB_BYTES_ARRAY_T.bytes` fields.
+ *
+ * This field is to be sent 'as is' to coin application to inform them of
+ * sending/getting coins. Some applications expect a small field (i.e: Bitcoin
+ * needs 8B max).
+ * This function only trims the leading 0s as much as possible, meaning if the
+ * field value does overflow, the coin application would return an error.
+ *
+ * The operation should be valid for any kind of PB_BYTES_ARRAY_T, but is
+ * currently restricted to PB_BYTES_ARRAY_T(16) (pb_bytes_array_16_t) for
+ * type consistency.
+ */
+void trim_pb_bytes_array(pb_bytes_array_16_t *transaction) {
+    pb_size_t i;
+    for (i = 0; i < transaction->size; i++) {
+        if (transaction->bytes[i] != 0) {
+            break;
+        }
+    }
+    if (i == 0) {
+        return;
+    }
+    transaction->size -= i;
+    memmove(transaction->bytes, transaction->bytes+i, transaction->size);
+}
+
 void normalize_currencies(swap_app_context_t *ctx) {
     to_uppercase(ctx->received_transaction.currency_from,
                  sizeof(ctx->received_transaction.currency_from));
     to_uppercase(ctx->received_transaction.currency_to,
                  sizeof(ctx->received_transaction.currency_to));
-
     set_ledger_currency_name(ctx->received_transaction.currency_from);
     set_ledger_currency_name(ctx->received_transaction.currency_to);
 
@@ -84,6 +110,10 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
+
+        // triming leading 0s
+        trim_pb_bytes_array(&(ctx->received_transaction.amount_to_provider));
+        trim_pb_bytes_array(&(ctx->received_transaction.amount_to_wallet));
 
         if (os_memcmp(ctx->device_transaction_id.swap,
                       ctx->received_transaction.device_transaction_id,
@@ -138,6 +168,11 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
+
+        // trim leading 0s
+        trim_pb_bytes_array((cmd->subcommand == SELL ?
+                             &(ctx->sell_transaction.in_amount) :
+                             &(ctx->fund_transaction.in_amount)));
 
         pb_byte_t *device_transaction_id_to_check =
             (cmd->subcommand == SELL ? ctx->sell_transaction.device_transaction_id.bytes
@@ -194,7 +229,6 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
     os_memcpy(ctx->transaction_fee,
               cmd->data.bytes + 1 + payload_length + 1,
               ctx->transaction_fee_length);
-
     PRINTF("Transaction fees BE = %.*H\n", ctx->transaction_fee_length, ctx->transaction_fee);
 
     unsigned char output_buffer[2] = {0x90, 0x00};

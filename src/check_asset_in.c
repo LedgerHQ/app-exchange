@@ -77,8 +77,8 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
 
     static char in_printable_amount[PRINTABLE_AMOUNT_SIZE];
 
-    pb_bytes_array_t *in_amount = (ctx->subcommand == SELL ? &ctx->sell_transaction.in_amount
-                                                           : &ctx->fund_transaction.in_amount);
+    pb_bytes_array_16_t *in_amount = (ctx->subcommand == SELL ? &ctx->sell_transaction.in_amount
+                                                              : &ctx->fund_transaction.in_amount);
 
     // getting printable amount
     if (get_printable_amount(&config,
