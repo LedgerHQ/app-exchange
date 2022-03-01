@@ -10,7 +10,7 @@ typedef struct currency_alias_s {
     char *ledger_name;
 } currency_alias_t;
 
-const currency_alias_t const currencies_aliases[] = {
+const currency_alias_t currencies_aliases[] = {
     {"USDT20", "USDT"},  // Changelly's name must be changed to match the ticker from Ledger's
                          // cryptoasset list
     {"REP", "REPv2"}     // Changelly's name isn't up to date...
@@ -55,7 +55,7 @@ void trim_pb_bytes_array(pb_bytes_array_16_t *transaction) {
         return;
     }
     transaction->size -= i;
-    memmove(transaction->bytes, transaction->bytes+i, transaction->size);
+    memmove(transaction->bytes, transaction->bytes + i, transaction->size);
 }
 
 void normalize_currencies(swap_app_context_t *ctx) {
@@ -115,9 +115,9 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
         trim_pb_bytes_array(&(ctx->received_transaction.amount_to_provider));
         trim_pb_bytes_array(&(ctx->received_transaction.amount_to_wallet));
 
-        if (os_memcmp(ctx->device_transaction_id.swap,
-                      ctx->received_transaction.device_transaction_id,
-                      sizeof(ctx->device_transaction_id.swap)) != 0) {
+        if (memcmp(ctx->device_transaction_id.swap,
+                   ctx->received_transaction.device_transaction_id,
+                   sizeof(ctx->device_transaction_id.swap)) != 0) {
             PRINTF(
                 "Error: Device transaction IDs (SWAP) doesn't match. Expected: {%.*H}, got "
                 "{%.*H}\n",
@@ -159,20 +159,25 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
 
         stream = pb_istream_from_buffer(payload, n);
 
-        pb_field_t *pb_fields = (cmd->subcommand == SELL ? ledger_swap_NewSellResponse_fields
-                                                         : ledger_swap_NewFundResponse_fields);
-        void *dest = (cmd->subcommand == SELL ? &ctx->sell_transaction : &ctx->fund_transaction);
+        const pb_field_t *pb_fields =
+            (cmd->subcommand == SELL ? ledger_swap_NewSellResponse_fields
+                                     : ledger_swap_NewFundResponse_fields);
 
-        if (!pb_decode(&stream, pb_fields, dest)) {
-            PRINTF("Error: Can't parse SELL/FUND transaction protobuf\n");
-
-            return reply_error(ctx, DESERIALIZATION_FAILED, send);
+        if (cmd->subcommand == SELL) {
+            if (!pb_decode(&stream, pb_fields, &ctx->sell_transaction)) {
+                PRINTF("Error: Can't parse SELL transaction protobuf\n");
+                return reply_error(ctx, DESERIALIZATION_FAILED, send);
+            }
+        } else {
+            if (!pb_decode(&stream, pb_fields, &ctx->fund_transaction)) {
+                PRINTF("Error: Can't parse FUND transaction protobuf\n");
+                return reply_error(ctx, DESERIALIZATION_FAILED, send);
+            }
         }
 
         // trim leading 0s
-        trim_pb_bytes_array((cmd->subcommand == SELL ?
-                             &(ctx->sell_transaction.in_amount) :
-                             &(ctx->fund_transaction.in_amount)));
+        trim_pb_bytes_array((cmd->subcommand == SELL ? &(ctx->sell_transaction.in_amount)
+                                                     : &(ctx->fund_transaction.in_amount)));
 
         pb_byte_t *device_transaction_id_to_check =
             (cmd->subcommand == SELL ? ctx->sell_transaction.device_transaction_id.bytes
@@ -184,8 +189,7 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
                32,
                device_transaction_id_to_check);
 
-        if (os_memcmp(ctx->device_transaction_id.sell_fund, device_transaction_id_to_check, 32) !=
-            0) {
+        if (memcmp(ctx->device_transaction_id.sell_fund, device_transaction_id_to_check, 32) != 0) {
             PRINTF("Error: Device transaction IDs (SELL/FUND) don't match\n");
             PRINTF("ctx->device_transaction_id @%p: %.*H\n",
                    ctx->device_transaction_id.sell_fund,
@@ -225,10 +229,10 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
         return reply_error(ctx, DESERIALIZATION_FAILED, send);
     }
 
-    os_memset(ctx->transaction_fee, 0, sizeof(ctx->transaction_fee));
-    os_memcpy(ctx->transaction_fee,
-              cmd->data.bytes + 1 + payload_length + 1,
-              ctx->transaction_fee_length);
+    memset(ctx->transaction_fee, 0, sizeof(ctx->transaction_fee));
+    memcpy(ctx->transaction_fee,
+           cmd->data.bytes + 1 + payload_length + 1,
+           ctx->transaction_fee_length);
     PRINTF("Transaction fees BE = %.*H\n", ctx->transaction_fee_length, ctx->transaction_fee);
 
     unsigned char output_buffer[2] = {0x90, 0x00};

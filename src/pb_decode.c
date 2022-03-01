@@ -176,7 +176,7 @@ const addr_to_fname_t addr_to_fnames[] = {
 
 const char *addr_to_fname(void *func) __attribute__((no_instrument_function));
 const char *addr_to_fname(void *func) {
-    for (int i = 0; i < sizeof(addr_to_fnames) / sizeof(*addr_to_fnames); i++) {
+    for (size_t i = 0; i < (sizeof(addr_to_fnames) / sizeof(*addr_to_fnames)); i++) {
         if (PIC(addr_to_fnames[i].addr) == func) {
             return (const char *) (PIC(addr_to_fnames[i].name));
         }

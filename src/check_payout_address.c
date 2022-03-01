@@ -71,8 +71,8 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     PRINTF("Coin config parsed OK\n");
 
     // creating 0-terminated application name
-    os_memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
-    os_memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
+    memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
+    memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 

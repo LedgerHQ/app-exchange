@@ -48,10 +48,10 @@ UX_STEP_VALID(ux_idle_flow_3_step, pb, os_sched_exit(-1),
     "Quit",
 });
 
-UX_FLOW(ux_idle_flow, 
-&ux_idle_flow_1_step, 
-&ux_idle_flow_2_step, 
-&ux_idle_flow_3_step, 
+UX_FLOW(ux_idle_flow,
+&ux_idle_flow_1_step,
+&ux_idle_flow_2_step,
+&ux_idle_flow_3_step,
 FLOW_LOOP);
 // clang-format on
 
@@ -69,13 +69,13 @@ struct ValidationInfo {
     UserChoiseCallback OnReject;
 } validationInfo;
 
-unsigned int io_accept(const bagl_element_t *e) {
+unsigned int io_accept(__attribute__((unused)) const bagl_element_t *e) {
     validationInfo.OnAccept();
     ui_idle();
     return 0;
 }
 
-unsigned int io_reject(const bagl_element_t *e) {
+unsigned int io_reject(__attribute__((unused)) const bagl_element_t *e) {
     validationInfo.OnReject();
     ui_idle();
     return 0;
@@ -221,7 +221,7 @@ void io_seproxyhal_display(const bagl_element_t *element) {
     io_seproxyhal_display_default((bagl_element_t *) element);
 }
 
-unsigned char io_event(unsigned char channel) {
+unsigned char io_event(__attribute__((unused)) unsigned char channel) {
     // nothing done with the event, throw an error on the transport layer if
     // needed
     // can't have more than one tag in the reply, not supported yet.
