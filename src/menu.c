@@ -147,13 +147,14 @@ void ux_confirm(rate_e rate, subcommand_e subcommand) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_3_step;
     }
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
-    if (subcommand == SWAP && rate == FLOATING) {
-        ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
-    } else if (subcommand == FUND) {
+    if (subcommand == FUND) {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_2_step;
+    } else if (rate == FLOATING) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
     } else {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
     }
+
     ux_confirm_flow[step++] = &ux_confirm_flow_4_step;
     ux_confirm_flow[step++] = &ux_confirm_flow_5_step;
     ux_confirm_flow[step++] = &ux_confirm_flow_6_step;
