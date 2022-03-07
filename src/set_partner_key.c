@@ -38,7 +38,7 @@ int set_partner_key(swap_app_context_t *ctx, const command_t *cmd, SendFunction 
                                 &(ctx->partner.public_key));
     }
 
-    if (subcommand == SELL || subcommand == FUND) {
+    if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
         cx_ecfp_init_public_key(CX_CURVE_256R1,
                                 cmd->data.bytes + 1 + ctx->partner.name_length,
                                 UNCOMPRESSED_KEY_LENGTH,

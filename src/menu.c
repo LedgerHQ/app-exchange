@@ -111,6 +111,8 @@ UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
 UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
 {
     .title = "Get estimated",
+    .text = validationInfo.get,
+});
 UX_STEP_NOCB(ux_confirm_flow_3_2_step, bnnn_paging,
 {
     .title = validationInfo.provider,

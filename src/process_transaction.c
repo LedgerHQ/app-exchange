@@ -102,7 +102,7 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
         normalize_currencies(ctx);
     }
 
-    if (subcommand == SELL || subcommand == FUND) {
+    if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
         // arbitrary maximum payload size
         unsigned char payload[256];
 
