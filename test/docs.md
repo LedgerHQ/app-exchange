@@ -39,5 +39,5 @@ yarn test
 
 To run a specific tests (here the tezos tests): 
 ```
-sudo jest --runInBand --detectOpenHandles src/tezos.test.js
+yarn jest --runInBand --detectOpenHandles src/tezos.test.js
 ```

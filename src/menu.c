@@ -143,6 +143,8 @@ void ux_confirm(rate_e rate, subcommand_e subcommand) {
     ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
     if (subcommand == SELL) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
+    } else if (subcommand == FUND) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_1_3_step;
     }
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
     if (subcommand == SWAP && rate == FLOATING) {
