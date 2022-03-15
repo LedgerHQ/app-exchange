@@ -21,7 +21,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
 
     static unsigned char hash[CURVE_SIZE_BYTES];
 
-    os_memset(hash, 0, sizeof(hash));
+    memset(hash, 0, sizeof(hash));
 
     cx_hash_sha256(config.bytes, config.size, hash, CURVE_SIZE_BYTES);
 
@@ -73,8 +73,8 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     }
 
     // creating 0-terminated application name
-    os_memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
-    os_memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
+    memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
+    memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
 
     // check address
     if (check_address(&ctx->payin_coin_config,
@@ -88,7 +88,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     }
 
     static char printable_send_amount[PRINTABLE_AMOUNT_SIZE];
-    os_memset(printable_send_amount, 0, sizeof(printable_send_amount));
+    memset(printable_send_amount, 0, sizeof(printable_send_amount));
 
     if (get_printable_amount(&ctx->payin_coin_config,
                              ctx->payin_binary_name,
@@ -104,7 +104,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     PRINTF("Send amount: %s\n", printable_send_amount);
 
     static char printable_fees_amount[PRINTABLE_AMOUNT_SIZE];
-    os_memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
+    memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
 
     if (get_printable_amount(&ctx->payin_coin_config,
                              ctx->payin_binary_name,

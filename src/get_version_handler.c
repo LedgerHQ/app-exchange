@@ -1,6 +1,8 @@
 #include "get_version_handler.h"
 
-int get_version_handler(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
+int get_version_handler(__attribute__((unused)) swap_app_context_t *ctx,
+                        __attribute__((unused)) const command_t *cmd,
+                        SendFunction send) {
     unsigned char output_buffer[5];
     output_buffer[0] = LEDGER_MAJOR_VERSION;
     output_buffer[1] = LEDGER_MINOR_VERSION;

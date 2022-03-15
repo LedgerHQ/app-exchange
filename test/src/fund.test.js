@@ -63,3 +63,44 @@ test('[Nano S] Valid funding transaction should be accepted', zemu("nanos", asyn
 
     await swap.signCoinTransaction();
 }));
+
+test('[Nano S] Overflow values should be trimmed when funding', zemu("nanos", async (sim) => {
+    const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.FUND);
+    const transactionId_base64: string = await swap.startNewTransaction();
+    const transactionId: Buffer = base64url.toBuffer(transactionId_base64);
+    console.log("transactionID %s", transactionId.toString('hex'));
+
+    await swap.setPartnerKey(fundPartnerSerializedNameAndPubKey);
+    await swap.checkPartner(DERSignatureOfFundPartnerNameAndPublicKey);
+
+    var tr = new proto.ledger_swap.NewFundResponse();
+
+    tr.setUserId("John Doe");
+    tr.setAccountName("Card 1234");
+    tr.setInAddress("LKtSt6xfsmJMkPT8YyViAsDeRh7k8UfNjD");
+    tr.setInCurrency("BTC");
+    // 1 BTC
+    tr.setInAmount(Buffer.from(['0x00', '0x00', '0x00', '0x00', '0x00', '0x00', '0x00', '0x05', '0xf5', '0xe1', '0x00']));
+    tr.setDeviceTransactionId(transactionId);
+
+    const payload: Buffer = Buffer.from(tr.serializeBinary());
+
+    const base64_payload: Buffer = Buffer.from(base64url(payload));
+
+    await swap.processTransaction(base64_payload, 10000000);
+
+    const message = Buffer.concat([Buffer.from('.'), base64_payload])
+    const digest: Buffer = Buffer.from(sha256.sha256.array(message));
+    const signature = secp256r1.signatureExport(secp256r1.sign(digest, fundTestPrivateKey).signature);
+
+    await swap.checkTransactionSignature(signature);
+
+    // useless what to put instead?
+    const btcAddressParams = await getSerializedAddressParametersBTC("84'/0'/0'/1/0", "bech32");
+
+    const checkAssetIn = swap.checkPayoutAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters);
+
+    // Wait until we are not in the main menu
+    await waitForAppScreen(sim);
+    await sim.navigateAndCompareSnapshots('.', 'nanos_valid_funding_is_accepted', [5, 0]);
+}));

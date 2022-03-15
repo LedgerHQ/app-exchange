@@ -15,7 +15,8 @@ extern "C" {
 #endif
 
 /* Struct definitions */
-typedef PB_BYTES_ARRAY_T(16) ledger_swap_NewFundResponse_in_amount_t;
+typedef PB_BYTES_ARRAY_T(16) pb_bytes_array_16_t;
+typedef pb_bytes_array_16_t ledger_swap_NewFundResponse_in_amount_t;
 typedef PB_BYTES_ARRAY_T(32) ledger_swap_NewFundResponse_device_transaction_id_t;
 typedef struct _ledger_swap_NewFundResponse {
     char user_id[50];
@@ -27,8 +28,8 @@ typedef struct _ledger_swap_NewFundResponse {
 /* @@protoc_insertion_point(struct:ledger_swap_NewFundResponse) */
 } ledger_swap_NewFundResponse;
 
-typedef PB_BYTES_ARRAY_T(16) ledger_swap_NewTransactionResponse_amount_to_provider_t;
-typedef PB_BYTES_ARRAY_T(16) ledger_swap_NewTransactionResponse_amount_to_wallet_t;
+typedef pb_bytes_array_16_t ledger_swap_NewTransactionResponse_amount_to_provider_t;
+typedef pb_bytes_array_16_t ledger_swap_NewTransactionResponse_amount_to_wallet_t;
 typedef struct _ledger_swap_NewTransactionResponse {
     char payin_address[63];
     char payin_extra_id[20];
@@ -51,7 +52,7 @@ typedef struct _ledger_swap_UDecimal {
 /* @@protoc_insertion_point(struct:ledger_swap_UDecimal) */
 } ledger_swap_UDecimal;
 
-typedef PB_BYTES_ARRAY_T(16) ledger_swap_NewSellResponse_in_amount_t;
+typedef pb_bytes_array_16_t ledger_swap_NewSellResponse_in_amount_t;
 typedef PB_BYTES_ARRAY_T(32) ledger_swap_NewSellResponse_device_transaction_id_t;
 typedef struct _ledger_swap_NewSellResponse {
     char trader_email[50];

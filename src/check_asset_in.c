@@ -70,15 +70,15 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
     PRINTF("Coin config parsed OK\n");
 
     // creating 0-terminated application name
-    os_memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
-    os_memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
+    memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
+    memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
     static char in_printable_amount[PRINTABLE_AMOUNT_SIZE];
 
-    pb_bytes_array_t *in_amount = (ctx->subcommand == SELL ? &ctx->sell_transaction.in_amount
-                                                           : &ctx->fund_transaction.in_amount);
+    pb_bytes_array_16_t *in_amount = (ctx->subcommand == SELL ? &ctx->sell_transaction.in_amount
+                                                              : &ctx->fund_transaction.in_amount);
 
     // getting printable amount
     if (get_printable_amount(&config,
@@ -96,7 +96,7 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
     PRINTF("Amount = %s\n", in_printable_amount);
 
     static char printable_fees_amount[PRINTABLE_AMOUNT_SIZE];
-    os_memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
+    memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
 
     if (get_printable_amount(&ctx->payin_coin_config,
                              ctx->payin_binary_name,

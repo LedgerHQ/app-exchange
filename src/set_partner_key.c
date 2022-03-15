@@ -29,7 +29,7 @@ int set_partner_key(swap_app_context_t *ctx, const command_t *cmd, SendFunction 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    os_memcpy(ctx->partner.name, cmd->data.bytes + 1, ctx->partner.name_length);
+    memcpy(ctx->partner.name, cmd->data.bytes + 1, ctx->partner.name_length);
 
     if (cmd->subcommand == SWAP) {
         cx_ecfp_init_public_key(CX_CURVE_SECP256K1,

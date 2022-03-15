@@ -7,7 +7,7 @@ typedef struct app_name_alias_s {
     char *app_name;
 } app_name_alias_t;
 
-const app_name_alias_t const appnames_aliases[] = {
+const app_name_alias_t appnames_aliases[] = {
     {"Tezos", "Tezos Wallet"}  // The app name is 'Tezos Wallet' so change accordingly.
 };
 

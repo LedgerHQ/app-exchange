@@ -41,7 +41,7 @@ void init_application_context(swap_app_context_t *ctx) {
                                     0x06, 0x0c, 0x53, 0x86, 0x2c, 0x5c, 0xe3, 0x8c};
 
 #endif
-    os_memset(ctx, 0, sizeof(*ctx));
+    memset(ctx, 0, sizeof(*ctx));
     cx_ecfp_init_public_key(CX_CURVE_SECP256K1,
                             LedgerPubKey,
                             sizeof(LedgerPubKey),
