@@ -187,3 +187,39 @@ test('[Nano S] Valid taproot refund address should be accepted', zemu("nanos", a
 
     await expect(checkRequest).resolves.toBe(undefined);
 }));
+
+// Forcing AmountToWallet to be bigger than 8B, so that the Bitcoin app would
+// accept it only if the trim function works as expected
+test('[Nano S] Overflow values should be trimmed when swapping', zemu("nanos", async (sim) => {
+    const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
+    const transactionId: string = await swap.startNewTransaction();
+    await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+    await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+    var tr = new proto.ledger_swap.NewTransactionResponse();
+    tr.setPayinAddress("0xd692Cb1346262F584D17B4B470954501f6715a82");
+    tr.setPayinExtraId("");
+    tr.setRefundAddress("bc1qwpgezdcy7g6khsald7cww42lva5g5dmasn6y2z");
+    tr.setRefundExtraId("");
+    tr.setPayoutAddress("bc1qwpgezdcy7g6khsald7cww42lva5g5dmasn6y2z");
+    tr.setPayoutExtraId("");
+    tr.setCurrencyFrom("BTC");
+    tr.setCurrencyTo("BTC");
+    tr.setAmountToProvider(Buffer.from(['0x00', '0x00', '0x00', '0x00', '0x00', '0x00', '0x00', '0x10', '0x10', '0x10', '0x10']));
+    tr.setAmountToWallet(Buffer.from(['0x00', '0x00', '0x00', '0x00', '0x00', '0x05', '0xf5', '0xe1', '0x00']));
+    tr.setDeviceTransactionId(transactionId);
+
+    const payload: Buffer = Buffer.from(tr.serializeBinary());
+    await swap.processTransaction(payload, 840000000000000);
+    const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+    const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+    await swap.checkTransactionSignature(signature);
+    const btcAddressParams = getSerializedAddressParametersBTC("84'/0'/0'/1/0", "bech32");
+    await swap.checkPayoutAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters);
+
+    const checkRequest = swap.checkRefundAddress(BTCConfig, BTCConfigSignature, btcAddressParams.addressParameters);
+
+    // Wait until we are not in the main menu
+    await waitForAppScreen(sim);
+    await sim.navigateAndCompareSnapshots('.', 'nanos_btc_to_btc_overload_swap', [4, 0]);
+    await expect(checkRequest).resolves.toBe(undefined);
+}));
