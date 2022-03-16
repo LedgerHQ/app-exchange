@@ -1,5 +1,7 @@
 import Zemu from '@zondax/zemu';
 
+var dir = require('node-dir')
+
 const transactionUploadDelay = 60000;
 
 async function waitForAppScreen(sim) {
@@ -30,8 +32,29 @@ const Resolve = require('path').resolve;
 const NANOS_ELF_PATH = Resolve('elfs/exchange.elf');
 const NANOX_ELF_PATH = Resolve('elfs/exchange.elf');
 
-const NANOS_ETH_LIB = { "Ethereum": 'elfs/ethereum.elf', "XRP": 'elfs/xrp.elf', "Stellar": 'elfs/stellar.elf', "Bitcoin": 'elfs/bitcoin.elf', "Litecoin": 'elfs/litecoin.elf', "\"Tezos Wallet\"": 'elfs/tezos.elf' };
-const NANOX_ETH_LIB = { "Ethereum": 'elfs/ethereum.elf', "XRP": 'elfs/xrp.elf', "Stellar": 'elfs/stellar.elf', "Bitcoin": 'elfs/bitcoin.elf', "Litecoin": 'elfs/litecoin.elf', "\"Tezos Wallet\"": 'elfs/tezos.elf' };
+
+const SIDELOADED_APPLICATIONS = {
+    'bitcoin': 'Bitcoin',
+    'ethereum': 'Ethereum',
+    'litecoin': 'Litecoin',
+    'stellar': 'Stellar',
+    'xrp': 'XRP',
+    'tezos': '"Tezos Wallet"'
+};
+
+var _applications = {};
+for (let path of dir.files('./elfs/', {sync: true})) {
+    Object.entries(SIDELOADED_APPLICATIONS).forEach(
+        ([file_prefix, name]) => {
+            if (path.split('/')[1].startsWith(file_prefix)) {
+                _applications[name] = path
+            }
+        }
+    );
+}
+
+const NANOS_ETH_LIB = _applications;
+const NANOX_ETH_LIB = _applications;
 
 const TIMEOUT = 1000000;
 
