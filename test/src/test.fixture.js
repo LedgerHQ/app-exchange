@@ -29,9 +29,18 @@ const sim_options_nanox = {
 
 const Resolve = require('path').resolve;
 
-const NANOS_ELF_PATH = Resolve('elfs/exchange.elf');
-const NANOX_ELF_PATH = Resolve('elfs/exchange.elf');
+const NANOS_ELF_PATH = Resolve('elfs/exchange_nanos.elf');
+const NANOX_ELF_PATH = Resolve('elfs/exchange_nanox.elf');
 
+/*
+ Applications loaded for tests must comply with the following constraints:
+ - starting with the name of the application (lowercase)
+ - containing the Nano device type (lowercase)
+ For tracking usage, it is also advised to keep the commit hash from where the application was built in the name
+ For instance:
+
+    bitcoin_nanos.284b9f9a98a91d31e48439d1f274a10302f6d8b7.elf
+*/
 
 const SIDELOADED_APPLICATIONS = {
     'bitcoin': 'Bitcoin',
@@ -42,19 +51,24 @@ const SIDELOADED_APPLICATIONS = {
     'tezos': '"Tezos Wallet"'
 };
 
-var _applications = {};
-for (let path of dir.files('./elfs/', {sync: true})) {
-    Object.entries(SIDELOADED_APPLICATIONS).forEach(
-        ([file_prefix, name]) => {
-            if (path.split('/')[1].startsWith(file_prefix)) {
-                _applications[name] = path
+function get_applications(nano_variant: string) {
+    var applications = {};
+    for (let path of dir.files('./elfs/', {sync: true})) {
+        Object.entries(SIDELOADED_APPLICATIONS).forEach(
+            ([file_prefix, name]) => {
+                if (path.split('/')[1].startsWith(file_prefix) && path.includes(nano_variant)) {
+                    applications[name] = path;
+                }
             }
-        }
-    );
+        );
+    }
+    return applications;
 }
 
-const NANOS_ETH_LIB = _applications;
-const NANOX_ETH_LIB = _applications;
+const NANOS_ETH_LIB = get_applications('nanos');
+const NANOX_ETH_LIB = get_applications('nanox');
+
+console.log(NANOS_ETH_LIB);
 
 const TIMEOUT = 1000000;
 

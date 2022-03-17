@@ -26,13 +26,13 @@ jobs:
       - name: Build
         run: |
           make DEBUG=1 TESTING=1 TEST_PUBLIC_KEY=1
-          cp bin/app.elf exchange.elf
+          cp bin/app.elf exchange_nanos.elf
 
       - name: Upload app binary
         uses: actions/upload-artifact@v2
         with:
-          name: exchange-nanoS
-          path: ./exchange.elf
+          name: exchange
+          path: ./exchange_nanos.elf
           if-no-files-found: error
 
   job_build_debug_nano_X:
@@ -49,13 +49,13 @@ jobs:
       - name: Build
         run: |
           make BOLOS_SDK=$NANOX_SDK DEBUG=1 TESTING=1 TEST_PUBLIC_KEY=1
-          cp bin/app.elf exchange.elf
+          cp bin/app.elf exchange_nanox.elf
 
       - name: Upload app binary
         uses: actions/upload-artifact@v2
         with:
-          name: exchange-nanoX
-          path: ./exchange.elf
+          name: exchange
+          path: ./exchange_nanox.elf
           if-no-files-found: error
 
   jobs-e2e-tests:
@@ -88,7 +88,7 @@ jobs:
       - name: Download app binaries
         uses: actions/download-artifact@v2
         with:
-          name: exchange-nanoS
+          name: exchange
           path: test/elfs/tmp
 
       - name: Gather elfs
