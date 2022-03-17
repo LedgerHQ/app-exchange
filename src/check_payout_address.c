@@ -7,7 +7,6 @@
 #include "parse_check_address_message.h"
 #include "parse_coin_config.h"
 #include "printable_amount.h"
-#include "check_refund_address.h"
 #include "menu.h"
 
 int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
@@ -22,7 +21,6 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
-
     PRINTF("CHECK_PAYOUT_ADDRESS parsed OK\n");
 
     static unsigned char hash[CURVE_SIZE_BYTES];
@@ -48,7 +46,7 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     }
 
     if (ticker.size < 2 || ticker.size > 9) {
-        PRINTF("Error: Ticker length should be in [3, 9]\n");
+        PRINTF("Error: Ticker length should be in [2, 9]\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
@@ -60,9 +58,10 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     }
 
     // Check that given ticker match current context
-    if (strlen(ctx->received_transaction.currency_to) != ticker.size ||
-        strncmp(ctx->received_transaction.currency_to, (const char *) ticker.bytes, ticker.size) !=
-            0) {
+    char *currency = ctx->received_transaction.currency_to;
+
+    if (strlen(currency) != ticker.size ||
+        strncmp(currency, (const char *) ticker.bytes, ticker.size) != 0) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);

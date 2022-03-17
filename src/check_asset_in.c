@@ -21,6 +21,7 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
+    PRINTF("CHECK_ASSET_IN parsed OK\n");
 
     static unsigned char hash[CURVE_SIZE_BYTES];
 

@@ -341,6 +341,59 @@ test('[Nano S] Aeternity ERC20 swap to BTC', zemu(nano_environments[0], async (s
         });
 }));
 
+test('[Nano S] Aeternity ERC20 swap to ETH', zemu(nano_environments[0], async (sim) => {
+    const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
+    const transactionId: string = await swap.startNewTransaction();
+    await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+    await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+    var tr = new proto.ledger_swap.NewTransactionResponse();
+    tr.setPayinAddress("");
+    tr.setPayinExtraId("");
+    tr.setRefundAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");
+    tr.setRefundExtraId("");
+    tr.setPayoutAddress("0xC9F5a71B82dD7bfE57CFF46A670138c214137E9D");
+    tr.setPayoutExtraId("");
+    tr.setCurrencyFrom("AE");
+    tr.setCurrencyTo("ETH");
+    // 1.1234 AE to 1 ETH
+    tr.setAmountToProvider(numberToBigEndianBuffer(1000000 * 1000000 * 1000000 * 1.1234)); // 10^18 wei == 1 ETH
+    tr.setAmountToWallet(numberToBigEndianBuffer(1000000 * 1000000 * 1000000));
+    tr.setDeviceTransactionId(transactionId);
+
+    const payload: Buffer = Buffer.from(tr.serializeBinary());
+    await swap.processTransaction(payload, 1477845000000000);
+    const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+    const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+    await swap.checkTransactionSignature(signature);
+    const ethAddressParams = getSerializedAddressParameters("40'/60'/0'/0/0");
+    await swap.checkPayoutAddress(ETHConfig, ETHConfigSignature, ethAddressParams.addressParameters);
+
+    const aeAddressParams = getSerializedAddressParameters("44'/60'/0'/0/0");
+    const checkRequest = swap.checkRefundAddress(AEConfig, AEConfigSignature, aeAddressParams.addressParameters);
+
+    // Wait until we are not in the main menu
+    await waitForAppScreen(sim);
+    await sim.navigateAndCompareSnapshots('.', 'nanos_erc20_to_eth_swap', [4, 0]);
+    await expect(checkRequest).resolves.toBe(undefined);
+
+    await swap.signCoinTransaction();
+
+    await Zemu.sleep(1000);
+
+    let transport = await sim.getTransport();
+
+    const eth = new Eth(transport);
+    const aeInfo = byContractAddress("0x5CA9a71B1d01849C0a95490Cc00559717fCF0D1d")
+    if (aeInfo) await eth.provideERC20TokenInformation(aeInfo)
+
+    await expect(eth.signTransaction("44'/60'/0'/0/0", 'F8690385098BCA5A00828CCD945CA9a71B1d01849C0a95490Cc00559717fCF0D1d80B844A9059CBB000000000000000000000000d692Cb1346262F584D17B4B470954501f6715a820000000000000000000000000000000000000000000000000F971E5914AC8000038080'))
+        .resolves.toEqual({
+            "r": "6e766ca0c8474da1dc5dc0d057e0f97711fd70aed7cb9965ff6dc423d8f4daad",
+            "s": "63a0893b73e752965b65ebe13e1be8b5838e2113006656ea2eefa55fe0fa2919",
+            "v": "2a"
+        });
+}));
+
 test('[Nano S] XRP swap to ETH', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
