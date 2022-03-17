@@ -16,9 +16,9 @@ import {
 } from "./exchange.js";
 import { TransportStatusError } from "@ledgerhq/errors";
 
-import { waitForAppScreen, zemu } from './test.fixture';
+import { waitForAppScreen, zemu, nano_environments } from './test.fixture';
 
-test('[Nano S] Wrong XRP payout address should not be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Wrong XRP payout address should not be accepted', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -47,7 +47,7 @@ test('[Nano S] Wrong XRP payout address should not be accepted', zemu("nanos", a
         .rejects.toEqual(new TransportStatusError(0x6a83));
 }));
 
-test('[Nano S] Valid payout address XRP should be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Valid payout address XRP should be accepted', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -75,7 +75,7 @@ test('[Nano S] Valid payout address XRP should be accepted', zemu("nanos", async
     await expect(swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, params.addressParameters)).resolves.toBe(undefined);
 }));
 
-test('[Nano S] Wrong refund address should be rejected', zemu("nanos", async (sim) => {
+test('[Nano S] Wrong refund address should be rejected', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -107,7 +107,7 @@ test('[Nano S] Wrong refund address should be rejected', zemu("nanos", async (si
         .rejects.toEqual(new TransportStatusError(0x6a83));
 }));
 
-test('[Nano S] Valid refund address should be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Valid refund address should be accepted', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);

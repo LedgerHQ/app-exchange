@@ -17,9 +17,9 @@ import {
 } from "./exchange.js";
 import base64url from "base64url";
 
-import { waitForAppScreen, zemu } from './test.fixture';
+import { waitForAppScreen, zemu, nano_environments } from './test.fixture';
 
-test('[Nano S] Valid Bitcoin funding transaction should be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Valid Bitcoin funding transaction should be accepted', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.FUND);
     const transactionId_base64: string = await swap.startNewTransaction();
     const transactionId: Buffer = base64url.toBuffer(transactionId_base64);
@@ -66,7 +66,7 @@ test('[Nano S] Valid Bitcoin funding transaction should be accepted', zemu("nano
     await swap.signCoinTransaction();
 }));
 
-test('[Nano S] Overflow values should be trimmed when funding', zemu("nanos", async (sim) => {
+test('[Nano S] Overflow values should be trimmed when funding', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.FUND);
     const transactionId_base64: string = await swap.startNewTransaction();
     const transactionId: Buffer = base64url.toBuffer(transactionId_base64);
@@ -106,7 +106,7 @@ test('[Nano S] Overflow values should be trimmed when funding', zemu("nanos", as
     await sim.navigateAndCompareSnapshots('.', 'nanos_valid_btc_funding_is_accepted', [5, 0]);
 }));
 
-test('[Nano S] Valid Ethereum funding transaction should be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Valid Ethereum funding transaction should be accepted', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.FUND);
     const transactionId_base64: string = await swap.startNewTransaction();
     const transactionId: Buffer = base64url.toBuffer(transactionId_base64);

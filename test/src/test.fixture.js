@@ -1,4 +1,4 @@
-import Zemu from '@zondax/zemu';
+import Zemu, {DeviceModel} from '@zondax/zemu';
 
 var dir = require('node-dir')
 
@@ -8,21 +8,8 @@ async function waitForAppScreen(sim) {
     await sim.waitUntilScreenIsNot(sim.getMainMenuSnapshot(), transactionUploadDelay);
 }
 
-const sim_options_nanos = {
-    model: 'nanos',
-    logging: true,
+const sim_options = {
     X11: true,
-    startDelay: 5000,
-    startText: 'is ready',
-    sdk: '2.1',
-    custom: '',
-};
-
-const sim_options_nanox = {
-    model: 'nanox',
-    logging: true,
-    X11: true,
-    startDelay: 5000,
     startText: 'is ready',
     custom: '',
 };
@@ -57,7 +44,7 @@ function get_applications(nano_variant: string) {
         Object.entries(SIDELOADED_APPLICATIONS).forEach(
             ([file_prefix, name]) => {
                 if (path.split('/')[1].startsWith(file_prefix) && path.includes(nano_variant)) {
-                    applications[name] = path;
+                    applications[name] = Resolve(path);
                 }
             }
         );
@@ -65,29 +52,27 @@ function get_applications(nano_variant: string) {
     return applications;
 }
 
-const NANOS_ETH_LIB = get_applications('nanos');
-const NANOX_ETH_LIB = get_applications('nanox');
+class ExchangeDeviceModel extends DeviceModel {
+    letter: string;
+    libs: string[];
+    sdk: string;
+}
 
-console.log(NANOS_ETH_LIB);
+const nano_environments: ExchangeDeviceModel[] = [
+    { name: 'nanos', letter: 'S', path: NANOS_ELF_PATH, libs: get_applications('nanos'), sdk: '2.1'},
+    { name: 'nanox', letter: 'X', path: NANOX_ELF_PATH, libs: get_applications('nanox'), sdk: '2.0.2'},
+];
 
 const TIMEOUT = 1000000;
 
-function zemu(device, func) {
+function zemu(device: ExchangeDeviceModel, func) {
     return async () => {
         jest.setTimeout(TIMEOUT);
         let zemu_args;
-        let sim_options;
-        if (device === "nanos") {
-            zemu_args = [NANOS_ELF_PATH, NANOS_ETH_LIB];
-            sim_options = sim_options_nanos;
-        }
-        else {
-            zemu_args = [NANOX_ELF_PATH, NANOX_ETH_LIB];
-            sim_options = sim_options_nanox;
-        }
+        zemu_args = [device.path, device.libs];
         const sim = new Zemu(...zemu_args);
         try {
-            await sim.start(sim_options);
+            await sim.start({...sim_options, model: device.name, sdk: device.sdk});
             await func(sim);
         } finally {
             await sim.close();
@@ -98,11 +83,5 @@ function zemu(device, func) {
 module.exports = {
     zemu,
     waitForAppScreen,
-    NANOS_ELF_PATH,
-    NANOX_ELF_PATH,
-    NANOS_ETH_LIB,
-    NANOX_ETH_LIB,
-    sim_options_nanos,
-    sim_options_nanox,
-    TIMEOUT
+    nano_environments
 }

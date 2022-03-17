@@ -37,9 +37,9 @@ const TEZOS_ADDRESS_2 = "tz1RjJLvt7iguJQnVVWYca2AHDpHYmPJYz4d";
 const TEZOS_DERIVATION_PATH_1 = "44'/1729'/0'/0'";
 
 import Zemu from "@zondax/zemu";
-import { waitForAppScreen, zemu } from './test.fixture';
+import { waitForAppScreen, zemu, nano_environments } from './test.fixture';
 
-test('[Nano S] BTC (legacy protocol) swap to LTC fails', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (legacy protocol) swap to LTC fails', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -104,7 +104,7 @@ test('[Nano S] BTC (legacy protocol) swap to LTC fails', zemu("nanos", async (si
     }
 }));
 
-test('[Nano S] LTC swap to ETH', zemu("nanos", async (sim) => {
+test('[Nano S] LTC swap to ETH', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -171,7 +171,7 @@ test('[Nano S] LTC swap to ETH', zemu("nanos", async (sim) => {
         .resolves.toEqual(Buffer.from('3045022100e01f45183c1e4fa647418420ae7dae7b6c1486377a0f9bc5530772a05a22206a02201194578e4d9bb4c137b7e072488a2ca50e4c85e1c4934785110b9ad8024f5038019000', 'hex'));
 }));
 
-test('[Nano S] BTC (legacy protocol) swap to ETH', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (legacy protocol) swap to ETH', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -238,7 +238,7 @@ test('[Nano S] BTC (legacy protocol) swap to ETH', zemu("nanos", async (sim) => 
         .resolves.toEqual(Buffer.from('3045022100f48a6a9aed8354ad6d6d69bd8acf08c997b6fe46c222c214e66caf60b6e8d0a102201c4b0740fb47af7db9d5cdd51ac53a3f246fffac4e7d772176f95dcdbb2a0e08019000', 'hex'));
 }));
 
-test('[Nano S] ETH swap to BTC', zemu("nanos", async (sim) => {
+test('[Nano S] ETH swap to BTC', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -288,7 +288,7 @@ test('[Nano S] ETH swap to BTC', zemu("nanos", async (sim) => {
         });
 }));
 
-test('[Nano S] Aeternity ERC20 swap to BTC', zemu("nanos", async (sim) => {
+test('[Nano S] Aeternity ERC20 swap to BTC', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -341,7 +341,7 @@ test('[Nano S] Aeternity ERC20 swap to BTC', zemu("nanos", async (sim) => {
         });
 }));
 
-test('[Nano S] XRP swap to ETH', zemu("nanos", async (sim) => {
+test('[Nano S] XRP swap to ETH', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -387,7 +387,7 @@ test('[Nano S] XRP swap to ETH', zemu("nanos", async (sim) => {
         .resolves.toEqual("3045022100eefd26a52281c64a2b6d1d89f1e9a0aaeb1afe4aa3a55f4ed22d0a645d03e1ef0220632d06f22f8028c82f05b5ef46b10bd7851166b75c61582362001250fe89d18c");
 }));
 
-test('[Nano S] ETH swap to XRP', zemu("nanos", async (sim) => {
+test('[Nano S] ETH swap to XRP', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -437,7 +437,7 @@ test('[Nano S] ETH swap to XRP', zemu("nanos", async (sim) => {
         });
 }));
 
-test('[Nano S] XLM swap to ETH', zemu("nanos", async (sim) => {
+test('[Nano S] XLM swap to ETH', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -486,7 +486,7 @@ test('[Nano S] XLM swap to ETH', zemu("nanos", async (sim) => {
         });
 }));
 
-test('[Nano S] ETH swap to XLM', zemu("nanos", async (sim) => {
+test('[Nano S] ETH swap to XLM', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -536,7 +536,7 @@ test('[Nano S] ETH swap to XLM', zemu("nanos", async (sim) => {
         });
 }));
 
-test('[Nano S] XTZ swap to ETH', zemu("nanos", async (sim) => {
+test('[Nano S] XTZ swap to ETH', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -585,7 +585,7 @@ test('[Nano S] XTZ swap to ETH', zemu("nanos", async (sim) => {
         });
 }));
 
-test('[Nano S] ETH swap to XTZ', zemu("nanos", async (sim) => {
+test('[Nano S] ETH swap to XTZ', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -638,7 +638,7 @@ test('[Nano S] ETH swap to XTZ', zemu("nanos", async (sim) => {
 
 // The following tests use the new protocol native to the Ledger 2.0.x application.
 
-test('[Nano S] BTC (new protocol, segwit address) swap to ETH', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (new protocol, segwit address) swap to ETH', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -694,7 +694,7 @@ test('[Nano S] BTC (new protocol, segwit address) swap to ETH', zemu("nanos", as
 }));
 
 
-test('[Nano S] BTC (new protocol, taproot address) swap to ETH', zemu("nanos", async (sim) => {
+test('[Nano S] BTC (new protocol, taproot address) swap to ETH', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);

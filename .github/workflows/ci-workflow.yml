@@ -92,7 +92,9 @@ jobs:
           path: test/elfs/tmp
 
       - name: Gather elfs
-        run: cd test/elfs/tmp && cp `find . -name "*.elf"` ..
+        run: |
+          cp `find test/elfs/tmp -name "*.elf"` test/elfs/
+          ls -lh test/elfs/
 
       - name: Run zemu tests
         run: cd test && yarn test

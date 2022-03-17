@@ -19,9 +19,9 @@ import {
 import Zemu from "@zondax/zemu";
 import { TransportStatusError } from "@ledgerhq/errors";
 
-import { waitForAppScreen, zemu } from './test.fixture';
+import { waitForAppScreen, zemu, nano_environments } from './test.fixture';
 
-test('[Nano S] Wrong payout address should be rejected', zemu("nanos", async (sim) => {
+test('[Nano S] Wrong payout address should be rejected', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -51,7 +51,7 @@ test('[Nano S] Wrong payout address should be rejected', zemu("nanos", async (si
         .rejects.toEqual(new TransportStatusError(0x6a83));
 }));
 
-test('[Nano S] Valid Bitcoin payout address should be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Valid Bitcoin payout address should be accepted', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -80,7 +80,7 @@ test('[Nano S] Valid Bitcoin payout address should be accepted', zemu("nanos", a
     await expect(swap.checkPayoutAddress(LTCConfig, LTCConfigSignature, params.addressParameters)).resolves.toBe(undefined);
 }));
 
-test('[Nano S] Wrong Bitcoin refund address should not be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Wrong Bitcoin refund address should not be accepted', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -112,7 +112,7 @@ test('[Nano S] Wrong Bitcoin refund address should not be accepted', zemu("nanos
         .rejects.toEqual(new TransportStatusError(0x6a83));
 }));
 
-test('[Nano S] Valid refund address should be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Valid refund address should be accepted', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -151,7 +151,7 @@ test('[Nano S] Valid refund address should be accepted', zemu("nanos", async (si
 
 // tests with taproot addresses
 
-test('[Nano S] Valid taproot refund address should be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Valid taproot refund address should be accepted', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -190,7 +190,7 @@ test('[Nano S] Valid taproot refund address should be accepted', zemu("nanos", a
 
 // Forcing AmountToWallet to be bigger than 8B, so that the Bitcoin app would
 // accept it only if the trim function works as expected
-test('[Nano S] Overflow values should be trimmed when swapping', zemu("nanos", async (sim) => {
+test('[Nano S] Overflow values should be trimmed when swapping', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
