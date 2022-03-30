@@ -32,6 +32,12 @@ For now, only the exchange binary needs to be generated. The following flags are
 make TESTING=1 TEST_PUBLIC_KEY=1
 ```
 
+Then the application must be placed in the `test/elfs/` directory, under the name `exchange_nanos.elf` or `exchange_nanox.elf` depending on the SDK:
+
+```
+cp bin/app.elf test/elfs/exchange_nanos.elf
+```
+
 To run the tests:
 
 ```shell script
