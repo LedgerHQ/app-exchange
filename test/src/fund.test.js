@@ -28,7 +28,7 @@ test('[Nano S] Valid Bitcoin funding transaction should be accepted', zemu(nano_
     await swap.setPartnerKey(fundPartnerSerializedNameAndPubKey);
     await swap.checkPartner(DERSignatureOfFundPartnerNameAndPublicKey);
 
-    var tr = new proto.ledger_swap.NewFundResponse();
+    const tr = new proto.ledger_swap.NewFundResponse();
 
     tr.setUserId("John Doe");
     tr.setAccountName("Card 1234");
@@ -75,7 +75,7 @@ test('[Nano S] Overflow values should be trimmed when funding', zemu(nano_enviro
     await swap.setPartnerKey(fundPartnerSerializedNameAndPubKey);
     await swap.checkPartner(DERSignatureOfFundPartnerNameAndPublicKey);
 
-    var tr = new proto.ledger_swap.NewFundResponse();
+    const tr = new proto.ledger_swap.NewFundResponse();
 
     tr.setUserId("John Doe");
     tr.setAccountName("Card 1234");
@@ -115,7 +115,7 @@ test('[Nano S] Valid Ethereum funding transaction should be accepted', zemu(nano
     await swap.setPartnerKey(fundPartnerSerializedNameAndPubKey);
     await swap.checkPartner(DERSignatureOfFundPartnerNameAndPublicKey);
 
-    var tr = new proto.ledger_swap.NewFundResponse();
+    const tr = new proto.ledger_swap.NewFundResponse();
     tr.setUserId("John Doe");
     tr.setAccountName("Card 1234");
     tr.setInAddress("0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D");

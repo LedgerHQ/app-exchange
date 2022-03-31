@@ -1,6 +1,6 @@
 import Zemu, {DeviceModel} from '@zondax/zemu';
 
-var dir = require('node-dir')
+const dir = require('node-dir')
 
 const transactionUploadDelay = 60000;
 
@@ -39,11 +39,11 @@ const SIDELOADED_APPLICATIONS = {
 };
 
 function get_applications(nano_variant: string) {
-    var applications = {};
+    const applications = {};
     for (let path of dir.files('./elfs/', {sync: true})) {
         Object.entries(SIDELOADED_APPLICATIONS).forEach(
             ([file_prefix, name]) => {
-                if (path.split('/')[1].startsWith(file_prefix) && path.includes(nano_variant)) {
+                if (path.split('/')[1].startsWith(file_prefix + '_' + nano_variant + '.')) {
                     applications[name] = Resolve(path);
                 }
             }
