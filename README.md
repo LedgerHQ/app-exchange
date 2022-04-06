@@ -23,8 +23,22 @@ make delete
 
 ## Testing
 
-The `./test` directory contains files for testing the app and its interactions with other apps. Make sure to put up to date binaries in `test/elfs` before launching the tests.
-In a future update, the latests binaries will be fetched automatically from Github.
+The `./test` directory contains files for testing the app and its interactions with other apps. Make sure to put up to date binaries in `test/elfs/` before launching the tests.
+In a future update, all binaries will be fetched automatically from Github.
+
+For now, only the exchange binary needs to be generated. The following flags are needed for the tests to pass:
+
+```
+make TESTING=1 TEST_PUBLIC_KEY=1
+```
+
+Then the application must be placed in the `test/elfs/` directory, under the name `exchange_nanos.elf` or `exchange_nanox.elf` depending on the SDK:
+
+```
+cp bin/app.elf test/elfs/exchange_nanos.elf
+```
+
+To run the tests:
 
 ```shell script
 cd test

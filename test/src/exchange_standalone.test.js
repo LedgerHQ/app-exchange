@@ -16,22 +16,22 @@ import {
   partnerSerializedNameAndPubKey, DERSignatureOfPartnerNameAndPublicKey,
 } from "./common";
 
-import { zemu } from './test.fixture';
+import { zemu, nano_environments } from './test.fixture';
 
-test('[Nano S] TransactionId should be 10 uppercase letters', zemu("nanos", async (sim) => {
+test('[Nano S] TransactionId should be 10 uppercase letters', zemu(nano_environments[0], async (sim) => {
   const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
   const transactionId: string = await swap.startNewTransaction();
   expect(transactionId.length).toBe(10);
   expect(transactionId).toBe(transactionId.toUpperCase());
 }));
 
-test('[Nano S] SetPartnerKey should not throw', zemu("nanos", async (sim) => {
+test('[Nano S] SetPartnerKey should not throw', zemu(nano_environments[0], async (sim) => {
   const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
   await swap.startNewTransaction();
   await expect(swap.setPartnerKey(partnerSerializedNameAndPubKey)).resolves.toBe(undefined);
 }));
 
-test('[Nano S] Wrong partner data signature should not be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Wrong partner data signature should not be accepted', zemu(nano_environments[0], async (sim) => {
   const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
   await swap.startNewTransaction();
   await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -39,14 +39,14 @@ test('[Nano S] Wrong partner data signature should not be accepted', zemu("nanos
     .rejects.toEqual(new TransportStatusError(0x9d1a));
 }));
 
-test('[Nano S] Correct signature of partner data should be accepted', zemu("nanos", async (sim) => {
+test('[Nano S] Correct signature of partner data should be accepted', zemu(nano_environments[0], async (sim) => {
   const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
   await swap.startNewTransaction();
   await swap.setPartnerKey(partnerSerializedNameAndPubKey);
   await expect(swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey)).resolves.toBe(undefined);
 }));
 
-test('[Nano S] Process transaction should not fail', zemu("nanos", async (sim) => {
+test('[Nano S] Process transaction should not fail', zemu(nano_environments[0], async (sim) => {
   const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
   let transactionId = await swap.startNewTransaction();
   await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -69,7 +69,7 @@ test('[Nano S] Process transaction should not fail', zemu("nanos", async (sim) =
   await expect(swap.processTransaction(payload, 10000000)).resolves.toBe(undefined);
 }));
 
-test('[Nano S] Transaction signature should be checked without errors', zemu("nanos", async (sim) => {
+test('[Nano S] Transaction signature should be checked without errors', zemu(nano_environments[0], async (sim) => {
   const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
   let transactionId = await swap.startNewTransaction();
   await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -95,7 +95,7 @@ test('[Nano S] Transaction signature should be checked without errors', zemu("na
   await expect(swap.checkTransactionSignature(secp256k1.signatureExport(signature))).resolves.toBe(undefined);
 }));
 
-test('[Nano S] transactions signature should be rejected', zemu("nanos", async (sim) => {
+test('[Nano S] transactions signature should be rejected', zemu(nano_environments[0], async (sim) => {
   const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
   let transactionId = await swap.startNewTransaction();
   await swap.setPartnerKey(partnerSerializedNameAndPubKey);

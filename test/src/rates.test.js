@@ -16,9 +16,9 @@ import {
     TRANSACTION_TYPES
 } from "./exchange.js";
 
-import { waitForAppScreen, zemu } from './test.fixture';
+import { waitForAppScreen, zemu, nano_environments } from './test.fixture';
 
-test('[Nano S] Compare fixed rate screenshot', zemu("nanos", async (sim) => {
+test('[Nano S] Compare fixed rate screenshot', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);
@@ -55,7 +55,7 @@ test('[Nano S] Compare fixed rate screenshot', zemu("nanos", async (sim) => {
 }));
 
 
-test('[Nano S] Compare floating rate screenshot', zemu("nanos", async (sim) => {
+test('[Nano S] Compare floating rate screenshot', zemu(nano_environments[0], async (sim) => {
     const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP, TRANSACTION_RATES.FLOATING);
     const transactionId: string = await swap.startNewTransaction();
     await swap.setPartnerKey(partnerSerializedNameAndPubKey);

@@ -30,6 +30,7 @@
     "google-protobuf": "^3.11.0",
     "jest-serial-runner": "^1.1.0",
     "js-sha256": "^0.9.0",
+    "node-dir": "^0.1.17",
     "regenerator-runtime": "^0.13.7",
     "secp256k1": "^3.7.1",
     "secp256r1": "^0.0.3"
