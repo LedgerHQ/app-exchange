@@ -16,77 +16,86 @@ import {
     TRANSACTION_TYPES
 } from "./exchange.js";
 
+export const XRP_DERIVATION_PATH = "44'/144'/0'/0/0";
+export const XRP_PAYOUT_ADDRESS = "ra7Zr8ddy9tB88RaXL8B87YkqhEJG2vkAJ";
+
+export const XRP_DERIVATION_PATH_2 = "44'/144'/0'/1/0";
+export const XRP_PAYOUT_ADDRESS_2 = "rhBuYom8agWA4s7DFoM7AvsDA9XGkVCJz4";
+
 import { waitForAppScreen, zemu, nano_environments } from './test.fixture';
 
-test('[Nano S] Compare fixed rate screenshot', zemu(nano_environments[0], async (sim) => {
-    const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
-    const transactionId: string = await swap.startNewTransaction();
-    await swap.setPartnerKey(partnerSerializedNameAndPubKey);
-    await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
-    var tr = new proto.ledger_swap.NewTransactionResponse();
-    tr.setPayinAddress("2324234324324234");
-    tr.setPayinExtraId("");
-    tr.setRefundAddress("rhBuYom8agWA4s7DFoM7AvsDA9XGkVCJz4");
-    tr.setRefundExtraId("");
-    tr.setPayoutAddress("ra7Zr8ddy9tB88RaXL8B87YkqhEJG2vkAJ");
-    tr.setPayoutExtraId("");
-    tr.setCurrencyFrom("XRP");
-    tr.setCurrencyTo("XRP");
-    // 1 XRP to 10 XRP
-    tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
-    tr.setAmountToWallet(numberToBigEndianBuffer(1000000000));
-    tr.setDeviceTransactionId(transactionId);
+nano_environments.forEach(function(model) {
+    test(`[Nano ${model.letter}] Compare fixed rate screenshot`, zemu(model, async (sim) => {
+        const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP);
+        const transactionId: string = await swap.startNewTransaction();
+        await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+        await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+        var tr = new proto.ledger_swap.NewTransactionResponse();
+        tr.setPayinAddress("2324234324324234");
+        tr.setPayinExtraId("");
+        tr.setRefundAddress(XRP_PAYOUT_ADDRESS_2);
+        tr.setRefundExtraId("");
+        tr.setPayoutAddress(XRP_PAYOUT_ADDRESS);
+        tr.setPayoutExtraId("");
+        tr.setCurrencyFrom("XRP");
+        tr.setCurrencyTo("XRP");
+        // 1 XRP to 10 XRP
+        tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
+        tr.setAmountToWallet(numberToBigEndianBuffer(1000000000));
+        tr.setDeviceTransactionId(transactionId);
 
-    const payload: Buffer = Buffer.from(tr.serializeBinary());
-    await swap.processTransaction(payload, 10000000);
-    const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
-    const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
-    await swap.checkTransactionSignature(signature);
-    const xrpAddressParams = await getSerializedAddressParameters("44'/144'/0'/0/0");
-    await swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, xrpAddressParams.addressParameters);
+        const payload: Buffer = Buffer.from(tr.serializeBinary());
+        await swap.processTransaction(payload, 10000000);
+        const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+        const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+        await swap.checkTransactionSignature(signature);
+        const xrpAddressParams = await getSerializedAddressParameters(XRP_DERIVATION_PATH);
+        await swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, xrpAddressParams.addressParameters);
 
-    const xrp2AddressParams = await getSerializedAddressParameters("44'/144'/0'/1/0");
-    const checkRequest = swap.checkRefundAddress(XRPConfig, XRPConfigSignature, xrp2AddressParams.addressParameters);
+        const xrp2AddressParams = await getSerializedAddressParameters(XRP_DERIVATION_PATH_2);
+        const checkRequest = swap.checkRefundAddress(XRPConfig, XRPConfigSignature, xrp2AddressParams.addressParameters);
 
-    // Wait until we are not in the main menu
-    await waitForAppScreen(sim);
-    await sim.navigateAndCompareSnapshots('.', 'nanos_compare_fixed_rate', [4, 0]);
-    await expect(checkRequest).resolves.toBe(undefined);
-}));
+        // Wait until we are not in the main menu
+        await waitForAppScreen(sim);
+        await sim.navigateAndCompareSnapshots('.', `${model.name}_compare_fixed_rate`, [4, 0]);
+        await expect(checkRequest).resolves.toBe(undefined);
+    }))
+});
 
+nano_environments.forEach(function(model) {
+    test(`[Nano ${model.letter}] Compare floating rate screenshot`, zemu(model, async (sim) => {
+        const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP, TRANSACTION_RATES.FLOATING);
+        const transactionId: string = await swap.startNewTransaction();
+        await swap.setPartnerKey(partnerSerializedNameAndPubKey);
+        await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
+        var tr = new proto.ledger_swap.NewTransactionResponse();
+        tr.setPayinAddress("2324234324324234");
+        tr.setPayinExtraId("");
+        tr.setRefundAddress(XRP_PAYOUT_ADDRESS_2);
+        tr.setRefundExtraId("");
+        tr.setPayoutAddress(XRP_PAYOUT_ADDRESS);
+        tr.setPayoutExtraId("");
+        tr.setCurrencyFrom("XRP");
+        tr.setCurrencyTo("XRP");
+        // 1 XRP to 10 XRP
+        tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
+        tr.setAmountToWallet(numberToBigEndianBuffer(1000000000));
+        tr.setDeviceTransactionId(transactionId);
 
-test('[Nano S] Compare floating rate screenshot', zemu(nano_environments[0], async (sim) => {
-    const swap = new Exchange(sim.getTransport(), TRANSACTION_TYPES.SWAP, TRANSACTION_RATES.FLOATING);
-    const transactionId: string = await swap.startNewTransaction();
-    await swap.setPartnerKey(partnerSerializedNameAndPubKey);
-    await swap.checkPartner(DERSignatureOfPartnerNameAndPublicKey);
-    var tr = new proto.ledger_swap.NewTransactionResponse();
-    tr.setPayinAddress("2324234324324234");
-    tr.setPayinExtraId("");
-    tr.setRefundAddress("rhBuYom8agWA4s7DFoM7AvsDA9XGkVCJz4");
-    tr.setRefundExtraId("");
-    tr.setPayoutAddress("ra7Zr8ddy9tB88RaXL8B87YkqhEJG2vkAJ");
-    tr.setPayoutExtraId("");
-    tr.setCurrencyFrom("XRP");
-    tr.setCurrencyTo("XRP");
-    // 1 XRP to 10 XRP
-    tr.setAmountToProvider(numberToBigEndianBuffer(100000000));
-    tr.setAmountToWallet(numberToBigEndianBuffer(1000000000));
-    tr.setDeviceTransactionId(transactionId);
+        const payload: Buffer = Buffer.from(tr.serializeBinary());
+        await swap.processTransaction(payload, 10000000);
+        const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
+        const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
+        await swap.checkTransactionSignature(signature);
+        const xrpAddressParams = await getSerializedAddressParameters(XRP_DERIVATION_PATH);
+        await swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, xrpAddressParams.addressParameters);
 
-    const payload: Buffer = Buffer.from(tr.serializeBinary());
-    await swap.processTransaction(payload, 10000000);
-    const digest: Buffer = Buffer.from(sha256.sha256.array(payload));
-    const signature: Buffer = secp256k1.signatureExport(secp256k1.sign(digest, swapTestPrivateKey).signature);
-    await swap.checkTransactionSignature(signature);
-    const xrpAddressParams = await getSerializedAddressParameters("44'/144'/0'/0/0");
-    await swap.checkPayoutAddress(XRPConfig, XRPConfigSignature, xrpAddressParams.addressParameters);
+        const xrp2AddressParams = await getSerializedAddressParameters(XRP_DERIVATION_PATH_2);
+        const checkRequest = swap.checkRefundAddress(XRPConfig, XRPConfigSignature, xrp2AddressParams.addressParameters);
 
-    const xrp2AddressParams = await getSerializedAddressParameters("44'/144'/0'/1/0");
-    const checkRequest = swap.checkRefundAddress(XRPConfig, XRPConfigSignature, xrp2AddressParams.addressParameters);
-
-    // Wait until we are not in the main menu
-    await waitForAppScreen(sim);
-    await sim.navigateAndCompareSnapshots('.', 'nanos_compare_floating_rate', [4, 0]);
-    await expect(checkRequest).resolves.toBe(undefined);
-}));
+        // Wait until we are not in the main menu
+        await waitForAppScreen(sim);
+        await sim.navigateAndCompareSnapshots('.', `${model.name}_compare_floating_rate`, [4, 0]);
+        await expect(checkRequest).resolves.toBe(undefined);
+    }))
+});
