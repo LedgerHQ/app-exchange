@@ -2,10 +2,7 @@ import secp256k1 from "secp256k1";
 import sha256 from "js-sha256";
 
 import Exchange from "./exchange.js";
-import {
-    TRANSACTION_RATES,
-    TRANSACTION_TYPES
-} from "./exchange.js";
+import { TRANSACTION_TYPES } from "./exchange.js";
 
 import { TransportStatusError } from "@ledgerhq/errors";
 
@@ -17,10 +14,7 @@ import {
     CurrencyInfo,
     swapTestPrivateKey,
     partnerSerializedNameAndPubKey,
-    DERSignatureOfPartnerNameAndPublicKey,
-    fundTestPrivateKey,
-    fundPartnerSerializedNameAndPubKey,
-    DERSignatureOfFundPartnerNameAndPublicKey
+    DERSignatureOfPartnerNameAndPublicKey
 } from "./common";
 
 

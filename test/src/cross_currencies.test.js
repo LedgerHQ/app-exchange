@@ -29,13 +29,13 @@ import { zemu, nano_environments } from './test.fixture';
 import { SwapTransactionPerformer } from "./SwapTransactionPerformer"
 
 test('[Nano S] BTC (legacy protocol) swap to LTC fails', zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(BTC_INFO);
-    test.setToCurrencyInfo(LTC_LEGACY_INFO);
-    test.setAmountToProvider(500000);
-    test.setAmountToWallet(10000000);
-    test.setFee(1070);
-    await test.performSuccessfulTransaction();
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(BTC_INFO);
+    transaction.setToCurrencyInfo(LTC_LEGACY_INFO);
+    transaction.setAmountToProvider(500000);
+    transaction.setAmountToWallet(10000000);
+    transaction.setFee(1070);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -65,13 +65,13 @@ test('[Nano S] BTC (legacy protocol) swap to LTC fails', zemu(nano_environments[
 
 
 test('[Nano S] LTC swap to ETH', zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(LTC_INFO);
-    test.setToCurrencyInfo(ETH_INFO);
-    test.setAmountToProvider(1234);
-    test.setAmountToWallet((10 ** 18) * 0.04321); // 10^18 wei == 1 ETH
-    test.setFee(17136);
-    await test.performSuccessfulTransaction();
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(LTC_INFO);
+    transaction.setToCurrencyInfo(ETH_INFO);
+    transaction.setAmountToProvider(1234);
+    transaction.setAmountToWallet((10 ** 18) * 0.04321); // 10^18 wei == 1 ETH
+    transaction.setFee(17136);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -104,13 +104,13 @@ test('[Nano S] LTC swap to ETH', zemu(nano_environments[0], async (sim) => {
 
 
 test('[Nano S] BTC (legacy protocol) swap to ETH', zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(BTC_LEGACY_INFO);
-    test.setToCurrencyInfo(ETH_INFO);
-    test.setAmountToProvider(1234);
-    test.setAmountToWallet((10 ** 18) * 0.04321); // 10^18 wei == 1 ETH
-    test.setFee(17136);
-    await test.performSuccessfulTransaction();
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(BTC_LEGACY_INFO);
+    transaction.setToCurrencyInfo(ETH_INFO);
+    transaction.setAmountToProvider(1234);
+    transaction.setAmountToWallet((10 ** 18) * 0.04321); // 10^18 wei == 1 ETH
+    transaction.setFee(17136);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -143,13 +143,13 @@ test('[Nano S] BTC (legacy protocol) swap to ETH', zemu(nano_environments[0], as
 
 
 test('[Nano S] ETH swap to BTC', zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(ETH_INFO);
-    test.setToCurrencyInfo(BTC_INFO);
-    test.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-    test.setAmountToWallet(100000000);
-    test.setFee(840000000000000);
-    await test.performSuccessfulTransaction();
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(ETH_INFO);
+    transaction.setToCurrencyInfo(BTC_INFO);
+    transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
+    transaction.setAmountToWallet(100000000);
+    transaction.setFee(840000000000000);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -164,14 +164,14 @@ test('[Nano S] ETH swap to BTC', zemu(nano_environments[0], async (sim) => {
 
 
 test('[Nano S] Aeternity ERC20 swap to BTC', zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(AE_INFO);
-    test.setToCurrencyInfo(BTC_INFO);
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(AE_INFO);
+    transaction.setToCurrencyInfo(BTC_INFO);
     // 1.1234 AE to 1 BTC
-    test.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-    test.setAmountToWallet(100000000);
-    test.setFee(1477845000000000);
-    await test.performSuccessfulTransaction();
+    transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
+    transaction.setAmountToWallet(100000000);
+    transaction.setFee(1477845000000000);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -189,14 +189,14 @@ test('[Nano S] Aeternity ERC20 swap to BTC', zemu(nano_environments[0], async (s
 
 
 test(`[Nano S] XRP swap to ETH`, zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(XRP_INFO);
-    test.setToCurrencyInfo(ETH_INFO);
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(XRP_INFO);
+    transaction.setToCurrencyInfo(ETH_INFO);
     // 21 XRP to 1.1234 ETH
-    test.setAmountToProvider(21000000); // 1 xrp == 10^6 drops
-    test.setAmountToWallet(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-    test.setFee(123);
-    await test.performSuccessfulTransaction();
+    transaction.setAmountToProvider(21000000); // 1 xrp == 10^6 drops
+    transaction.setAmountToWallet(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
+    transaction.setFee(123);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -208,14 +208,14 @@ test(`[Nano S] XRP swap to ETH`, zemu(nano_environments[0], async (sim) => {
 
 
 test(`[Nano S] ETH swap to XRP`, zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(ETH_INFO);
-    test.setToCurrencyInfo(XRP_INFO);
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(ETH_INFO);
+    transaction.setToCurrencyInfo(XRP_INFO);
     // 1.1234 ETH to 21 XRP
-    test.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-    test.setAmountToWallet(21000000); // 1 xrp == 10^6 drops
-    test.setFee(840000000000000);
-    await test.performSuccessfulTransaction();
+    transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
+    transaction.setAmountToWallet(21000000); // 1 xrp == 10^6 drops
+    transaction.setFee(840000000000000);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -230,14 +230,14 @@ test(`[Nano S] ETH swap to XRP`, zemu(nano_environments[0], async (sim) => {
 
 
 test(`[Nano S] XLM swap to ETH`, zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(XLM_INFO);
-    test.setToCurrencyInfo(ETH_INFO);
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(XLM_INFO);
+    transaction.setToCurrencyInfo(ETH_INFO);
     // 1.1234567 XLM to 1.1234 ETH
-    test.setAmountToProvider(11234567); // 1 xlm == 10^7 drops
-    test.setAmountToWallet(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-    test.setFee(100);
-    await test.performSuccessfulTransaction();
+    transaction.setAmountToProvider(11234567); // 1 xlm == 10^7 drops
+    transaction.setAmountToWallet(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
+    transaction.setFee(100);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -250,14 +250,14 @@ test(`[Nano S] XLM swap to ETH`, zemu(nano_environments[0], async (sim) => {
 
 
 test(`[Nano S] ETH swap to XLM`, zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(ETH_INFO);
-    test.setToCurrencyInfo(XLM_INFO);
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(ETH_INFO);
+    transaction.setToCurrencyInfo(XLM_INFO);
     // 1.1234567 XLM to 1.1234 ETH
-    test.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-    test.setAmountToWallet(21000000); // 1 xlm == 10^7 drops
-    test.setFee(840000000000000);
-    await test.performSuccessfulTransaction();
+    transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
+    transaction.setAmountToWallet(21000000); // 1 xlm == 10^7 drops
+    transaction.setFee(840000000000000);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -272,14 +272,14 @@ test(`[Nano S] ETH swap to XLM`, zemu(nano_environments[0], async (sim) => {
 
 
 test(`[Nano S] XTZ swap to ETH`, zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(XTZ_INFO);
-    test.setToCurrencyInfo(ETH_INFO);
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(XTZ_INFO);
+    transaction.setToCurrencyInfo(ETH_INFO);
     // 0.0123 XTZ to 1.1234 ETH
-    test.setAmountToProvider(0.0123 * 1000000); // 1 xtz == 10^6 microtez
-    test.setAmountToWallet(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-    test.setFee(0.06 * 1000000);
-    await test.performSuccessfulTransaction();
+    transaction.setAmountToProvider(0.0123 * 1000000); // 1 xtz == 10^6 microtez
+    transaction.setAmountToWallet(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
+    transaction.setFee(0.06 * 1000000);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -292,14 +292,14 @@ test(`[Nano S] XTZ swap to ETH`, zemu(nano_environments[0], async (sim) => {
 
 
 test(`[Nano S] ETH swap to XTZ`, zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(ETH_INFO);
-    test.setToCurrencyInfo(XTZ_INFO);
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(ETH_INFO);
+    transaction.setToCurrencyInfo(XTZ_INFO);
     // 1.1234 ETH to 2.1 XTZ
-    test.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-    test.setAmountToWallet(21000000); // 1 xtz == 10^6 microtez
-    test.setFee(840000000000000);
-    await test.performSuccessfulTransaction();
+    transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
+    transaction.setAmountToWallet(21000000); // 1 xtz == 10^6 microtez
+    transaction.setFee(840000000000000);
+    await transaction.performSuccessfulTransaction();
 
     let transport = await sim.getTransport();
 
@@ -316,13 +316,13 @@ test(`[Nano S] ETH swap to XTZ`, zemu(nano_environments[0], async (sim) => {
 // The following tests use the new protocol native to the Ledger 2.0.x application.
 
 test('[Nano S] BTC (new protocol, segwit address) swap to ETH', zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(BTC_NEWPROTOCOL_SEGWIT_INFO);
-    test.setToCurrencyInfo(ETH_INFO);
-    test.setAmountToProvider(9999);
-    test.setAmountToWallet((10 ** 18) * 0.04321);
-    test.setFee(3);
-    await test.performSuccessfulTransaction();
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(BTC_NEWPROTOCOL_SEGWIT_INFO);
+    transaction.setToCurrencyInfo(ETH_INFO);
+    transaction.setAmountToProvider(9999);
+    transaction.setAmountToWallet((10 ** 18) * 0.04321);
+    transaction.setFee(3);
+    await transaction.performSuccessfulTransaction();
 
     const transport = await sim.getTransport();
     const appClient = new BtcAppAclient(transport);
@@ -343,13 +343,13 @@ test('[Nano S] BTC (new protocol, segwit address) swap to ETH', zemu(nano_enviro
 
 
 test('[Nano S] BTC (new protocol, taproot address) swap to ETH', zemu(nano_environments[0], async (sim) => {
-    var test = new SwapTransactionPerformer(nano_environments[0], sim);
-    test.setFromCurrencyInfo(BTC_NEWPROTOCOL_TAPROOT_INFO);
-    test.setToCurrencyInfo(ETH_INFO);
-    test.setAmountToProvider(14460);
-    test.setAmountToWallet((10 ** 18) * 0.04321); // 10^18 wei == 1 ETH
-    test.setFee(114);
-    await test.performSuccessfulTransaction();
+    let transaction = new SwapTransactionPerformer(nano_environments[0], sim);
+    transaction.setFromCurrencyInfo(BTC_NEWPROTOCOL_TAPROOT_INFO);
+    transaction.setToCurrencyInfo(ETH_INFO);
+    transaction.setAmountToProvider(14460);
+    transaction.setAmountToWallet((10 ** 18) * 0.04321); // 10^18 wei == 1 ETH
+    transaction.setFee(114);
+    await transaction.performSuccessfulTransaction();
 
     const transport = await sim.getTransport();
     const appClient = new BtcAppAclient(transport);

@@ -1,9 +1,6 @@
 import { bip32asBuffer } from "./bip32";
 import { listen } from "@ledgerhq/logs";
 
-import { AppClient as BtcAppAclient, PsbtV2, DefaultWalletPolicy } from "./AppBtc"
-
-
 listen((log) => {
     console.log(log);
 });
