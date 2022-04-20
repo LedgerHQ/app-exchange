@@ -42,8 +42,7 @@ nano_environments.forEach(function(model) {
         let transport = await sim.getTransport();
 
         try {
-            var
-                ans = await transport.send(0xe0, 0x44, 0x00, 0x02, Buffer.from('0100000002', 'hex')); // nVersion + number of inputs
+            let ans = await transport.send(0xe0, 0x44, 0x00, 0x02, Buffer.from('0100000002', 'hex')); // nVersion + number of inputs
             ans = await transport.send(0xe0, 0x44, 0x80, 0x02, Buffer.from('022d5a8829df3b90a541c8ae609fa9a0436e99b6a78a5c081e77c249ced0df3db200000000409c00000000000000', 'hex'));
             ans = await transport.send(0xe0, 0x44, 0x80, 0x02, Buffer.from('ffffff00', 'hex'));
             ans = await transport.send(0xe0, 0x44, 0x80, 0x02, Buffer.from('0252203e7659e8515db292f18f4aa0235822cb89d5de136c437fe8fca09945822e0000000040420f000000000000', 'hex'));
@@ -180,6 +179,33 @@ nano_environments.forEach(function(model) {
         let transaction = new SwapTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(AE_INFO);
         transaction.setToCurrencyInfo(BTC_INFO);
+        // 1.1234 AE to 1 BTC
+        transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
+        transaction.setAmountToWallet(100000000);
+        transaction.setFee(1477845000000000);
+        await transaction.performSuccessfulTransaction();
+
+        let transport = await sim.getTransport();
+
+        const eth = new Eth(transport);
+        const aeInfo = byContractAddress("0x5CA9a71B1d01849C0a95490Cc00559717fCF0D1d")
+        if (aeInfo) await eth.provideERC20TokenInformation(aeInfo)
+
+        await expect(eth.signTransaction("44'/60'/0'/0/0", 'F8690385098BCA5A00828CCD945CA9a71B1d01849C0a95490Cc00559717fCF0D1d80B844A9059CBB000000000000000000000000d692Cb1346262F584D17B4B470954501f6715a820000000000000000000000000000000000000000000000000F971E5914AC8000038080'))
+            .resolves.toEqual({
+                "r": "6e766ca0c8474da1dc5dc0d057e0f97711fd70aed7cb9965ff6dc423d8f4daad",
+                "s": "63a0893b73e752965b65ebe13e1be8b5838e2113006656ea2eefa55fe0fa2919",
+                "v": "2a"
+            });
+    }))
+});
+
+
+nano_environments.forEach(function(model) {
+    test(`[Nano ${model.letter}] Aeternity ERC20 swap to ETH`, zemu(model, async (sim) => {
+        let transaction = new SwapTransactionPerformer(model, sim);
+        transaction.setFromCurrencyInfo(AE_INFO);
+        transaction.setToCurrencyInfo(ETH_INFO);
         // 1.1234 AE to 1 BTC
         transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
         transaction.setAmountToWallet(100000000);

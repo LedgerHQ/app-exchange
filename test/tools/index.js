@@ -91,6 +91,9 @@ const main = () => {
     aeSubConfig = Buffer.concat([Buffer.from(["AE".length]), Buffer.from("AE"), Buffer.from([18])])
     var aeConfig = createCurrencyConfig("AE", "Ethereum", aeSubConfig, ledgerTestPrivateKey);
 
+    shibSubConfig = Buffer.concat([Buffer.from(["SHIB".length]), Buffer.from("SHIB"), Buffer.from([20])])
+    var shibConfig = createCurrencyConfig("SHIB", "Ethereum", shibSubConfig, ledgerTestPrivateKey);
+
     usdtSubConfig = Buffer.concat([Buffer.from(["USDT".length]), Buffer.from("USDT"), Buffer.from([6])])
     var usdtConfig = createCurrencyConfig("USDT", "Ethereum", usdtSubConfig, ledgerTestPrivateKey);
 
@@ -111,6 +114,8 @@ const main = () => {
     console.log("const ETHConfigSignature = Buffer.from(" + toHexPrintableConst(ethConfig.signature));
     console.log("\nconst AEConfig = Buffer.from(" + toHexPrintableConst(aeConfig.coinConfig));
     console.log("const AEConfigSignature = Buffer.from(" + toHexPrintableConst(aeConfig.signature));
+    console.log("\nconst SHIBConfig = Buffer.from(" + toHexPrintableConst(shibConfig.coinConfig));
+    console.log("const SHIBConfigSignature = Buffer.from(" + toHexPrintableConst(shibConfig.signature));
     console.log("\nconst USDTConfig = Buffer.from(" + toHexPrintableConst(usdtConfig.coinConfig));
     console.log("const USDTConfigSignature = Buffer.from(" + toHexPrintableConst(usdtConfig.signature));
     console.log("\nconst REPConfig = Buffer.from(" + toHexPrintableConst(repConfig.coinConfig));
@@ -119,4 +124,3 @@ const main = () => {
 
 
 main();
-
