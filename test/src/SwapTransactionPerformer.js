@@ -25,7 +25,7 @@ import {
 
 
 // Helper class to factorize boilerplate transaction code
-export class ExchangeTransactionPerformer {
+export class SwapTransactionPerformer {
     constructor(model, sim) {
         this.model = model;
         this.sim = sim;

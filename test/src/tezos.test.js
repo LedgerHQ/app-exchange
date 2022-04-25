@@ -6,13 +6,13 @@ import {
     XTZ_INFO,
 } from "./common";
 
-import { ExchangeTransactionPerformer } from "./ExchangeTransactionPerformer"
+import { SwapTransactionPerformer } from "./SwapTransactionPerformer"
 
 import { zemu, nano_environments } from './test.fixture';
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Tezos wrong payout address should not be accepted`, zemu(model, async (sim) => {
-        let t = new ExchangeTransactionPerformer(model, sim);
+        let t = new SwapTransactionPerformer(model, sim);
         t.setFromCurrencyInfo(BTC_INFO);
         t.setToCurrencyInfo(XTZ_INFO);
         t.setAmountToProvider(100000000);
@@ -24,7 +24,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Tezos valid payout address should be accepted`, zemu(model, async (sim) => {
-        let t = new ExchangeTransactionPerformer(model, sim);
+        let t = new SwapTransactionPerformer(model, sim);
         t.setFromCurrencyInfo(BTC_INFO);
         t.setToCurrencyInfo(XTZ_INFO);
         t.setAmountToProvider(100000000);
@@ -36,7 +36,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Tezos wrong refund address should be rejected`, zemu(model, async (sim) => {
-        let t = new ExchangeTransactionPerformer(model, sim);
+        let t = new SwapTransactionPerformer(model, sim);
         t.setFromCurrencyInfo(XTZ_INFO);
         t.setToCurrencyInfo(XTZ_INFO);
         t.setAmountToProvider(100000000);
@@ -48,7 +48,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Tezos valid refund address should be accepted`, zemu(model, async (sim) => {
-        let t = new ExchangeTransactionPerformer(model, sim);
+        let t = new SwapTransactionPerformer(model, sim);
         t.setFromCurrencyInfo(XTZ_INFO);
         t.setToCurrencyInfo(XTZ_INFO);
         t.setAmountToProvider(100000000);
