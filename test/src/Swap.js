@@ -13,7 +13,7 @@ export const COMMAND = {
     CHECK_ASSET_IN                : 0x08, // For SELL command, same as CHECK_PAYOUT_ADDRESS actually
     CHECK_REFUND_ADDRESS          : 0x09,
     SIGN_COIN_TRANSACTION         : 0x0A,
-}
+};
 
 export const RESULT = {
     OK                      : 0x9000,
@@ -43,7 +43,7 @@ export default class Swap {
                             RESULT.INTERNAL_ERROR,
                             RESULT.CLASS_NOT_SUPPORTED,
                             RESULT.INVALID_INSTRUCTION,
-                            RESULT.SIGN_VERIFICATION_FAIL]
+                            RESULT.SIGN_VERIFICATION_FAIL];
   }
 
   isSuccess(result: Buffer): bool {
@@ -70,30 +70,30 @@ export default class Swap {
   }
 
   async getVersion(): Promise<string> {
-    let result: Buffer = await this.transport.send(0xE0, COMMAND.GET_VERSION_COMMAND, 0x00, 0x00, Buffer(0), this.allowedStatuses);
+    const result: Buffer = await this.transport.send(0xE0, COMMAND.GET_VERSION_COMMAND, 0x00, 0x00, Buffer(0), this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
     return result;
   }
 
   async startNewTransaction(): Promise<string> {
-    let result: Buffer = await this.transport.send(0xE0, COMMAND.START_NEW_TRANSACTION_COMMAND, 0x00, 0x00, Buffer(0), this.allowedStatuses);
+    const result: Buffer = await this.transport.send(0xE0, COMMAND.START_NEW_TRANSACTION_COMMAND, 0x00, 0x00, Buffer(0), this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
     if (result.length != 12)
       throw new Error("APDU response length should be 12");
-    let transactionId: string = result.toString("ascii", 0, 10);
+    const transactionId: string = result.toString("ascii", 0, 10);
     return transactionId;
   }
 
   async setPartnerKey(partnerNameAndPublicKey: Buffer): Promise<void> {
-    let result: Buffer = await this.transport.send(0xE0, COMMAND.SET_PARTNER_KEY_COMMAND, 0x00, 0x00, partnerNameAndPublicKey, this.allowedStatuses);
+    const result: Buffer = await this.transport.send(0xE0, COMMAND.SET_PARTNER_KEY_COMMAND, 0x00, 0x00, partnerNameAndPublicKey, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
 
   async checkPartner(signatureOfPartnerData: Buffer): Promise<void> {
-    let result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_PARTNER_COMMAND, 0x00, 0x00, signatureOfPartnerData, this.allowedStatuses);
+    const result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_PARTNER_COMMAND, 0x00, 0x00, signatureOfPartnerData, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
@@ -108,13 +108,13 @@ export default class Swap {
       Buffer.from([feeHex.length]),
       feeHex]);
     console.log(bufferToSend.toString("hex"));
-    let result: Buffer = await this.transport.send(0xE0, COMMAND.PROCESS_TRANSACTION_RESPONSE, 0x00, 0x00, bufferToSend, this.allowedStatuses);
+    const result: Buffer = await this.transport.send(0xE0, COMMAND.PROCESS_TRANSACTION_RESPONSE, 0x00, 0x00, bufferToSend, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
 
   async checkTransactionSignature(transactionSignature: Buffer): Promise<void> {
-    let result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_TRANSACTION_SIGNATURE, 0x00, 0x00, transactionSignature, this.allowedStatuses);
+    const result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_TRANSACTION_SIGNATURE, 0x00, 0x00, transactionSignature, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
@@ -135,7 +135,7 @@ export default class Swap {
       currencyConfigSignature,
       Buffer.from([addressParameters.length]),
       addressParameters]);
-    let result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_PAYOUT_ADDRESS, 0x00, 0x00, bufferToSend, this.allowedStatuses);
+    const result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_PAYOUT_ADDRESS, 0x00, 0x00, bufferToSend, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
@@ -156,13 +156,13 @@ export default class Swap {
       currencyConfigSignature,
       Buffer.from([addressParameters.length]),
       addressParameters]);
-    let result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_REFUND_ADDRESS, 0x00, 0x00, bufferToSend, this.allowedStatuses);
+    const result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_REFUND_ADDRESS, 0x00, 0x00, bufferToSend, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
 
   async signCoinTransaction(): Promise<void> {
-    let result: Buffer = await this.transport.send(0xE0, COMMAND.SIGN_COIN_TRANSACTION, 0x00, 0x00, Buffer(0), this.allowedStatuses);
+    const result: Buffer = await this.transport.send(0xE0, COMMAND.SIGN_COIN_TRANSACTION, 0x00, 0x00, Buffer(0), this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
