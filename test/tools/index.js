@@ -68,6 +68,12 @@ const main = () => {
     console.log("DER signature: " + toHexPrintableConst(fundTestData.signatureInDER));
     console.log("===========\n");
 
+    sellTestData = createSignedPartnerPublicKeyAndName("SELL_TEST", ledgerTestPrivateKey, secp256r1);
+    console.log("SELL_TEST private key: " + toHexPrintableConst(sellTestData.privKey));
+    console.log("SELL_TEST signed name and pub key: " + toHexPrintableConst(sellTestData.serializedPubKeyAndName));
+    console.log("DER signature: " + toHexPrintableConst(sellTestData.signatureInDER));
+    console.log("===========\n");
+
     changellyData = serializeSignedPartnerPublicKeyAndName("Changelly", changellyPubKey, ledgerTestPrivateKey);
     console.log("Changelly private key: " + toHexPrintableConst(changellyData.privKey));
     console.log("Changelly serialized name and pub key: " + toHexPrintableConst(changellyData.serializedPubKeyAndName));
