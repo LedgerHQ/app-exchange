@@ -2,23 +2,48 @@
 import type Transport from "@ledgerhq/hw-transport";
 import { BigNumber } from "bignumber.js";
 
-const GET_VERSION_COMMAND: number           = 0x02;
-const START_NEW_TRANSACTION_COMMAND: number = 0x03;
-const SET_PARTNER_KEY_COMMAND: number       = 0x04;
-const CHECK_PARTNER_COMMAND: Number         = 0x05;
-const PROCESS_TRANSACTION_RESPONSE: number  = 0x06;
-const CHECK_TRANSACTION_SIGNATURE: number   = 0x07;
-const CHECK_PAYOUT_ADDRESS:number           = 0x08;
-const CHECK_REFUND_ADDRESS:number           = 0x09;
-const SIGN_COIN_TRANSACTION:number          = 0x0A;
+export const COMMAND = {
+    GET_VERSION_COMMAND           : 0x02,
+    START_NEW_TRANSACTION_COMMAND : 0x03,
+    SET_PARTNER_KEY_COMMAND       : 0x04,
+    CHECK_PARTNER_COMMAND         : 0x05,
+    PROCESS_TRANSACTION_RESPONSE  : 0x06,
+    CHECK_TRANSACTION_SIGNATURE   : 0x07,
+    CHECK_PAYOUT_ADDRESS          : 0x08,
+    CHECK_ASSET_IN                : 0x08, // For SELL command, same as CHECK_PAYOUT_ADDRESS actually
+    CHECK_REFUND_ADDRESS          : 0x09,
+    SIGN_COIN_TRANSACTION         : 0x0A,
+}
+
+export const RESULT = {
+    OK                      : 0x9000,
+    INCORRECT_COMMAND_DATA  : 0x6A80,
+    DESERIALIZATION_FAILED  : 0x6A81,
+    WRONG_TRANSACTION_ID    : 0x6A82,
+    INVALID_ADDRESS         : 0x6A83,
+    USER_REFUSED            : 0x6A84,
+    INTERNAL_ERROR          : 0x6A85,
+    CLASS_NOT_SUPPORTED     : 0x6E00,
+    INVALID_INSTRUCTION     : 0x6D00,
+    SIGN_VERIFICATION_FAIL  : 0x9D1A,
+};
 
 export default class Swap {
-  transport: Transport<*>;  
+  transport: Transport<*>;
   allowedStatuses: Array<number>;
 
   constructor(transport: Transport<*>) {
     this.transport = transport;
-    this.allowedStatuses = [0x9000, 0x6A80, 0x6A81, 0x6A82, 0x6A83, 0x6A84, 0x6A85, 0x6E00, 0x6D00, 0x9D1A];
+    this.allowedStatuses = [RESULT.OK,
+                            RESULT.INCORRECT_COMMAND_DATA,
+                            RESULT.DESERIALIZATION_FAILED,
+                            RESULT.WRONG_TRANSACTION_ID,
+                            RESULT.INVALID_ADDRESS,
+                            RESULT.USER_REFUSED,
+                            RESULT.INTERNAL_ERROR,
+                            RESULT.CLASS_NOT_SUPPORTED,
+                            RESULT.INVALID_INSTRUCTION,
+                            RESULT.SIGN_VERIFICATION_FAIL]
   }
 
   isSuccess(result: Buffer): bool {
@@ -30,29 +55,29 @@ export default class Swap {
       throw new Error("Response length is too small");
     var errorMessage: string;
     switch (result.readUInt16BE(result.length - 2)) {
-      case 0x6A80: errorMessage = "INCORRECT_COMMAND_DATA"; break;
-      case 0x6A81: errorMessage = "DESERIALIZATION_FAILED"; break;
-      case 0x6A82: errorMessage = "WRONG_TRANSACTION_ID"; break;
-      case 0x6A83: errorMessage = "INVALID_ADDRESS"; break;
-      case 0x6A84: errorMessage = "USER_REFUSED"; break;
-      case 0x6A85: errorMessage = "INTERNAL_ERROR"; break;
-      case 0x6E00: errorMessage = "CLASS_NOT_SUPPORTED"; break;
-      case 0x6D00: errorMessage = "INVALID_INSTRUCTION"; break;
-      case 0x9D1A: errorMessage = "SIGN_VERIFICATION_FAIL"; break;
+      case RESULT.INCORRECT_COMMAND_DATA: errorMessage = "INCORRECT_COMMAND_DATA"; break;
+      case RESULT.DESERIALIZATION_FAILED: errorMessage = "DESERIALIZATION_FAILED"; break;
+      case RESULT.WRONG_TRANSACTION_ID: errorMessage = "WRONG_TRANSACTION_ID"; break;
+      case RESULT.INVALID_ADDRESS: errorMessage = "INVALID_ADDRESS"; break;
+      case RESULT.USER_REFUSED: errorMessage = "USER_REFUSED"; break;
+      case RESULT.INTERNAL_ERROR: errorMessage = "INTERNAL_ERROR"; break;
+      case RESULT.CLASS_NOT_SUPPORTED: errorMessage = "CLASS_NOT_SUPPORTED"; break;
+      case RESULT.INVALID_INSTRUCTION: errorMessage = "INVALID_INSTRUCTION"; break;
+      case RESULT.SIGN_VERIFICATION_FAIL: errorMessage = "SIGN_VERIFICATION_FAIL"; break;
       default: errorMessage = "Unknown error"; break;
     }
     throw new Error("Swap application report error " + errorMessage);
   }
 
   async getVersion(): Promise<string> {
-    let result: Buffer = await this.transport.send(0xE0, GET_VERSION_COMMAND, 0x00, 0x00, Buffer(0), this.allowedStatuses);
+    let result: Buffer = await this.transport.send(0xE0, COMMAND.GET_VERSION_COMMAND, 0x00, 0x00, Buffer(0), this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
     return result;
   }
 
   async startNewTransaction(): Promise<string> {
-    let result: Buffer = await this.transport.send(0xE0, START_NEW_TRANSACTION_COMMAND, 0x00, 0x00, Buffer(0), this.allowedStatuses);
+    let result: Buffer = await this.transport.send(0xE0, COMMAND.START_NEW_TRANSACTION_COMMAND, 0x00, 0x00, Buffer(0), this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
     if (result.length != 12)
@@ -62,13 +87,13 @@ export default class Swap {
   }
 
   async setPartnerKey(partnerNameAndPublicKey: Buffer): Promise<void> {
-    let result: Buffer = await this.transport.send(0xE0, SET_PARTNER_KEY_COMMAND, 0x00, 0x00, partnerNameAndPublicKey, this.allowedStatuses);
+    let result: Buffer = await this.transport.send(0xE0, COMMAND.SET_PARTNER_KEY_COMMAND, 0x00, 0x00, partnerNameAndPublicKey, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
 
   async checkPartner(signatureOfPartnerData: Buffer): Promise<void> {
-    let result: Buffer = await this.transport.send(0xE0, CHECK_PARTNER_COMMAND, 0x00, 0x00, signatureOfPartnerData, this.allowedStatuses);
+    let result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_PARTNER_COMMAND, 0x00, 0x00, signatureOfPartnerData, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
@@ -83,13 +108,13 @@ export default class Swap {
       Buffer.from([feeHex.length]),
       feeHex]);
     console.log(bufferToSend.toString("hex"));
-    let result: Buffer = await this.transport.send(0xE0, PROCESS_TRANSACTION_RESPONSE, 0x00, 0x00, bufferToSend, this.allowedStatuses);
+    let result: Buffer = await this.transport.send(0xE0, COMMAND.PROCESS_TRANSACTION_RESPONSE, 0x00, 0x00, bufferToSend, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
 
   async checkTransactionSignature(transactionSignature: Buffer): Promise<void> {
-    let result: Buffer = await this.transport.send(0xE0, CHECK_TRANSACTION_SIGNATURE, 0x00, 0x00, transactionSignature, this.allowedStatuses);
+    let result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_TRANSACTION_SIGNATURE, 0x00, 0x00, transactionSignature, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
@@ -110,7 +135,7 @@ export default class Swap {
       currencyConfigSignature,
       Buffer.from([addressParameters.length]),
       addressParameters]);
-    let result: Buffer = await this.transport.send(0xE0, CHECK_PAYOUT_ADDRESS, 0x00, 0x00, bufferToSend, this.allowedStatuses);
+    let result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_PAYOUT_ADDRESS, 0x00, 0x00, bufferToSend, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
@@ -131,13 +156,13 @@ export default class Swap {
       currencyConfigSignature,
       Buffer.from([addressParameters.length]),
       addressParameters]);
-    let result: Buffer = await this.transport.send(0xE0, CHECK_REFUND_ADDRESS, 0x00, 0x00, bufferToSend, this.allowedStatuses);
+    let result: Buffer = await this.transport.send(0xE0, COMMAND.CHECK_REFUND_ADDRESS, 0x00, 0x00, bufferToSend, this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
 
   async signCoinTransaction(): Promise<void> {
-    let result: Buffer = await this.transport.send(0xE0, SIGN_COIN_TRANSACTION, 0x00, 0x00, Buffer(0), this.allowedStatuses);
+    let result: Buffer = await this.transport.send(0xE0, COMMAND.SIGN_COIN_TRANSACTION, 0x00, 0x00, Buffer(0), this.allowedStatuses);
     if (!this.isSuccess(result))
       this.mapProtocolError(result);
   }
