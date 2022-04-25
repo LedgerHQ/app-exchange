@@ -17,10 +17,13 @@ import {
     CurrencyInfo,
     swapTestPrivateKey,
     sellTestPrivateKey,
+    fundTestPrivateKey,
     partnerSerializedNameAndPubKey,
     DERSignatureOfPartnerNameAndPublicKey,
     sellPartnerSerializedNameAndPubKey,
     DERSignatureOfSellPartnerNameAndPublicKey,
+    fundPartnerSerializedNameAndPubKey,
+    DERSignatureOfFundPartnerNameAndPublicKey,
 } from "./common";
 
 
@@ -50,16 +53,18 @@ export class SwapTransactionPerformer {
     setAmountToProvider(amountToProvider: number) {
         this.amountToProvider = numberToBigEndianBuffer(amountToProvider);
     }
+    // SWAP
     // What amount of TO currency to receive
     setAmountToWallet(amountToWallet: number) {
         this.amountToWallet = numberToBigEndianBuffer(amountToWallet);
     }
 
-    // SELL
+    // SELL + FUND
     // What amount of FROM currency to send
     setInAmount(inAmount) {
         this.inAmount = inAmount;
     }
+    // SELL
     // What amount of TO currency to receive
     setOutAmount(coefficient: number, exponent: number) {
         const outAmount = new proto.ledger_swap.UDecimal();
@@ -111,10 +116,25 @@ export class SwapTransactionPerformer {
         this.tr.setInAddress(this.fromCurrencyInfo.sendingAddress);
 
         this.tr.setOutCurrency(this.toCurrencyInfo.name);
-        this.tr.setDeviceTransactionId(transactionId);
 
         this.tr.setInAmount(this.inAmount);
         this.tr.setOutAmount(this.outAmount);
+        this.tr.setDeviceTransactionId(transactionId);
+    }
+
+    async createFundTransaction() {
+        this.exchange = new Exchange(this.sim.getTransport(), TRANSACTION_TYPES.FUND);
+        const transactionId_base64: string = await this.exchange.startNewTransaction();
+        const transactionId: Buffer = base64url.toBuffer(transactionId_base64);
+        await this.exchange.setPartnerKey(fundPartnerSerializedNameAndPubKey);
+        await this.exchange.checkPartner(DERSignatureOfFundPartnerNameAndPublicKey);
+        this.tr = new proto.ledger_swap.NewFundResponse();
+        this.tr.setUserId("John Doe");
+        this.tr.setAccountName("Card 1234");
+        this.tr.setInCurrency(this.fromCurrencyInfo.name);
+        this.tr.setInAddress(this.fromCurrencyInfo.sendingAddress);
+        this.tr.setInAmount(this.inAmount);
+        this.tr.setDeviceTransactionId(transactionId);
     }
 
     async processTransactionAndCheckSignature(curve, concatenateDot: boolean, doEncode: boolean, privateKey) {
@@ -209,6 +229,21 @@ export class SwapTransactionPerformer {
         // Wait until we are not in the main menu
         await waitForAppScreen(this.sim);
         await this.sim.navigateAndCompareSnapshots('.', `${this.model.name}_valid_${this.fromCurrencyInfo.displayName}_selling_is_accepted`, [5, 0]);
+
+        await this.exchange.signCoinTransaction();
+    }
+
+    // Perform the FUND transaction, requires that all parameters are set
+    async performFund() {
+        await this.createFundTransaction();
+        await this.processTransactionAndCheckSignature(secp256r1, true, true, fundTestPrivateKey);
+
+        // // useless what to put instead?
+        this.exchange.checkPayoutAddress(this.fromCurrencyInfo.config, this.fromCurrencyInfo.configSignature, this.fromCurrencyInfo.serializedAddressParameters.addressParameters);
+
+        // Wait until we are not in the main menu
+        await waitForAppScreen(this.sim);
+        await this.sim.navigateAndCompareSnapshots('.', `${this.model.name}_valid_${this.fromCurrencyInfo.displayName}_funding_is_accepted`, [5, 0]);
 
         await this.exchange.signCoinTransaction();
     }
