@@ -192,6 +192,20 @@ export const AE_INFO = new CurrencyInfo("AE", "erc20_AE",
                                    AEConfig, AEConfigSignature,
                                    getSerializedAddressParameters("44'/60'/0'/0/0"));
 
+export const SHIB_INFO = new CurrencyInfo(
+    "SHIB",
+    "erc20_SHIB",
+    "0xd692Cb1346262F584D17B4B470954501f6715a82",
+    "JDAGMEFPAX",
+    "0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+    "JDAGMEFPAX",
+    "",
+    SHIBConfig,
+    SHIBConfigSignature,
+    getSerializedAddressParameters("44'/60'/0'/0/0")
+);
+
+
 export const XLM_INFO = new CurrencyInfo("XLM", "xlm",
                                   "GC3JHKMIG7SWJEBAHFX35ILEFQJFSOKRSWFGTVXTPGCGDWG54FPXJ2Z6", "123456789123456",
                                   "GCNCEJIAZ5D3APIF5XWAJ3JSSTHM4HPHE7GK3NAB6R6WWSZDB2A2BQ5B", "",

@@ -11,6 +11,7 @@ import "./protocol_pb.js";
 import {
     ETH_INFO,
     AE_INFO,
+    SHIB_INFO,
     XRP_INFO,
     XLM_INFO,
     XTZ_INFO,
@@ -202,7 +203,7 @@ nano_environments.forEach(function(model) {
 
 
 nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] Aeternity ERC20 swap to ETH`, zemu(model, async (sim) => {
+    test(`[Nano ${model.letter}] Swap from AE ERC20 to ETH`, zemu(model, async (sim) => {
         let transaction = new SwapTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(AE_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
@@ -224,6 +225,23 @@ nano_environments.forEach(function(model) {
                 "s": "63a0893b73e752965b65ebe13e1be8b5838e2113006656ea2eefa55fe0fa2919",
                 "v": "2a"
             });
+    }))
+});
+
+
+nano_environments.forEach(function(model) {
+    test(`[Nano ${model.letter}] Swap from ETH to SHIB ERC20, large amount does not overflow`, zemu(model, async (sim) => {
+        let transaction = new SwapTransactionPerformer(model, sim);
+        transaction.setFromCurrencyInfo(ETH_INFO);
+        transaction.setToCurrencyInfo(SHIB_INFO);
+        // 1.1234 AE to 1 BTC
+        transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 0.3); // 10^18 wei == 1 ETH
+        transaction.setAmountToWallet(1000000 * 1000000 * 1000000 * 2318520.24);
+        transaction.setFee(1477845000000000);
+        let right_clicks = (model.letter ==  'X' ? 4 : 6);
+        await transaction.performSuccessfulTransaction(right_clicks);
+
+        let transport = await sim.getTransport();
     }))
 });
 

@@ -11,6 +11,8 @@
 
 #define GET_PRINTABLE_AMOUNT 4
 
+#define MAX_PRINTABLE_AMOUNT_SIZE 50
+
 // structure that should be send to specific coin application to get address
 typedef struct check_address_parameters_s {
     // IN
@@ -35,7 +37,7 @@ typedef struct get_printable_amount_parameters_s {
     unsigned char amount_length;
     bool is_fee;
     // OUT
-    char printable_amount[30];
+    char printable_amount[MAX_PRINTABLE_AMOUNT_SIZE];
 } get_printable_amount_parameters_t;
 
 typedef struct create_transaction_parameters_s {

@@ -1,10 +1,12 @@
 #ifndef _SWAP_APP_CONTEXT_H_
 #define _SWAP_APP_CONTEXT_H_
 
+#include <os.h>
+#include <cx.h>
+#include <swap_lib_calls.h>
+
 #include "states.h"
-#include "os.h"
 #include "proto/protocol.pb.h"
-#include "cx.h"
 #include "commands.h"
 #include "globals.h"
 #include "buffer.h"
@@ -41,7 +43,7 @@ typedef struct swap_app_context_s {
     buf_t payin_coin_config;  // serialized coin configuration
     char payin_binary_name[16];
 
-    char printable_get_amount[PRINTABLE_AMOUNT_SIZE];
+    char printable_get_amount[MAX_PRINTABLE_AMOUNT_SIZE];
 } swap_app_context_t;
 
 extern swap_app_context_t swap_ctx;
