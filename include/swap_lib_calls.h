@@ -11,6 +11,14 @@
 
 #define GET_PRINTABLE_AMOUNT 4
 
+/*
+ * Amounts are store as bytes, with a max size of 16 (see protobuf
+ * specifications). Max 16B integer is 340282366920938463463374607431768211455
+ * in decimal, which is a 32-long char string.
+ * The printable amount also contains spaces, the ticker symbol (with variable
+ * size, up to 12 in Ethereum for instance) and a terminating null byte, so 50
+ * bytes total should be a fair maximum.
+ */
 #define MAX_PRINTABLE_AMOUNT_SIZE 50
 
 // structure that should be send to specific coin application to get address
