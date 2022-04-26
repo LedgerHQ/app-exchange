@@ -9,6 +9,8 @@ async function waitForAppScreen(sim) {
 }
 
 const sim_options = {
+    logging: true,
+    X11: true,
     X11: true,
     startText: 'is ready',
     custom: '',
@@ -18,6 +20,7 @@ const Resolve = require('path').resolve;
 
 const NANOS_ELF_PATH = Resolve('elfs/exchange_nanos.elf');
 const NANOX_ELF_PATH = Resolve('elfs/exchange_nanox.elf');
+const NANOSP_ELF_PATH = Resolve('elfs/exchange_nanosp.elf');
 
 /*
  Applications loaded for tests must comply with the following constraints:
@@ -61,6 +64,7 @@ class ExchangeDeviceModel extends DeviceModel {
 const nano_environments: ExchangeDeviceModel[] = [
     { name: 'nanos', letter: 'S', path: NANOS_ELF_PATH, libs: get_applications('nanos'), sdk: '2.1'},
     { name: 'nanox', letter: 'X', path: NANOX_ELF_PATH, libs: get_applications('nanox'), sdk: '2.0.2'},
+    { name: 'nanosp', letter: "SP", path: NANOSP_ELF_PATH, libs: get_applications('nanosp')},
 ];
 
 const TIMEOUT = 1000000;

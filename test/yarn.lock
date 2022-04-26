@@ -1963,10 +1963,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@zondax/zemu@^0.25.0":
-  version "0.25.1"
-  resolved "https://registry.yarnpkg.com/@zondax/zemu/-/zemu-0.25.1.tgz#141340d05a354393792cf20e5fe392a20907e930"
-  integrity sha512-vH5JMEg+Qvrih0NxiT1XZ6YvJVJd5lZ2/WA7UvOobbN1Rdkh2VUFEoe77Sma/HAvpF3vA4cM9UT5Wc/wjfJymQ==
+"@zondax/zemu@^0.29.0":
+  version "0.29.0"
+  resolved "https://registry.yarnpkg.com/@zondax/zemu/-/zemu-0.29.0.tgz#038d2ca749d6a9b36b283fcdcd3f33cbdbacb634"
+  integrity sha512-n/O5oLk8REZd3u5ouL+WYIKOOPlE1+M+8JsBe+FkdrRFm/4Q6sk3UowdL4fdh4hl18I0m4+km0Ku354Sao72HQ==
   dependencies:
     "@grpc/grpc-js" "^1.5.5"
     "@grpc/proto-loader" "^0.6.9"
@@ -1981,7 +1981,6 @@
     path "^0.12.7"
     pngjs "^6.0.0"
     randomstring "^1.2.1"
-    rfb2 "^0.2.2"
     sleep "^6.3.0"
 
 abab@^2.0.0, abab@^2.0.3, abab@^2.0.5:
@@ -6015,11 +6014,6 @@ ret@~0.1.10:
   version "0.1.15"
   resolved "https://registry.yarnpkg.com/ret/-/ret-0.1.15.tgz#b8a4825d5bdb1fc3f6f53c2bc33f81388681c7bc"
   integrity sha512-TTlYpa+OL+vMMNG24xSlQGEJ3B/RzEfUlLct7b5G/ytav+wPrplCpVMFuwzXbkecJrb6IYo1iFb0S9v37754mg==
-
-rfb2@^0.2.2:
-  version "0.2.2"
-  resolved "https://registry.yarnpkg.com/rfb2/-/rfb2-0.2.2.tgz#f9444b8803e6a31848e57911ace562ce0fee5598"
-  integrity sha512-+Aw0oED0zsoNQYFE3FUsD+a/lm9y8YwdQaERlWHm7G5hey3tiSQGq7tfe5sFAw5fbN7Zms38bVEDxIUAOq3mRw==
 
 rimraf@^3.0.0:
   version "3.0.2"

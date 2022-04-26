@@ -58,9 +58,71 @@ jobs:
           path: ./exchange_nanox.elf
           if-no-files-found: error
 
-  jobs-e2e-tests:
+  job_build_debug_nano_SP:
+    name: Build debug NanoSP
+    runs-on: ubuntu-latest
+
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          make BOLOS_SDK=$NANOSP_SDK DEBUG=1 TESTING=1 TEST_PUBLIC_KEY=1
+          cp bin/app.elf exchange_nanosp.elf
+
+      - name: Upload app binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: exchange
+          path: ./exchange_nanosp.elf
+          if-no-files-found: error
+
+  jobs-e2e-tests-nano-S:
     needs:
       - job_build_debug_nano_S
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Install APT dependencies
+        run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
+
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install JS dependencies
+        run: cd test && yarn install
+
+      - name: Create tmp folder for artifacts
+        run: mkdir test/elfs/tmp
+
+      - name: Download app binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: exchange
+          path: test/elfs/tmp
+
+      - name: Gather elfs
+        run: |
+          cp `find test/elfs/tmp -name "*.elf"` test/elfs/
+          ls -lh test/elfs/
+
+      - name: Run zemu tests
+        run: cd test && yarn test -t "\[Nano S\]"
+
+  jobs-e2e-tests-nano-X:
+    needs:
       - job_build_debug_nano_X
     runs-on: ubuntu-latest
 
@@ -97,4 +159,44 @@ jobs:
           ls -lh test/elfs/
 
       - name: Run zemu tests
-        run: cd test && yarn test
+        run: cd test && yarn test -t "\[Nano X\]"
+
+  jobs-e2e-tests-nano-SP:
+    needs:
+      - job_build_debug_nano_SP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+
+      - name: Install APT dependencies
+        run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
+
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install JS dependencies
+        run: cd test && yarn install
+
+      - name: Create tmp folder for artifacts
+        run: mkdir test/elfs/tmp
+
+      - name: Download app binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: exchange
+          path: test/elfs/tmp
+
+      - name: Gather elfs
+        run: |
+          cp `find test/elfs/tmp -name "*.elf"` test/elfs/
+          ls -lh test/elfs/
+
+      - name: Run zemu tests
+        run: cd test && yarn test -t "\[Nano SP\]"

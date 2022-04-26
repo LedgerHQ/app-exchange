@@ -238,7 +238,7 @@ nano_environments.forEach(function(model) {
         transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 0.3); // 10^18 wei == 1 ETH
         transaction.setAmountToWallet(1000000 * 1000000 * 1000000 * 2318520.24);
         transaction.setFee(1477845000000000);
-        const right_clicks = (model.letter ==  'X' ? 4 : 6);
+        const right_clicks = (model.letter ==  'S' ? 6 : 4);
         await transaction.performSuccessfulTransaction(right_clicks);
     }))
 });
