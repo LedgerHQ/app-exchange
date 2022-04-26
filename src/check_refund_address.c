@@ -1,5 +1,7 @@
+#include <os.h>
+#include <cx.h>
+
 #include "check_refund_address.h"
-#include "os.h"
 #include "currency_lib_calls.h"
 #include "globals.h"
 #include "swap_errors.h"
@@ -87,7 +89,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
         return reply_error(ctx, INVALID_ADDRESS, send);
     }
 
-    static char printable_send_amount[PRINTABLE_AMOUNT_SIZE];
+    static char printable_send_amount[MAX_PRINTABLE_AMOUNT_SIZE];
     memset(printable_send_amount, 0, sizeof(printable_send_amount));
 
     if (get_printable_amount(&ctx->payin_coin_config,
@@ -103,7 +105,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     }
     PRINTF("Send amount: %s\n", printable_send_amount);
 
-    static char printable_fees_amount[PRINTABLE_AMOUNT_SIZE];
+    static char printable_fees_amount[MAX_PRINTABLE_AMOUNT_SIZE];
     memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
 
     if (get_printable_amount(&ctx->payin_coin_config,

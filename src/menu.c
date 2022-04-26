@@ -61,10 +61,10 @@ FLOW_LOOP);
 
 struct ValidationInfo {
     char email[member_size(swap_app_context_t, sell_transaction.trader_email)];
-    char send[PRINTABLE_AMOUNT_SIZE];
+    char send[MAX_PRINTABLE_AMOUNT_SIZE];
     char get[member_size(swap_app_context_t, printable_get_amount)];
-    char fees[PRINTABLE_AMOUNT_SIZE];
-    char provider[PRINTABLE_AMOUNT_SIZE];
+    char fees[MAX_PRINTABLE_AMOUNT_SIZE];
+    char provider[MAX_PRINTABLE_AMOUNT_SIZE];
     UserChoiseCallback OnAccept;
     UserChoiseCallback OnReject;
 } validationInfo;

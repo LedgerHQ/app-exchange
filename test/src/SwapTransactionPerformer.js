@@ -199,7 +199,7 @@ export class SwapTransactionPerformer {
     }
 
     // Perform the SWAP transaction, requires that all parameters are set
-    async performSuccessfulTransaction() {
+    async performSuccessfulTransaction(right_click = 4) {
         await this.createSwapTransaction(false, false);
         await this.processTransactionAndCheckSignature(secp256k1, false, true, swapTestPrivateKey);
 
@@ -210,7 +210,7 @@ export class SwapTransactionPerformer {
 
         // Wait until we are not in the main menu
         await waitForAppScreen(this.sim);
-        await this.sim.navigateAndCompareSnapshots(".", `${this.model.name}_${this.fromCurrencyInfo.displayName}_to_${this.toCurrencyInfo.displayName}_swap`, [4, 0]);
+        await this.sim.navigateAndCompareSnapshots(".", `${this.model.name}_${this.fromCurrencyInfo.displayName}_to_${this.toCurrencyInfo.displayName}_swap`, [right_click, 0]);
         await expect(checkRequest).resolves.toBe(undefined);
 
         await this.exchange.signCoinTransaction();
