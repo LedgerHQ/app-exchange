@@ -186,7 +186,7 @@ const char *addr_to_fname(void *func) {
 
 void __cyg_profile_func_enter(void *this_fn, void *call_site)
     __attribute__((no_instrument_function));
-void __cyg_profile_func_enter(void *func, void *callsite) {
+void __cyg_profile_func_enter(void *func, void *callsite __attribute__((unused))) {
     const char *fname = addr_to_fname(func);
     for (int i = 0; i < G_depth; i++) {
         PRINTF(" ");
@@ -202,8 +202,8 @@ void __cyg_profile_func_enter(void *func, void *callsite) {
 }
 void __cyg_profile_func_exit(void *this_fn, void *call_site)
     __attribute__((no_instrument_function));
-void __cyg_profile_func_exit(void *func, void *callsite) {
-    const char *fname = addr_to_fname(func);
+void __cyg_profile_func_exit(void *func, void *callsite __attribute__((unused))) {
+    const char *fname __attribute__((unused)) = addr_to_fname(func);
     // last_stack_left = ((void*)&fname) - &_ebss;
     G_depth--;
     for (int i = 0; i < G_depth; i++) {

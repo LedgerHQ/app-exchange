@@ -1,8 +1,6 @@
 #ifndef _SWAP_APP_CONTEXT_H_
 #define _SWAP_APP_CONTEXT_H_
 
-#include <os.h>
-#include <cx.h>
 #include <swap_lib_calls.h>
 
 #include "states.h"

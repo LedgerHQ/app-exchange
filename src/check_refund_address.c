@@ -1,5 +1,7 @@
+#include <os.h>
+#include <cx.h>
+
 #include "check_refund_address.h"
-#include "os.h"
 #include "currency_lib_calls.h"
 #include "globals.h"
 #include "swap_errors.h"

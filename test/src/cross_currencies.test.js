@@ -204,7 +204,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Swap from AE ERC20 to ETH`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        const transaction = new SwapTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(AE_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
         // 1.1234 AE to 1 BTC
@@ -213,11 +213,11 @@ nano_environments.forEach(function(model) {
         transaction.setFee(1477845000000000);
         await transaction.performSuccessfulTransaction();
 
-        let transport = await sim.getTransport();
+        const transport = await sim.getTransport();
 
         const eth = new Eth(transport);
-        const aeInfo = byContractAddress("0x5CA9a71B1d01849C0a95490Cc00559717fCF0D1d")
-        if (aeInfo) await eth.provideERC20TokenInformation(aeInfo)
+        const aeInfo = byContractAddress("0x5CA9a71B1d01849C0a95490Cc00559717fCF0D1d");
+        if (aeInfo) await eth.provideERC20TokenInformation(aeInfo);
 
         await expect(eth.signTransaction("44'/60'/0'/0/0", 'F8690385098BCA5A00828CCD945CA9a71B1d01849C0a95490Cc00559717fCF0D1d80B844A9059CBB000000000000000000000000d692Cb1346262F584D17B4B470954501f6715a820000000000000000000000000000000000000000000000000F971E5914AC8000038080'))
             .resolves.toEqual({
@@ -231,17 +231,15 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Swap from ETH to SHIB ERC20, large amount does not overflow`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        const transaction = new SwapTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(ETH_INFO);
         transaction.setToCurrencyInfo(SHIB_INFO);
         // 1.1234 AE to 1 BTC
         transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 0.3); // 10^18 wei == 1 ETH
         transaction.setAmountToWallet(1000000 * 1000000 * 1000000 * 2318520.24);
         transaction.setFee(1477845000000000);
-        let right_clicks = (model.letter ==  'X' ? 4 : 6);
+        const right_clicks = (model.letter ==  'X' ? 4 : 6);
         await transaction.performSuccessfulTransaction(right_clicks);
-
-        let transport = await sim.getTransport();
     }))
 });
 

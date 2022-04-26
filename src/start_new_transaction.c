@@ -1,3 +1,5 @@
+#include <cx.h>
+
 #include "start_new_transaction.h"
 #include "init.h"
 #include "reply_error.h"

@@ -1,5 +1,7 @@
+#include <os.h>
+#include <cx.h>
+
 #include "check_tx_signature.h"
-#include "os.h"
 #include "globals.h"
 #include "swap_errors.h"
 #include "reply_error.h"

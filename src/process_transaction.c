@@ -1,3 +1,5 @@
+#include <cx.h>
+
 #include "process_transaction.h"
 #include "pb_decode.h"
 #include "proto/protocol.pb.h"

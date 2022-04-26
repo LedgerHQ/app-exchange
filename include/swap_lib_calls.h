@@ -12,7 +12,7 @@
 #define GET_PRINTABLE_AMOUNT 4
 
 /*
- * Amounts are store as bytes, with a max size of 16 (see protobuf
+ * Amounts are stored as bytes, with a max size of 16 (see protobuf
  * specifications). Max 16B integer is 340282366920938463463374607431768211455
  * in decimal, which is a 32-long char string.
  * The printable amount also contains spaces, the ticker symbol (with variable
