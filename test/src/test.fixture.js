@@ -9,8 +9,8 @@ async function waitForAppScreen(sim) {
 }
 
 const sim_options = {
-    logging: true,
-    X11: true,
+    // Uncomment for testing
+    // logging: true,
     X11: true,
     startText: 'is ready',
     custom: '',
@@ -64,7 +64,7 @@ class ExchangeDeviceModel extends DeviceModel {
 const nano_environments: ExchangeDeviceModel[] = [
     { name: 'nanos', letter: 'S', path: NANOS_ELF_PATH, libs: get_applications('nanos'), sdk: '2.1'},
     { name: 'nanox', letter: 'X', path: NANOX_ELF_PATH, libs: get_applications('nanox'), sdk: '2.0.2'},
-    { name: 'nanosp', letter: "SP", path: NANOSP_ELF_PATH, libs: get_applications('nanosp')},
+    { name: 'nanosp', letter: "SP", path: NANOSP_ELF_PATH, libs: get_applications('nanosp'), sdk: '1.0'},
 ];
 
 const TIMEOUT = 1000000;
