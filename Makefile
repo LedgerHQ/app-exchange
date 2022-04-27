@@ -100,8 +100,6 @@ ifneq ($(DEBUG),0)
         else
                 DEFINES   += HAVE_PRINTF PRINTF=mcu_usb_printf
         endif
-else
-        DEFINES   += PRINTF\(...\)=
 endif
 
 ##############
