@@ -84,6 +84,7 @@ const main = () => {
     const xrpConfig = createCurrencyConfig("XRP", "XRP", Buffer(0), ledgerTestPrivateKey);
     const xlmConfig = createCurrencyConfig("XLM", "Stellar", Buffer(0), ledgerTestPrivateKey);
     const xtzConfig = createCurrencyConfig("XTZ", "Tezos Wallet", Buffer(0), ledgerTestPrivateKey);
+    const xtzLegacyConfig = createCurrencyConfig("XTZ", "Tezos", Buffer(0), ledgerTestPrivateKey);
 
     const ethSubConfig = Buffer.concat([Buffer.from(["ETH".length]), Buffer.from("ETH"), Buffer.from([18])])
     const ethConfig = createCurrencyConfig("ETH", "Ethereum", ethSubConfig, ledgerTestPrivateKey);
@@ -110,6 +111,8 @@ const main = () => {
     console.log("const XLMConfigSignature = Buffer.from(" + toHexPrintableConst(xlmConfig.signature));
     console.log("\nconst XTZConfig = Buffer.from(" + toHexPrintableConst(xtzConfig.coinConfig));
     console.log("const XTZConfigSignature = Buffer.from(" + toHexPrintableConst(xtzConfig.signature));
+    console.log("\nconst XTZLegacyConfig = Buffer.from(" + toHexPrintableConst(xtzLegacyConfig.coinConfig));
+    console.log("const XTZLegacyConfigSignature = Buffer.from(" + toHexPrintableConst(xtzLegacyConfig.signature));
     console.log("\nconst ETHConfig = Buffer.from(" + toHexPrintableConst(ethConfig.coinConfig));
     console.log("const ETHConfigSignature = Buffer.from(" + toHexPrintableConst(ethConfig.signature));
     console.log("\nconst AEConfig = Buffer.from(" + toHexPrintableConst(aeConfig.coinConfig));
