@@ -4,36 +4,26 @@
 #include "parse_coin_config.h"
 
 typedef struct app_name_alias_s {
-    char *foreign_name;
-    char *app_name;
+    const char *const foreign_name;
+    const char *const app_name;
 } app_name_alias_t;
 
 const app_name_alias_t appnames_aliases[] = {
     {"Tezos", "Tezos Wallet"}  // The app name is 'Tezos Wallet' so change accordingly.
 };
 
-void set_ledger_application_name(buf_t *application_name) {
-    for (size_t i = 0; i < sizeof(appnames_aliases) / sizeof(appnames_aliases[0]); i++) {
-        if (!strncmp((const char *) application_name->bytes,
-                     (char *) (PIC(appnames_aliases[i].foreign_name)),
-                     strlen((char *) PIC(appnames_aliases[i].foreign_name)))) {
-            application_name->bytes = (unsigned char *) appnames_aliases[i].app_name;
-            application_name->size = strlen((char *) PIC(appnames_aliases[i].app_name));
-            return;
-        }
-    }
-}
-
-// 1 byte - the length X of ticker
-// X byte - ticker
-// 1 byte - the length Y of application name
-// Y byte - application name
-// 1 byte - the length Z of coin configuration
-// Z byte - coin configuration
-int parse_coin_config(buf_t *config_, buf_t *ticker, buf_t *application_name, buf_t *pure_config) {
-    // This function is sometimes called with config_ == pure_config, make a
-    // copy.
-    buf_t config = *config_;
+// 1 byte  - the length X of ticker
+// X bytes - ticker
+// 1 byte  - the length Y of application name
+// Y bytes - application name
+// 1 byte  - the length Z of coin configuration
+// Z bytes - coin configuration
+int parse_coin_config(const buf_t *const config_,
+                      buf_t *ticker,
+                      buf_t *application_name,
+                      buf_t *pure_config) {
+    // This function can be called with config_ == pure_config, so making a copy
+    const buf_t config = *config_;
 
     ticker->bytes = 0;
     ticker->size = 0;
@@ -59,7 +49,15 @@ int parse_coin_config(buf_t *config_, buf_t *ticker, buf_t *application_name, bu
         pure_config->bytes = config.bytes + 1 + ticker->size + 1 + application_name->size + 1;
 
     // Update the application name to match Ledger's naming.
-    set_ledger_application_name(application_name);
+    for (size_t i = 0; i < sizeof(appnames_aliases) / sizeof(appnames_aliases[0]); i++) {
+        if (!strncmp((const char *) application_name->bytes,
+                     (char *) (PIC(appnames_aliases[i].foreign_name)),
+                     application_name->size)) {
+            application_name->bytes = (unsigned char *) appnames_aliases[i].app_name;
+            application_name->size = strlen((char *) PIC(appnames_aliases[i].app_name));
+            break;
+        }
+    }
 
     return 1;
 }
