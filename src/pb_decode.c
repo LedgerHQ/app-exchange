@@ -335,9 +335,9 @@ static bool checkreturn pb_decode_varint32_eof(pb_istream_t *stream, uint32_t *d
                     PB_RETURN_ERROR(stream, "varint overflow");
                 }
             } else {
-                result |= (uint32_t)(byte & 0x7F) << bitpos;
+                result |= (uint32_t) (byte & 0x7F) << bitpos;
             }
-            bitpos = (uint_fast8_t)(bitpos + 7);
+            bitpos = (uint_fast8_t) (bitpos + 7);
         } while (byte & 0x80);
 
         if (bitpos == 35 && (byte & 0x70) != 0) {
@@ -365,8 +365,8 @@ bool checkreturn pb_decode_varint(pb_istream_t *stream, uint64_t *dest) {
 
         if (!pb_readbyte(stream, &byte)) return false;
 
-        result |= (uint64_t)(byte & 0x7F) << bitpos;
-        bitpos = (uint_fast8_t)(bitpos + 7);
+        result |= (uint64_t) (byte & 0x7F) << bitpos;
+        bitpos = (uint_fast8_t) (bitpos + 7);
     } while (byte & 0x80);
 
     *dest = result;
@@ -408,7 +408,7 @@ bool checkreturn pb_decode_tag(pb_istream_t *stream,
     }
 
     *tag = temp >> 3;
-    *wire_type = (pb_wire_type_t)(temp & 7);
+    *wire_type = (pb_wire_type_t) (temp & 7);
     return true;
 }
 
@@ -743,7 +743,7 @@ static bool checkreturn decode_pointer_field(pb_istream_t *stream,
                 if (!allocate_field(stream,
                                     iter->pData,
                                     ((const pb_field_t *) PIC(iter->pos))->data_size,
-                                    (size_t)(*size + 1)))
+                                    (size_t) (*size + 1)))
                     return false;
 
                 pItem = *(char **) iter->pData +
@@ -1293,9 +1293,9 @@ bool pb_decode_svarint(pb_istream_t *stream, pb_int64_t *dest) {
     if (!pb_decode_varint(stream, &value)) return false;
 
     if (value & 1)
-        *dest = (pb_int64_t)(~(value >> 1));
+        *dest = (pb_int64_t) (~(value >> 1));
     else
-        *dest = (pb_int64_t)(value >> 1);
+        *dest = (pb_int64_t) (value >> 1);
 
     return true;
 }
