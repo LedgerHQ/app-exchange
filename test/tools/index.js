@@ -4,7 +4,7 @@ const secp256r1 = require('secp256r1');
 const sha256 = require('js-sha256').sha256;
 
 const toHexPrintableConst = (buffer) => {
-    const ans = "[0x" + buffer[0].toString(16).toUpperCase();
+    let ans = "[0x" + buffer[0].toString(16).toUpperCase();
     for (i = 1; i < buffer.length; i++)
         ans += ", 0x" + buffer[i].toString(16).toUpperCase();
     ans += "]);"
@@ -33,8 +33,8 @@ const createSignedPartnerPublicKeyAndName = (partnerName, ledgerPrivateKey, curv
 
 const createCurrencyConfig = (ticker, applicationName, coinConfig, ledgerPrivateKey) => {
     const payload = Buffer.concat([Buffer.from([ticker.length]), Buffer.from(ticker),
-    Buffer.from([applicationName.length]), Buffer.from(applicationName),
-    Buffer.from([coinConfig.length]), coinConfig]);
+                                   Buffer.from([applicationName.length]), Buffer.from(applicationName),
+                                   Buffer.from([coinConfig.length]), coinConfig]);
     const hash = Buffer.from(sha256.sha256.array(payload));
     const signature = secp256k1.sign(hash, ledgerPrivateKey).signature;
     const der = secp256k1.signatureExport(signature);
@@ -84,20 +84,21 @@ const main = () => {
     const xrpConfig = createCurrencyConfig("XRP", "XRP", Buffer(0), ledgerTestPrivateKey);
     const xlmConfig = createCurrencyConfig("XLM", "Stellar", Buffer(0), ledgerTestPrivateKey);
     const xtzConfig = createCurrencyConfig("XTZ", "Tezos Wallet", Buffer(0), ledgerTestPrivateKey);
+    const xtzLegacyConfig = createCurrencyConfig("XTZ", "Tezos", Buffer(0), ledgerTestPrivateKey);
 
-    ethSubConfig = Buffer.concat([Buffer.from(["ETH".length]), Buffer.from("ETH"), Buffer.from([18])])
+    const ethSubConfig = Buffer.concat([Buffer.from(["ETH".length]), Buffer.from("ETH"), Buffer.from([18])])
     const ethConfig = createCurrencyConfig("ETH", "Ethereum", ethSubConfig, ledgerTestPrivateKey);
 
-    aeSubConfig = Buffer.concat([Buffer.from(["AE".length]), Buffer.from("AE"), Buffer.from([18])])
+    const aeSubConfig = Buffer.concat([Buffer.from(["AE".length]), Buffer.from("AE"), Buffer.from([18])])
     const aeConfig = createCurrencyConfig("AE", "Ethereum", aeSubConfig, ledgerTestPrivateKey);
 
-    shibSubConfig = Buffer.concat([Buffer.from(["SHIB".length]), Buffer.from("SHIB"), Buffer.from([20])]);
+    const shibSubConfig = Buffer.concat([Buffer.from(["SHIB".length]), Buffer.from("SHIB"), Buffer.from([20])]);
     const shibConfig = createCurrencyConfig("SHIB", "Ethereum", shibSubConfig, ledgerTestPrivateKey);
 
-    usdtSubConfig = Buffer.concat([Buffer.from(["USDT".length]), Buffer.from("USDT"), Buffer.from([6])])
+    const usdtSubConfig = Buffer.concat([Buffer.from(["USDT".length]), Buffer.from("USDT"), Buffer.from([6])])
     const usdtConfig = createCurrencyConfig("USDT", "Ethereum", usdtSubConfig, ledgerTestPrivateKey);
 
-    repSubConfig = Buffer.concat([Buffer.from(["REP".length]), Buffer.from("REP"), Buffer.from([18])])
+    const repSubConfig = Buffer.concat([Buffer.from(["REP".length]), Buffer.from("REP"), Buffer.from([18])])
     const repConfig = createCurrencyConfig("REP", "Ethereum", repSubConfig, ledgerTestPrivateKey);
 
     console.log("\nconst BTCConfig = Buffer.from(" + toHexPrintableConst(btcConfig.coinConfig));
@@ -110,6 +111,8 @@ const main = () => {
     console.log("const XLMConfigSignature = Buffer.from(" + toHexPrintableConst(xlmConfig.signature));
     console.log("\nconst XTZConfig = Buffer.from(" + toHexPrintableConst(xtzConfig.coinConfig));
     console.log("const XTZConfigSignature = Buffer.from(" + toHexPrintableConst(xtzConfig.signature));
+    console.log("\nconst XTZLegacyConfig = Buffer.from(" + toHexPrintableConst(xtzLegacyConfig.coinConfig));
+    console.log("const XTZLegacyConfigSignature = Buffer.from(" + toHexPrintableConst(xtzLegacyConfig.signature));
     console.log("\nconst ETHConfig = Buffer.from(" + toHexPrintableConst(ethConfig.coinConfig));
     console.log("const ETHConfigSignature = Buffer.from(" + toHexPrintableConst(ethConfig.signature));
     console.log("\nconst AEConfig = Buffer.from(" + toHexPrintableConst(aeConfig.coinConfig));

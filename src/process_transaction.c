@@ -8,8 +8,8 @@
 #include "base64.h"
 
 typedef struct currency_alias_s {
-    char *foreign_name;
-    char *ledger_name;
+    const char *const foreign_name;
+    const char *const ledger_name;
 } currency_alias_t;
 
 const currency_alias_t currencies_aliases[] = {
@@ -24,10 +24,12 @@ void to_uppercase(char *str, unsigned char size) {
     }
 }
 
-void set_ledger_currency_name(char *currency) {
+void set_ledger_currency_name(char *currency, size_t currency_size) {
     for (size_t i = 0; i < sizeof(currencies_aliases) / sizeof(currencies_aliases[0]); i++) {
-        if (!strcmp(currency, (char *) (PIC(currencies_aliases[i].foreign_name)))) {
-            strcpy(currency, (char *) (PIC(currencies_aliases[i].ledger_name)));
+        if (!strncmp(currency,
+                     (char *) (PIC(currencies_aliases[i].foreign_name)),
+                     strlen((char *) PIC(currencies_aliases[i].foreign_name)))) {
+            strlcpy(currency, (char *) (PIC(currencies_aliases[i].ledger_name)), currency_size);
             return;
         }
     }
@@ -65,8 +67,12 @@ void normalize_currencies(swap_app_context_t *ctx) {
                  sizeof(ctx->received_transaction.currency_from));
     to_uppercase(ctx->received_transaction.currency_to,
                  sizeof(ctx->received_transaction.currency_to));
-    set_ledger_currency_name(ctx->received_transaction.currency_from);
-    set_ledger_currency_name(ctx->received_transaction.currency_to);
+    set_ledger_currency_name(ctx->received_transaction.currency_from,
+                             sizeof(ctx->received_transaction.currency_from) /
+                                 sizeof(ctx->received_transaction.currency_from[0]));
+    set_ledger_currency_name(ctx->received_transaction.currency_to,
+                             sizeof(ctx->received_transaction.currency_to) /
+                                 sizeof(ctx->received_transaction.currency_to[0]));
 
     // strip bcash CashAddr header, and other bicmd->subcommand1 like headers
     for (size_t i = 0; i < sizeof(ctx->received_transaction.payin_address); i++) {
