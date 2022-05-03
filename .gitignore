@@ -29,7 +29,7 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 .vs/
 #Nuget packages folder
-test/elfs/exchange_*
+test/elfs
 packages/
 bin
 debug

@@ -12,8 +12,52 @@ on:
     - develop
 
 jobs:
-  job_build_debug_nano_S:
-    name: Build debug NanoS
+  build_sideloaded_applications:
+    strategy:
+      matrix:
+        include:
+        - coin: stellar
+          repo: app-stellar
+        - coin: tezos
+          repo: app-tezos
+        - coin: xrp
+          repo: app-xrp
+        - coin: ethereum
+          repo: app-ethereum
+        - coin: litecoin
+          repo: app-bitcoin-new
+        - coin: bitcoin
+          repo: app-bitcoin-new
+
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+
+    steps:
+      - name: Clone ${{ matrix.repo }} for coin ${{ matrix.coin }}
+        uses: actions/checkout@v3
+        with:
+          repository: LedgerHQ/${{ matrix.repo }}
+          ref: develop
+
+      - name: Build in ${{ matrix.repo }} coin ${{ matrix.coin }}
+        run: |
+          make clean ; COIN=${{ matrix.coin }} BOLOS_SDK=$NANOS_SDK make
+          cp bin/app.elf ${{ matrix.coin }}_nanos.elf
+          make clean ; COIN=${{ matrix.coin }} BOLOS_SDK=$NANOX_SDK make
+          cp bin/app.elf ${{ matrix.coin }}_nanox.elf
+          make clean ; COIN=${{ matrix.coin }} BOLOS_SDK=$NANOSP_SDK make
+          cp bin/app.elf ${{ matrix.coin }}_nanosp.elf
+
+      - name: Upload ${{ matrix.coin }} binaries
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.coin }}_binaries
+          path: ./*.elf
+          if-no-files-found: error
+
+  job_build_exchange:
+    name: Build Exchange
     runs-on: ubuntu-latest
 
     container:
@@ -23,67 +67,29 @@ jobs:
       - name: Clone
         uses: actions/checkout@v2
 
-      - name: Build
+      - name: Build Exchange
         run: |
-          make DEBUG=1 TESTING=1 TEST_PUBLIC_KEY=1
+          make clean ; BOLOS_SDK=$NANOS_SDK TESTING=1 TEST_PUBLIC_KEY=1 make
           cp bin/app.elf exchange_nanos.elf
-
-      - name: Upload app binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: exchange
-          path: ./exchange_nanos.elf
-          if-no-files-found: error
-
-  job_build_debug_nano_X:
-    name: Build debug NanoX
-    runs-on: ubuntu-latest
-
-    container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v2
-
-      - name: Build
-        run: |
-          make BOLOS_SDK=$NANOX_SDK DEBUG=1 TESTING=1 TEST_PUBLIC_KEY=1
+          make clean ; BOLOS_SDK=$NANOX_SDK TESTING=1 TEST_PUBLIC_KEY=1 make
           cp bin/app.elf exchange_nanox.elf
-
-      - name: Upload app binary
-        uses: actions/upload-artifact@v2
-        with:
-          name: exchange
-          path: ./exchange_nanox.elf
-          if-no-files-found: error
-
-  job_build_debug_nano_SP:
-    name: Build debug NanoSP
-    runs-on: ubuntu-latest
-
-    container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v2
-
-      - name: Build
-        run: |
-          make BOLOS_SDK=$NANOSP_SDK DEBUG=1 TESTING=1 TEST_PUBLIC_KEY=1
+          make clean ; BOLOS_SDK=$NANOSP_SDK TESTING=1 TEST_PUBLIC_KEY=1 make
           cp bin/app.elf exchange_nanosp.elf
 
-      - name: Upload app binary
+      - name: Upload Exchange binaries
         uses: actions/upload-artifact@v2
         with:
-          name: exchange
-          path: ./exchange_nanosp.elf
+          name: exchange_binaries
+          path: ./*.elf
           if-no-files-found: error
 
-  jobs-e2e-tests-nano-S:
+  jobs-e2e-tests:
+    strategy:
+      matrix:
+        device: [Nano S, Nano X, Nano SP]
     needs:
-      - job_build_debug_nano_S
+      - job_build_exchange
+      - build_sideloaded_applications
     runs-on: ubuntu-latest
 
     steps:
@@ -104,102 +110,16 @@ jobs:
       - name: Install JS dependencies
         run: cd test && yarn install
 
-      - name: Create tmp folder for artifacts
-        run: mkdir test/elfs/tmp
-
-      - name: Download app binaries
+      - name: Download all binaries
         uses: actions/download-artifact@v2
-        with:
-          name: exchange
-          path: test/elfs/tmp
 
-      - name: Gather elfs
+      - name: Gather artifacts
         run: |
-          cp `find test/elfs/tmp -name "*.elf"` test/elfs/
-          ls -lh test/elfs/
+          mkdir test/elfs
+          mv *_binaries/*.elf test/elfs
 
-      - name: Run zemu tests
-        run: cd test && yarn test -t "\[Nano S\]"
-
-  jobs-e2e-tests-nano-X:
-    needs:
-      - job_build_debug_nano_X
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v2
-
-      - name: Install APT dependencies
-        run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
-
-      - name: Install Node
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16
-
-      - name: Install Yarn
-        run: npm install -g yarn
-
-      - name: Install JS dependencies
-        run: cd test && yarn install
-
-      - name: Create tmp folder for artifacts
-        run: mkdir test/elfs/tmp
-
-      - name: Download app binaries
-        uses: actions/download-artifact@v2
-        with:
-          name: exchange
-          path: test/elfs/tmp
-
-      - name: Gather elfs
-        run: |
-          cp `find test/elfs/tmp -name "*.elf"` test/elfs/
-          ls -lh test/elfs/
-
-      - name: Run zemu tests
-        run: cd test && yarn test -t "\[Nano X\]"
-
-  jobs-e2e-tests-nano-SP:
-    needs:
-      - job_build_debug_nano_SP
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v2
-
-      - name: Install APT dependencies
-        run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
-
-      - name: Install Node
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16
-
-      - name: Install Yarn
-        run: npm install -g yarn
-
-      - name: Install JS dependencies
-        run: cd test && yarn install
-
-      - name: Create tmp folder for artifacts
-        run: mkdir test/elfs/tmp
-
-      - name: Download app binaries
-        uses: actions/download-artifact@v2
-        with:
-          name: exchange
-          path: test/elfs/tmp
-
-      - name: Gather elfs
-        run: |
-          cp `find test/elfs/tmp -name "*.elf"` test/elfs/
-          ls -lh test/elfs/
-
-      - name: Run zemu tests
-        run: cd test && yarn test -t "\[Nano SP\]"
+      - name: Run zemu tests for device ${{ matrix.device }}
+        run: cd test && yarn test -t "\[${{ matrix.device }}\]"
 
   job_scan_build:
     name: Clang Static Analyzer
