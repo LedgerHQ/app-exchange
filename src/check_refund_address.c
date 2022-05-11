@@ -39,10 +39,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
 
-    if (parse_coin_config(&config,            //
-                          &ticker,            //
-                          &application_name,  //
-                          &ctx->payin_coin_config) == 0) {
+    if (parse_coin_config(&config, &ticker, &application_name, &ctx->payin_coin_config) == 0) {
         PRINTF("Error: Can't parse refund coin config command\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
