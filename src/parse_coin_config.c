@@ -12,41 +12,52 @@ const app_name_alias_t appnames_aliases[] = {
     {"Tezos", "Tezos Wallet"}  // The app name is 'Tezos Wallet' so change accordingly.
 };
 
-// 1 byte  - the length X of ticker
-// X bytes - ticker
-// 1 byte  - the length Y of application name
-// Y bytes - application name
-// 1 byte  - the length Z of coin configuration
-// Z bytes - coin configuration
-int parse_coin_config(const buf_t *const config_,
+/*
+ * Parses a configuration buffer and fills the following arguments with embedded data
+ *
+ * The buffer is composed of:
+ *
+ * | Lt | T | La | A | Lc | C |
+ *
+ * With:
+ *  - T the ticker symbol, Lt its size
+ *  - A the application name, La its size
+ *  - C the configuration, Lc its size
+ */
+int parse_coin_config(const buf_t *const buffer,
                       buf_t *ticker,
                       buf_t *application_name,
-                      buf_t *pure_config) {
-    // This function can be called with config_ == pure_config, so making a copy
-    const buf_t config = *config_;
+                      buf_t *configuration) {
+    // This function can be called with buffer == configuration, so making a copy
+    const buf_t buffer_copy = *buffer;
 
     ticker->bytes = 0;
     ticker->size = 0;
     application_name->bytes = 0;
     application_name->size = 0;
-    pure_config->bytes = 0;
-    pure_config->size = 0;
+    configuration->bytes = 0;
+    configuration->size = 0;
     // ticker
-    if (config.size < 3) return 0;
-    ticker->size = config.bytes[0];
-    if (config.size < 3 + ticker->size) return 0;
-    if (ticker->size > 0) ticker->bytes = config.bytes + 1;
+    if (buffer_copy.size < 3) return 0;
+    ticker->size = buffer_copy.bytes[0];
+    if (buffer_copy.size < 3 + ticker->size) return 0;
+    if (ticker->size > 0) ticker->bytes = buffer_copy.bytes + 1;
     // application_name
-    application_name->size = config.bytes[1 + ticker->size];
-    if (config.size < 3 + ticker->size + application_name->size || application_name->size == 0) {
+    application_name->size = buffer_copy.bytes[1 + ticker->size];
+    if (buffer_copy.size < 3 + ticker->size + application_name->size ||
+        application_name->size == 0) {
         return 0;
     }
-    application_name->bytes = config.bytes + 1 + ticker->size + 1;
-    // pure_config
-    pure_config->size = config.bytes[1 + ticker->size + 1 + application_name->size];
-    if (config.size != 3 + ticker->size + application_name->size + pure_config->size) return 0;
-    if (pure_config->size > 0)
-        pure_config->bytes = config.bytes + 1 + ticker->size + 1 + application_name->size + 1;
+    application_name->bytes = buffer_copy.bytes + 1 + ticker->size + 1;
+    // configuration
+    configuration->size = buffer_copy.bytes[1 + ticker->size + 1 + application_name->size];
+    if (buffer_copy.size != 3 + ticker->size + application_name->size + configuration->size) {
+        return 0;
+    }
+    if (configuration->size > 0) {
+        configuration->bytes =
+            buffer_copy.bytes + 1 + ticker->size + 1 + application_name->size + 1;
+    }
 
     // Update the application name to match Ledger's naming.
     for (size_t i = 0; i < sizeof(appnames_aliases) / sizeof(appnames_aliases[0]); i++) {
