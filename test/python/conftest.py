@@ -16,7 +16,8 @@ BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
 
 
 def prepare_speculos_args():
-    assert APPLICATION_DIRECTORY.is_dir()
+    assert APPLICATION_DIRECTORY.is_dir(), \
+        f"{APPLICATION_DIRECTORY} is not a directory"
     application = None
     speculos_args = ["--model", "nanos", "--sdk", "2.1"]
     for application_elf in [a for a in APPLICATION_DIRECTORY.iterdir()
@@ -27,7 +28,8 @@ def prepare_speculos_args():
                 break
         if "exchange" in application_elf.name:
             application = str(application_elf)
-    assert application is not None
+    assert application is not None, \
+        f"{application} not found"
     assert len(speculos_args) == 4 + len(APPLICATIONS)
     return ([application], {"args": speculos_args})
 

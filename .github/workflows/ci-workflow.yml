@@ -15,18 +15,25 @@ jobs:
   build_sideloaded_applications:
     strategy:
       matrix:
-        include:
-        - coin: stellar
+        sdk:
+        - path: $NANOS_SDK
+          name: nanos
+        - path: $NANOX_SDK
+          name: nanox
+        - path: $NANOSP_SDK
+          name: nanosp
+        coin:
+        - name: stellar
           repo: app-stellar
-        - coin: tezos
+        - name: tezos
           repo: app-tezos
-        - coin: xrp
+        - name: xrp
           repo: app-xrp
-        - coin: ethereum
+        - name: ethereum
           repo: app-ethereum
-        - coin: litecoin
+        - name: litecoin
           repo: app-bitcoin-new
-        - coin: bitcoin
+        - name: bitcoin
           repo: app-bitcoin-new
 
     runs-on: ubuntu-latest
@@ -34,31 +41,30 @@ jobs:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
 
     steps:
-      - name: Clone ${{ matrix.repo }} for coin ${{ matrix.coin }}
+      - name: Clone ${{ matrix.coin.repo }} for coin ${{ matrix.coin.name }}
         uses: actions/checkout@v3
         with:
-          repository: LedgerHQ/${{ matrix.repo }}
+          repository: LedgerHQ/${{ matrix.coin.repo }}
           ref: develop
 
-      - name: Build in ${{ matrix.repo }} coin ${{ matrix.coin }}
+      - name: Build in ${{ matrix.coin.repo }} coin ${{ matrix.coin.name }} for SDK ${{ matrix.sdk.name }}
         run: |
-          make clean ; COIN=${{ matrix.coin }} BOLOS_SDK=$NANOS_SDK make
-          cp bin/app.elf ${{ matrix.coin }}_nanos.elf
-          make clean ; COIN=${{ matrix.coin }} BOLOS_SDK=$NANOX_SDK make
-          cp bin/app.elf ${{ matrix.coin }}_nanox.elf
-          make clean ; COIN=${{ matrix.coin }} BOLOS_SDK=$NANOSP_SDK make
-          cp bin/app.elf ${{ matrix.coin }}_nanosp.elf
+          make clean ; make COIN=${{ matrix.coin.name }} BOLOS_SDK=${{ matrix.sdk.path }}
+          cp bin/app.elf ${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
 
-      - name: Upload ${{ matrix.coin }} binaries
+      - name: Upload ${{ matrix.coin.name }} binaries
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.coin }}_binaries
+          name: ${{ matrix.coin.name }}_binaries
           path: ./*.elf
           if-no-files-found: error
 
   job_build_exchange:
     name: Build Exchange
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sdk: [{path: $NANOS_SDK, name: nanos}, {path: $NANOX_SDK, name: nanox}, {path: $NANOSP_SDK, name: nanosp}]
 
     container:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
@@ -69,12 +75,8 @@ jobs:
 
       - name: Build Exchange
         run: |
-          make clean ; BOLOS_SDK=$NANOS_SDK TESTING=1 TEST_PUBLIC_KEY=1 make
-          cp bin/app.elf exchange_nanos.elf
-          make clean ; BOLOS_SDK=$NANOX_SDK TESTING=1 TEST_PUBLIC_KEY=1 make
-          cp bin/app.elf exchange_nanox.elf
-          make clean ; BOLOS_SDK=$NANOSP_SDK TESTING=1 TEST_PUBLIC_KEY=1 make
-          cp bin/app.elf exchange_nanosp.elf
+          make clean ; make BOLOS_SDK=${{ matrix.sdk.path }} TESTING=1 TEST_PUBLIC_KEY=1
+          cp bin/app.elf exchange_${{ matrix.sdk.name }}.elf
 
       - name: Upload Exchange binaries
         uses: actions/upload-artifact@v2
@@ -84,6 +86,9 @@ jobs:
           if-no-files-found: error
 
   jobs_e2e_tests:
+    strategy:
+      matrix:
+        device: ["Nano S", "Nano X", "Nano SP"]
     needs:
       - job_build_exchange
       - build_sideloaded_applications
@@ -127,15 +132,12 @@ jobs:
     steps:
       - name: Clone
         uses: actions/checkout@v2
-      - name: Download app binaries
+      - name: Download all binaries
         uses: actions/download-artifact@v2
-        with:
-          name: exchange
-          path: test/elfs/tmp
-      - name: Gather elfs
+      - name: Gather artifacts
         run: |
-          cp `find test/elfs/tmp -name "*.elf"` test/elfs/
-          ls -lh test/elfs/
+          mkdir test/elfs
+          mv *_binaries/*.elf test/elfs
       - name: Install APT dependencies
         run: sudo apt-get update && sudo apt-get install -y qemu-user-static
       - name: Install Ragger
