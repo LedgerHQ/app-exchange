@@ -1,0 +1,39 @@
+syntax = "proto2";
+
+message NewTransactionResponse {
+    required string payin_address = 1;
+    required string payin_extra_id = 2;
+    required string refund_address = 3;
+    required string refund_extra_id = 4;
+    required string payout_address = 5;
+    required string payout_extra_id = 6;
+    required string currency_from = 7;
+    required string currency_to = 8;
+    required bytes amount_to_provider = 9;
+    required bytes amount_to_wallet = 10;
+    required string device_transaction_id = 11;
+}
+
+message UDecimal {
+    required bytes coefficient = 1;
+    required uint32 exponent = 2;
+};
+
+message NewSellResponse {
+    required string trader_email = 1;
+    required string in_currency = 2;
+    required bytes in_amount = 3;
+    required string in_address = 4;
+    required string out_currency = 5;
+    required UDecimal out_amount = 6;
+    required bytes device_transaction_id = 7;
+};
+
+message NewFundResponse {
+    required string user_id = 1;
+    required string account_name = 2;
+    required string in_currency = 3;
+    required bytes in_amount = 4;
+    required string in_address = 5;
+    required bytes device_transaction_id = 6;
+};

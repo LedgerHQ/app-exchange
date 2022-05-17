@@ -81,7 +81,8 @@ jobs:
           path: ./exchange_nanosp.elf
           if-no-files-found: error
 
-  jobs-e2e-tests-nano-S:
+  jobs_e2e_tests_nano_S:
+    name: NanoS Zemu tests
     needs:
       - job_build_debug_nano_S
     runs-on: ubuntu-latest
@@ -121,7 +122,32 @@ jobs:
       - name: Run zemu tests
         run: cd test && yarn test -t "\[Nano S\]"
 
-  jobs-e2e-tests-nano-X:
+  python_tests_nano_S:
+    name: NanoS Ragger tests
+    needs:
+      - job_build_debug_nano_S
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Download app binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: exchange
+          path: test/elfs/tmp
+      - name: Gather elfs
+        run: |
+          cp `find test/elfs/tmp -name "*.elf"` test/elfs/
+          ls -lh test/elfs/
+      - name: Install APT dependencies
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+      - name: Install Ragger
+        run: pip install --extra-index-url https://test.pypi.org/simple/ ragger[tests]
+      - name: Run tests
+        run: pytest test/python/ --tb=short
+
+  jobs_e2e_tests_nano_X:
+    name: NanoX Zemu tests
     needs:
       - job_build_debug_nano_X
     runs-on: ubuntu-latest
@@ -161,7 +187,8 @@ jobs:
       - name: Run zemu tests
         run: cd test && yarn test -t "\[Nano X\]"
 
-  jobs-e2e-tests-nano-SP:
+  jobs_e2e_tests_nano_SP:
+    name: NanoS+ Zemu tests
     needs:
       - job_build_debug_nano_SP
     runs-on: ubuntu-latest
