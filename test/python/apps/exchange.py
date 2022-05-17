@@ -1,11 +1,14 @@
 from base64 import urlsafe_b64encode
 from contextlib import contextmanager
+from typing import Generator, Optional, Dict
 
 from ecdsa import SigningKey, NIST256p as SECP256r1
 from ecdsa.util import sigencode_der
 from hashlib import sha256
+from ragger.backend.interface import BackendInterface, RAPDU
 
-from .pb.exchange_pb2 import NewFundResponse
+from ..common import Keys, PARTNER_KEYS
+from .pb.exchange_pb2 import NewFundResponse, NewSellResponse
 from .ethereum import ETH_PACKED_DERIVATION_PATH
 
 
@@ -70,91 +73,107 @@ def concatenate(*args):
 
 class ExchangeClient:
     CLA = 0xE0
-    def __init__(self, client, rate, subcommand, partner_keys=None):
+    def __init__(self,
+                 client: BackendInterface,
+                 rate: bytes,
+                 subcommand: bytes,
+                 partner_keys: Keys = PARTNER_KEYS):
         self._rate = rate
         self._subcommand = subcommand
         self._client = client
         self._transaction_id = None
         self._transaction = None
-        self._partner_keys = partner_keys or (None, None, None)
+        self._partner_keys = partner_keys
 
     @property
-    def rate(self):
+    def rate(self) -> bytes:
         return self._rate
 
     @property
-    def subcommand(self):
+    def subcommand(self) -> bytes:
         return self._subcommand
 
     @property
-    def transaction_id(self):
+    def transaction_id(self) -> bytes:
         return self._transaction_id
 
     @property
-    def client(self):
-        return self._client
-
-    @property
-    def transaction(self):
+    def transaction(self) -> bytes:
         return self._transaction
 
     @property
-    def partner_priv_key(self):
-        return self._partner_keys[0]
+    def partner_priv_key(self) -> bytes:
+        return self._partner_keys.private
 
     @property
-    def partner_pub_key(self):
-        return self._partner_keys[1]
+    def partner_pub_key(self) -> bytes:
+        return self._partner_keys.public
 
     @property
-    def partner_key_sig(self):
-        return self._partner_keys[2]
+    def partner_key_sig(self) -> bytes:
+        return self._partner_keys.signature
 
-    def _exchange(self, ins, payload=b''):
-        return self.client.exchange(self.CLA, ins, p1=self.rate, p2=self.subcommand, data=payload).data
+    def _exchange(self, ins: bytes, payload: bytes = b'') -> RAPDU:
+        return self._client.exchange(self.CLA, ins, p1=self.rate,
+                                     p2=self.subcommand, data=payload)
 
     @contextmanager
-    def _exchange_async(self, ins, payload=b''):
-        with self.client.exchange_async(self.CLA, ins, p1=self.rate, p2=self.subcommand, data=payload) as response:
+    def _exchange_async(self, ins: bytes, payload: bytes = b'') -> Generator[RAPDU, None, None]:
+        with self._client.exchange_async(self.CLA, ins, p1=self.rate,
+                                         p2=self.subcommand, data=payload) as response:
             yield response
 
-    def get_version(self):
+    def get_version(self) -> RAPDU:
         return self._exchange(Command.GET_VERSION)
 
-    def init_transaction(self):
-        self._transaction_id = self._exchange(Command.START_NEW_TRANSACTION)
-        return self.transaction_id
+    def init_transaction(self) -> RAPDU:
+        response = self._exchange(Command.START_NEW_TRANSACTION)
+        self._transaction_id = response.data
+        return response
 
-    def set_partner_key(self, pubkey=None):
+    def set_partner_key(self, pubkey: Optional[bytes] = None) -> RAPDU:
         return self._exchange(Command.SET_PARTNER_KEY, payload=pubkey or self.partner_pub_key)
 
-    def check_partner_key(self, signature=None):
+    def check_partner_key(self, signature: Optional[bytes] = None) -> RAPDU:
         return self._exchange(Command.CHECK_PARTNER, payload=signature or self.partner_key_sig)
 
-    def process_transaction(self, infos: dict, fees: bytes):
+    def _process_transaction_payload_fund(self, infos: Dict) -> bytes:
+        fields = ['user_id', 'account_name', 'in_currency', 'in_amount', 'in_address']
+        assert all(i in infos for i in fields)
+        assert len(infos) == len(fields)
+        pb_buffer = NewFundResponse(**infos, device_transaction_id=self.transaction_id)
+        return urlsafe_b64encode(pb_buffer.SerializeToString())
+
+    def _process_transaction_payload_sell(self, infos: Dict) -> bytes:
+        fields = ['trader_email', 'in_currency', 'in_amount', 'in_address',
+                  'out_currency', 'out_amount']
+        assert all(i in infos for i in fields)
+        assert len(infos) == len(fields)
+        pb_buffer = NewSellResponse(**infos, device_transaction_id=self.transaction_id)
+        return urlsafe_b64encode(pb_buffer.SerializeToString())
+
+    def process_transaction(self, infos: Dict, fees: bytes) -> RAPDU:
         if self._subcommand == SubCommand.FUND:
-            fields = ['user_id', 'account_name', 'in_currency', 'in_amount', 'in_address']
-            assert all(i in infos for i in fields)
-            assert len(infos) == len(fields)
-            pb_buffer = NewFundResponse(**infos, device_transaction_id=self.transaction_id).SerializeToString()
-            self._transaction = urlsafe_b64encode(pb_buffer)
+            self._transaction = self._process_transaction_payload_fund(infos)
         payload = concatenate(self.transaction, fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
 
-    def check_transaction(self):
+    def check_transaction(self) -> RAPDU:
         enc_transaction = b'.' + self.transaction
         key = SigningKey.from_string(self.partner_priv_key, curve=SECP256r1)
         signature = key.sign(enc_transaction, hashfunc=sha256, sigencode=sigencode_der)
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=signature)
 
-    def check_address(self, right_clicks: int, accept=True):
-        payload = concatenate(ETH_CONF) + ETH_CONFIG_SIGNATURE_DER + concatenate(ETH_PACKED_DERIVATION_PATH)
+    def check_address(self, right_clicks: int, accept: bool = True) -> RAPDU:
+        payload = (concatenate(ETH_CONF)
+                   + ETH_CONFIG_SIGNATURE_DER
+                   + concatenate(ETH_PACKED_DERIVATION_PATH))
         with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload):
             for _ in range(right_clicks):
-                self.client.right_click()
+                self._client.right_click()
             if not accept:
-                self.client.right_click()
-            self.client.both_click()
+                self._client.right_click()
+            self._client.both_click()
 
-    def start_signing_transaction(self):
+    def start_signing_transaction(self) -> RAPDU:
         self._exchange(Command.START_SIGNING_TRANSACTION)
