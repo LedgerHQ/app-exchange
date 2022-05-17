@@ -83,10 +83,7 @@ jobs:
           path: ./*.elf
           if-no-files-found: error
 
-  jobs-e2e-tests:
-    strategy:
-      matrix:
-        device: [Nano S, Nano X, Nano SP]
+  jobs_e2e_tests:
     needs:
       - job_build_exchange
       - build_sideloaded_applications
@@ -120,6 +117,32 @@ jobs:
 
       - name: Run zemu tests for device ${{ matrix.device }}
         run: cd test && yarn test -t "\[${{ matrix.device }}\]"
+
+  python_tests_nano_S:
+    name: NanoS Ragger tests
+    needs:
+      - job_build_exchange
+      - build_sideloaded_applications
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Download app binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: exchange
+          path: test/elfs/tmp
+      - name: Gather elfs
+        run: |
+          cp `find test/elfs/tmp -name "*.elf"` test/elfs/
+          ls -lh test/elfs/
+      - name: Install APT dependencies
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+      - name: Install Ragger
+        run: pip install --extra-index-url https://test.pypi.org/simple/ ragger[tests]
+      - name: Run tests
+        run: pytest test/python/ --tb=short
+
 
   job_scan_build:
     name: Clang Static Analyzer

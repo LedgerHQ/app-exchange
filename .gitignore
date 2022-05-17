@@ -39,3 +39,9 @@ src/glyphs.h
 node_modules
 test/lib
 test/snapshots-tmp
+
+# Python
+__pycache__
+.egg
+.pyc
+*~

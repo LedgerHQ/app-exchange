@@ -40,8 +40,8 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
 
-    if (parse_coin_config(&config, &ticker, &application_name, &config) == 0) {
-        PRINTF("Error: Can't parse payout coin config command\n");
+    if (parse_coin_config(&config, &ticker, &application_name, &ctx->payin_coin_config) == 0) {
+        PRINTF("Error: Can't parse CRYPTO coin config command\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
@@ -64,12 +64,12 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
 
     if (strlen(in_currency) != ticker.size ||
         strncmp(in_currency, (const char *) ticker.bytes, ticker.size) != 0) {
-        PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
+        PRINTF("Error: currency ticker doesn't match configuration ticker\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    PRINTF("Coin config parsed OK\n");
+    PRINTF("Coin configuration parsed: OK\n");
 
     // creating 0-terminated application name
     memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
@@ -83,14 +83,14 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
                                                               : &ctx->fund_transaction.in_amount);
 
     // getting printable amount
-    if (get_printable_amount(&config,
+    if (get_printable_amount(&ctx->payin_coin_config,
                              ctx->payin_binary_name,
                              in_amount->bytes,
                              in_amount->size,
                              in_printable_amount,
                              sizeof(in_printable_amount),
                              false) < 0) {
-        PRINTF("Error: Failed to get destination currency printable amount\n");
+        PRINTF("Error: Failed to get CRYPTO currency printable amount\n");
 
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
@@ -107,7 +107,7 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
                              printable_fees_amount,
                              sizeof(printable_fees_amount),
                              true) < 0) {
-        PRINTF("Error: Failed to get source currency fees amount");
+        PRINTF("Error: Failed to get CRYPTO currency fees amount");
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
 
