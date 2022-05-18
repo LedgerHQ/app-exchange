@@ -4,7 +4,7 @@ from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
 
-def test_fund_flow(client):
+def test_fund_flow(client, exchange):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.FUND)
     eth = EthereumClient(client)
     ex.init_transaction()
@@ -21,10 +21,22 @@ def test_fund_flow(client):
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction()
-    ex.check_address(right_clicks=5)
+
+    right_clicks = {
+        'nanos': 5,
+        'nanox': 5,
+        'nanosp': 5
+    }
+    ex.check_address(right_clicks=right_clicks[exchange.firmware.device])
     ex.start_signing_transaction()
 
     sleep(0.1)
 
     assert eth.get_public_key().status == 0x9000
+    # The original bug was that the Ethereum app was returning just after
+    # launch, and the first Ethereum:get_public_key call was in fact catched
+    # by the Exchange app and interpreted as an Exchange::get_version call.
+    # Exchange version are on 3 bytes, so we check the call does not return
+    # 3 bytes of data
+    assert len(eth.get_public_key().data) > 3
     assert eth.sign().status == 0x9000
