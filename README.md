@@ -23,19 +23,46 @@ make delete
 
 ## Testing
 
-The `./test` directory contains files for testing the app and its interactions with other apps. Make sure to put up to date binaries in `test/elfs/` before launching the tests.
-In a future update, all binaries will be fetched automatically from Github.
+The `./test` directory contains files for testing the app and its interactions with other apps. It does not contain the binaries used to test the app.
+The binaries need to be generated and put in `test/elfs/` before launching the tests.
 
-For now, only the exchange binary needs to be generated. The following flags are needed for the tests to pass:
+The exchange binaries need to be generated with the following flags.
 
 ```
 make TESTING=1 TEST_PUBLIC_KEY=1
 ```
 
-Then the application must be placed in the `test/elfs/` directory, under the name `exchange_nanos.elf` or `exchange_nanox.elf` depending on the SDK:
+Then the application must be placed in the `test/elfs/` directory, under the name `exchange_nanos.elf`, `exchange_nanox.elf`, or `exchange_nanosp.elf` depending on the SDK:
 
 ```
-cp bin/app.elf test/elfs/exchange_nanos.elf
+// Choose one
+// cp bin/app.elf test/elfs/exchange_nanos.elf
+// cp bin/app.elf test/elfs/exchange_nanox.elf
+// cp bin/app.elf test/elfs/exchange_nanosp.elf
+```
+
+The sideloaded applications binaries need to be generated in their respective repositories and placed in the `test/elfs/` directory.
+For the entire test collection to pass, the following binaries must be present
+```
+bitcoin_nanos.elf
+bitcoin_nanosp.elf
+bitcoin_nanox.elf
+ethereum_nanos.elf
+ethereum_nanosp.elf
+ethereum_nanosp.elf
+ethereum_nanox.elf
+litecoin_nanos.elf
+litecoin_nanosp.elf
+litecoin_nanox.elf
+stellar_nanos.elf
+stellar_nanosp.elf
+stellar_nanox.elf
+tezos_nanos.elf
+tezos_nanosp.elf
+tezos_nanox.elf
+xrp_nanos.elf
+xrp_nanosp.elf
+xrp_nanox.elf
 ```
 
 To run the tests:

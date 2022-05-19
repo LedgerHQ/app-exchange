@@ -1,9 +1,16 @@
+from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
 
+from ragger import Firmware
 from ragger.backend import SpeculosBackend, LedgerCommBackend, LedgerWalletBackend
 
+
+@dataclass(frozen=True)
+class Application:
+    path: Path
+    firmware: Firmware
 
 APPLICATION_DIRECTORY = (Path(__file__).parent.parent / "elfs").resolve()
 APPLICATIONS = {"bitcoin": "Bitcoin",
@@ -13,22 +20,36 @@ APPLICATIONS = {"bitcoin": "Bitcoin",
                 "xrp": "RXP",
                 "litecoin": "Litecoin"}
 BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
+EXCHANGES = [
+    Application(APPLICATION_DIRECTORY / 'exchange_nanos.elf',
+                Firmware('nanos', '2.1')),
+    Application(APPLICATION_DIRECTORY / 'exchange_nanox.elf',
+                Firmware('nanox', '2.0.2')),
+    Application(APPLICATION_DIRECTORY / 'exchange_nanosp.elf',
+                Firmware('nanosp', '1.0'))
+]
 
+@pytest.fixture(params=EXCHANGES)
+def exchange(request):
+    return request.param
 
-def prepare_speculos_args():
-    assert APPLICATION_DIRECTORY.is_dir()
+def prepare_speculos_args(exchange):
+    current_device = exchange.firmware.device
+    assert APPLICATION_DIRECTORY.is_dir(), \
+        f"{APPLICATION_DIRECTORY} is not a directory"
     application = None
-    speculos_args = ["--model", "nanos", "--sdk", "2.1"]
+    speculos_args = ["--model", current_device, "--sdk", exchange.firmware.version]
+    original_size = len(speculos_args)
     for application_elf in [a for a in APPLICATION_DIRECTORY.iterdir()
-                            if a.name.endswith(".elf") and "nanos." in a.name]:
+                            if a.name.endswith(".elf") and f"{current_device}." in a.name]:
         for k, v in APPLICATIONS.items():
             if k in application_elf.name:
                 speculos_args.append(f"-l{v}:{application_elf}")
                 break
-        if "exchange" in application_elf.name:
-            application = str(application_elf)
-    assert application is not None
-    assert len(speculos_args) == 4 + len(APPLICATIONS)
+    application = exchange.path
+    assert exchange.path.is_file(), f"{exchange.path} must exist"
+    assert len(speculos_args) == original_size + len(APPLICATIONS), \
+        f"Speculos argument number mismatch, some application elf may be missing!"
     return ([application], {"args": speculos_args})
 
 def pytest_addoption(parser):
@@ -40,27 +61,27 @@ def backend(pytestconfig):
     return pytestconfig.getoption("backend")
 
 
-def create_backend(backend: bool, raises: bool = True):
+def create_backend(backend: bool, exchange: Application, raises: bool = True):
     if backend.lower() == "ledgercomm":
-        return LedgerCommBackend(interface="hid", raises=raises)
+        return LedgerCommBackend(exchange.firmware, interface="hid", raises=raises)
     elif backend.lower() == "ledgerwallet":
-        return LedgerWalletBackend()
+        return LedgerWalletBackend(exchange.firmware)
     elif backend.lower() == "speculos":
-        args, kwargs = prepare_speculos_args()
-        return SpeculosBackend(*args, **kwargs, raises=raises)
+        args, kwargs = prepare_speculos_args(exchange)
+        return SpeculosBackend(*args, exchange.firmware, **kwargs, raises=raises)
     else:
         raise ValueError(f"Backend '{backend}' is unknown. Valid backends are: {BACKENDS}")
 
 
 @pytest.fixture
-def client(backend):
-    with create_backend(backend) as b:
+def client(backend, exchange):
+    with create_backend(backend, exchange) as b:
         yield b
 
 
 @pytest.fixture
-def client_no_raise(backend):
-    with create_backend(backend, raises=False) as b:
+def client_no_raise(backend, exchange):
+    with create_backend(backend, exchange, raises=False) as b:
         yield b
 
 
