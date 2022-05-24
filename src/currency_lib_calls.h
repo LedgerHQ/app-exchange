@@ -14,12 +14,12 @@ int check_address(buf_t *coin_config,
 
 void create_payin_transaction(char *application_name, create_transaction_parameters_t *params);
 
-int get_printable_amount(buf_t *coin_config,
-                         char *application_name,
-                         unsigned char *amount,
-                         unsigned char amount_size,
-                         char *printable_amount,
-                         unsigned char printable_amount_size,
-                         bool is_fee);
+int get_printable_amount(const buf_t *const coin_config,
+                         const char *const application_name,
+                         const unsigned char *const amount,
+                         const unsigned char amount_size,
+                         char *const printable_amount,
+                         const unsigned char printable_amount_size,
+                         const bool is_fee);
 
 #endif  // _SOURCE_CURRENCY_LIB_CALLS_H_

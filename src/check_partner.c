@@ -1,5 +1,7 @@
+#include <cx.h>
+#include <os.h>
+
 #include "check_partner.h"
-#include "os.h"
 #include "globals.h"
 #include "swap_errors.h"
 #include "reply_error.h"

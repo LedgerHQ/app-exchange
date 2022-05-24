@@ -1,5 +1,7 @@
+#include <os.h>
+#include <cx.h>
+
 #include "check_tx_signature.h"
-#include "os.h"
 #include "globals.h"
 #include "swap_errors.h"
 #include "reply_error.h"
@@ -11,7 +13,7 @@
 // Input should be in the form of DER serialized signature
 // the length should be CURVE_SIZE_BYTES * 2 + 6 (DER encoding)
 int check_tx_signature(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
-    if (cmd->subcommand == SWAP) {
+    if (cmd->subcommand == SWAP || cmd->subcommand == FUND) {
         if (cmd->data.size < MIN_DER_SIGNATURE_LENGTH ||
             cmd->data.size > MAX_DER_SIGNATURE_LENGTH || cmd->data.bytes[1] + 2 != cmd->data.size) {
             PRINTF("Error: Input buffer length don't correspond to DER length\n");
@@ -41,7 +43,7 @@ int check_tx_signature(swap_app_context_t *ctx, const command_t *cmd, SendFuncti
 
         unsigned char der_sig[MAX_DER_INT_SIZE(32) * 2 + 2];
         if (size > sizeof(der_sig)) {
-            PRINTF("Error: Unexpected der integer size");
+            PRINTF("Error: Unexpected der integer size\n");
             return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
         }
 

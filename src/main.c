@@ -73,7 +73,7 @@ int recv_apdu() {
 
 // return -1 in case of error
 int send_apdu(unsigned char *buffer, unsigned int buffer_length) {
-    os_memmove(G_io_apdu_buffer, buffer, buffer_length);
+    memmove(G_io_apdu_buffer, buffer, buffer_length);
     output_length = buffer_length;
     PRINTF("Sending apdu\n");
     switch (io_state) {
@@ -143,7 +143,7 @@ void app_exit(void) {
     END_TRY_L(exit);
 }
 
-__attribute__((section(".boot"))) int main(int arg0) {
+__attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
     // exit critical section
     __asm volatile("cpsie i");
 

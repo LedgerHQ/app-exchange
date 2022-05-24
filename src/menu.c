@@ -48,10 +48,10 @@ UX_STEP_VALID(ux_idle_flow_3_step, pb, os_sched_exit(-1),
     "Quit",
 });
 
-UX_FLOW(ux_idle_flow, 
-&ux_idle_flow_1_step, 
-&ux_idle_flow_2_step, 
-&ux_idle_flow_3_step, 
+UX_FLOW(ux_idle_flow,
+&ux_idle_flow_1_step,
+&ux_idle_flow_2_step,
+&ux_idle_flow_3_step,
 FLOW_LOOP);
 // clang-format on
 
@@ -61,20 +61,21 @@ FLOW_LOOP);
 
 struct ValidationInfo {
     char email[member_size(swap_app_context_t, sell_transaction.trader_email)];
-    char send[PRINTABLE_AMOUNT_SIZE];
+    char send[MAX_PRINTABLE_AMOUNT_SIZE];
     char get[member_size(swap_app_context_t, printable_get_amount)];
-    char fees[PRINTABLE_AMOUNT_SIZE];
+    char fees[MAX_PRINTABLE_AMOUNT_SIZE];
+    char provider[MAX_PRINTABLE_AMOUNT_SIZE];
     UserChoiseCallback OnAccept;
     UserChoiseCallback OnReject;
 } validationInfo;
 
-unsigned int io_accept(const bagl_element_t *e) {
+unsigned int io_accept(__attribute__((unused)) const bagl_element_t *e) {
     validationInfo.OnAccept();
     ui_idle();
     return 0;
 }
 
-unsigned int io_reject(const bagl_element_t *e) {
+unsigned int io_reject(__attribute__((unused)) const bagl_element_t *e) {
     validationInfo.OnReject();
     ui_idle();
     return 0;
@@ -92,6 +93,11 @@ UX_STEP_NOCB(ux_confirm_flow_1_2_step, bnnn_paging,
     .title = "Email",
     .text = validationInfo.email,
 });
+UX_STEP_NOCB(ux_confirm_flow_1_3_step, bnnn_paging,
+{
+    .title = "User",
+    .text = validationInfo.email,
+});
 UX_STEP_NOCB(ux_confirm_flow_2_step, bnnn_paging,
 {
     .title = "Send",
@@ -105,6 +111,11 @@ UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
 UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
 {
     .title = "Get estimated",
+    .text = validationInfo.get,
+});
+UX_STEP_NOCB(ux_confirm_flow_3_2_step, bnnn_paging,
+{
+    .title = validationInfo.provider,
     .text = validationInfo.get,
 });
 UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
@@ -132,9 +143,13 @@ void ux_confirm(rate_e rate, subcommand_e subcommand) {
     ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
     if (subcommand == SELL) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
+    } else if (subcommand == FUND) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_1_3_step;
     }
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
-    if (rate == FLOATING) {
+    if (subcommand == FUND) {
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_2_step;
+    } else if (rate == FLOATING) {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
     } else {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
@@ -175,6 +190,17 @@ void ui_validate_amounts(rate_e rate,
         validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
     }
 
+    if (subcommand == FUND) {
+        strncpy(validationInfo.email, ctx->fund_transaction.user_id, sizeof(validationInfo.email));
+        validationInfo.email[sizeof(validationInfo.email) - 1] = '\x00';
+
+        strncpy(validationInfo.provider, "To ", 3);
+
+        strncpy(validationInfo.provider + 3,
+                ctx->partner.name,
+                sizeof(validationInfo.provider) - 4);
+        validationInfo.provider[sizeof(validationInfo.provider) - 1] = '\x00';
+    }
     ux_confirm(rate, subcommand);
 }
 
@@ -195,7 +221,7 @@ void io_seproxyhal_display(const bagl_element_t *element) {
     io_seproxyhal_display_default((bagl_element_t *) element);
 }
 
-unsigned char io_event(unsigned char channel) {
+unsigned char io_event(__attribute__((unused)) unsigned char channel) {
     // nothing done with the event, throw an error on the transport layer if
     // needed
     // can't have more than one tag in the reply, not supported yet.

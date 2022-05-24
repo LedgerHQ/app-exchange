@@ -6,7 +6,9 @@
   "scripts": {
     "build": "babel src/ -d lib/",
     "prepublish": "yarn run build",
-    "test": "jest src --verbose --runInBand --detectOpenHandles"
+    "test": "jest src --verbose --runInBand --detectOpenHandles",
+    "test-fund": "jest src/fund.test.js --verbose --runInBand --detectOpenHandles",
+    "test-btc": "jest src/bitcoin.test.js --verbose --runInBand --detectOpenHandles"
   },
   "author": "",
   "license": "ISC",
@@ -19,14 +21,16 @@
     "@ledgerhq/hw-app-xrp": "^5.30.0",
     "@ledgerhq/hw-transport-http": "^4.74.2",
     "@ledgerhq/logs": "^5.30.0",
-    "@zondax/zemu": "^0.24.1",
+    "@zondax/zemu": "^0.29.0",
     "base64url": "^3.0.1",
     "bignumber.js": "^9.0.0",
     "bip32-path": "^0.4.2",
+    "bitcoinjs-lib": "^6.0.1",
     "core-js": "^3.7.0",
     "google-protobuf": "^3.11.0",
     "jest-serial-runner": "^1.1.0",
     "js-sha256": "^0.9.0",
+    "node-dir": "^0.1.17",
     "regenerator-runtime": "^0.13.7",
     "secp256k1": "^3.7.1",
     "secp256r1": "^0.0.3"

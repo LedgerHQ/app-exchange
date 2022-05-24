@@ -1,4 +1,5 @@
 #include "os.h"
+#include <string.h>
 
 static size_t asn1_get_encoded_length_size(size_t len) {
     if (len < 0x80) {
@@ -132,7 +133,7 @@ static int asn1_insert_integer(uint8_t **p, const uint8_t *end, const uint8_t *v
         return 0;
     }
 
-    os_memmove(*p, val, len);
+    memmove(*p, val, len);
     (*p) += len;
 
     return 1;

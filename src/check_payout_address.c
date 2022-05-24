@@ -1,5 +1,7 @@
+#include <os.h>
+#include <cx.h>
+
 #include "check_payout_address.h"
-#include "os.h"
 #include "swap_errors.h"
 #include "globals.h"
 #include "currency_lib_calls.h"
@@ -7,7 +9,6 @@
 #include "parse_check_address_message.h"
 #include "parse_coin_config.h"
 #include "printable_amount.h"
-#include "check_refund_address.h"
 #include "menu.h"
 
 int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
@@ -48,7 +49,7 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     }
 
     if (ticker.size < 2 || ticker.size > 9) {
-        PRINTF("Error: Ticker length should be in [3, 9]\n");
+        PRINTF("Error: Ticker length should be in [2, 9]\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
@@ -71,8 +72,8 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     PRINTF("Coin config parsed OK\n");
 
     // creating 0-terminated application name
-    os_memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
-    os_memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
+    memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
+    memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 

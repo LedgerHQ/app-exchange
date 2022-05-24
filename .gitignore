@@ -29,6 +29,7 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 .vs/
 #Nuget packages folder
+test/elfs
 packages/
 bin
 debug
@@ -38,3 +39,9 @@ src/glyphs.h
 node_modules
 test/lib
 test/snapshots-tmp
+
+# Python
+__pycache__
+.egg
+.pyc
+*~

@@ -1,15 +1,46 @@
 #include <string.h>
 
-#include "currency_lib_calls.h"
+#include "os_io_seproxyhal.h"
 #include "ux.h"
+#include "os.h"
 
-int get_printable_amount(buf_t *coin_config,
-                         char *application_name,
-                         unsigned char *amount,
-                         unsigned char amount_size,
-                         char *printable_amount,
-                         unsigned char printable_amount_size,
-                         bool is_fee) {
+#include "currency_lib_calls.h"
+
+/*
+  Inter-application doc:
+
+  `os_lib_call` is called with an `unsigned int [5]` argument.
+  The first argument is used to choose the app to start, the rest is used as
+  this app's main arguments.
+  For instance, in Ethereum 1.9.19, the args are casted into a struct like:
+
+  ```
+  struct libargs_s {
+    unsigned int id;
+    unsigned int command;
+    chain_config_t *chain_config;
+    union {
+      check_address_parameters_t *check_address;
+      create_transaction_parameters_t *create_transaction;
+      get_printable_amount_parameters_t *get_printable_amount;
+    };
+  };
+  ```
+  ... so, in the following functions, the mapping is:
+
+  `libcall_params[1]` -> `libargs_s.id`
+  `libcall_params[2]` -> `libargs_s.command`
+  `libcall_params[3]` -> `libargs_s.chain_config`
+  `libcall_params[4]` -> `libargs_s` union
+ */
+
+int get_printable_amount(const buf_t *const coin_config,
+                         const char *const application_name,
+                         const unsigned char *const amount,
+                         const unsigned char amount_size,
+                         char *const printable_amount,
+                         const unsigned char printable_amount_size,
+                         const bool is_fee) {
     static unsigned int libcall_params[5];
     static get_printable_amount_parameters_t lib_input_params = {0};
     lib_input_params.coin_configuration = coin_config->bytes;
@@ -23,7 +54,7 @@ int get_printable_amount(buf_t *coin_config,
     libcall_params[3] = 0;
     libcall_params[4] = (unsigned int) &lib_input_params;
     PRINTF("Address of printable_amount %d\n", lib_input_params.printable_amount);
-    os_memset(lib_input_params.printable_amount, 0, sizeof(lib_input_params.printable_amount));
+    memset(lib_input_params.printable_amount, 0, sizeof(lib_input_params.printable_amount));
     // Speculos workaround
     // io_seproxyhal_general_status();
     os_lib_call(libcall_params);

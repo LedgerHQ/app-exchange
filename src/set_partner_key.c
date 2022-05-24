@@ -1,5 +1,7 @@
+#include <os.h>
+#include <cx.h>
+
 #include "set_partner_key.h"
-#include "os.h"
 #include "swap_errors.h"
 #include "globals.h"
 #include "reply_error.h"
@@ -29,7 +31,7 @@ int set_partner_key(swap_app_context_t *ctx, const command_t *cmd, SendFunction 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    os_memcpy(ctx->partner.name, cmd->data.bytes + 1, ctx->partner.name_length);
+    memcpy(ctx->partner.name, cmd->data.bytes + 1, ctx->partner.name_length);
 
     if (cmd->subcommand == SWAP) {
         cx_ecfp_init_public_key(CX_CURVE_SECP256K1,
@@ -38,7 +40,7 @@ int set_partner_key(swap_app_context_t *ctx, const command_t *cmd, SendFunction 
                                 &(ctx->partner.public_key));
     }
 
-    if (cmd->subcommand == SELL) {
+    if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
         cx_ecfp_init_public_key(CX_CURVE_256R1,
                                 cmd->data.bytes + 1 + ctx->partner.name_length,
                                 UNCOMPRESSED_KEY_LENGTH,

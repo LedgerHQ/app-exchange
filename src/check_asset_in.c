@@ -1,5 +1,7 @@
+#include <os.h>
+#include <cx.h>
+
 #include "check_asset_in.h"
-#include "os.h"
 #include "swap_errors.h"
 #include "globals.h"
 #include "currency_lib_calls.h"
@@ -38,8 +40,8 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
 
-    if (parse_coin_config(&config, &ticker, &application_name, &config) == 0) {
-        PRINTF("Error: Can't parse payout coin config command\n");
+    if (parse_coin_config(&config, &ticker, &application_name, &ctx->payin_coin_config) == 0) {
+        PRINTF("Error: Can't parse CRYPTO coin config command\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
@@ -57,40 +59,46 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
     }
 
     // Check that given ticker match current context
-    if (strlen(ctx->sell_transaction.in_currency) != ticker.size ||
-        strncmp(ctx->sell_transaction.in_currency, (const char *) ticker.bytes, ticker.size) != 0) {
-        PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
+    char *in_currency = (ctx->subcommand == SELL ? ctx->sell_transaction.in_currency
+                                                 : ctx->fund_transaction.in_currency);
+
+    if (strlen(in_currency) != ticker.size ||
+        strncmp(in_currency, (const char *) ticker.bytes, ticker.size) != 0) {
+        PRINTF("Error: currency ticker doesn't match configuration ticker\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    PRINTF("Coin config parsed OK\n");
+    PRINTF("Coin configuration parsed: OK\n");
 
     // creating 0-terminated application name
-    os_memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
-    os_memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
+    memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
+    memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
-    static char in_printable_amount[PRINTABLE_AMOUNT_SIZE];
+    static char in_printable_amount[MAX_PRINTABLE_AMOUNT_SIZE];
+
+    pb_bytes_array_16_t *in_amount = (ctx->subcommand == SELL ? &ctx->sell_transaction.in_amount
+                                                              : &ctx->fund_transaction.in_amount);
 
     // getting printable amount
-    if (get_printable_amount(&config,
+    if (get_printable_amount(&ctx->payin_coin_config,
                              ctx->payin_binary_name,
-                             ctx->sell_transaction.in_amount.bytes,
-                             ctx->sell_transaction.in_amount.size,
+                             in_amount->bytes,
+                             in_amount->size,
                              in_printable_amount,
                              sizeof(in_printable_amount),
                              false) < 0) {
-        PRINTF("Error: Failed to get destination currency printable amount\n");
+        PRINTF("Error: Failed to get CRYPTO currency printable amount\n");
 
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
 
     PRINTF("Amount = %s\n", in_printable_amount);
 
-    static char printable_fees_amount[PRINTABLE_AMOUNT_SIZE];
-    os_memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
+    static char printable_fees_amount[MAX_PRINTABLE_AMOUNT_SIZE];
+    memset(printable_fees_amount, 0, sizeof(printable_fees_amount));
 
     if (get_printable_amount(&ctx->payin_coin_config,
                              ctx->payin_binary_name,
@@ -99,31 +107,39 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
                              printable_fees_amount,
                              sizeof(printable_fees_amount),
                              true) < 0) {
-        PRINTF("Error: Failed to get source currency fees amount");
+        PRINTF("Error: Failed to get CRYPTO currency fees amount");
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
 
-    size_t len = strlen(ctx->sell_transaction.out_currency);
-    if (len + 1 >= sizeof(ctx->printable_get_amount)) {
-        return reply_error(ctx, INTERNAL_ERROR, send);
+    if (cmd->subcommand == SELL) {
+        size_t len = strlen(ctx->sell_transaction.out_currency);
+        if (len + 1 >= sizeof(ctx->printable_get_amount)) {
+            return reply_error(ctx, INTERNAL_ERROR, send);
+        }
+
+        strncpy(ctx->printable_get_amount,
+                ctx->sell_transaction.out_currency,
+                sizeof(ctx->printable_get_amount));
+        ctx->printable_get_amount[len] = ' ';
+        ctx->printable_get_amount[len + 1] = '\x00';
+
+        if (get_fiat_printable_amount(ctx->sell_transaction.out_amount.coefficient.bytes,
+                                      ctx->sell_transaction.out_amount.coefficient.size,
+                                      ctx->sell_transaction.out_amount.exponent,
+                                      ctx->printable_get_amount + len + 1,
+                                      sizeof(ctx->printable_get_amount) - (len + 1)) < 0) {
+            PRINTF("Error: Failed to get source currency printable amount\n");
+            return reply_error(ctx, INTERNAL_ERROR, send);
+        }
+
+        PRINTF("%s\n", ctx->printable_get_amount);
+    } else {
+        // Prepare message for account funding
+        strncpy(ctx->printable_get_amount,
+                ctx->fund_transaction.account_name,
+                sizeof(ctx->printable_get_amount));
+        ctx->printable_get_amount[sizeof(ctx->printable_get_amount) - 1] = '\x00';
     }
-
-    strncpy(ctx->printable_get_amount,
-            ctx->sell_transaction.out_currency,
-            sizeof(ctx->printable_get_amount));
-    ctx->printable_get_amount[len] = ' ';
-    ctx->printable_get_amount[len + 1] = '\x00';
-
-    if (get_fiat_printable_amount(ctx->sell_transaction.out_amount.coefficient.bytes,
-                                  ctx->sell_transaction.out_amount.coefficient.size,
-                                  ctx->sell_transaction.out_amount.exponent,
-                                  ctx->printable_get_amount + len + 1,
-                                  sizeof(ctx->printable_get_amount) - (len + 1)) < 0) {
-        PRINTF("Error: Failed to get source currency printable amount\n");
-        return reply_error(ctx, INTERNAL_ERROR, send);
-    }
-
-    PRINTF("%s\n", ctx->printable_get_amount);
 
     ctx->state = WAITING_USER_VALIDATION;
 
