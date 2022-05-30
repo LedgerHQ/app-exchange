@@ -73,6 +73,9 @@ void normalize_currencies(swap_app_context_t *ctx) {
     set_ledger_currency_name(ctx->received_transaction.currency_to,
                              sizeof(ctx->received_transaction.currency_to) /
                                  sizeof(ctx->received_transaction.currency_to[0]));
+    // triming leading 0s
+    trim_pb_bytes_array(&(ctx->received_transaction.amount_to_provider));
+    trim_pb_bytes_array(&(ctx->received_transaction.amount_to_wallet));
 
     // strip bcash CashAddr header, and other bicmd->subcommand1 like headers
     for (size_t i = 0; i < sizeof(ctx->received_transaction.payin_address); i++) {
@@ -105,6 +108,7 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
     cx_sha256_init(&sha256);
 
     PRINTF("len(payload): %d\n", payload_length);
+    PRINTF("payload (%d): %.*H\n", payload_length, payload_length, cmd->data.bytes + 1);
 
     if (cmd->subcommand == SWAP) {
         stream = pb_istream_from_buffer(cmd->data.bytes + 1, payload_length);
@@ -118,10 +122,6 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
 
             return reply_error(ctx, DESERIALIZATION_FAILED, send);
         }
-
-        // triming leading 0s
-        trim_pb_bytes_array(&(ctx->received_transaction.amount_to_provider));
-        trim_pb_bytes_array(&(ctx->received_transaction.amount_to_wallet));
 
         if (memcmp(ctx->device_transaction_id.swap,
                    ctx->received_transaction.device_transaction_id,
@@ -143,8 +143,6 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
     if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
         // arbitrary maximum payload size
         unsigned char payload[256];
-
-        PRINTF("payload (%d): %.*H\n", payload_length, payload_length, cmd->data.bytes + 1);
 
         int n = base64_decode(payload,
                               sizeof(payload),
