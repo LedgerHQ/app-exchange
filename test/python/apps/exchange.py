@@ -8,9 +8,11 @@ from hashlib import sha256
 from ragger.backend.interface import BackendInterface, RAPDU
 from ragger import ApplicationError
 
-from ..common import Keys, PARTNER_KEYS
+from ..common import Keys, PARTNER_KEYS, SWAP_PARTNER_KEYS
+from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF, ETH_CONF_DER_SIGNATURE
+from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF, LTC_CONF_DER_SIGNATURE
 from .pb.exchange_pb2 import NewFundResponse, NewSellResponse, NewTransactionResponse
-from .ethereum import ETH_PACKED_DERIVATION_PATH
+from ..utils import concatenate
 
 
 class Command:
@@ -50,27 +52,6 @@ ERRORS = (
     ApplicationError(0x9D1A, 'SIGN_VERIFICATION_FAIL')
 )
 
-ETH_CONF = bytes([
-    0x03, 0x45, 0x54, 0x48, 0x08, 0x45, 0x74, 0x68, 0x65, 0x72, 0x65, 0x75,
-    0x6D, 0x05, 0x03, 0x45, 0x54, 0x48, 0x12
-])
-
-ETH_CONFIG_SIGNATURE_DER = bytes([
-    0x30, 0x44, 0x02, 0x20, 0x65, 0xD7, 0x93, 0x1A, 0xB3, 0x14, 0x43, 0x62,
-    0xD5, 0x7E, 0x3F, 0xDC, 0xC5, 0xDE, 0x92, 0x1F, 0xB6, 0x50, 0x24, 0x73,
-    0x7D, 0x91, 0x7F, 0x0A, 0xB1, 0xF8, 0xB1, 0x73, 0xD1, 0xED, 0x3C, 0x2E,
-    0x02, 0x20, 0x27, 0x49, 0x35, 0x68, 0xD1, 0x12, 0xDC, 0x53, 0xC7, 0x17,
-    0x7F, 0x8E, 0x5F, 0xC9, 0x15, 0xD9, 0x1A, 0x90, 0x37, 0x80, 0xA0, 0x67,
-    0xBA, 0xDF, 0x10, 0x90, 0x85, 0xA7, 0x3D, 0x36, 0x03, 0x23
-])
-
-
-def concatenate(*args):
-    result = b''
-    for arg in args:
-        result += (bytes([len(arg)]) + arg)
-    return result
-
 
 class ExchangeClient:
     CLA = 0xE0
@@ -78,13 +59,18 @@ class ExchangeClient:
                  client: BackendInterface,
                  rate: bytes,
                  subcommand: bytes,
-                 partner_keys: Keys = PARTNER_KEYS):
+                 partner_keys: Optional[Keys] = None):
         self._rate = rate
         self._subcommand = subcommand
         self._client = client
         self._transaction_id = None
         self._transaction = None
-        self._partner_keys = partner_keys
+        if partner_keys:
+            self._partner_keys = partner_keys
+        elif self._subcommand == SubCommand.SWAP:
+            self._partner_keys = SWAP_PARTNER_KEYS
+        else:
+            self._partner_keys = PARTNER_KEYS
 
     @property
     def rate(self) -> bytes:
@@ -175,13 +161,14 @@ class ExchangeClient:
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
 
     def check_transaction(self) -> RAPDU:
+        # preparing paylod to sign
         if self._subcommand in [SubCommand.FUND, SubCommand.SELL]:
             payload_to_sign = b'.' + self._transaction
             key = SigningKey.from_string(self.partner_priv_key, curve=SECP256r1)
         elif self._subcommand == SubCommand.SWAP:
             payload_to_sign = self._transaction
             key = SigningKey.from_string(self.partner_priv_key, curve=SECP256k1)
-
+        # signing payload
         if self._subcommand in [SubCommand.FUND, SubCommand.SWAP]:
             signature = key.sign(payload_to_sign, hashfunc=sha256, sigencode=sigencode_der)
         elif self._subcommand == SubCommand.SELL:
@@ -192,16 +179,30 @@ class ExchangeClient:
             raise NotImplementedError()
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=signature)
 
-    def check_address(self, right_clicks: int, accept: bool = True) -> RAPDU:
+    def check_address(self, right_clicks: int, accept: bool = True) -> None:
         payload = (concatenate(ETH_CONF)
-                   + ETH_CONFIG_SIGNATURE_DER
+                   + ETH_CONF_DER_SIGNATURE
                    + concatenate(ETH_PACKED_DERIVATION_PATH))
-        with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload):
-            for _ in range(right_clicks):
-                self._client.right_click()
-            if not accept:
-                self._client.right_click()
-            self._client.both_click()
+        if self._subcommand in [SubCommand.SELL, SubCommand.FUND]:
+            with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload):
+                for _ in range(right_clicks):
+                    self._client.right_click()
+                if not accept:
+                    self._client.right_click()
+                self._client.both_click()
+        elif self._subcommand == SubCommand.SWAP:
+            self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
+            payload = (concatenate(LTC_CONF)
+                       + LTC_CONF_DER_SIGNATURE
+                       + concatenate(LTC_PACKED_DERIVATION_PATH))
+            with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload):
+                for _ in range(right_clicks):
+                    self._client.right_click()
+                if not accept:
+                    self._client.right_click()
+                self._client.both_click()
+        else:
+            raise NotImplementedError()
 
     def start_signing_transaction(self) -> RAPDU:
         self._exchange(Command.START_SIGNING_TRANSACTION)
