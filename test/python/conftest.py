@@ -6,6 +6,8 @@ import pytest
 from ragger import Firmware
 from ragger.backend import SpeculosBackend, LedgerCommBackend, LedgerWalletBackend
 
+from .apps.exchange import ERRORS
+
 
 @dataclass(frozen=True)
 class Application:
@@ -63,12 +65,12 @@ def backend(pytestconfig):
 
 def create_backend(backend: bool, exchange: Application, raises: bool = True):
     if backend.lower() == "ledgercomm":
-        return LedgerCommBackend(exchange.firmware, interface="hid", raises=raises)
+        return LedgerCommBackend(exchange.firmware, interface="hid", raises=raises, errors=ERRORS)
     elif backend.lower() == "ledgerwallet":
-        return LedgerWalletBackend(exchange.firmware)
+        return LedgerWalletBackend(exchange.firmware, errors=ERRORS)
     elif backend.lower() == "speculos":
         args, kwargs = prepare_speculos_args(exchange)
-        return SpeculosBackend(*args, exchange.firmware, **kwargs, raises=raises)
+        return SpeculosBackend(*args, exchange.firmware, **kwargs, raises=raises, errors=ERRORS)
     else:
         raise ValueError(f"Backend '{backend}' is unknown. Valid backends are: {BACKENDS}")
 

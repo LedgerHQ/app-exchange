@@ -12,20 +12,20 @@ def test_fund_flow(client, exchange):
     ex.check_partner_key()
 
     tx_infos = {
-        'user_id': "John Wick",
-        'account_name': "Remember Daisy",
-        'in_currency': "ETH",
-        'in_amount': b"\032\200\250]$T\000",
-        'in_address': "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
+        "user_id": "John Wick",
+        "account_name": "Remember Daisy",
+        "in_currency": "ETH",
+        "in_amount": b"\032\200\250]$T\000",
+        "in_address": "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
     }
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction()
 
     right_clicks = {
-        'nanos': 5,
-        'nanox': 5,
-        'nanosp': 5
+        "nanos": 5,
+        "nanox": 5,
+        "nanosp": 5
     }
     ex.check_address(right_clicks=right_clicks[exchange.firmware.device])
     ex.start_signing_transaction()

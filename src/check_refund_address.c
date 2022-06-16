@@ -81,7 +81,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
                       ctx->payin_binary_name,
                       ctx->received_transaction.refund_address,
                       ctx->received_transaction.refund_extra_id) != 1) {
-        PRINTF("Error: Refund address validation failed");
+        PRINTF("Error: Refund address validation failed\n");
 
         return reply_error(ctx, INVALID_ADDRESS, send);
     }
@@ -96,7 +96,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
                              printable_send_amount,
                              sizeof(printable_send_amount),
                              false) < 0) {
-        PRINTF("Error: Failed to get source currency printable amount");
+        PRINTF("Error: Failed to get source currency printable amount\n");
 
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
@@ -112,7 +112,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
                              printable_fees_amount,
                              sizeof(printable_fees_amount),
                              true) < 0) {
-        PRINTF("Error: Failed to get source currency fees amount");
+        PRINTF("Error: Failed to get source currency fees amount\n");
 
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
