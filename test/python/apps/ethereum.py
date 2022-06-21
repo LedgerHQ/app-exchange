@@ -61,15 +61,20 @@ ETH_PACKED_DERIVATION_PATH = bytes([0x05,
 
 class EthereumClient:
     CLA = 0xE0
-    def __init__(self, client):
+    def __init__(self, client, derivation_path=b''):
         self._client = client
+        self._derivation_path = derivation_path or ETH_PACKED_DERIVATION_PATH
 
     @property
     def client(self):
         return self._client
 
+    @property
+    def derivation_path(self):
+        return self._derivation_path
+
     def _forge_signature_payload(self, additional_payload: bytes):
-        return pack_APDU(self.CLA, Command.SIGN, data=(ETH_PACKED_DERIVATION_PATH + additional_payload))
+        return pack_APDU(self.CLA, Command.SIGN, data=(self.derivation_path + additional_payload))
 
     def _exchange(self,
                   ins: int,
@@ -79,9 +84,9 @@ class EthereumClient:
         return self.client.exchange(self.CLA, ins=ins, p1=p1, p2=p2, data=payload)
 
     def get_public_key(self):
-        return self._exchange(Command.GET_PUBLIC_KEY, payload=ETH_PACKED_DERIVATION_PATH)
+        return self._exchange(Command.GET_PUBLIC_KEY, payload=self.derivation_path)
 
-    def sign(self):
+    def sign(self, extra_payload: bytes = bytes.fromhex('eb')):
         # TODO: finish ETH signature with proper payload
-        payload = ETH_PACKED_DERIVATION_PATH + bytes.fromhex('eb')
+        payload = self.derivation_path + extra_payload
         return self._exchange(Command.SIGN, payload=payload)

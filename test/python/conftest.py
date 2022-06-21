@@ -80,13 +80,6 @@ def client(backend, exchange):
     with create_backend(backend, exchange) as b:
         yield b
 
-
-@pytest.fixture
-def client_no_raise(backend, exchange):
-    with create_backend(backend, exchange, raises=False) as b:
-        yield b
-
-
 @pytest.fixture(autouse=True)
 def use_only_on_backend(request, backend):
     if request.node.get_closest_marker('use_on_backend'):
