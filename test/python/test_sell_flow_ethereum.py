@@ -4,7 +4,7 @@ from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
 
-def test_sell_flow(client, exchange):
+def test_sell_flow(client, firmware):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SELL)
     eth = EthereumClient(client)
     ex.init_transaction()
@@ -28,7 +28,7 @@ def test_sell_flow(client, exchange):
         "nanox": 5,
         "nanosp": 5
     }
-    ex.check_address(right_clicks=right_clicks[exchange.firmware.device])
+    ex.check_address(right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
 
     sleep(0.1)

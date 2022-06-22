@@ -8,7 +8,7 @@ from .apps.ethereum import EthereumClient
 from .utils import concatenate
 
 
-def prepare_exchange(client, exchange, amount: str):
+def prepare_exchange(client, firmware, amount: str):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
     ex.init_transaction()
     ex.set_partner_key()
@@ -37,23 +37,23 @@ def prepare_exchange(client, exchange, amount: str):
         "nanosp": 4
     }
 
-    ex.check_address(right_clicks=right_clicks[exchange.firmware.device])
+    ex.check_address(right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
     sleep(0.1)
 
-def test_swap_eth_to_btc_wrong_amount(client, exchange):
+def test_swap_eth_to_btc_wrong_amount(client, firmware):
     amount       = '013fc3a717fb5000'
     wrong_amount = '013fc3a6be932100'
-    prepare_exchange(client, exchange, amount)
+    prepare_exchange(client, firmware, amount)
     eth = EthereumClient(client, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
     with pytest.raises(ApplicationError):
         eth.sign(extra_payload=bytes.fromhex("ec09850684ee180082520894d692cb1346262f584d17b4b470954501f6715a8288" + wrong_amount + "80018080"))
 
 
-def test_swap_eth_to_btc_ok(client, exchange):
+def test_swap_eth_to_btc_ok(client, firmware):
     amount = '013fc3a717fb5000'
-    prepare_exchange(client, exchange, amount)
+    prepare_exchange(client, firmware, amount)
     eth = EthereumClient(client, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
     eth.sign(extra_payload=bytes.fromhex("ec09850684ee180082520894d692cb1346262f584d17b4b470954501f6715a8288" + amount + "80018080"))
