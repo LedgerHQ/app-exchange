@@ -5,7 +5,7 @@ from .apps.litecoin import LitecoinClient
 from .utils import concatenate
 
 
-def test_swap_flow(client, exchange):
+def test_swap_flow(client, firmware):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
     ex.init_transaction()
     ex.set_partner_key()
@@ -34,7 +34,7 @@ def test_swap_flow(client, exchange):
         "nanosp": 4
     }
 
-    ex.check_address(right_clicks=right_clicks[exchange.firmware.device])
+    ex.check_address(right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
 
     sleep(0.1)
