@@ -145,7 +145,7 @@ jobs:
           pip install --extra-index-url https://test.pypi.org/simple/ -U ragger[tests]==0.4.2
           pip install -U click>=8
       - name: Run tests
-        run: pytest test/python/ --tb=short
+        run: pytest test/python/ -v
 
 
   job_scan_build:

@@ -16,10 +16,10 @@ def prepare_exchange(client, firmware, amount: str):
 
     tx_infos = {
         "payin_address": b"0xd692Cb1346262F584D17B4B470954501f6715a82",
+        "payin_extra_id": b"",
         "refund_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+        "refund_extra_id": b"",
         "payout_address": b"bc1qer57ma0fzhqys2cmydhuj9cprf9eg0nw922a8j",
-        "payin_extra_id": "",
-        "refund_extra_id": "",
         "payout_extra_id": b"",
         "currency_from": "ETH",
         "currency_to": "BTC",
