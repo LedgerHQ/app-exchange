@@ -143,7 +143,7 @@ jobs:
       - name: Install Ragger
         run: pip install --extra-index-url https://test.pypi.org/simple/ ragger[tests]
       - name: Run tests
-        run: pytest test/python/ --tb=short
+        run: pytest test/python/ -v
 
 
   job_scan_build:
