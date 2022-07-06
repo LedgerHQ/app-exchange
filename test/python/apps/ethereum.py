@@ -1,4 +1,17 @@
-from ragger.utils import pack_APDU
+import requests
+import pytest
+
+from ragger.utils import pack_APDU, RAPDU
+from ragger.error import ExceptionRAPDU
+from typing import Iterable
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
+
+from ..common import LEDGER_TEST_PRIVATE_KEY
 
 
 class Command:
@@ -34,6 +47,33 @@ class TxType:
     EIP1559 = 0x02
     LEGACY = 0xc0
     MAX =  0x7f
+    FORCE_LEGACY = 0xf8
+
+TYPE_SIZE = 1
+VERSION_SIZE = 1
+PLUGIN_NAME_LENGTH_SIZE = 1
+ADDRESS_LENGTH= 20
+SELECTOR_SIZE= 4
+CHAIN_ID_SIZE= 8
+KEY_ID_SIZE= 1
+ALGORITHM_ID_SIZE= 1
+SIGNATURE_LENGTH_SIZE= 1
+
+class SetPluginType:
+    ETH_PLUGIN = 0x1
+
+class SetPluginVersion:
+    VERSION_1 = 0x1
+
+class ChainID:
+    ETHEREUM_CHAIN_ID = 0x01
+
+class KeyId:
+    TEST_PLUGIN_KEY = 0x00
+    PROD_PLUGIN_KEY = 0x02
+
+class AlgorithmID:
+    ECC_SECG_P256K1__ECDSA_SHA_256 = 0x01
 
 
 ETH_CONF = bytes([
@@ -57,6 +97,16 @@ ETH_PACKED_DERIVATION_PATH = bytes([0x05,
                                     0x80, 0x00, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00])
+
+LEDGER_NFT_SELECTOR_PUBLIC_KEY = bytes([
+    0x04, 0xf5, 0x70, 0x0c, 0xa1, 0xe8, 0x74, 0x24, 0xc7, 0xc7, 0xd1, 0x19, 0xe7, 0xe3,
+    0xc1, 0x89, 0xb1, 0x62, 0x50, 0x94, 0xdb, 0x6e, 0xa0, 0x40, 0x87, 0xc8, 0x30, 0x00,
+    0x7d, 0x0b, 0x46, 0x9a, 0x53, 0x11, 0xee, 0x6a, 0x1a, 0xcd, 0x1d, 0xa5, 0xaa, 0xb0,
+    0xf5, 0xc6, 0xdf, 0x13, 0x15, 0x8d, 0x28, 0xcc, 0x12, 0xd1, 0xdd, 0xa6, 0xec, 0xe9,
+    0x46, 0xb8, 0x9d, 0x5c, 0x05, 0x49, 0x92, 0x59, 0xc4])
+
+# ERR_SILENT_MODE_CHECK_FAILED = ExceptionRAPDU(0x6001, name="ERR_SILENT_MODE_CHECK_FAILED", data=b'')
+ERR_SILENT_MODE_CHECK_FAILED = ExceptionRAPDU(0x6001, data=b'')
 
 
 class EthereumClient:
@@ -86,7 +136,137 @@ class EthereumClient:
     def get_public_key(self):
         return self._exchange(Command.GET_PUBLIC_KEY, payload=self.derivation_path)
 
+    def set_plugin(self):
+        # payload = SetPluginType.ETH_PLUGIN.to_bytes(TYPE_SIZE, byteorder='big')
+        # payload += SetPluginVersion.VERSION_1.to_bytes(VERSION_SIZE, byteorder='big')
+        # plugin_name = "ERC721"
+        # payload += len(plugin_name).to_bytes(PLUGIN_NAME_LENGTH_SIZE, "big")
+        # payload += plugin_name.encode()
+        # address = "60F80121C31A0D46B5279700F9DF786054AA5EE5"
+        # bytes_address = bytes.fromhex(address)
+        # assert len(bytes_address) == ADDRESS_LENGTH
+        # payload += bytes_address
+        # selector = bytes.fromhex("42842e0e")
+        # assert len(selector) == SELECTOR_SIZE
+        # payload += selector
+        # payload += ChainID.ETHEREUM_CHAIN_ID.to_bytes(CHAIN_ID_SIZE, byteorder='big')
+        # key_id = KeyId.TEST_PLUGIN_KEY.to_bytes(KEY_ID_SIZE, byteorder='big')
+        # payload += key_id
+        # algorithm_id = AlgorithmID.ECC_SECG_P256K1__ECDSA_SHA_256.to_bytes(ALGORITHM_ID_SIZE, byteorder='big') # selector
+        # payload += algorithm_id
+
+        # payload_to_sign = payload
+        # device_number = int.from_bytes(LEDGER_TEST_PRIVATE_KEY, "big")
+        # device_privkey = ec.derive_private_key(private_value=device_number, curve=ec.SECP256K1(), backend=default_backend())
+        # signature = device_privkey.sign(payload_to_sign, ec.ECDSA(hashes.SHA256()))
+        # print("#############")
+        # print(signature)
+        # print("#############")
+
+        # signature = bytes.fromhex("304502202e2282d7d3ea714da283010f517af469e1d59654aaee0fc438f017aa557eaea50221008b369679381065bbe01135723a4f9adb229295017d37c4d30138b90a51cf6ab6")
+        # print(signature)
+        # print("#############")
+        # payload += len(signature).to_bytes(SIGNATURE_LENGTH_SIZE, "big")
+        # payload += signature
+        # return self._exchange(Command.SET_PLUGIN, payload=payload)
+
+        api = "https://nft.api.live.ledger-stg.com/v1"
+        protocol = "ethereum"
+        chainid = ChainID.ETHEREUM_CHAIN_ID
+        contract = "60f80121c31a0d46b5279700f9df786054aa5ee5"
+        selector = "42842e0e"
+
+        plugin_selector_url = "%s/%s/%d/contracts/0x%s/plugin-selector/0x%s" % \
+                                   (api, protocol, chainid, contract, selector)
+
+        payload = requests.get(url = plugin_selector_url).json()["payload"]
+        return self._exchange(Command.SET_PLUGIN, payload=bytes.fromhex(payload))
+
+    def provide_nft_information(self):
+        api = "https://nft.api.live.ledger-stg.com/v1"
+        protocol = "ethereum"
+        chainid = ChainID.ETHEREUM_CHAIN_ID
+        contract = "60f80121c31a0d46b5279700f9df786054aa5ee5"
+        metadata_url = "%s/%s/%d/contracts/0x%s" % (api, protocol, chainid, contract)
+        payload = requests.get(url = metadata_url).json()["payload"]
+        return self._exchange(Command.PROVIDE_NFT_INFORMATION, payload=bytes.fromhex(payload))
+
     def sign(self, extra_payload: bytes = bytes.fromhex('eb')):
         # TODO: finish ETH signature with proper payload
-        payload = self.derivation_path + extra_payload
+        tx_type = TxType.FORCE_LEGACY.to_bytes(1, byteorder='big')
+        random_data_1 = bytes.fromhex("8a0a852c3ce1ec008301f56794")
+        contract = bytes.fromhex("60f80121c31a0d46b5279700f9df786054aa5ee5")
+        random_data_2 = bytes.fromhex("80b864")
+        selector = bytes.fromhex("42842e0e")
+        addr_1 = bytes.fromhex("0000000000000000000000006cbcd73cd8e8a42844662f0a0e76d7f79afd933d")
+        addr_2 = bytes.fromhex("000000000000000000000000c2907efcce4011c491bbeda8a0fa63ba7aab596c")
+        zeroes = bytes.fromhex("000000000000000000000000000000000000000000000000")
+        payload = self.derivation_path + tx_type + random_data_1 + contract + random_data_2 + selector + addr_1 + addr_2 + zeroes
         return self._exchange(Command.SIGN, payload=payload)
+
+    def sign_more(self):
+        token_id = bytes.fromhex("0000000000112999")
+        # TODO: determine what this field is
+        magic = bytes.fromhex("018080")
+        payload = token_id + magic
+        return self._exchange(Command.SIGN, p1=P1.MORE, payload=payload)
+
+# e004000096058000002c8000003c800000000000000000000000f88a0a852c3ce1ec
+# e004000096058000002c8000003c800000000000000000000000c08a0a852c3ce1ec
+# 008301f5679460f80121c31a0d46b5279700f9df786054aa5ee580b86442842e0e0000000000000000000000006cbcd73cd8e8a42844662f0a0e76d7f79afd933d000000000000000000000000c2907efcce4011c491bbeda8a0fa63ba7aab596c000000000000000000000000000000000000000000000000
+# 008301f5679460f80121c31a0d46b5279700f9df786054aa5ee580b86442842e0e0000000000000000000000006cbcd73cd8e8a42844662f0a0e76d7f79afd933d000000000000000000000000c2907efcce4011c491bbeda8a0fa63ba7aab596c000000000000000000000000000000000000000000000000
+
+
+
+# 16:13:53.276:seproxyhal: printf: E00480000B0000000000112999018081
+# 16:13:53.276:seproxyhal: printf: currentFieldPos 92 copySize 8
+# 16:13:53.276:seproxyhal: printf: 
+# 16:13:53.276:seproxyhal: printf: 
+# 16:13:53.276:seproxyhal: printf: Incrementing one
+# 16:13:53.276:seproxyhal: printf: -- PLUGIN PROVIDE PARAMETER --
+# 16:13:53.279:seproxyhal: printf: erc721 plugin provide parameter 68 0000000000000000000000000000000000000000000000000000000000112999
+# 16:13:53.279:seproxyhal: printf: TOKEN_ID
+# 16:13:53.279:seproxyhal: printf: method: 258
+# 16:13:53.279:seproxyhal: printf: After customprocessor
+# 16:13:53.279:seproxyhal: printf: After customprocessor
+# 16:13:53.279:seproxyhal: printf: Current field: 9
+# 16:13:53.279:seproxyhal: printf: After customprocessor
+# 16:13:53.280:seproxyhal: printf: Current field: 10
+# 16:13:53.280:seproxyhal: printf: After customprocessor
+# 16:13:53.280:seproxyhal: printf: Current field: 11
+# 16:13:53.280:seproxyhal: printf: Command length done
+# 16:13:53.280:seproxyhal: printf: result: 20
+# 16:13:53.280:seproxyhal: printf: exception[36864]: LR=0x40002777
+# [2022-07-05 16:13:53,282][DEBUG] ragger - Receiving '[0x9000] <Nothing>'
+
+# 16:14:12.252:seproxyhal: printf: E00480000B0000000000112999018080
+# 16:14:12.252:seproxyhal: printf: currentFieldPos 92 copySize 8
+# 16:14:12.252:seproxyhal: printf: 
+# 16:14:12.252:seproxyhal: printf: 
+# 16:14:12.252:seproxyhal: printf: Incrementing one
+# 16:14:12.252:seproxyhal: printf: -- PLUGIN PROVIDE PARAMETER --
+# 16:14:12.255:seproxyhal: printf: erc721 plugin provide parameter 68 0000000000000000000000000000000000000000000000000000000000112999
+# 16:14:12.255:seproxyhal: printf: TOKEN_ID
+# 16:14:12.255:seproxyhal: printf: method: 258
+# 16:14:12.255:seproxyhal: printf: After customprocessor
+# 16:14:12.255:seproxyhal: printf: After customprocessor
+# 16:14:12.255:seproxyhal: printf: Current field: 9
+# 16:14:12.255:seproxyhal: printf: After customprocessor
+# 16:14:12.255:seproxyhal: printf: Current field: 10
+# 16:14:12.255:seproxyhal: printf: After customprocessor
+# 16:14:12.255:seproxyhal: printf: Current field: 11
+# 16:14:12.255:seproxyhal: printf: parsing is done
+# 16:14:12.256:seproxyhal: printf: result: 16
+# 16:14:12.333:seproxyhal: printf: -- PLUGIN FINALIZE --
+# 16:14:12.333:seproxyhal: printf: method: 259
+# 16:14:12.335:seproxyhal: printf: Lookup1: 60F80121C31A0D46B5279700F9DF786054AA5EE5
+# 16:14:12.335:seproxyhal: printf: Token found at index 1
+# 16:14:12.335:seproxyhal: printf: Token1 ticker: Rarible
+# 16:14:12.335:seproxyhal: printf: -- PLUGIN PROVIDE INFO --
+# 16:14:12.335:seproxyhal: printf: method: 260
+# 16:14:12.336:seproxyhal: printf: RESULT: 4
+# 16:14:12.336:seproxyhal: printf: Gas price 2C3CE1EC00
+# 16:14:12.336:seproxyhal: printf: Gas limit 01F567
+# 16:14:12.336:seproxyhal: printf: Fees displayed: ETH 0.02438821
+# 16:14:12.336:seproxyhal: printf: Network: Ethereum
+# [2022-07-05 16:14:12,454][DEBUG] ragger - Receiving '[0x9000] 2568ba082523584adbfc31d36d68b51d6f209ce0838215026bf1802a8f17dcdff47c92908fa05c8bc86507a3d6a1c8b3c2722ee01c836d89a61df60c1ab0b43fff'

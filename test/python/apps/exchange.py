@@ -5,7 +5,7 @@ from enum import IntEnum, Enum, auto
 from dataclasses import dataclass
 
 from ragger.backend.interface import BackendInterface, RAPDU
-from ragger import ApplicationError
+from ragger.error import ExceptionRAPDU
 
 from ..common import LEDGER_TEST_PRIVATE_KEY
 
@@ -63,25 +63,25 @@ class PayloadEncoding(Enum):
 
 
 ERRORS = (
-    ApplicationError(0x6A80, "INCORRECT_COMMAND_DATA"),
-    ApplicationError(0x6A81, "DESERIALIZATION_FAILED"),
-    ApplicationError(0x6A82, "WRONG_TRANSACTION_ID"),
-    ApplicationError(0x6A83, "INVALID_ADDRESS"),
-    ApplicationError(0x6A84, "USER_REFUSED"),
-    ApplicationError(0x6A85, "INTERNAL_ERROR"),
-    ApplicationError(0x6A86, "WRONG_P1"),
-    ApplicationError(0x6A87, "WRONG_P2"),
-    ApplicationError(0x6E00, "CLASS_NOT_SUPPORTED"),
-    ApplicationError(0x6D00, "INVALID_INSTRUCTION"),
-    ApplicationError(0x9D1A, "SIGN_VERIFICATION_FAIL")
+    ExceptionRAPDU(0x6A80, "INCORRECT_COMMAND_DATA"),
+    ExceptionRAPDU(0x6A81, "DESERIALIZATION_FAILED"),
+    ExceptionRAPDU(0x6A82, "WRONG_TRANSACTION_ID"),
+    ExceptionRAPDU(0x6A83, "INVALID_ADDRESS"),
+    ExceptionRAPDU(0x6A84, "USER_REFUSED"),
+    ExceptionRAPDU(0x6A85, "INTERNAL_ERROR"),
+    ExceptionRAPDU(0x6A86, "WRONG_P1"),
+    ExceptionRAPDU(0x6A87, "WRONG_P2"),
+    ExceptionRAPDU(0x6E00, "CLASS_NOT_SUPPORTED"),
+    ExceptionRAPDU(0x6D00, "INVALID_INSTRUCTION"),
+    ExceptionRAPDU(0x9D1A, "SIGN_VERIFICATION_FAIL")
 )
 
 
 @dataclass
 class Identity:
-    privkey: ec.EllipticCurvePrivateKey
-    credentials: bytes
-    signed_credentials: bytes
+    partner_privkey: ec.EllipticCurvePrivateKey
+    partner_credentials: bytes
+    partner_signed_credentials: bytes
 
 def generate_partner_keys(curve, partner_name: bytes = b"Default_Partner") -> Identity:
     partner_privkey = ec.generate_private_key(curve, backend=default_backend())
@@ -89,10 +89,10 @@ def generate_partner_keys(curve, partner_name: bytes = b"Default_Partner") -> Id
         encoding=serialization.Encoding.X962,
         format=serialization.PublicFormat.UncompressedPoint
     )
-    private_number = int.from_bytes(LEDGER_TEST_PRIVATE_KEY, "big")
-    partner_key = ec.derive_private_key(private_value=private_number, curve=ec.SECP256K1(), backend=default_backend())
+    device_number = int.from_bytes(LEDGER_TEST_PRIVATE_KEY, "big")
+    device_privkey = ec.derive_private_key(private_value=device_number, curve=ec.SECP256K1(), backend=default_backend())
     partner_credentials = len(partner_name).to_bytes(1, "big") + partner_name + partner_pubkey
-    partner_signed_credentials = partner_key.sign(partner_credentials, ec.ECDSA(hashes.SHA256()))
+    partner_signed_credentials = device_privkey.sign(partner_credentials, ec.ECDSA(hashes.SHA256()))
 
     return Identity(partner_privkey, partner_credentials, partner_signed_credentials)
 
@@ -183,10 +183,10 @@ class ExchangeClient:
         return response
 
     def set_partner_key(self) -> RAPDU:
-        return self._exchange(Command.SET_PARTNER_KEY, self._partner_identity.credentials)
+        return self._exchange(Command.SET_PARTNER_KEY, self._partner_identity.partner_credentials)
 
     def check_partner_key(self) -> RAPDU:
-        return self._exchange(Command.CHECK_PARTNER, self._partner_identity.signed_credentials)
+        return self._exchange(Command.CHECK_PARTNER, self._partner_identity.partner_signed_credentials)
 
     def _ticker_to_coin_payload(self, ticker) -> bytes:
         ticker_to_conf = {
@@ -220,7 +220,7 @@ class ExchangeClient:
         if self._signature_computation == SignatureComputation.DOT_PREFIXED_BASE_64_URL:
             payload_to_sign = b"." + payload_to_sign
 
-        signature = self._partner_identity.privkey.sign(payload_to_sign, ec.ECDSA(hashes.SHA256()))
+        signature = self._partner_identity.partner_privkey.sign(payload_to_sign, ec.ECDSA(hashes.SHA256()))
 
         if self._signature_encoding == SignatureEncoding.PLAIN_R_S:
             r, s = decode_dss_signature(signature)
