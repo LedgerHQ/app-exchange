@@ -1,6 +1,6 @@
 from base64 import urlsafe_b64encode
 from contextlib import contextmanager
-from typing import Generator, Optional, Dict
+from typing import Generator, Optional, Dict, Callable, Iterable
 from enum import IntEnum, Enum, auto
 from dataclasses import dataclass
 
@@ -18,6 +18,7 @@ from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF, ETH_CONF_DER_SIGNATURE
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF, LTC_CONF_DER_SIGNATURE
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF, BTC_CONF_DER_SIGNATURE
+from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
 from .pb.exchange_pb2 import NewFundResponse, NewSellResponse, NewTransactionResponse
 from ..utils import concatenate
 
@@ -34,32 +35,16 @@ class Command(IntEnum):
     START_SIGNING_TRANSACTION    = 0x0A
 
 
-class SubCommand(IntEnum):
-    SWAP = 0x00
-    SELL = 0x01
-    FUND = 0x02
-
-
 class Rate(IntEnum):
     FIXED    = 0x00
     FLOATING = 0x01
 
 
-class SignatureComputation(Enum):
-    BINARY_ENCODED_PAYLOAD   = auto()
-    # For SELL and FUND subcommand, prefix sign payload by a '.'
-    DOT_PREFIXED_BASE_64_URL = auto()
+class SubCommand(IntEnum):
+    SWAP = 0x00
+    SELL = 0x01
+    FUND = 0x02
 
-
-class SignatureEncoding(Enum):
-    DER       = auto()
-    # For SELL subcommand, convert DER encoding to plain r,s
-    PLAIN_R_S = auto()
-
-
-class PayloadEncoding(Enum):
-    BYTES_ARRAY = auto()
-    BASE_64_URL = auto()
 
 
 ERRORS = (
@@ -75,7 +60,6 @@ ERRORS = (
     ExceptionRAPDU(0x6D00, "INVALID_INSTRUCTION"),
     ExceptionRAPDU(0x9D1A, "SIGN_VERIFICATION_FAIL")
 )
-
 
 @dataclass
 class Identity:
@@ -95,6 +79,7 @@ def generate_partner_keys(curve, partner_name: bytes = b"Default_Partner") -> Id
     partner_signed_credentials = device_privkey.sign(partner_credentials, ec.ECDSA(hashes.SHA256()))
 
     return Identity(partner_privkey, partner_credentials, partner_signed_credentials)
+
 
 
 class ExchangeClient:
@@ -119,36 +104,13 @@ class ExchangeClient:
         self._refund_payload: Optional[bytes] = None
 
         if self._subcommand == SubCommand.SWAP:
-            self._curve = ec.SECP256K1()
-            self._signature_computation = SignatureComputation.BINARY_ENCODED_PAYLOAD
-            self._signature_encoding = SignatureEncoding.DER
-            self._payload_encoding = PayloadEncoding.BYTES_ARRAY
-            self._transaction_type = NewTransactionResponse
-            self._req_conf = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
-                              "payout_address", "payout_extra_id", "currency_from", "currency_to",
-                              "amount_to_provider", "amount_to_wallet"]
-            self._payout_field="currency_to"
-            self._refund_field= "currency_from"
+            self.subcommand_specs = SWAP_SPECS
         elif self._subcommand == SubCommand.SELL:
-            self._curve = ec.SECP256R1()
-            self._signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL
-            self._signature_encoding = SignatureEncoding.PLAIN_R_S
-            self._payload_encoding = PayloadEncoding.BASE_64_URL
-            self._transaction_type = NewSellResponse
-            self._req_conf = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"]
-            self._payout_field="in_currency"
-            self._refund_field= None
+            self.subcommand_specs = SELL_SPECS
         elif self._subcommand == SubCommand.FUND:
-            self._curve = ec.SECP256R1()
-            self._signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL
-            self._signature_encoding = SignatureEncoding.DER
-            self._payload_encoding = PayloadEncoding.BASE_64_URL
-            self._transaction_type = NewFundResponse
-            self._req_conf = ["user_id", "account_name", "in_currency", "in_amount", "in_address"]
-            self._payout_field="in_currency"
-            self._refund_field= None
+            self.subcommand_specs = FUND_SPECS
 
-        self._partner_identity = generate_partner_keys(self._curve)
+        self._partner_identity = generate_partner_keys(self.subcommand_specs.curve)
 
 
 
@@ -199,32 +161,27 @@ class ExchangeClient:
         return concatenate(conf) + signature + concatenate(derivation_path)
 
     def process_transaction(self, conf: Dict, fees: bytes) -> RAPDU:
-        assert all(i in conf for i in self._req_conf)
-        assert len(conf) == len(self._req_conf)
-        pb_buffer = self._transaction_type(**conf, device_transaction_id=self.transaction_id).SerializeToString()
-        # preparing payload for further check step
-        self._payout_payload = self._ticker_to_coin_payload(conf[self._payout_field])
-        if self._refund_field:
-            self._refund_payload = self._ticker_to_coin_payload(conf[self._refund_field])
+        assert self.subcommand_specs.check_conf(conf)
 
-        if self._payload_encoding == PayloadEncoding.BASE_64_URL:
-            self._transaction = urlsafe_b64encode(pb_buffer)
-        else:
-            self._transaction = pb_buffer
+        self._transaction = self.subcommand_specs.create_transaction(conf, self.transaction_id)
+
+        self._payout_currency = conf[self.subcommand_specs.payout_field]
+        if self.subcommand_specs.refund_field:
+            self._refund_currency = conf[self.subcommand_specs.refund_field]
+
+        self._payout_payload = self._ticker_to_coin_payload(self._payout_currency)
+        if self.subcommand_specs.refund_field:
+            self._refund_payload = self._ticker_to_coin_payload(self._refund_currency)
+
+
         payload = concatenate(self._transaction, fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
 
     def check_transaction(self) -> RAPDU:
         # preparing payload to sign
-        payload_to_sign = self._transaction
-        if self._signature_computation == SignatureComputation.DOT_PREFIXED_BASE_64_URL:
-            payload_to_sign = b"." + payload_to_sign
+        payload_to_sign = self.subcommand_specs.compute_payload(self._transaction)
 
-        signature = self._partner_identity.partner_privkey.sign(payload_to_sign, ec.ECDSA(hashes.SHA256()))
-
-        if self._signature_encoding == SignatureEncoding.PLAIN_R_S:
-            r, s = decode_dss_signature(signature)
-            signature = r.to_bytes(32, "big") + s.to_bytes(32, "big")
+        signature = self.subcommand_specs.encode_signature(self._partner_identity.partner_privkey, payload_to_sign)
 
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=signature)
 

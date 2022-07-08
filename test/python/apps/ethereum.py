@@ -191,7 +191,12 @@ class EthereumClient:
         payload = requests.get(url = metadata_url).json()["payload"]
         return self._exchange(Command.PROVIDE_NFT_INFORMATION, payload=bytes.fromhex(payload))
 
-    def sign(self, extra_payload: bytes = bytes.fromhex('eb')):
+    def sign(self):
+        # TODO: finish ETH signature with proper payload
+        payload = ETH_PACKED_DERIVATION_PATH + bytes.fromhex('eb')
+        return self._exchange(Command.SIGN, payload=payload)
+
+    def sign_contract(self, extra_payload: bytes = bytes.fromhex('eb')):
         # TODO: finish ETH signature with proper payload
         tx_type = TxType.FORCE_LEGACY.to_bytes(1, byteorder='big')
         random_data_1 = bytes.fromhex("8a0a852c3ce1ec008301f56794")
@@ -210,63 +215,3 @@ class EthereumClient:
         magic = bytes.fromhex("018080")
         payload = token_id + magic
         return self._exchange(Command.SIGN, p1=P1.MORE, payload=payload)
-
-# e004000096058000002c8000003c800000000000000000000000f88a0a852c3ce1ec
-# e004000096058000002c8000003c800000000000000000000000c08a0a852c3ce1ec
-# 008301f5679460f80121c31a0d46b5279700f9df786054aa5ee580b86442842e0e0000000000000000000000006cbcd73cd8e8a42844662f0a0e76d7f79afd933d000000000000000000000000c2907efcce4011c491bbeda8a0fa63ba7aab596c000000000000000000000000000000000000000000000000
-# 008301f5679460f80121c31a0d46b5279700f9df786054aa5ee580b86442842e0e0000000000000000000000006cbcd73cd8e8a42844662f0a0e76d7f79afd933d000000000000000000000000c2907efcce4011c491bbeda8a0fa63ba7aab596c000000000000000000000000000000000000000000000000
-
-
-
-# 16:13:53.276:seproxyhal: printf: E00480000B0000000000112999018081
-# 16:13:53.276:seproxyhal: printf: currentFieldPos 92 copySize 8
-# 16:13:53.276:seproxyhal: printf: 
-# 16:13:53.276:seproxyhal: printf: 
-# 16:13:53.276:seproxyhal: printf: Incrementing one
-# 16:13:53.276:seproxyhal: printf: -- PLUGIN PROVIDE PARAMETER --
-# 16:13:53.279:seproxyhal: printf: erc721 plugin provide parameter 68 0000000000000000000000000000000000000000000000000000000000112999
-# 16:13:53.279:seproxyhal: printf: TOKEN_ID
-# 16:13:53.279:seproxyhal: printf: method: 258
-# 16:13:53.279:seproxyhal: printf: After customprocessor
-# 16:13:53.279:seproxyhal: printf: After customprocessor
-# 16:13:53.279:seproxyhal: printf: Current field: 9
-# 16:13:53.279:seproxyhal: printf: After customprocessor
-# 16:13:53.280:seproxyhal: printf: Current field: 10
-# 16:13:53.280:seproxyhal: printf: After customprocessor
-# 16:13:53.280:seproxyhal: printf: Current field: 11
-# 16:13:53.280:seproxyhal: printf: Command length done
-# 16:13:53.280:seproxyhal: printf: result: 20
-# 16:13:53.280:seproxyhal: printf: exception[36864]: LR=0x40002777
-# [2022-07-05 16:13:53,282][DEBUG] ragger - Receiving '[0x9000] <Nothing>'
-
-# 16:14:12.252:seproxyhal: printf: E00480000B0000000000112999018080
-# 16:14:12.252:seproxyhal: printf: currentFieldPos 92 copySize 8
-# 16:14:12.252:seproxyhal: printf: 
-# 16:14:12.252:seproxyhal: printf: 
-# 16:14:12.252:seproxyhal: printf: Incrementing one
-# 16:14:12.252:seproxyhal: printf: -- PLUGIN PROVIDE PARAMETER --
-# 16:14:12.255:seproxyhal: printf: erc721 plugin provide parameter 68 0000000000000000000000000000000000000000000000000000000000112999
-# 16:14:12.255:seproxyhal: printf: TOKEN_ID
-# 16:14:12.255:seproxyhal: printf: method: 258
-# 16:14:12.255:seproxyhal: printf: After customprocessor
-# 16:14:12.255:seproxyhal: printf: After customprocessor
-# 16:14:12.255:seproxyhal: printf: Current field: 9
-# 16:14:12.255:seproxyhal: printf: After customprocessor
-# 16:14:12.255:seproxyhal: printf: Current field: 10
-# 16:14:12.255:seproxyhal: printf: After customprocessor
-# 16:14:12.255:seproxyhal: printf: Current field: 11
-# 16:14:12.255:seproxyhal: printf: parsing is done
-# 16:14:12.256:seproxyhal: printf: result: 16
-# 16:14:12.333:seproxyhal: printf: -- PLUGIN FINALIZE --
-# 16:14:12.333:seproxyhal: printf: method: 259
-# 16:14:12.335:seproxyhal: printf: Lookup1: 60F80121C31A0D46B5279700F9DF786054AA5EE5
-# 16:14:12.335:seproxyhal: printf: Token found at index 1
-# 16:14:12.335:seproxyhal: printf: Token1 ticker: Rarible
-# 16:14:12.335:seproxyhal: printf: -- PLUGIN PROVIDE INFO --
-# 16:14:12.335:seproxyhal: printf: method: 260
-# 16:14:12.336:seproxyhal: printf: RESULT: 4
-# 16:14:12.336:seproxyhal: printf: Gas price 2C3CE1EC00
-# 16:14:12.336:seproxyhal: printf: Gas limit 01F567
-# 16:14:12.336:seproxyhal: printf: Fees displayed: ETH 0.02438821
-# 16:14:12.336:seproxyhal: printf: Network: Ethereum
-# [2022-07-05 16:14:12,454][DEBUG] ragger - Receiving '[0x9000] 2568ba082523584adbfc31d36d68b51d6f209ce0838215026bf1802a8f17dcdff47c92908fa05c8bc86507a3d6a1c8b3c2722ee01c836d89a61df60c1ab0b43fff'
