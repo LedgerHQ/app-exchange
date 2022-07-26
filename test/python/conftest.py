@@ -28,7 +28,7 @@ EXCHANGES = [
     Application(APPLICATION_DIRECTORY / 'exchange_nanox.elf',
                 Firmware('nanox', '2.0.2')),
     Application(APPLICATION_DIRECTORY / 'exchange_nanosp.elf',
-                Firmware('nanosp', '1.0'))
+                Firmware('nanosp', '1.0.3'))
 ]
 
 @pytest.fixture(params=EXCHANGES)
