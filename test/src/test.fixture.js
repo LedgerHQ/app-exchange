@@ -64,7 +64,7 @@ class ExchangeDeviceModel extends DeviceModel {
 const nano_environments: ExchangeDeviceModel[] = [
     { name: 'nanos', letter: 'S', path: NANOS_ELF_PATH, libs: get_applications('nanos'), sdk: '2.1'},
     { name: 'nanox', letter: 'X', path: NANOX_ELF_PATH, libs: get_applications('nanox'), sdk: '2.0.2'},
-    { name: 'nanosp', letter: "SP", path: NANOSP_ELF_PATH, libs: get_applications('nanosp'), sdk: '1.0.3'},
+    { name: 'nanosp', letter: "SP", path: NANOSP_ELF_PATH, libs: get_applications('nanosp'), sdk: '1.0'},
 ];
 
 const TIMEOUT = 1000000;
