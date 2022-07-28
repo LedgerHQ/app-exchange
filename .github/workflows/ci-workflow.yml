@@ -141,7 +141,7 @@ jobs:
       - name: Install APT dependencies
         run: sudo apt-get update && sudo apt-get install -y qemu-user-static
       - name: Install Ragger
-        run: pip install --extra-index-url https://test.pypi.org/simple/ ragger[tests]
+        run: pip install --extra-index-url https://test.pypi.org/simple/ ragger[tests]==0.4.2
       - name: Run tests
         run: pytest test/python/ --tb=short
 
