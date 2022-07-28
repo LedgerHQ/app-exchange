@@ -23,16 +23,16 @@ def prepare_exchange(client, firmware, amount: str):
         "payout_extra_id": b"",
         "currency_from": "ETH",
         "currency_to": "BTC",
-        "amount_to_provider": bytes.fromhex(amount), # ETH 1.123
+        "amount_to_provider": bytes.fromhex(amount),
         "amount_to_wallet": b"\x0b\xeb\xc2\x00",
     }
-    fees = b'\x01'
+    fees = bytes.fromhex("0216c86b20c000") # ETH 0.000588
 
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction()
 
     right_clicks = {
-        "nanos": 6,
+        "nanos": 4,
         "nanox": 4,
         "nanosp": 4
     }
