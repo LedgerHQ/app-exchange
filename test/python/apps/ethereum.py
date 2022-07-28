@@ -191,9 +191,9 @@ class EthereumClient:
         payload = requests.get(url = metadata_url).json()["payload"]
         return self._exchange(Command.PROVIDE_NFT_INFORMATION, payload=bytes.fromhex(payload))
 
-    def sign(self):
+    def sign(self, extra_payload: bytes = bytes.fromhex('eb')):
         # TODO: finish ETH signature with proper payload
-        payload = ETH_PACKED_DERIVATION_PATH + bytes.fromhex('eb')
+        payload = self.derivation_path + extra_payload
         return self._exchange(Command.SIGN, payload=payload)
 
     def sign_contract(self, extra_payload: bytes = bytes.fromhex('eb')):

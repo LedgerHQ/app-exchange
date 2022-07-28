@@ -100,8 +100,8 @@ class ExchangeClient:
         self._subcommand = subcommand
         self._transaction_id: Optional[bytes] = None
         self._transaction: bytes = b""
-        self._payout_payload: bytes = b""
-        self._refund_payload: Optional[bytes] = None
+        self._payout_currency: str = ""
+        self._refund_currency: Optional[str] = None
 
         if self._subcommand == SubCommand.SWAP:
             self.subcommand_specs = SWAP_SPECS
@@ -150,16 +150,6 @@ class ExchangeClient:
     def check_partner_key(self) -> RAPDU:
         return self._exchange(Command.CHECK_PARTNER, self._partner_identity.partner_signed_credentials)
 
-    def _ticker_to_coin_payload(self, ticker) -> bytes:
-        ticker_to_conf = {
-            "ETH": (ETH_CONF, ETH_CONF_DER_SIGNATURE, ETH_PACKED_DERIVATION_PATH),
-            "BTC": (BTC_CONF, BTC_CONF_DER_SIGNATURE, BTC_PACKED_DERIVATION_PATH),
-            "LTC": (LTC_CONF, LTC_CONF_DER_SIGNATURE, LTC_PACKED_DERIVATION_PATH),
-        }
-        assert ticker in ticker_to_conf
-        conf, signature, derivation_path = ticker_to_conf[ticker]
-        return concatenate(conf) + signature + concatenate(derivation_path)
-
     def process_transaction(self, conf: Dict, fees: bytes) -> RAPDU:
         assert self.subcommand_specs.check_conf(conf)
 
@@ -168,11 +158,6 @@ class ExchangeClient:
         self._payout_currency = conf[self.subcommand_specs.payout_field]
         if self.subcommand_specs.refund_field:
             self._refund_currency = conf[self.subcommand_specs.refund_field]
-
-        self._payout_payload = self._ticker_to_coin_payload(self._payout_currency)
-        if self.subcommand_specs.refund_field:
-            self._refund_payload = self._ticker_to_coin_payload(self._refund_currency)
-
 
         payload = concatenate(self._transaction, fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
@@ -185,15 +170,25 @@ class ExchangeClient:
 
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=signature)
 
+    def _ticker_to_coin_payload(self, ticker) -> bytes:
+        ticker_to_conf = {
+            "ETH": (ETH_CONF, ETH_CONF_DER_SIGNATURE, ETH_PACKED_DERIVATION_PATH),
+            "BTC": (BTC_CONF, BTC_CONF_DER_SIGNATURE, BTC_PACKED_DERIVATION_PATH),
+            "LTC": (LTC_CONF, LTC_CONF_DER_SIGNATURE, LTC_PACKED_DERIVATION_PATH),
+        }
+        assert ticker in ticker_to_conf
+        conf, signature, derivation_path = ticker_to_conf[ticker]
+        return concatenate(conf) + signature + concatenate(derivation_path)
+
     def check_address(self, right_clicks: int, accept: bool = True) -> None:
         command = Command.CHECK_PAYOUT_ADDRESS
-        payload = self._payout_payload
+        payload = self._ticker_to_coin_payload(self._payout_currency)
 
-        if self._refund_payload:
+        if self._refund_currency:
             # If refund adress has to be checked, send CHECk_PAYOUT_ADDRESS first
             self._exchange(command, payload=payload)
             command = Command.CHECK_REFUND_ADDRESS
-            payload = self._refund_payload
+            payload = self._ticker_to_coin_payload(self._refund_currency)
 
         with self._exchange_async(command, payload=payload):
             for _ in range(right_clicks):

@@ -28,7 +28,7 @@ def prepare_exchange(client, firmware, amount: str):
         "amount_to_provider": bytes.fromhex(amount), # ETH 1.123
         "amount_to_wallet": b"\x0b\xeb\xc2\x00",
     }
-    fees = b'\x01'
+    fees = bytes.fromhex("0216c86b20c000") # ETH 0.000588
 
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction()
@@ -49,8 +49,10 @@ def test_swap_eth_to_btc_wrong_amount(client, firmware):
     prepare_exchange(client, firmware, amount)
     eth = EthereumClient(client, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
-    with pytest.raises(RAPDU):
+    try:
         eth.sign(extra_payload=bytes.fromhex("ec09850684ee180082520894d692cb1346262f584d17b4b470954501f6715a8288" + wrong_amount + "80018080"))
+    except ExceptionRAPDU as rapdu:
+        assert rapdu.status == ERR_SILENT_MODE_CHECK_FAILED.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SILENT_MODE_CHECK_FAILED.status)}"
 
 
 def test_swap_eth_to_btc_ok(client, firmware):
