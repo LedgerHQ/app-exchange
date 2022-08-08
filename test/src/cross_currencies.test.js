@@ -27,12 +27,12 @@ import { AppClient as BtcAppAclient, PsbtV2, DefaultWalletPolicy } from "./AppBt
 
 import { zemu, nano_environments } from './test.fixture';
 
-import { SwapTransactionPerformer } from "./SwapTransactionPerformer"
+import { ExchangeTransactionPerformer } from "./ExchangeTransactionPerformer"
 
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] BTC (legacy protocol) swap to LTC fails`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(BTC_INFO);
         transaction.setToCurrencyInfo(LTC_LEGACY_INFO);
         transaction.setAmountToProvider(500000);
@@ -70,7 +70,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] LTC swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(LTC_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
         transaction.setAmountToProvider(1234);
@@ -112,7 +112,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] BTC (legacy protocol) swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(BTC_LEGACY_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
         transaction.setAmountToProvider(1234);
@@ -153,7 +153,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] ETH swap to BTC`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(ETH_INFO);
         transaction.setToCurrencyInfo(BTC_INFO);
         transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
@@ -177,7 +177,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Aeternity ERC20 swap to BTC`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(AE_INFO);
         transaction.setToCurrencyInfo(BTC_INFO);
         // 1.1234 AE to 1 BTC
@@ -204,7 +204,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Swap from AE ERC20 to ETH`, zemu(model, async (sim) => {
-        const transaction = new SwapTransactionPerformer(model, sim);
+        const transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(AE_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
         // 1.1234 AE to 1 BTC
@@ -231,7 +231,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Swap from ETH to SHIB ERC20, large amount does not overflow`, zemu(model, async (sim) => {
-        const transaction = new SwapTransactionPerformer(model, sim);
+        const transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(ETH_INFO);
         transaction.setToCurrencyInfo(SHIB_INFO);
         // 1.1234 AE to 1 BTC
@@ -246,7 +246,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] XRP swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(XRP_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
         // 21 XRP to 1.1234 ETH
@@ -267,7 +267,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] ETH swap to XRP`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(ETH_INFO);
         transaction.setToCurrencyInfo(XRP_INFO);
         // 1.1234 ETH to 21 XRP
@@ -291,7 +291,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] XLM swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(XLM_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
         // 1.1234567 XLM to 1.1234 ETH
@@ -313,7 +313,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] ETH swap to XLM`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(ETH_INFO);
         transaction.setToCurrencyInfo(XLM_INFO);
         // 1.1234567 XLM to 1.1234 ETH
@@ -337,7 +337,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] XTZ swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(XTZ_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
         // 0.0123 XTZ to 1.1234 ETH
@@ -359,7 +359,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] ETH swap to XTZ`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(ETH_INFO);
         transaction.setToCurrencyInfo(XTZ_INFO);
         // 1.1234 ETH to 2.1 XTZ
@@ -385,7 +385,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] BTC (new protocol, segwit address) swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(BTC_NEWPROTOCOL_SEGWIT_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
         transaction.setAmountToProvider(9999);
@@ -414,7 +414,7 @@ nano_environments.forEach(function(model) {
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] BTC (new protocol, taproot address) swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new SwapTransactionPerformer(model, sim);
+        let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(BTC_NEWPROTOCOL_TAPROOT_INFO);
         transaction.setToCurrencyInfo(ETH_INFO);
         transaction.setAmountToProvider(14460);

@@ -7,7 +7,7 @@ import {
     XTZ_LEGACY_INFO,
 } from "./common";
 
-import { SwapTransactionPerformer } from "./SwapTransactionPerformer"
+import { ExchangeTransactionPerformer } from "./ExchangeTransactionPerformer"
 
 import { zemu, nano_environments } from './test.fixture';
 
@@ -17,7 +17,7 @@ const XTZ_variants = [{'name': 'normal', 'config': XTZ_INFO},
 XTZ_variants.forEach(function(variant) {
     nano_environments.forEach(function(model) {
         test(`[Nano ${model.letter}][Tezos ${variant.name}] Tezos wrong payout address should not be accepted`, zemu(model, async (sim) => {
-            let t = new SwapTransactionPerformer(model, sim);
+            let t = new ExchangeTransactionPerformer(model, sim);
             t.setFromCurrencyInfo(BTC_INFO);
             t.setToCurrencyInfo(variant.config);
             t.setAmountToProvider(100000000);
@@ -31,7 +31,7 @@ XTZ_variants.forEach(function(variant) {
 XTZ_variants.forEach(function(variant) {
     nano_environments.forEach(function(model) {
         test(`[Nano ${model.letter}][Tezos ${variant.name}] Tezos valid payout address should be accepted`, zemu(model, async (sim) => {
-            let t = new SwapTransactionPerformer(model, sim);
+            let t = new ExchangeTransactionPerformer(model, sim);
             t.setFromCurrencyInfo(BTC_INFO);
             t.setToCurrencyInfo(variant.config);
             t.setAmountToProvider(100000000);
@@ -45,7 +45,7 @@ XTZ_variants.forEach(function(variant) {
 XTZ_variants.forEach(function(variant) {
     nano_environments.forEach(function(model) {
         test(`[Nano ${model.letter}][Tezos ${variant.name}] Tezos wrong refund address should be rejected`, zemu(model, async (sim) => {
-            let t = new SwapTransactionPerformer(model, sim);
+            let t = new ExchangeTransactionPerformer(model, sim);
             t.setFromCurrencyInfo(XTZ_INFO);
             t.setToCurrencyInfo(variant.config);
             t.setAmountToProvider(100000000);
@@ -59,7 +59,7 @@ XTZ_variants.forEach(function(variant) {
 XTZ_variants.forEach(function(variant) {
     nano_environments.forEach(function(model) {
         test(`[Nano ${model.letter}][Tezos ${variant.name}] Tezos valid refund address should be accepted`, zemu(model, async (sim) => {
-            let t = new SwapTransactionPerformer(model, sim);
+            let t = new ExchangeTransactionPerformer(model, sim);
             t.setFromCurrencyInfo(XTZ_INFO);
             t.setToCurrencyInfo(variant.config);
             t.setAmountToProvider(100000000);
