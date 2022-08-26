@@ -16,6 +16,7 @@ from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
+from .polkadot import DOT_PACKED_DERIVATION_PATH, DOT_CONF, DOT_CONF_DER_SIGNATURE
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
 
 
@@ -48,6 +49,7 @@ TICKER_TO_CONF = {
     "BTC": BTC_CONF,
     "LTC": LTC_CONF,
     "XLM": XLM_CONF,
+    "DOT": DOT_CONF,
 }
 
 TICKER_TO_PACKED_DERIVATION_PATH = {
@@ -56,6 +58,7 @@ TICKER_TO_PACKED_DERIVATION_PATH = {
     "BTC": BTC_PACKED_DERIVATION_PATH,
     "LTC": LTC_PACKED_DERIVATION_PATH,
     "XLM": XLM_PACKED_DERIVATION_PATH,
+    "DOT": DOT_PACKED_DERIVATION_PATH,
 }
 
 
@@ -162,9 +165,10 @@ class ExchangeClient:
         signed_transaction = signer.sign(formated_transaction)
         encoded_transaction = self._subcommand_specs.encode_signature(signed_transaction)
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
-
+    
     @contextmanager
-    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None) -> Generator[None, None, None]:
+    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None, right_clicks: int = 0, accept: bool = True) -> RAPDU:
+        command = Command.CHECK_PAYOUT_ADDRESS
         payout_currency_conf = TICKER_TO_CONF[self._payout_currency.upper()]
         signed_payout_conf = payout_signer.sign(payout_currency_conf)
         payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
@@ -185,8 +189,15 @@ class ExchangeClient:
                 refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
                 payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
 
-                with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
-                    yield response
+                with self._exchange_async(command, payload=payload):
+                    for _ in range(right_clicks):
+                        self._client.right_click()
+                    if not accept:
+                        self._client.right_click()
+                    self._client.both_click()
+
+                #with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
+                #    yield response
         else:
             with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload) as response:
                 yield response

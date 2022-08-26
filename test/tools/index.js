@@ -105,6 +105,9 @@ const main = () => {
     const repSubConfig = Buffer.concat([Buffer.from(["REP".length]), Buffer.from("REP"), Buffer.from([18])])
     const repConfig = createCurrencyConfig("REP", "Ethereum", repSubConfig, ledgerTestPrivateKey);
 
+    const dotSubConfig = Buffer.concat([Buffer.from(["DOT".length]), Buffer.from("DOT"), Buffer.from([18])])
+    const dotConfig = createCurrencyConfig("DOT", "Polkadot", dotSubConfig, ledgerTestPrivateKey);
+
     console.log("\nconst BTCConfig = Buffer.from(" + toHexPrintableConst(btcConfig.coinConfig));
     console.log("const BTCConfigSignature = Buffer.from(" + toHexPrintableConst(btcConfig.signature));
     console.log("\nconst BTCLegacyConfig = Buffer.from(" + toHexPrintableConst(btcLegacyConfig.coinConfig));
@@ -131,6 +134,8 @@ const main = () => {
     console.log("const USDTConfigSignature = Buffer.from(" + toHexPrintableConst(usdtConfig.signature));
     console.log("\nconst REPConfig = Buffer.from(" + toHexPrintableConst(repConfig.coinConfig));
     console.log("const REPConfigSignature = Buffer.from(" + toHexPrintableConst(repConfig.signature));
+    console.log("\nconst DOTConfig = Buffer.from(" + toHexPrintableConst(dotConfig.coinConfig));
+    console.log("const DOTConfigSignature = Buffer.from(" + toHexPrintableConst(dotConfig.signature));
 }
 
 

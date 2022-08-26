@@ -16,6 +16,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "xrp": "XRP",
     "litecoin": "Litecoin",
     "stellar": "Stellar",
+    "polkadot": "Polkadot",
 }
 
 configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
