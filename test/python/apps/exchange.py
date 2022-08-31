@@ -58,7 +58,7 @@ ERRORS = (
 )
 
 
-class Exchange_Partner_Identity:
+class ExchangePartnerIdentity:
     _private_key: ec.EllipticCurvePrivateKey
     _public_key: dh.DHPublicKey
     _name: str
@@ -83,14 +83,14 @@ class Exchange_Partner_Identity:
         return self._private_key.sign(payload_to_sign, ec.ECDSA(hashes.SHA256()))
 
 
-class Ledger_Test_Signer:
+class LedgerTestSigner:
     private_key: ec.EllipticCurvePrivateKey
 
     def __init__(self, ledger_test_private_key: bytes):
         device_number = int.from_bytes(ledger_test_private_key, "big")
         self.private_key = ec.derive_private_key(private_value=device_number, curve=ec.SECP256K1(), backend=default_backend())
 
-    def sign_partner_credentials(self, partner: Exchange_Partner_Identity):
+    def sign_partner_credentials(self, partner: ExchangePartnerIdentity):
         partner.signed_credentials = self.private_key.sign(partner.credentials, ec.ECDSA(hashes.SHA256()))
 
 
@@ -107,7 +107,7 @@ class ExchangeClient:
         if not isinstance(subcommand, SubCommand):
             raise TypeError('subcommand must be an instance of SubCommand')
 
-        self.ledger_test_signer = Ledger_Test_Signer(LEDGER_TEST_PRIVATE_KEY)
+        self.ledger_test_signer = LedgerTestSigner(LEDGER_TEST_PRIVATE_KEY)
 
         self._client = client
         self._rate = rate
@@ -124,7 +124,7 @@ class ExchangeClient:
         elif self._subcommand == SubCommand.FUND:
             self.subcommand_specs = FUND_SPECS
 
-        self._exchange_partner = Exchange_Partner_Identity(self.subcommand_specs.curve)
+        self._exchange_partner = ExchangePartnerIdentity(self.subcommand_specs.curve)
         self.ledger_test_signer.sign_partner_credentials(self._exchange_partner)
 
 
