@@ -11,6 +11,7 @@ from ragger import ApplicationError
 from ..common import Keys, PARTNER_KEYS, SWAP_PARTNER_KEYS
 from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF, ETH_CONF_DER_SIGNATURE
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF, LTC_CONF_DER_SIGNATURE
+from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF, BTC_CONF_DER_SIGNATURE
 from .pb.exchange_pb2 import NewFundResponse, NewSellResponse, NewTransactionResponse
 from ..utils import concatenate
 
@@ -39,17 +40,17 @@ class Rate:
 
 
 ERRORS = (
-    ApplicationError(0x6A80, 'INCORRECT_COMMAND_DATA'),
-    ApplicationError(0x6A81, 'DESERIALIZATION_FAILED'),
-    ApplicationError(0x6A82, 'WRONG_TRANSACTION_ID'),
-    ApplicationError(0x6A83, 'INVALID_ADDRESS'),
-    ApplicationError(0x6A84, 'USER_REFUSED'),
-    ApplicationError(0x6A85, 'INTERNAL_ERROR'),
-    ApplicationError(0x6A86, 'WRONG_P1'),
-    ApplicationError(0x6A87, 'WRONG_P2'),
-    ApplicationError(0x6E00, 'CLASS_NOT_SUPPORTED'),
-    ApplicationError(0x6D00, 'INVALID_INSTRUCTION'),
-    ApplicationError(0x9D1A, 'SIGN_VERIFICATION_FAIL')
+    ApplicationError(0x6A80, "INCORRECT_COMMAND_DATA"),
+    ApplicationError(0x6A81, "DESERIALIZATION_FAILED"),
+    ApplicationError(0x6A82, "WRONG_TRANSACTION_ID"),
+    ApplicationError(0x6A83, "INVALID_ADDRESS"),
+    ApplicationError(0x6A84, "USER_REFUSED"),
+    ApplicationError(0x6A85, "INTERNAL_ERROR"),
+    ApplicationError(0x6A86, "WRONG_P1"),
+    ApplicationError(0x6A87, "WRONG_P2"),
+    ApplicationError(0x6E00, "CLASS_NOT_SUPPORTED"),
+    ApplicationError(0x6D00, "INVALID_INSTRUCTION"),
+    ApplicationError(0x9D1A, "SIGN_VERIFICATION_FAIL")
 )
 
 
@@ -63,14 +64,20 @@ class ExchangeClient:
         self._rate = rate
         self._subcommand = subcommand
         self._client = client
-        self._transaction_id = None
-        self._transaction = None
+        self._transaction_id: Optional[bytes] = None
+        self._transaction: bytes = b""
+        self._payout_payload: bytes = b""
+        self._refund_payload: bytes = b""
         if partner_keys:
             self._partner_keys = partner_keys
         elif self._subcommand == SubCommand.SWAP:
             self._partner_keys = SWAP_PARTNER_KEYS
         else:
             self._partner_keys = PARTNER_KEYS
+        if self._subcommand in [SubCommand.FUND, SubCommand.SELL]:
+            self._key = SigningKey.from_string(self._partner_keys.private, curve=SECP256r1)
+        elif self._subcommand == SubCommand.SWAP:
+            self._key = SigningKey.from_string(self._partner_keys.private, curve=SECP256k1)
 
     @property
     def rate(self) -> bytes:
@@ -81,31 +88,19 @@ class ExchangeClient:
         return self._subcommand
 
     @property
+    def key(self) -> SigningKey:
+        return self._key
+
+    @property
     def transaction_id(self) -> bytes:
-        return self._transaction_id
+        return self._transaction_id or b""
 
-    @property
-    def transaction(self) -> bytes:
-        return self._transaction
-
-    @property
-    def partner_priv_key(self) -> bytes:
-        return self._partner_keys.private
-
-    @property
-    def partner_pub_key(self) -> bytes:
-        return self._partner_keys.public
-
-    @property
-    def partner_key_sig(self) -> bytes:
-        return self._partner_keys.signature
-
-    def _exchange(self, ins: bytes, payload: bytes = b'') -> RAPDU:
+    def _exchange(self, ins: int, payload: bytes = b"") -> RAPDU:
         return self._client.exchange(self.CLA, ins, p1=self.rate,
                                      p2=self.subcommand, data=payload)
 
     @contextmanager
-    def _exchange_async(self, ins: bytes, payload: bytes = b'') -> Generator[RAPDU, None, None]:
+    def _exchange_async(self, ins: int, payload: bytes = b"") -> Generator[RAPDU, None, None]:
         with self._client.exchange_async(self.CLA, ins, p1=self.rate,
                                          p2=self.subcommand, data=payload) as response:
             yield response
@@ -119,24 +114,42 @@ class ExchangeClient:
         return response
 
     def set_partner_key(self, pubkey: Optional[bytes] = None) -> RAPDU:
-        return self._exchange(Command.SET_PARTNER_KEY, payload=pubkey or self.partner_pub_key)
+        return self._exchange(Command.SET_PARTNER_KEY,
+                              payload=pubkey or self._partner_keys.public)
 
     def check_partner_key(self, signature: Optional[bytes] = None) -> RAPDU:
-        return self._exchange(Command.CHECK_PARTNER, payload=signature or self.partner_key_sig)
+        return self._exchange(Command.CHECK_PARTNER,
+                              payload=signature or self._partner_keys.signature)
+
+    def _ticker_to_coin_payload(self, ticker) -> bytes:
+        ticker_to_conf = {
+            "ETH": (ETH_CONF, ETH_CONF_DER_SIGNATURE, ETH_PACKED_DERIVATION_PATH),
+            "BTC": (BTC_CONF, BTC_CONF_DER_SIGNATURE, BTC_PACKED_DERIVATION_PATH),
+            "LTC": (LTC_CONF, LTC_CONF_DER_SIGNATURE, LTC_PACKED_DERIVATION_PATH),
+        }
+        assert ticker in ticker_to_conf
+        conf, signature, derivation_path = ticker_to_conf[ticker]
+        return concatenate(conf) + signature + concatenate(derivation_path)
+
 
     def _process_transaction_payload_fund(self, infos: Dict) -> bytes:
-        fields = ['user_id', 'account_name', 'in_currency', 'in_amount', 'in_address']
+        fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"]
         assert all(i in infos for i in fields)
         assert len(infos) == len(fields)
         pb_buffer = NewFundResponse(**infos, device_transaction_id=self.transaction_id)
+        # preparing payload for further check step
+        self._payout_payload = self._ticker_to_coin_payload(infos["in_currency"])
+
         return urlsafe_b64encode(pb_buffer.SerializeToString())
 
     def _process_transaction_payload_sell(self, infos: Dict) -> bytes:
-        fields = ['trader_email', 'in_currency', 'in_amount', 'in_address',
-                  'out_currency', 'out_amount']
+        fields = ["trader_email", "in_currency", "in_amount", "in_address",
+                  "out_currency", "out_amount"]
         assert all(i in infos for i in fields)
         assert len(infos) == len(fields)
         pb_buffer = NewSellResponse(**infos, device_transaction_id=self.transaction_id)
+        # preparing payload for further check step
+        self._payout_payload = self._ticker_to_coin_payload(infos["in_currency"])
         return urlsafe_b64encode(pb_buffer.SerializeToString())
 
     def _process_transaction_payload_swap(self, infos: Dict) -> bytes:
@@ -145,7 +158,14 @@ class ExchangeClient:
                   "amount_to_provider", "amount_to_wallet"]
         assert all(i in infos for i in fields)
         assert len(infos) == len(fields)
-        pb_buffer = NewTransactionResponse(**infos, device_transaction_id=self.transaction_id.decode('utf-8'))
+        pb_buffer = NewTransactionResponse(
+            **infos,
+            device_transaction_id=self.transaction_id.decode("utf-8")
+        )
+        # preparing payload for further check step
+        self._payout_payload = self._ticker_to_coin_payload(infos["currency_to"])
+        self._refund_payload = self._ticker_to_coin_payload(infos["currency_from"])
+
         return pb_buffer.SerializeToString()
 
     def process_transaction(self, infos: Dict, fees: bytes) -> RAPDU:
@@ -157,52 +177,42 @@ class ExchangeClient:
             self._transaction = self._process_transaction_payload_swap(infos)
         else:
             raise NotImplementedError()
-        payload = concatenate(self.transaction, fees)
+        payload = concatenate(self._transaction, fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
 
     def check_transaction(self) -> RAPDU:
-        # preparing paylod to sign
+        # preparing payload to sign
         if self._subcommand in [SubCommand.FUND, SubCommand.SELL]:
-            payload_to_sign = b'.' + self._transaction
-            key = SigningKey.from_string(self.partner_priv_key, curve=SECP256r1)
+            payload_to_sign = b"." + self._transaction
         elif self._subcommand == SubCommand.SWAP:
             payload_to_sign = self._transaction
-            key = SigningKey.from_string(self.partner_priv_key, curve=SECP256k1)
         # signing payload
         if self._subcommand in [SubCommand.FUND, SubCommand.SWAP]:
-            signature = key.sign(payload_to_sign, hashfunc=sha256, sigencode=sigencode_der)
+            encode_func = sigencode_der
         elif self._subcommand == SubCommand.SELL:
-            r, s = key.sign(payload_to_sign, hashfunc=sha256,
-                            sigencode=lambda r, s, order: (r.to_bytes(32, byteorder='big'), s.to_bytes(32, byteorder='big')))
-            signature = r + s
+            encode_func = lambda r, s, order: \
+                r.to_bytes(32, byteorder="big") + s.to_bytes(32, byteorder="big")
         else:
             raise NotImplementedError()
+        signature = self.key.sign(payload_to_sign, hashfunc=sha256, sigencode=encode_func)
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=signature)
 
     def check_address(self, right_clicks: int, accept: bool = True) -> None:
-        payload = (concatenate(ETH_CONF)
-                   + ETH_CONF_DER_SIGNATURE
-                   + concatenate(ETH_PACKED_DERIVATION_PATH))
         if self._subcommand in [SubCommand.SELL, SubCommand.FUND]:
-            with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload):
-                for _ in range(right_clicks):
-                    self._client.right_click()
-                if not accept:
-                    self._client.right_click()
-                self._client.both_click()
+            command = Command.CHECK_PAYOUT_ADDRESS
+            payload = self._payout_payload
         elif self._subcommand == SubCommand.SWAP:
-            self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
-            payload = (concatenate(LTC_CONF)
-                       + LTC_CONF_DER_SIGNATURE
-                       + concatenate(LTC_PACKED_DERIVATION_PATH))
-            with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload):
-                for _ in range(right_clicks):
-                    self._client.right_click()
-                if not accept:
-                    self._client.right_click()
-                self._client.both_click()
+            self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=self._payout_payload)
+            command = Command.CHECK_REFUND_ADDRESS
+            payload = self._refund_payload
         else:
             raise NotImplementedError()
+        with self._exchange_async(command, payload=payload):
+            for _ in range(right_clicks):
+                self._client.right_click()
+            if not accept:
+                self._client.right_click()
+            self._client.both_click()
 
     def start_signing_transaction(self) -> RAPDU:
         self._exchange(Command.START_SIGNING_TRANSACTION)
