@@ -28,7 +28,7 @@ BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
 
 FIRMWARES = [Firmware('nanos', '2.1'),
              Firmware('nanox', '2.0.2'),
-             Firmware('nanosp', '1.0')]
+             Firmware('nanosp', '1.0.3')]
 
 def pytest_addoption(parser):
     parser.addoption("--backend", action="store", default="speculos")
