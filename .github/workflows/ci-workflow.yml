@@ -49,14 +49,14 @@ jobs:
 
       - name: Build in ${{ matrix.coin.repo }} coin ${{ matrix.coin.name }} for SDK ${{ matrix.sdk.name }}
         run: |
-          make clean ; make COIN=${{ matrix.coin.name }} BOLOS_SDK=${{ matrix.sdk.path }}
-          cp bin/app.elf ${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
+          make clean ; make COIN=${{ matrix.coin.name }} BOLOS_SDK=${{ matrix.sdk.path }} DEBUG=1
+          cp bin/app.elf bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
 
       - name: Upload ${{ matrix.coin.name }} binaries
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ matrix.coin.name }}_binaries
-          path: ./*.elf
+          name: coins_binaries
+          path: ./bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
           if-no-files-found: error
 
   job_build_exchange:
@@ -75,14 +75,14 @@ jobs:
 
       - name: Build Exchange
         run: |
-          make clean ; make BOLOS_SDK=${{ matrix.sdk.path }} TESTING=1 TEST_PUBLIC_KEY=1
-          cp bin/app.elf exchange_${{ matrix.sdk.name }}.elf
+          make clean ; make BOLOS_SDK=${{ matrix.sdk.path }} TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1
+          cp bin/app.elf bin/exchange_${{ matrix.sdk.name }}.elf
 
       - name: Upload Exchange binaries
         uses: actions/upload-artifact@v2
         with:
           name: exchange_binaries
-          path: ./*.elf
+          path: ./bin/exchange_${{ matrix.sdk.name }}.elf
           if-no-files-found: error
 
   jobs_e2e_tests:
@@ -145,7 +145,7 @@ jobs:
           pip install --extra-index-url https://test.pypi.org/simple/ -U ragger[tests]==0.4.2
           pip install -U click>=8
       - name: Run tests
-        run: pytest test/python/ --tb=short
+        run: pytest test/python/ -v
 
 
   job_scan_build:
