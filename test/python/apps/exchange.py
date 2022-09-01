@@ -3,7 +3,7 @@ from typing import Generator, Optional, Dict
 from enum import IntEnum
 
 from ragger.backend.interface import BackendInterface, RAPDU
-from ragger import ApplicationError
+from ragger.error import ExceptionRAPDU
 
 from ..common import LEDGER_TEST_PRIVATE_KEY
 
@@ -44,17 +44,17 @@ class SubCommand(IntEnum):
 
 
 ERRORS = (
-    ApplicationError(0x6A80, "INCORRECT_COMMAND_DATA"),
-    ApplicationError(0x6A81, "DESERIALIZATION_FAILED"),
-    ApplicationError(0x6A82, "WRONG_TRANSACTION_ID"),
-    ApplicationError(0x6A83, "INVALID_ADDRESS"),
-    ApplicationError(0x6A84, "USER_REFUSED"),
-    ApplicationError(0x6A85, "INTERNAL_ERROR"),
-    ApplicationError(0x6A86, "WRONG_P1"),
-    ApplicationError(0x6A87, "WRONG_P2"),
-    ApplicationError(0x6E00, "CLASS_NOT_SUPPORTED"),
-    ApplicationError(0x6D00, "INVALID_INSTRUCTION"),
-    ApplicationError(0x9D1A, "SIGN_VERIFICATION_FAIL")
+    ExceptionRAPDU(0x6A80, "INCORRECT_COMMAND_DATA"),
+    ExceptionRAPDU(0x6A81, "DESERIALIZATION_FAILED"),
+    ExceptionRAPDU(0x6A82, "WRONG_TRANSACTION_ID"),
+    ExceptionRAPDU(0x6A83, "INVALID_ADDRESS"),
+    ExceptionRAPDU(0x6A84, "USER_REFUSED"),
+    ExceptionRAPDU(0x6A85, "INTERNAL_ERROR"),
+    ExceptionRAPDU(0x6A86, "WRONG_P1"),
+    ExceptionRAPDU(0x6A87, "WRONG_P2"),
+    ExceptionRAPDU(0x6E00, "CLASS_NOT_SUPPORTED"),
+    ExceptionRAPDU(0x6D00, "INVALID_INSTRUCTION"),
+    ExceptionRAPDU(0x9D1A, "SIGN_VERIFICATION_FAIL")
 )
 
 

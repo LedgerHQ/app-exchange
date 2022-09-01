@@ -1,4 +1,5 @@
-from ragger.utils import pack_APDU
+from ragger.utils import pack_APDU, RAPDU
+from ragger.error import ExceptionRAPDU
 
 
 class Command:
@@ -57,6 +58,8 @@ ETH_PACKED_DERIVATION_PATH = bytes([0x05,
                                     0x80, 0x00, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00,
                                     0x00, 0x00, 0x00, 0x00])
+
+ERR_SILENT_MODE_CHECK_FAILED = ExceptionRAPDU(0x6001, "ERR_SILENT_MODE_CHECK_FAILED")
 
 
 class EthereumClient:

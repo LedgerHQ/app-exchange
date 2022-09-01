@@ -1,10 +1,12 @@
 from time import sleep
 
 import pytest
-from ragger.error import ApplicationError
+from ragger.backend import RaisePolicy
+from ragger.utils import pack_APDU, RAPDU
+from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
-from .apps.ethereum import EthereumClient
+from .apps.ethereum import EthereumClient, ERR_SILENT_MODE_CHECK_FAILED
 from .utils import concatenate
 
 
@@ -47,8 +49,11 @@ def test_swap_eth_to_btc_wrong_amount(client, firmware):
     prepare_exchange(client, firmware, amount)
     eth = EthereumClient(client, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
-    with pytest.raises(ApplicationError):
+    try:
+        client.raise_policy = RaisePolicy.RAISE_ALL
         eth.sign(extra_payload=bytes.fromhex("ec09850684ee180082520894d692cb1346262f584d17b4b470954501f6715a8288" + wrong_amount + "80018080"))
+    except ExceptionRAPDU as rapdu:
+        assert rapdu.status == ERR_SILENT_MODE_CHECK_FAILED.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SILENT_MODE_CHECK_FAILED.status)}"
 
 
 def test_swap_eth_to_btc_ok(client, firmware):
