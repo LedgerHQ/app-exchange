@@ -62,3 +62,18 @@ def test_swap_eth_to_btc_ok(client, firmware):
     eth = EthereumClient(client, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
     eth.sign(extra_payload=bytes.fromhex("ec09850684ee180082520894d692cb1346262f584d17b4b470954501f6715a8288" + amount + "80018080"))
+
+
+def test_swap_eth_to_btc_ko(client, firmware):
+    amount = '0f95b28cd2c38000'
+    prepare_exchange(client, firmware, amount)
+
+    eth = EthereumClient(client, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
+    eth.set_plugin()
+    eth.provide_nft_information()
+    eth.sign_contract()
+    client.raise_policy = RaisePolicy.RAISE_ALL
+    try:
+        eth.sign_more()
+    except ExceptionRAPDU as rapdu:
+        assert rapdu.status == ERR_SILENT_MODE_CHECK_FAILED.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SILENT_MODE_CHECK_FAILED.status)}"
