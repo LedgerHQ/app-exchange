@@ -1,4 +1,8 @@
 from ragger.utils import pack_APDU
+from nacl.encoding import HexEncoder
+from nacl.signing import VerifyKey,SigningKey
+from nacl.exceptions import BadSignatureError
+import traceback
 
 class Command:
     GET_VERSION = 0x00
@@ -56,6 +60,10 @@ class PolkadotClient:
     def client(self):
         return self._client
 
+    def get_pubkey(self):
+        msg = self.client.exchange(self.CLA, ins=Command.GET_ADDRESS, p1=0, p2=0, data=DOT_PACKED_DERIVATION_PATH_SIGN_INIT)
+        return msg.data[:32].hex().encode()
+    
     def sign_init(self):
         return self.client.exchange(self.CLA, ins=Command.SIGN_TX, p1=SignP1.INIT, data=DOT_PACKED_DERIVATION_PATH_SIGN_INIT)
         
@@ -64,4 +72,21 @@ class PolkadotClient:
    
     def sign_last(self,tx_chunk):
         return self.client.exchange(self.CLA, ins=Command.SIGN_TX, p1=SignP1.LAST, p2=SignP2Last.ED25519, data=tx_chunk)
-   
+    
+    def verify_signature(self,hex_key:bytes,signature:bytes,message:bytes) -> bool :
+        # Create a VerifyKey object from a hex serialized public key
+        verify_key = VerifyKey(hex_key, encoder=HexEncoder)
+        # Check the validity of a message's signature
+        try:
+            verify_key.verify(message, signature, encoder=HexEncoder)
+        except BadSignatureError:
+            print("Wrong signature.")
+            return False
+        except Exception as e :
+            print("Something went wrong.")
+            print(e)
+            print(traceback.format_exc())
+            return False
+        else:
+            print("Signature is ok.")
+            return True

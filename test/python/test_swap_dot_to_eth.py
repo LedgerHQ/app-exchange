@@ -93,10 +93,18 @@ def test_swap_flow_dot_eth(client, firmware):
     amount = 12345670000
     payin_address = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
     prepare_exchange(client,firmware,amount,payin_address)
-    dot = PolkadotClient(client)    
+    dot = PolkadotClient(client)
+    # Get public key.
+    key = dot.get_pubkey()
+    # Init signature process and assert response APDU code is 0x9000 (OK).
     assert dot.sign_init().status == 0x9000
-    assert dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK).status == 0x9000
-    
+    # Send message to be signed
+    sign_response = dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK)
+    # Assert response APDU code is 0x9000 (OK).
+    assert sign_response.status == 0x9000
+    # Assert signature is verified properly with key and message
+    assert dot.verify_signature(hex_key=key,signature=sign_response.data[1:],message=DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK.hex().encode()) == True
+
 def test_swap_flow_dot_eth_wrong_amount(client, firmware):
     amount = 12345670000
     payin_address = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
