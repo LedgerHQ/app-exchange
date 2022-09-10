@@ -1,8 +1,9 @@
 from time import sleep
-
 from .apps.exchange import ExchangeClient, Rate, SubCommand
-from .apps.polkadot import PolkadotClient
+from .apps.polkadot import PolkadotClient, ERR_SWAP_CHECK_WRONG_METHOD, ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS, ERR_SWAP_CHECK_WRONG_DEST_ADDR, ERR_SWAP_CHECK_WRONG_AMOUNT
 from .utils import int_to_bytes
+from ragger.backend import RaisePolicy
+from ragger.error import ExceptionRAPDU
 
 DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK = bytes([0x05, 0x00, 0x00, 0xb0, 0x0b, 0x9f, 0x27, 0xc2, 0xd1, 0xd2, 0x16,
                                                 0x01, 0x58, 0x51, 0xdc, 0x3a, 0x69, 0xc8, 0xab, 0x52, 0xb2, 0x86,
@@ -16,7 +17,7 @@ DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK = bytes([0x05, 0x00, 0x00, 0xb0, 0x0b, 0x
                                                 0x9f, 0x94, 0xae, 0x03, 0x96, 0x37, 0xc5, 0x08, 0xa3, 0xbc, 0xdd,
                                                 0x30, 0x1e, 0x77, 0x88, 0xbd, 0xd3, 0x58])
 
-# Amount : DOT 12.3456712345
+# Wrong amount : DOT 12.3456712345
 DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_AMOUNT = bytes([0x05, 0x00, 0x00, 0xb0, 0x0b, 0x9f, 0x27, 0xc2, 0xd1, 0xd2, 0x16,
                                                              0x01, 0x58, 0x51, 0xdc, 0x3a, 0x69, 0xc8, 0xab, 0x52, 0xb2, 0x86,
                                                              0x62, 0xe7, 0xfa, 0x31, 0x7c, 0x07, 0xad, 0x1f, 0x34, 0xa4, 0xdf,
@@ -29,7 +30,7 @@ DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_AMOUNT = bytes([0x05, 0x00, 0x00, 0
                                                              0x1d, 0xf8, 0xf4, 0xdc, 0xf3, 0xf1, 0x61, 0xf6, 0x25, 0xc2, 0xfe,
                                                              0x6c, 0xfa, 0xfa, 0x27, 0x93, 0x82, 0x1a])
 
-# Payin address : 15yvXMFv8gsgxZWCmaxjFsJJfLU9qhT6qrHMoz7a9ZkTsg9A
+# Wrong payin address : 15yvXMFv8gsgxZWCmaxjFsJJfLU9qhT6qrHMoz7a9ZkTsg9A
 DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_DEST_ADDR = bytes([0x05, 0x00, 0x00, 0xdc, 0x5a, 0xda, 0x10, 0xee, 0xdd, 0x89, 0x81, 0x92,
                                                                 0x78, 0xb0, 0x92, 0x35, 0x87, 0x80, 0x3d, 0x7d, 0xb2, 0x07, 0xe1, 0xdc,
                                                                 0x7e, 0x1c, 0x18, 0x42, 0x4f, 0xa4, 0xad, 0x59, 0xb4, 0x00, 0x19, 0x07,
@@ -41,7 +42,7 @@ DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_DEST_ADDR = bytes([0x05, 0x00, 0x00
                                                                 0x46, 0xb4, 0xf9, 0x1e, 0xff, 0x30, 0xab, 0xa4, 0xdc, 0xcd, 0xa2, 0x9b,
                                                                 0xfd, 0x7c, 0xc8, 0xfd, 0x6a, 0x23, 0xdd, 0xa6, 0x01])
 
-# Method : Force transfer (0x0502)
+# Wrong method : Force transfer (0x0502)
 DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_METHOD = bytes([0x05, 0x02, 0x00, 0xdc, 0x5a, 0xda, 0x10, 0xee, 0xdd, 0x89, 0x81, 0x92, 0x78,
                                                              0xb0, 0x92, 0x35, 0x87, 0x80, 0x3d, 0x7d, 0xb2, 0x07, 0xe1, 0xdc, 0x7e, 0x1c,
                                                              0x18, 0x42, 0x4f, 0xa4, 0xad, 0x59, 0xb4, 0x00, 0x19, 0x00, 0xb0, 0x0b, 0x9f,
@@ -109,9 +110,39 @@ def test_swap_flow_dot_eth_wrong_amount(client, firmware):
     amount = 12345670000
     payin_address = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
     prepare_exchange(client,firmware,amount,payin_address)
-    dot = PolkadotClient(client)    
+    dot = PolkadotClient(client)
     assert dot.sign_init().status == 0x9000
-    assert dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_AMOUNT).status == 0x9000
+    try:
+        client.raise_policy = RaisePolicy.RAISE_ALL
+        dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_AMOUNT).status
+    except ExceptionRAPDU as rapdu:
+        assert rapdu.data ==  ERR_SWAP_CHECK_WRONG_AMOUNT.data, f"Received APDU data {rapdu.data}, expected {ERR_SWAP_CHECK_WRONG_AMOUNT.data}"
+        assert rapdu.status == ERR_SWAP_CHECK_WRONG_AMOUNT.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_AMOUNT.status)}"
+
+def test_swap_flow_dot_eth_wrong_amount_then_ok(client, firmware):
+    amount = 12345670000
+    payin_address = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
+    prepare_exchange(client,firmware,amount,payin_address)
+    dot = PolkadotClient(client)
+    assert dot.sign_init().status == 0x9000
+    try:
+        client.raise_policy = RaisePolicy.RAISE_ALL
+        dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_AMOUNT).status
+    except ExceptionRAPDU as rapdu:
+        assert rapdu.data ==  ERR_SWAP_CHECK_WRONG_AMOUNT.data, f"Received APDU data {rapdu.data}, expected {ERR_SWAP_CHECK_WRONG_AMOUNT.data}"
+        assert rapdu.status == ERR_SWAP_CHECK_WRONG_AMOUNT.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_AMOUNT.status)}"
+        
+    client.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
+    # Get public key.
+    key = dot.get_pubkey()
+    # Init signature process and assert response APDU code is 0x9000 (OK).
+    assert dot.sign_init().status == 0x9000
+    # Send message to be signed
+    sign_response = dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK)
+    # Assert response APDU code is 0x9000 (OK).
+    assert sign_response.status == 0x9000
+    # Assert signature is verified properly with key and message
+    assert dot.verify_signature(hex_key=key,signature=sign_response.data[1:],message=DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK.hex().encode()) == True
 
 def test_swap_flow_dot_eth_wrong_dest_addr(client, firmware):
     amount = 12345670000
@@ -119,7 +150,12 @@ def test_swap_flow_dot_eth_wrong_dest_addr(client, firmware):
     prepare_exchange(client,firmware,amount,payin_address)
     dot = PolkadotClient(client)    
     assert dot.sign_init().status == 0x9000
-    assert dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_DEST_ADDR).status == 0x9000
+    try:
+        client.raise_policy = RaisePolicy.RAISE_ALL
+        dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_DEST_ADDR).status
+    except ExceptionRAPDU as rapdu:
+        assert rapdu.data ==  ERR_SWAP_CHECK_WRONG_DEST_ADDR.data, f"Received APDU data {rapdu.data}, expected {ERR_SWAP_CHECK_WRONG_DEST_ADDR.data}"
+        assert rapdu.status == ERR_SWAP_CHECK_WRONG_DEST_ADDR.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_DEST_ADDR.status)}"
 
 def test_swap_flow_dot_eth_wrong_tx_method(client, firmware):
     amount = 12345670000
@@ -127,4 +163,45 @@ def test_swap_flow_dot_eth_wrong_tx_method(client, firmware):
     prepare_exchange(client,firmware,amount,payin_address)
     dot = PolkadotClient(client)    
     assert dot.sign_init().status == 0x9000
-    assert dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_METHOD).status == 0x9000
+    try:
+        client.raise_policy = RaisePolicy.RAISE_ALL
+        dot.sign_last(DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_METHOD).status
+    except ExceptionRAPDU as rapdu:
+        assert rapdu.data == ERR_SWAP_CHECK_WRONG_METHOD.data, f"Received APDU data {rapdu.data}, expected {ERR_SWAP_CHECK_WRONG_METHOD.data}"
+        assert rapdu.status == ERR_SWAP_CHECK_WRONG_METHOD.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_METHOD.status)}"
+        
+def test_swap_flow_dot_eth_wrong_refund_addr(client, firmware):
+    ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
+    ex.init_transaction()
+    ex.set_partner_key()
+    ex.check_partner_key()
+
+    tx_infos = {
+        "payin_address": b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY",
+        "payin_extra_id": b"",
+        "refund_address": b"15yvXMFv8gsgxZWCmaxjFsJJfLU9qhT6qrHMoz7a9ZkTsg9A", # Wrong refund address.
+        "refund_extra_id": b"",
+        "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+        "payout_extra_id": b"",
+        "currency_from": "DOT",
+        "currency_to": "ETH",
+        "amount_to_provider": int_to_bytes(12345670000),
+        "amount_to_wallet": int_to_bytes(10000000000000),
+    }
+    
+    fees = int_to_bytes(100000000)
+
+    ex.process_transaction(tx_infos, fees)
+    ex.check_transaction()
+
+    right_clicks = {
+        "nanos": 4,
+        "nanox": 4,
+        "nanosp": 4
+    }
+
+    try:
+        client.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
+        ex.check_address(right_clicks=right_clicks[firmware.device])
+    except ExceptionRAPDU as rapdu:
+        assert rapdu.status == ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS.status)}"

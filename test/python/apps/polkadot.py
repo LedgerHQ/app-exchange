@@ -1,8 +1,14 @@
-from ragger.utils import pack_APDU
 from nacl.encoding import HexEncoder
 from nacl.signing import VerifyKey,SigningKey
 from nacl.exceptions import BadSignatureError
 import traceback
+from ragger.error import ExceptionRAPDU
+
+ERR_SWAP_CHECK_WRONG_METHOD = ExceptionRAPDU(0x6985,b"Swap txn wrong method")
+ERR_SWAP_CHECK_WRONG_METHOD_ARGS_CNT = ExceptionRAPDU(0x6985,b"Swap txn wrong method args count")
+ERR_SWAP_CHECK_WRONG_DEST_ADDR = ExceptionRAPDU(0x6985,b"Swap txn wrong destination addr")
+ERR_SWAP_CHECK_WRONG_AMOUNT = ExceptionRAPDU(0x6985,b"Swap txn wrong amount")
+ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS = ExceptionRAPDU(0x6a83,b"")
 
 class Command:
     GET_VERSION = 0x00
