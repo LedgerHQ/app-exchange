@@ -34,7 +34,7 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
                         CURVE_SIZE_BYTES,
                         der.bytes,
                         der.size) == 0) {
-        PRINTF("Error: Fail to verify signature of coin config");
+        PRINTF("Error: Fail to verify signature of coin config\n");
 
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }

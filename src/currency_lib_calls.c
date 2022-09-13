@@ -58,6 +58,7 @@ int get_printable_amount(const buf_t *const coin_config,
     memset(lib_input_params.printable_amount, 0, sizeof(lib_input_params.printable_amount));
     // Speculos workaround
     // io_seproxyhal_general_status();
+    PRINTF("Calling coin %s as library, for command GET_PRINTABLE_AMOUNT\n", libcall_params[0]);
     os_lib_call(libcall_params);
     // the lib application should have something for us to display
     if (lib_input_params.printable_amount[0] == '\0') {
@@ -100,6 +101,7 @@ int check_address(buf_t *coin_config,
     PRINTF("I am going to check address %s\n", lib_in_out_params.address_to_check);
     // Speculos workaround
     // io_seproxyhal_general_status();
+    PRINTF("Calling coin %s as library, for command CHECK_ADDRESS\n", libcall_params[0]);
     os_lib_call(libcall_params);
     // PRINTF("Debug data sent by library %.*H\n", 20, lib_in_out_params.address_to_check);
     PRINTF("I am back\n");
@@ -116,6 +118,7 @@ void create_payin_transaction(char *application_name,
     libcall_params[4] = (unsigned int) lib_in_out_params;
     PRINTF("Calling %s app\n", application_name);
     USB_power(0);
+    PRINTF("Calling coin %s as library, for command SIGN_TRANSACTION\n", libcall_params[0]);
     os_lib_call(libcall_params);
     USB_power(0);
     USB_power(1);
