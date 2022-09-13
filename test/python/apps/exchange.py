@@ -16,6 +16,9 @@ from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
+from .solana_utils import SOL_PACKED_DERIVATION_PATH, SOL_CONF
+
+>>>>>>> Add Solana E2E exchange tests
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
 
 
@@ -48,6 +51,7 @@ TICKER_TO_CONF = {
     "BTC": BTC_CONF,
     "LTC": LTC_CONF,
     "XLM": XLM_CONF,
+    "SOL": SOL_CONF,
 }
 
 TICKER_TO_PACKED_DERIVATION_PATH = {
@@ -56,6 +60,7 @@ TICKER_TO_PACKED_DERIVATION_PATH = {
     "BTC": BTC_PACKED_DERIVATION_PATH,
     "LTC": LTC_PACKED_DERIVATION_PATH,
     "XLM": XLM_PACKED_DERIVATION_PATH,
+    "SOL": SOL_PACKED_DERIVATION_PATH,
 }
 
 
@@ -191,11 +196,13 @@ class ExchangeClient:
             with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload) as response:
                 yield response
 
+
     def get_check_address_response(self) -> RAPDU:
         if self._premature_error:
             return self._check_address_result
         else:
             return self._client.last_async_response
+
 
     def start_signing_transaction(self) -> RAPDU:
         rapdu = self._exchange(Command.START_SIGNING_TRANSACTION)

@@ -22,7 +22,8 @@ SIDELOADED_APPS = {
         "tezos": "Tezos Wallet",
         "xrp": "RXP",
         "litecoin": "Litecoin",
-        "stellar": "Stellar"
+        "stellar": "Stellar",
+        "solana": "Solana",
 }
 
 BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
