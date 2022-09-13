@@ -9,9 +9,12 @@
 #include "globals.h"
 #include "buffer.h"
 
+#define MIN_PARTNER_NAME_LENGHT 3
+#define MAX_PARTNER_NAME_LENGHT 15
+
 typedef struct partner_data_s {
     unsigned char name_length;
-    char name[15];
+    char name[MAX_PARTNER_NAME_LENGHT + 1];
     cx_ecfp_256_public_key_t public_key;
 } partner_data_t;
 

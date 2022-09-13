@@ -65,7 +65,7 @@ class ExchangePartnerIdentity:
     credentials: bytes
     signed_credentials: bytes
 
-    def __init__(self, curve, name: str = "Default_Partner"):
+    def __init__(self, curve: ec.EllipticCurve, name: str):
         # Set self identity
         self._private_key = ec.generate_private_key(curve, backend=default_backend())
         self._public_key = self._private_key.public_key()
@@ -99,7 +99,8 @@ class ExchangeClient:
     def __init__(self,
                  client: BackendInterface,
                  rate: Rate,
-                 subcommand: SubCommand):
+                 subcommand: SubCommand,
+                 name: str = "DefaultPartner"):
         if not isinstance(client, BackendInterface):
             raise TypeError('client must be an instance of BackendInterface')
         if not isinstance(rate, Rate):
@@ -124,7 +125,7 @@ class ExchangeClient:
         elif self._subcommand == SubCommand.FUND:
             self.subcommand_specs = FUND_SPECS
 
-        self._exchange_partner = ExchangePartnerIdentity(self.subcommand_specs.curve)
+        self._exchange_partner = ExchangePartnerIdentity(self.subcommand_specs.curve, name)
         self.ledger_test_signer.sign_partner_credentials(self._exchange_partner)
 
 
