@@ -86,7 +86,9 @@ const main = () => {
     const xlmConfig = createCurrencyConfig("XLM", "Stellar", Buffer(0), ledgerTestPrivateKey);
     const xtzConfig = createCurrencyConfig("XTZ", "Tezos Wallet", Buffer(0), ledgerTestPrivateKey);
     const xtzLegacyConfig = createCurrencyConfig("XTZ", "Tezos", Buffer(0), ledgerTestPrivateKey);
+    const solConfig = createCurrencyConfig("SOL", "Solana", Buffer(0), ledgerTestPrivateKey);
 
+    // ETH based need a subcoin category
     const ethSubConfig = Buffer.concat([Buffer.from(["ETH".length]), Buffer.from("ETH"), Buffer.from([18])])
     const ethConfig = createCurrencyConfig("ETH", "Ethereum", ethSubConfig, ledgerTestPrivateKey);
 
@@ -105,6 +107,7 @@ const main = () => {
     const repSubConfig = Buffer.concat([Buffer.from(["REP".length]), Buffer.from("REP"), Buffer.from([18])])
     const repConfig = createCurrencyConfig("REP", "Ethereum", repSubConfig, ledgerTestPrivateKey);
 
+
     console.log("\nconst BTCConfig = Buffer.from(" + toHexPrintableConst(btcConfig.coinConfig));
     console.log("const BTCConfigSignature = Buffer.from(" + toHexPrintableConst(btcConfig.signature));
     console.log("\nconst BTCLegacyConfig = Buffer.from(" + toHexPrintableConst(btcLegacyConfig.coinConfig));
@@ -119,6 +122,10 @@ const main = () => {
     console.log("const XTZConfigSignature = Buffer.from(" + toHexPrintableConst(xtzConfig.signature));
     console.log("\nconst XTZLegacyConfig = Buffer.from(" + toHexPrintableConst(xtzLegacyConfig.coinConfig));
     console.log("const XTZLegacyConfigSignature = Buffer.from(" + toHexPrintableConst(xtzLegacyConfig.signature));
+    console.log("\nconst SOLConfig = Buffer.from(" + toHexPrintableConst(solConfig.coinConfig));
+    console.log("const SOLConfigSignature = Buffer.from(" + toHexPrintableConst(solConfig.signature));
+
+    // ETH based
     console.log("\nconst ETHConfig = Buffer.from(" + toHexPrintableConst(ethConfig.coinConfig));
     console.log("const ETHConfigSignature = Buffer.from(" + toHexPrintableConst(ethConfig.signature));
     console.log("\nconst ETCConfig = Buffer.from(" + toHexPrintableConst(etcConfig.coinConfig));

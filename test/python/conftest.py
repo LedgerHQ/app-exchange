@@ -24,7 +24,8 @@ SIDELOADED_APPS = {
         "tezos": "Tezos",
         "stellar": "Stellar",
         "xrp": "RXP",
-        "litecoin": "Litecoin"
+        "litecoin": "Litecoin",
+        "solana": "Solana",
 }
 
 BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
@@ -104,6 +105,6 @@ def use_only_on_backend(request, backend):
             pytest.skip('skipped on this backend: {}'.format(current_backend))
 
 def pytest_configure(config):
-  config.addinivalue_line(
+    config.addinivalue_line(
         "markers", "use_only_on_backend(backend): skip test if not on the specified backend",
-  )
+    )

@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from typing import Generator, Optional, Dict
 from enum import IntEnum
+from time import sleep
 
 from ragger.backend.interface import BackendInterface, RAPDU
 from ragger.error import ExceptionRAPDU
@@ -13,6 +14,8 @@ from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
 from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
+from .solana_utils import SOL_PACKED_DERIVATION_PATH, SOL_CONF
+
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
 from ..utils import prefix_with_len
 
@@ -45,6 +48,7 @@ TICKER_TO_CONF = {
     "ETH": ETH_CONF,
     "BTC": BTC_CONF,
     "LTC": LTC_CONF,
+    "SOL": SOL_CONF,
 }
 
 TICKER_TO_PACKED_DERIVATION_PATH = {
@@ -52,22 +56,23 @@ TICKER_TO_PACKED_DERIVATION_PATH = {
     "ETH": ETH_PACKED_DERIVATION_PATH,
     "BTC": BTC_PACKED_DERIVATION_PATH,
     "LTC": LTC_PACKED_DERIVATION_PATH,
+    "SOL": SOL_PACKED_DERIVATION_PATH,
 }
 
 
-ERRORS = (
-    ExceptionRAPDU(0x6A80, "INCORRECT_COMMAND_DATA"),
-    ExceptionRAPDU(0x6A81, "DESERIALIZATION_FAILED"),
-    ExceptionRAPDU(0x6A82, "WRONG_TRANSACTION_ID"),
-    ExceptionRAPDU(0x6A83, "INVALID_ADDRESS"),
-    ExceptionRAPDU(0x6A84, "USER_REFUSED"),
-    ExceptionRAPDU(0x6A85, "INTERNAL_ERROR"),
-    ExceptionRAPDU(0x6A86, "WRONG_P1"),
-    ExceptionRAPDU(0x6A87, "WRONG_P2"),
-    ExceptionRAPDU(0x6E00, "CLASS_NOT_SUPPORTED"),
-    ExceptionRAPDU(0x6D00, "INVALID_INSTRUCTION"),
-    ExceptionRAPDU(0x9D1A, "SIGN_VERIFICATION_FAIL")
-)
+ERRORS = {
+    "INCORRECT_COMMAND_DATA":   ExceptionRAPDU(0x6A80, "INCORRECT_COMMAND_DATA"),
+    "DESERIALIZATION_FAILED":   ExceptionRAPDU(0x6A81, "DESERIALIZATION_FAILED"),
+    "WRONG_TRANSACTION_ID":     ExceptionRAPDU(0x6A82, "WRONG_TRANSACTION_ID"),
+    "INVALID_ADDRESS":          ExceptionRAPDU(0x6A83, "INVALID_ADDRESS"),
+    "USER_REFUSED":             ExceptionRAPDU(0x6A84, "USER_REFUSED"),
+    "INTERNAL_ERROR":           ExceptionRAPDU(0x6A85, "INTERNAL_ERROR"),
+    "WRONG_P1":                 ExceptionRAPDU(0x6A86, "WRONG_P1"),
+    "WRONG_P2":                 ExceptionRAPDU(0x6A87, "WRONG_P2"),
+    "CLASS_NOT_SUPPORTED":      ExceptionRAPDU(0x6E00, "CLASS_NOT_SUPPORTED"),
+    "INVALID_INSTRUCTION":      ExceptionRAPDU(0x6D00, "INVALID_INSTRUCTION"),
+    "SIGN_VERIFICATION_FAIL":   ExceptionRAPDU(0x9D1A, "SIGN_VERIFICATION_FAIL")
+}
 
 class ExchangeClient:
     CLA = 0xE0
@@ -180,6 +185,7 @@ class ExchangeClient:
             payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
 
         with self._exchange_async(command, payload=payload):
+            sleep(0.3)
             for _ in range(right_clicks):
                 self._client.right_click()
             if not accept:
