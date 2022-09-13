@@ -1,6 +1,7 @@
 #include <os.h>
 #include <cx.h>
 
+#include "swap_app_context.h"
 #include "set_partner_key.h"
 #include "swap_errors.h"
 #include "globals.h"
@@ -12,25 +13,31 @@ int set_partner_key(swap_app_context_t *ctx, const command_t *cmd, SendFunction 
     // L bytes - partner name
     // 65 bytes - uncompressed partner public key
     if (cmd->data.size < 1) {
-        PRINTF("Error: Input buffer is too small");
+        PRINTF("Error: Input buffer is too small\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
     ctx->partner.name_length = cmd->data.bytes[0];
 
-    if ((ctx->partner.name_length < 3) || (ctx->partner.name_length > 15)) {
-        PRINTF("Error: Partner name length should be in [3, 15]");
+    if ((ctx->partner.name_length < MIN_PARTNER_NAME_LENGHT) ||
+        (ctx->partner.name_length > MAX_PARTNER_NAME_LENGHT)) {
+        PRINTF("Error: Partner name length should be in [%u, %u]\n",
+               MIN_PARTNER_NAME_LENGHT,
+               MAX_PARTNER_NAME_LENGHT);
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
     if (1 + ctx->partner.name_length + UNCOMPRESSED_KEY_LENGTH != cmd->data.size) {
-        PRINTF("Error: Input buffer length doesn't correspond to correct SET_PARTNER_KEY message");
+        PRINTF("Error: Input buffer length doesn't match correct SET_PARTNER_KEY message\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
+    // The incoming partner name is NOT NULL terminated, so we use memcpy and
+    // manually NULL terminate the buffer
+    memset(ctx->partner.name, 0, sizeof(ctx->partner.name));
     memcpy(ctx->partner.name, cmd->data.bytes + 1, ctx->partner.name_length);
 
     if (cmd->subcommand == SWAP) {
@@ -52,7 +59,7 @@ int set_partner_key(swap_app_context_t *ctx, const command_t *cmd, SendFunction 
     unsigned char ouput_buffer[2] = {0x90, 0x00};
 
     if (send(ouput_buffer, 2) < 0) {
-        PRINTF("Error: failed to send");
+        PRINTF("Error: failed to send\n");
 
         return -1;
     }

@@ -18,11 +18,11 @@ APPS_DIRECTORY = (Path(__file__).parent.parent / "elfs").resolve()
 EXCHANGE_APP="exchange"
 
 SIDELOADED_APPS = {"bitcoin": "Bitcoin",
-                "ethereum": "Ethereum",
-                "tezos": "Tezos",
-                "stellar": "Stellar",
-                "xrp": "RXP",
-                "litecoin": "Litecoin"}
+                   "ethereum": "Ethereum",
+                   "tezos": "Tezos",
+                   "stellar": "Stellar",
+                   "xrp": "RXP",
+                   "litecoin": "Litecoin"}
 
 BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
 
@@ -55,7 +55,9 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("firmware", fw_list, ids=ids)
 
 def prepare_speculos_args(firmware):
-    speculos_args = ["--model", firmware.device, "--sdk", firmware.version]
+    speculos_args = []
+    # Uncomment line below to enable display
+    # speculos_args += ["--display", "qt"]
 
     # Add "-l Appname:filepath" to Speculos command line for every required app
     for filename, appname in SIDELOADED_APPS.items():
