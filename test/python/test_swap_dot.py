@@ -4,6 +4,7 @@ from .apps.polkadot import PolkadotClient, ERR_SWAP_CHECK_WRONG_METHOD, ERR_SWAP
 from .utils import int_to_bytes
 from ragger.backend import RaisePolicy
 from ragger.error import ExceptionRAPDU
+import pytest
 
 DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK = bytes([0x05, 0x00, 0x00, 0xb0, 0x0b, 0x9f, 0x27, 0xc2, 0xd1, 0xd2, 0x16,
                                                 0x01, 0x58, 0x51, 0xdc, 0x3a, 0x69, 0xc8, 0xab, 0x52, 0xb2, 0x86,
@@ -56,7 +57,13 @@ DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_METHOD = bytes([0x05, 0x02, 0x00, 0
                                                              0xf0, 0x1b, 0x76, 0xd0, 0xd0, 0xbb, 0x08, 0xa5, 0x01, 0xfc, 0xd1, 0x23, 0x93,
                                                              0x74, 0xed, 0x61, 0x67, 0x79, 0x8b, 0x50 ])
 
-def prepare_exchange(client, firmware, amount: int, payin_address : str):
+def prepare_exchange(client, firmware, 
+                     amount: int = 12345670000, 
+                     payin_address : bytes = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY",
+                     refund_address : bytes = b"14TwSqXEoCPK7Q7Jnk2RFzbPZXppsxz24bHaQ7fakwio7DFn",
+                     payout_addr : bytes = b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+                     curr_to : str = "ETH",
+                     amount_to_wallet : int = 10000000000000):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
     ex.init_transaction()
     ex.set_partner_key()
@@ -65,14 +72,14 @@ def prepare_exchange(client, firmware, amount: int, payin_address : str):
     tx_infos = {
         "payin_address": payin_address,
         "payin_extra_id": b"",
-        "refund_address": b"14TwSqXEoCPK7Q7Jnk2RFzbPZXppsxz24bHaQ7fakwio7DFn",
+        "refund_address": refund_address,
         "refund_extra_id": b"",
-        "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+        "payout_address": payout_addr,
         "payout_extra_id": b"",
         "currency_from": "DOT",
-        "currency_to": "ETH",
-        "amount_to_provider": int_to_bytes(amount),#12345670000
-        "amount_to_wallet": int_to_bytes(10000000000000),
+        "currency_to": curr_to,
+        "amount_to_provider": int_to_bytes(amount),
+        "amount_to_wallet": int_to_bytes(amount_to_wallet),
     }
     
     fees = int_to_bytes(100000000)
@@ -85,15 +92,28 @@ def prepare_exchange(client, firmware, amount: int, payin_address : str):
         "nanox": 4,
         "nanosp": 4
     }
-
-    ex.check_address(right_clicks=right_clicks[firmware.device])
+ 
+    try:
+        client.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
+        ex.check_address(right_clicks=right_clicks[firmware.device])
+    except ExceptionRAPDU as rapdu:
+        assert rapdu.status == ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS.status)}"
+        return
+    
     ex.start_signing_transaction()
+    
     sleep(0.1)
 
-def test_swap_flow_dot_eth(client, firmware):
-    amount = 12345670000
-    payin_address = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
-    prepare_exchange(client,firmware,amount,payin_address)
+testdata = [
+    (b"bc1qer57ma0fzhqys2cmydhuj9cprf9eg0nw922a8j", "BTC", 100000000),
+    (b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", "ETH", 10000000000000),
+    (b"MJovkMvQ2rXXUj7TGVvnQyVMWghSdqZsmu", "LTC", 100000000),
+]
+
+@pytest.mark.parametrize("payout_addr,curr_to,amount_to_wallet", testdata, ids=["btc", "eth", "ltc"])
+def test_swap_flow_dot_nominal(client, firmware, payout_addr, curr_to, amount_to_wallet):
+    prepare_exchange(client,firmware,
+                     payout_addr=payout_addr,curr_to=curr_to,amount_to_wallet=amount_to_wallet)
     dot = PolkadotClient(client)
     # Get public key.
     key = dot.get_pubkey()
@@ -107,9 +127,7 @@ def test_swap_flow_dot_eth(client, firmware):
     assert dot.verify_signature(hex_key=key,signature=sign_response.data[1:],message=DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK.hex().encode()) == True
 
 def test_swap_flow_dot_eth_wrong_amount(client, firmware):
-    amount = 12345670000
-    payin_address = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
-    prepare_exchange(client,firmware,amount,payin_address)
+    prepare_exchange(client,firmware)
     dot = PolkadotClient(client)
     assert dot.sign_init().status == 0x9000
     try:
@@ -120,9 +138,7 @@ def test_swap_flow_dot_eth_wrong_amount(client, firmware):
         assert rapdu.status == ERR_SWAP_CHECK_WRONG_AMOUNT.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_AMOUNT.status)}"
 
 def test_swap_flow_dot_eth_wrong_amount_then_ok(client, firmware):
-    amount = 12345670000
-    payin_address = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
-    prepare_exchange(client,firmware,amount,payin_address)
+    prepare_exchange(client,firmware)
     dot = PolkadotClient(client)
     assert dot.sign_init().status == 0x9000
     try:
@@ -145,9 +161,7 @@ def test_swap_flow_dot_eth_wrong_amount_then_ok(client, firmware):
     assert dot.verify_signature(hex_key=key,signature=sign_response.data[1:],message=DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK.hex().encode()) == True
 
 def test_swap_flow_dot_eth_wrong_dest_addr(client, firmware):
-    amount = 12345670000
-    payin_address = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
-    prepare_exchange(client,firmware,amount,payin_address)
+    prepare_exchange(client,firmware)
     dot = PolkadotClient(client)    
     assert dot.sign_init().status == 0x9000
     try:
@@ -158,9 +172,7 @@ def test_swap_flow_dot_eth_wrong_dest_addr(client, firmware):
         assert rapdu.status == ERR_SWAP_CHECK_WRONG_DEST_ADDR.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_DEST_ADDR.status)}"
 
 def test_swap_flow_dot_eth_wrong_tx_method(client, firmware):
-    amount = 12345670000
-    payin_address = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
-    prepare_exchange(client,firmware,amount,payin_address)
+    prepare_exchange(client,firmware)
     dot = PolkadotClient(client)    
     assert dot.sign_init().status == 0x9000
     try:
@@ -169,39 +181,6 @@ def test_swap_flow_dot_eth_wrong_tx_method(client, firmware):
     except ExceptionRAPDU as rapdu:
         assert rapdu.data == ERR_SWAP_CHECK_WRONG_METHOD.data, f"Received APDU data {rapdu.data}, expected {ERR_SWAP_CHECK_WRONG_METHOD.data}"
         assert rapdu.status == ERR_SWAP_CHECK_WRONG_METHOD.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_METHOD.status)}"
-        
+
 def test_swap_flow_dot_eth_wrong_refund_addr(client, firmware):
-    ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
-    ex.init_transaction()
-    ex.set_partner_key()
-    ex.check_partner_key()
-
-    tx_infos = {
-        "payin_address": b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY",
-        "payin_extra_id": b"",
-        "refund_address": b"15yvXMFv8gsgxZWCmaxjFsJJfLU9qhT6qrHMoz7a9ZkTsg9A", # Wrong refund address.
-        "refund_extra_id": b"",
-        "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
-        "payout_extra_id": b"",
-        "currency_from": "DOT",
-        "currency_to": "ETH",
-        "amount_to_provider": int_to_bytes(12345670000),
-        "amount_to_wallet": int_to_bytes(10000000000000),
-    }
-    
-    fees = int_to_bytes(100000000)
-
-    ex.process_transaction(tx_infos, fees)
-    ex.check_transaction()
-
-    right_clicks = {
-        "nanos": 4,
-        "nanox": 4,
-        "nanosp": 4
-    }
-
-    try:
-        client.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
-        ex.check_address(right_clicks=right_clicks[firmware.device])
-    except ExceptionRAPDU as rapdu:
-        assert rapdu.status == ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS.status)}"
+    prepare_exchange(client,firmware,refund_address=b"15yvXMFv8gsgxZWCmaxjFsJJfLU9qhT6qrHMoz7a9ZkTsg9A")
