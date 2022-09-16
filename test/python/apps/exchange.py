@@ -50,6 +50,8 @@ TICKER_TO_CONF = {
     "LTC": LTC_CONF,
     "XLM": XLM_CONF,
     "DOT": DOT_CONF,
+    "XTZ": XTZ_CONF,
+    "XRP": XRP_CONF,
 }
 
 TICKER_TO_PACKED_DERIVATION_PATH = {
@@ -59,6 +61,8 @@ TICKER_TO_PACKED_DERIVATION_PATH = {
     "LTC": LTC_PACKED_DERIVATION_PATH,
     "XLM": XLM_PACKED_DERIVATION_PATH,
     "DOT": DOT_PACKED_DERIVATION_PATH,
+    "XTZ": XTZ_PACKED_DERIVATION_PATH,
+    "XRP": XRP_PACKED_DERIVATION_PATH,
 }
 
 
@@ -193,8 +197,10 @@ class ExchangeClient:
                     for _ in range(right_clicks):
                         self._client.right_click()
                     if not accept:
+                        snap = f"test/python/snapshots/exchange/{self._client._firmware.device}/00001.png"
                         self._client.right_click()
-                    self._client.both_click()
+                    if(compare_screenshot_with_timeout(self._client._client,snap,timeout_s)):
+                        self._client.both_click()
 
                 #with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
                 #    yield response

@@ -1,6 +1,6 @@
 from time import sleep
-from .apps.exchange import ExchangeClient, Rate, SubCommand
-from .apps.polkadot import PolkadotClient, ERR_SWAP_CHECK_WRONG_METHOD, ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS, ERR_SWAP_CHECK_WRONG_DEST_ADDR, ERR_SWAP_CHECK_WRONG_AMOUNT
+from .apps.exchange import ExchangeClient, Rate, SubCommand 
+from .apps.polkadot import PolkadotClient, ERR_SWAP_CHECK_WRONG_METHOD, ERR_SWAP_CHECK_WRONG_DEST_ADDR, ERR_SWAP_CHECK_WRONG_AMOUNT
 from .utils import int_to_bytes
 from ragger.backend import RaisePolicy
 from ragger.error import ExceptionRAPDU
@@ -57,13 +57,18 @@ DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK_WRONG_METHOD = bytes([0x05, 0x02, 0x00, 0
                                                              0xf0, 0x1b, 0x76, 0xd0, 0xd0, 0xbb, 0x08, 0xa5, 0x01, 0xfc, 0xd1, 0x23, 0x93,
                                                              0x74, 0xed, 0x61, 0x67, 0x79, 0x8b, 0x50 ])
 
+
+EXCHANGE_EXCEPTION_RAPDU_INVALID_ADDR = ExceptionRAPDU(0x6A83, b"")
+
 def prepare_exchange(client, firmware, 
                      amount: int = 12345670000, 
                      payin_address : bytes = b"14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY",
                      refund_address : bytes = b"14TwSqXEoCPK7Q7Jnk2RFzbPZXppsxz24bHaQ7fakwio7DFn",
                      payout_addr : bytes = b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+                     curr_from : str = "DOT",
                      curr_to : str = "ETH",
-                     amount_to_wallet : int = 10000000000000):
+                     amount_to_wallet : int = 10000000000000,
+                     addresses_ok : bool = True):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
     ex.init_transaction()
     ex.set_partner_key()
@@ -76,7 +81,7 @@ def prepare_exchange(client, firmware,
         "refund_extra_id": b"",
         "payout_address": payout_addr,
         "payout_extra_id": b"",
-        "currency_from": "DOT",
+        "currency_from": curr_from,
         "currency_to": curr_to,
         "amount_to_provider": int_to_bytes(amount),
         "amount_to_wallet": int_to_bytes(amount_to_wallet),
@@ -92,25 +97,32 @@ def prepare_exchange(client, firmware,
         "nanox": 4,
         "nanosp": 4
     }
- 
-    try:
-        client.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
-        ex.check_address(right_clicks=right_clicks[firmware.device])
-    except ExceptionRAPDU as rapdu:
-        assert rapdu.status == ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_REFUND_ADDRESS.status)}"
-        return
+    
+    if(addresses_ok):
+       ex.check_address(right_clicks=right_clicks[firmware.device])
+    else:
+        try:
+            client.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
+            ex.check_address(right_clicks=right_clicks[firmware.device])
+        except ExceptionRAPDU as rapdu:
+            assert rapdu.data == EXCHANGE_EXCEPTION_RAPDU_INVALID_ADDR.data
+            assert rapdu.status == EXCHANGE_EXCEPTION_RAPDU_INVALID_ADDR.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(EXCHANGE_EXCEPTION_RAPDU_INVALID_ADDR.status)}"
+            return
     
     ex.start_signing_transaction()
     
     sleep(0.1)
 
 testdata = [
-    (b"bc1qer57ma0fzhqys2cmydhuj9cprf9eg0nw922a8j", "BTC", 100000000),
-    (b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", "ETH", 10000000000000),
-    (b"MJovkMvQ2rXXUj7TGVvnQyVMWghSdqZsmu", "LTC", 100000000),
+    (b"bc1qer57ma0fzhqys2cmydhuj9cprf9eg0nw922a8j", "BTC", 100000000), # 1 BTC = 1e8 satoshis
+    (b"tz1Mr8aY9Li8L1Qw3Kz7PrbFawmYAHAEUcJ1", "XTZ", 1000000), # 1 XTZ = 1e6 mutez 
+    (b"GCFLQQDXVY7VFEAZH25HFSSXEKCYYQSA7YEI3DMJZAEABPV2KMPLCXQ5", "XLM", 1000000), # 1 XLM = 1e6 stroop
+    (b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", "ETH", 1000000000000000000), # 1 ETH = 1e18 wei
+    (b"MJovkMvQ2rXXUj7TGVvnQyVMWghSdqZsmu", "LTC", 100000000), # 1 LTC = 1e8 litoshis
+    (b"rNAwni2CP9uAwU2qMka8fgNQA5kWKtu2vT", "XRP", 1000000), # 1 XRP = 1e6 drops
 ]
 
-@pytest.mark.parametrize("payout_addr,curr_to,amount_to_wallet", testdata, ids=["btc", "eth", "ltc"])
+@pytest.mark.parametrize("payout_addr,curr_to,amount_to_wallet", testdata, ids=["btc","xtz","xlm","eth","ltc","xrp"])
 def test_swap_flow_dot_nominal(client, firmware, payout_addr, curr_to, amount_to_wallet):
     prepare_exchange(client,firmware,
                      payout_addr=payout_addr,curr_to=curr_to,amount_to_wallet=amount_to_wallet)
@@ -183,4 +195,32 @@ def test_swap_flow_dot_eth_wrong_tx_method(client, firmware):
         assert rapdu.status == ERR_SWAP_CHECK_WRONG_METHOD.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SWAP_CHECK_WRONG_METHOD.status)}"
 
 def test_swap_flow_dot_eth_wrong_refund_addr(client, firmware):
-    prepare_exchange(client,firmware,refund_address=b"15yvXMFv8gsgxZWCmaxjFsJJfLU9qhT6qrHMoz7a9ZkTsg9A")
+    prepare_exchange(client,
+                     firmware,
+                     refund_address=b"15yvXMFv8gsgxZWCmaxjFsJJfLU9qhT6qrHMoz7a9ZkTsg9A",
+                     addresses_ok=False)
+    
+def test_swap_flow_eth_dot_payout_addr_ok(client, firmware):
+    prepare_exchange(
+                    client,
+                    firmware,
+                    amount=1000000000000000000,
+                    payin_address=b"0xea3c696e2227C33A83b6069cc9932bcE117475D6",
+                    refund_address=b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+                    curr_from="ETH",
+                    curr_to="DOT",
+                    payout_addr=b"14TwSqXEoCPK7Q7Jnk2RFzbPZXppsxz24bHaQ7fakwio7DFn",
+                    amount_to_wallet=10000000000)
+    
+def test_swap_flow_eth_dot_wrong_payout_addr(client, firmware):
+    prepare_exchange(
+                    client,
+                    firmware,
+                    amount=1000000000000000000,
+                    payin_address=b"0xea3c696e2227C33A83b6069cc9932bcE117475D6",
+                    refund_address=b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+                    curr_from="ETH",
+                    curr_to="DOT",
+                    payout_addr=b"15yvXMFv8gsgxZWCmaxjFsJJfLU9qhT6qrHMoz7a9ZkTsg9A",
+                    amount_to_wallet=10000000000,
+                    addresses_ok=False)
