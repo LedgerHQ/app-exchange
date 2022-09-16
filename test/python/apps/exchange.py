@@ -17,6 +17,8 @@ from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
 from .polkadot import DOT_PACKED_DERIVATION_PATH, DOT_CONF, DOT_CONF_DER_SIGNATURE
+from .tezos import XTZ_PACKED_DERIVATION_PATH, XTZ_CONF
+from .ripple import XRP_PACKED_DERIVATION_PATH, XRP_CONF
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
 
 
@@ -178,6 +180,7 @@ class ExchangeClient:
         payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
         payload = prefix_with_len(payout_currency_conf) + signed_payout_conf + prefix_with_len(payout_currency_derivation_path)
         self._premature_error=False
+        snap = f"test/python/snapshots/exchange/{self._client._firmware.device}/00000.png"
 
         if self._refund_currency:
             assert refund_signer != None, f'A refund currency is specified but no SigningAuthority as been given to sign it'

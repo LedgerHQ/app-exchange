@@ -2,8 +2,10 @@ from time import sleep
 from .apps.exchange import ExchangeClient, Rate, SubCommand 
 from .apps.polkadot import PolkadotClient, ERR_SWAP_CHECK_WRONG_METHOD, ERR_SWAP_CHECK_WRONG_DEST_ADDR, ERR_SWAP_CHECK_WRONG_AMOUNT
 from .utils import int_to_bytes
+from .signing_authority import SigningAuthority, LEDGER_SIGNER
 from ragger.backend import RaisePolicy
 from ragger.error import ExceptionRAPDU
+
 import pytest
 
 DOT_PACKED_TRANSACTION_SIGN_LAST_CHUNK = bytes([0x05, 0x00, 0x00, 0xb0, 0x0b, 0x9f, 0x27, 0xc2, 0xd1, 0xd2, 0x16,
@@ -70,9 +72,11 @@ def prepare_exchange(client, firmware,
                      amount_to_wallet : int = 10000000000000,
                      addresses_ok : bool = True):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
+    partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+
     ex.init_transaction()
-    ex.set_partner_key()
-    ex.check_partner_key()
+    ex.set_partner_key(partner.credentials)
+    ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
     tx_infos = {
         "payin_address": payin_address,
@@ -90,7 +94,7 @@ def prepare_exchange(client, firmware,
     fees = int_to_bytes(100000000)
 
     ex.process_transaction(tx_infos, fees)
-    ex.check_transaction()
+    ex.check_transaction_signature(partner)
 
     right_clicks = {
         "nanos": 4,
@@ -99,11 +103,11 @@ def prepare_exchange(client, firmware,
     }
     
     if(addresses_ok):
-       ex.check_address(right_clicks=right_clicks[firmware.device])
+        ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     else:
         try:
             client.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
-            ex.check_address(right_clicks=right_clicks[firmware.device])
+            ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
         except ExceptionRAPDU as rapdu:
             assert rapdu.data == EXCHANGE_EXCEPTION_RAPDU_INVALID_ADDR.data
             assert rapdu.status == EXCHANGE_EXCEPTION_RAPDU_INVALID_ADDR.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(EXCHANGE_EXCEPTION_RAPDU_INVALID_ADDR.status)}"
