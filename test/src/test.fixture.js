@@ -34,6 +34,7 @@ const NANOSP_ELF_PATH = Resolve('elfs/exchange_nanosp.elf');
 
 const SIDELOADED_APPLICATIONS = {
     'bitcoin': 'Bitcoin',
+    'bitcoin_legacy': '"Bitcoin Legacy"',
     'ethereum': 'Ethereum',
     'litecoin': 'Litecoin',
     'stellar': 'Stellar',

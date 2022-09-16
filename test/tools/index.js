@@ -80,6 +80,7 @@ const main = () => {
     console.log("DER signature: " + toHexPrintableConst(changellyData.signatureInDER));
 
     const btcConfig = createCurrencyConfig("BTC", "Bitcoin", Buffer(0), ledgerTestPrivateKey);
+    const btcLegacyConfig = createCurrencyConfig("BTC", "Bitcoin Legacy", Buffer(0), ledgerTestPrivateKey);
     const ltcConfig = createCurrencyConfig("LTC", "Litecoin", Buffer(0), ledgerTestPrivateKey);
     const xrpConfig = createCurrencyConfig("XRP", "XRP", Buffer(0), ledgerTestPrivateKey);
     const xlmConfig = createCurrencyConfig("XLM", "Stellar", Buffer(0), ledgerTestPrivateKey);
@@ -103,6 +104,8 @@ const main = () => {
 
     console.log("\nconst BTCConfig = Buffer.from(" + toHexPrintableConst(btcConfig.coinConfig));
     console.log("const BTCConfigSignature = Buffer.from(" + toHexPrintableConst(btcConfig.signature));
+    console.log("\nconst BTCLegacyConfig = Buffer.from(" + toHexPrintableConst(btcLegacyConfig.coinConfig));
+    console.log("const BTCLegacyConfigSignature = Buffer.from(" + toHexPrintableConst(btcLegacyConfig.signature));
     console.log("\nconst LTCConfig = Buffer.from(" + toHexPrintableConst(ltcConfig.coinConfig));
     console.log("const LTCConfigSignature = Buffer.from(" + toHexPrintableConst(ltcConfig.signature));
     console.log("\nconst XRPConfig = Buffer.from(" + toHexPrintableConst(xrpConfig.coinConfig));
