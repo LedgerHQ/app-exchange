@@ -10,9 +10,10 @@
   Inter-application doc:
 
   `os_lib_call` is called with an `unsigned int [5]` argument.
-  The first argument is used to choose the app to start, the rest is used as
+  The first `int` is used to choose the app to start, the rest is used as
   this app's main arguments.
-  For instance, in Ethereum 1.9.19, the args are casted into a struct like:
+  For instance, in Ethereum 1.9.19, the final `int`s are casted into a struct
+  like:
 
   ```
   struct libargs_s {

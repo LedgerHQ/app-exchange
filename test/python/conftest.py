@@ -18,6 +18,7 @@ APPS_DIRECTORY = (Path(__file__).parent.parent / "elfs").resolve()
 EXCHANGE_APP="exchange"
 
 SIDELOADED_APPS = {"bitcoin": "Bitcoin",
+                   "bitcoin_legacy": "Bitcoin Legacy",
                    "ethereum": "Ethereum",
                    "tezos": "Tezos",
                    "stellar": "Stellar",
