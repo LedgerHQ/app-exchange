@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 
 from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF, ETH_CONF_DER_SIGNATURE
+from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF, ETC_CONF_DER_SIGNATURE
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF, LTC_CONF_DER_SIGNATURE
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF, BTC_CONF_DER_SIGNATURE
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
@@ -186,12 +187,13 @@ class ExchangeClient:
 
     def _ticker_to_coin_payload(self, ticker) -> bytes:
         ticker_to_conf = {
+            "ETC": (ETC_CONF, ETC_CONF_DER_SIGNATURE, ETC_PACKED_DERIVATION_PATH),
             "ETH": (ETH_CONF, ETH_CONF_DER_SIGNATURE, ETH_PACKED_DERIVATION_PATH),
             "BTC": (BTC_CONF, BTC_CONF_DER_SIGNATURE, BTC_PACKED_DERIVATION_PATH),
             "LTC": (LTC_CONF, LTC_CONF_DER_SIGNATURE, LTC_PACKED_DERIVATION_PATH),
         }
-        assert ticker in ticker_to_conf
-        conf, signature, derivation_path = ticker_to_conf[ticker]
+        assert ticker.upper() in ticker_to_conf
+        conf, signature, derivation_path = ticker_to_conf[ticker.upper()]
         return concatenate(conf) + signature + concatenate(derivation_path)
 
     def check_address(self, right_clicks: int, accept: bool = True) -> None:
