@@ -1,0 +1,2 @@
+ledger-bitcoin>=0.0.3
+ragger[tests,speculos]

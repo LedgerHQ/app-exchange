@@ -32,6 +32,9 @@ jobs:
         - name: ethereum
           repo: app-ethereum
           branch: develop
+        - name: ethereum_classic
+          repo: app-ethereum
+          branch: develop
         - name: litecoin
           repo: app-bitcoin
           branch: master
@@ -148,7 +151,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y qemu-user-static
       - name: Install Ragger
         run: |
-          pip install --extra-index-url https://test.pypi.org/simple/ -U ragger[tests,speculos]
+          pip install --extra-index-url https://test.pypi.org/simple/ -U -r test/python/requirements.txt
       - name: Run tests
         run: pytest test/python/ -v
 

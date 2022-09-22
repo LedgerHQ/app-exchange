@@ -17,19 +17,24 @@ APPS_DIRECTORY = (Path(__file__).parent.parent / "elfs").resolve()
 
 EXCHANGE_APP="exchange"
 
-SIDELOADED_APPS = {"bitcoin": "Bitcoin",
-                   "bitcoin_legacy": "Bitcoin Legacy",
-                   "ethereum": "Ethereum",
-                   "tezos": "Tezos",
-                   "stellar": "Stellar",
-                   "xrp": "RXP",
-                   "litecoin": "Litecoin"}
+SIDELOADED_APPS = {
+        "bitcoin": "Bitcoin",
+        "bitcoin_legacy": "Bitcoin Legacy",
+        "ethereum": "Ethereum",
+        "ethereum_classic": "Ethereum Classic",
+        "tezos": "Tezos",
+        "stellar": "Stellar",
+        "xrp": "RXP",
+        "litecoin": "Litecoin"
+}
 
 BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
 
-FIRMWARES = [Firmware('nanos', '2.1'),
-             Firmware('nanox', '2.0.2'),
-             Firmware('nanosp', '1.0.3')]
+FIRMWARES = [
+        Firmware('nanos', '2.1'),
+        Firmware('nanox', '2.0.2'),
+        Firmware('nanosp', '1.0.3')
+]
 
 def pytest_addoption(parser):
     parser.addoption("--backend", action="store", default="speculos")
