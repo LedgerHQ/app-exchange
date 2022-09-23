@@ -12,10 +12,10 @@ from cryptography.hazmat.primitives.asymmetric import ec, dh
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 
-from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF, ETH_CONF_DER_SIGNATURE
-from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF, ETC_CONF_DER_SIGNATURE
-from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF, LTC_CONF_DER_SIGNATURE
-from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF, BTC_CONF_DER_SIGNATURE
+from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
+from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
+from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
+from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
 from ..utils import concatenate
 
@@ -91,8 +91,8 @@ class LedgerTestSigner:
         device_number = int.from_bytes(ledger_test_private_key, "big")
         self.private_key = ec.derive_private_key(private_value=device_number, curve=ec.SECP256K1(), backend=default_backend())
 
-    def sign_partner_credentials(self, partner: ExchangePartnerIdentity):
-        partner.signed_credentials = self.private_key.sign(partner.credentials, ec.ECDSA(hashes.SHA256()))
+    def sign(self, payload: bytes) -> bytes:
+        return self.private_key.sign(payload, ec.ECDSA(hashes.SHA256()))
 
 
 class ExchangeClient:
@@ -127,7 +127,7 @@ class ExchangeClient:
             self.subcommand_specs = FUND_SPECS
 
         self._exchange_partner = ExchangePartnerIdentity(self.subcommand_specs.curve, name)
-        self.ledger_test_signer.sign_partner_credentials(self._exchange_partner)
+        self._exchange_partner.signed_credentials = self.ledger_test_signer.sign(self._exchange_partner.credentials)
 
 
     @property
@@ -187,13 +187,14 @@ class ExchangeClient:
 
     def _ticker_to_coin_payload(self, ticker) -> bytes:
         ticker_to_conf = {
-            "ETC": (ETC_CONF, ETC_CONF_DER_SIGNATURE, ETC_PACKED_DERIVATION_PATH),
-            "ETH": (ETH_CONF, ETH_CONF_DER_SIGNATURE, ETH_PACKED_DERIVATION_PATH),
-            "BTC": (BTC_CONF, BTC_CONF_DER_SIGNATURE, BTC_PACKED_DERIVATION_PATH),
-            "LTC": (LTC_CONF, LTC_CONF_DER_SIGNATURE, LTC_PACKED_DERIVATION_PATH),
+            "ETC": (ETC_CONF, ETC_PACKED_DERIVATION_PATH),
+            "ETH": (ETH_CONF, ETH_PACKED_DERIVATION_PATH),
+            "BTC": (BTC_CONF, BTC_PACKED_DERIVATION_PATH),
+            "LTC": (LTC_CONF, LTC_PACKED_DERIVATION_PATH),
         }
         assert ticker.upper() in ticker_to_conf
-        conf, signature, derivation_path = ticker_to_conf[ticker.upper()]
+        conf, derivation_path = ticker_to_conf[ticker.upper()]
+        signature = self.ledger_test_signer.sign(conf)
         return concatenate(conf) + signature + concatenate(derivation_path)
 
     def check_address(self, right_clicks: int, accept: bool = True) -> None:
