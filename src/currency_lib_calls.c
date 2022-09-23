@@ -59,8 +59,13 @@ int get_printable_amount(const buf_t *const coin_config,
     // Speculos workaround
     // io_seproxyhal_general_status();
     os_lib_call(libcall_params);
+    // the lib application should have something for us to display
+    if (lib_input_params.printable_amount[0] == '\0') {
+        PRINTF("Error: Printable amount should exist\n");
+        return -1;
+    }
     // result should be null terminated string, so we need to have at least one 0
-    if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != 0) {
+    if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != '\0') {
         PRINTF("Error: Printable amount should be null-terminated\n");
         return -1;
     }
