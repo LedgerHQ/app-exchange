@@ -4,7 +4,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec, dh
 from cryptography.hazmat.primitives import serialization, hashes
 
-from .utils import bytes_to_length_prefixed_bytes
+from .utils import prefix_with_len, LEDGER_TEST_PRIVATE_KEY_INT
 
 
 # A helper class to simulate a Signing Authority
@@ -37,7 +37,7 @@ class SigningAuthority:
         self._name = name
 
         # Generate credentials from self identity
-        prefixed_encoded_name = bytes_to_length_prefixed_bytes(self._name.encode())
+        prefixed_encoded_name = prefix_with_len(self._name.encode())
         public_bytes = self._public_key.public_bytes(
             encoding=serialization.Encoding.X962,
             format=serialization.PublicFormat.UncompressedPoint
@@ -63,3 +63,6 @@ class SigningAuthority:
         :rtype: bytes
         """
         return self._private_key.sign(payload_to_sign, ec.ECDSA(hashes.SHA256()))
+
+# Signing authority usage example: the Ledger test signer
+LEDGER_SIGNER = SigningAuthority(curve=ec.SECP256K1(), name="ledger_signer", existing_key=LEDGER_TEST_PRIVATE_KEY_INT)

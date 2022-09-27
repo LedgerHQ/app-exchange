@@ -3,13 +3,17 @@ from time import sleep
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
+from .signing_authority import SigningAuthority, LEDGER_SIGNER
+
 
 def test_sell_flow(client, firmware):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SELL)
     eth = EthereumClient(client)
+    partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+
     ex.init_transaction()
-    ex.set_partner_key()
-    ex.check_partner_key()
+    ex.set_partner_key(partner.credentials)
+    ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
     tx_infos = {
         "trader_email": "john@doe.lost",
@@ -21,14 +25,15 @@ def test_sell_flow(client, firmware):
     }
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
-    ex.check_transaction()
+    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
 
     right_clicks = {
         "nanos": 5,
         "nanox": 5,
         "nanosp": 5
     }
-    ex.check_address(right_clicks=right_clicks[firmware.device])
+    signed_payout_conf = LEDGER_SIGNER.sign(ex.payout_currency_conf)
+    ex.check_address(signed_payout_conf, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
 
     sleep(0.1)

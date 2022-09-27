@@ -3,13 +3,17 @@ from time import sleep
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
+from .signing_authority import SigningAuthority, LEDGER_SIGNER
+
 
 def test_fund_flow_ethereum_max_partner_name_length(client, firmware):
-    ex = ExchangeClient(client, Rate.FIXED, SubCommand.FUND, name="PARTNER_NAME_12")
+    ex = ExchangeClient(client, Rate.FIXED, SubCommand.FUND)
     eth = EthereumClient(client)
+    partner = SigningAuthority(curve=ex.partner_curve, name="PARTNER_NAME_12")
+
     ex.init_transaction()
-    ex.set_partner_key()
-    ex.check_partner_key()
+    ex.set_partner_key(partner.credentials)
+    ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
     tx_infos = {
         "user_id": "John Wick",
@@ -20,8 +24,9 @@ def test_fund_flow_ethereum_max_partner_name_length(client, firmware):
     }
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
-    ex.check_transaction()
-    ex.check_address(right_clicks=5)
+    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
+    signed_payout_conf = LEDGER_SIGNER.sign(ex.payout_currency_conf)
+    ex.check_address(signed_payout_conf, right_clicks=5)
     ex.start_signing_transaction()
 
     sleep(0.1)
@@ -37,11 +42,13 @@ def test_fund_flow_ethereum_max_partner_name_length(client, firmware):
 
 
 def test_fund_flow_ethereum_min_partner_name_length(client, firmware):
-    ex = ExchangeClient(client, Rate.FIXED, SubCommand.FUND, name="PAR")
+    ex = ExchangeClient(client, Rate.FIXED, SubCommand.FUND)
     eth = EthereumClient(client)
+    partner = SigningAuthority(curve=ex.partner_curve, name="PAR")
+
     ex.init_transaction()
-    ex.set_partner_key()
-    ex.check_partner_key()
+    ex.set_partner_key(partner.credentials)
+    ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
     tx_infos = {
         "user_id": "John Wick",
@@ -52,8 +59,9 @@ def test_fund_flow_ethereum_min_partner_name_length(client, firmware):
     }
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
-    ex.check_transaction()
-    ex.check_address(right_clicks=5)
+    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
+    signed_payout_conf = LEDGER_SIGNER.sign(ex.payout_currency_conf)
+    ex.check_address(signed_payout_conf, right_clicks=5)
     ex.start_signing_transaction()
 
     sleep(0.1)
