@@ -41,10 +41,17 @@ class SubCommand(IntEnum):
 
 
 TICKER_TO_CONF = {
-    "ETC": (ETC_CONF, ETC_PACKED_DERIVATION_PATH),
-    "ETH": (ETH_CONF, ETH_PACKED_DERIVATION_PATH),
-    "BTC": (BTC_CONF, BTC_PACKED_DERIVATION_PATH),
-    "LTC": (LTC_CONF, LTC_PACKED_DERIVATION_PATH),
+    "ETC": ETC_CONF,
+    "ETH": ETH_CONF,
+    "BTC": BTC_CONF,
+    "LTC": LTC_CONF,
+}
+
+TICKER_TO_PACKED_DERIVATION_PATH = {
+    "ETC": ETC_PACKED_DERIVATION_PATH,
+    "ETH": ETH_PACKED_DERIVATION_PATH,
+    "BTC": BTC_PACKED_DERIVATION_PATH,
+    "LTC": LTC_PACKED_DERIVATION_PATH,
 }
 
 
@@ -153,24 +160,22 @@ class ExchangeClient:
     @property
     def payout_currency_conf(self) -> bytes:
         assert self._payout_currency.upper() in TICKER_TO_CONF
-        return TICKER_TO_CONF[self._payout_currency.upper()][0]
+        return TICKER_TO_CONF[self._payout_currency.upper()]
 
     @property
     def payout_currency_derivation_path(self) -> bytes:
-        assert self._payout_currency.upper() in TICKER_TO_CONF
-        return TICKER_TO_CONF[self._payout_currency.upper()][1]
+        assert self._payout_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
+        return TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
 
     @property
     def refund_currency_conf(self) -> bytes:
-        if self._refund_currency == None:
-            return b""
         assert self._refund_currency.upper() in TICKER_TO_CONF
-        return TICKER_TO_CONF[self._refund_currency.upper()][0]
+        return TICKER_TO_CONF[self._refund_currency.upper()]
 
     @property
     def refund_currency_derivation_path(self) -> bytes:
-        assert self._refund_currency.upper() in TICKER_TO_CONF
-        return TICKER_TO_CONF[self._refund_currency.upper()][1]
+        assert self._refund_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
+        return TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
 
     def check_address(self, signed_payout_conf: bytes, signed_refund_conf: Optional[bytes] = None, right_clicks: int = 0, accept: bool = True) -> RAPDU:
         command = Command.CHECK_PAYOUT_ADDRESS
