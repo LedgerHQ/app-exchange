@@ -27,20 +27,16 @@ int start_signing_transaction(swap_app_context_t *ctx,
         lib_in_out_params.amount = ctx->sell_transaction.in_amount.bytes;
         lib_in_out_params.amount_length = ctx->sell_transaction.in_amount.size;
         lib_in_out_params.destination_address = ctx->sell_transaction.in_address;
-
-        // extraid field seems weird here shouldn't be cast to ctx->received_transaction in this
-        // context
-        lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
+        // Empty string, needed by application library API but does not have sense in SELL context
+        lib_in_out_params.destination_address_extra_id = ctx->sell_transaction_extra_id;
     }
 
     if (cmd->subcommand == FUND) {
         lib_in_out_params.amount = ctx->fund_transaction.in_amount.bytes;
         lib_in_out_params.amount_length = ctx->fund_transaction.in_amount.size;
         lib_in_out_params.destination_address = ctx->fund_transaction.in_address;
-
-        // extraid field seems weird here shouldn't be cast to ctx->received_transaction in this
-        // context
-        lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
+        // Empty string, needed by application library API but does not have sense in FUND context
+        lib_in_out_params.destination_address_extra_id = ctx->fund_transaction_extra_id;
     }
 
     create_payin_transaction(ctx->payin_binary_name, &lib_in_out_params);

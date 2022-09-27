@@ -174,11 +174,15 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
                 PRINTF("Error: Can't parse SELL transaction protobuf\n");
                 return reply_error(ctx, DESERIALIZATION_FAILED, send);
             }
+            // Field not received from protobuf
+            ctx->sell_transaction_extra_id[0] = '\0';
         } else {
             if (!pb_decode(&stream, pb_fields, &ctx->fund_transaction)) {
                 PRINTF("Error: Can't parse FUND transaction protobuf\n");
                 return reply_error(ctx, DESERIALIZATION_FAILED, send);
             }
+            // Field not received from protobuf
+            ctx->fund_transaction_extra_id[0] = '\0';
         }
 
         // trim leading 0s
