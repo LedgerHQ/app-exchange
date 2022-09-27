@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 from pathlib import Path
 from bip32 import HARDENED_INDEX
 from enum import IntEnum
@@ -54,19 +54,14 @@ def bitcoin_pack_derivation_path(format: BtcDerivationPathFormat, derivation_pat
 
 # CURRENCY CONFIG CALCULATIONS
 
-def create_sub_currency_config(ticker: str, number: int) -> bytes:
-    sub_coin_config: buffer = b""
-    sub_coin_config += (len(ticker)).to_bytes(1, byteorder='big')
-    sub_coin_config += ticker.encode('utf-8')
-    sub_coin_config += (number).to_bytes(1, byteorder='big')
-    return sub_coin_config
+def _to_length_prefixed_bytes(to_prefix: bytes) -> bytes:
+    return len(to_prefix).to_bytes(1, byteorder="big") + to_prefix
 
-def create_currency_config(ticker: str, application_name: str, sub_coin_config: bytes = b"") -> bytes:
-    coin_config: buffer = b""
-    coin_config += (len(ticker)).to_bytes(1, byteorder='big')
-    coin_config += ticker.encode('utf-8')
-    coin_config += (len(application_name)).to_bytes(1, byteorder='big')
-    coin_config += application_name.encode('utf-8')
-    coin_config += (len(sub_coin_config)).to_bytes(1, byteorder='big')
-    coin_config += sub_coin_config
+def create_currency_config(main_ticker: str, application_name: str, sub_coin_config: Optional[Tuple[str, int]] = None) -> bytes:
+    sub_config: bytes = b""
+    if sub_coin_config is not None:
+        sub_config = _to_length_prefixed_bytes(sub_coin_config[0].encode()) + sub_coin_config[1].to_bytes(1, byteorder="big")
+    coin_config: bytes = b""
+    for element in [main_ticker.encode(), application_name.encode(), sub_config]:
+        coin_config += _to_length_prefixed_bytes(element)
     return coin_config
