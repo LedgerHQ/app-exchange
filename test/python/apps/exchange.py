@@ -14,7 +14,7 @@ from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
-from ..utils import prefix_with_len, LEDGER_TEST_PRIVATE_KEY_INT
+from ..utils import prefix_with_len
 
 
 class Command(IntEnum):
