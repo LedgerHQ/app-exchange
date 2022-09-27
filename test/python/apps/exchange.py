@@ -5,15 +5,16 @@ from enum import IntEnum
 from ragger.backend.interface import BackendInterface, RAPDU
 from ragger.error import ExceptionRAPDU
 
-from ..ledger_test_signer import LedgerTestSigner
-from ..exchange_partner_identity import ExchangePartnerIdentity
+from ..signing_authority import SigningAuthority
+
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
 from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
-from ..utils import concatenate
+from ..utils import concatenate, LEDGER_TEST_PRIVATE_KEY_INT
 
 
 class Command(IntEnum):
@@ -68,8 +69,8 @@ class ExchangeClient:
         if not isinstance(subcommand, SubCommand):
             raise TypeError('subcommand must be an instance of SubCommand')
 
-        self._ledger_test_signer = LedgerTestSigner()
-        self._fake_ledger_test_signer = LedgerTestSigner(use_test_key = False)
+        self._ledger_test_signer = SigningAuthority(curve=ec.SECP256K1(), name="test_signer", existing_key=LEDGER_TEST_PRIVATE_KEY_INT)
+        self._fake_ledger_test_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_test_signer")
 
         self._client = client
         self._rate = rate
@@ -86,8 +87,8 @@ class ExchangeClient:
         elif self._subcommand == SubCommand.FUND:
             self.subcommand_specs = FUND_SPECS
 
-        self._exchange_partner = ExchangePartnerIdentity(self.subcommand_specs.curve, name)
-        self._fake_exchange_partner = ExchangePartnerIdentity(self.subcommand_specs.curve, name)
+        self._exchange_partner = SigningAuthority(curve=self.subcommand_specs.curve, name=name)
+        self._fake_exchange_partner = SigningAuthority(curve=self.subcommand_specs.curve, name=name)
 
     @property
     def rate(self) -> Rate:

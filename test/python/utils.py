@@ -10,6 +10,13 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 
 
+# The fake Ledger private key recognized by apps compiled with the test flag
+# No usage outside of testing
+LEDGER_TEST_PRIVATE_KEY_HEX = "b1ed47ef58f782e2bc4d5abe70ef66d9009c2957967017054470e0f3e10f5833"
+LEDGER_TEST_PRIVATE_KEY_BYTES = bytes.fromhex(LEDGER_TEST_PRIVATE_KEY_HEX)
+LEDGER_TEST_PRIVATE_KEY_INT = int(LEDGER_TEST_PRIVATE_KEY_HEX, 16)
+
+
 def app_path_from_app_name(app_dir, app_name: str, device: str) -> Path:
     assert app_dir.is_dir(), f"{app_dir} is not a directory"
     app_path = app_dir / (app_name + "_" + device + ".elf")
@@ -54,14 +61,14 @@ def bitcoin_pack_derivation_path(format: BtcDerivationPathFormat, derivation_pat
 
 # CURRENCY CONFIG CALCULATIONS
 
-def _to_length_prefixed_bytes(to_prefix: bytes) -> bytes:
+def bytes_to_length_prefixed_bytes(to_prefix: bytes) -> bytes:
     return len(to_prefix).to_bytes(1, byteorder="big") + to_prefix
 
 def create_currency_config(main_ticker: str, application_name: str, sub_coin_config: Optional[Tuple[str, int]] = None) -> bytes:
     sub_config: bytes = b""
     if sub_coin_config is not None:
-        sub_config = _to_length_prefixed_bytes(sub_coin_config[0].encode()) + sub_coin_config[1].to_bytes(1, byteorder="big")
+        sub_config = bytes_to_length_prefixed_bytes(sub_coin_config[0].encode()) + sub_coin_config[1].to_bytes(1, byteorder="big")
     coin_config: bytes = b""
     for element in [main_ticker.encode(), application_name.encode(), sub_config]:
-        coin_config += _to_length_prefixed_bytes(element)
+        coin_config += bytes_to_length_prefixed_bytes(element)
     return coin_config

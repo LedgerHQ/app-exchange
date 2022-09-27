@@ -1,14 +1,4 @@
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives import hashes
-
-
-# The fake Ledger private key recognized by apps compiled with the test flag
-# No usage outside of testing
-LEDGER_TEST_PRIVATE_KEY_HEX = "b1ed47ef58f782e2bc4d5abe70ef66d9009c2957967017054470e0f3e10f5833"
-LEDGER_TEST_PRIVATE_KEY_BYTES = bytes.fromhex(LEDGER_TEST_PRIVATE_KEY_HEX)
-LEDGER_TEST_PRIVATE_KEY_INT = int(LEDGER_TEST_PRIVATE_KEY_HEX, 16)
-
+from .utils import LEDGER_TEST_PRIVATE_KEY_INT
 
 # A helper class to simulate Ledger signed data
 # It uses the Ledger testing key by default, or a randomly generated key if specified at init
