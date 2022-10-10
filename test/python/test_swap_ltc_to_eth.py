@@ -30,7 +30,7 @@ def test_swap_ltc_to_eth(client, firmware):
     fees = b'\x01S'
 
     ex.process_transaction(tx_infos, fees)
-    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
+    ex.check_transaction_signature(partner)
 
     right_clicks = {
         "nanos": 4,
@@ -38,9 +38,7 @@ def test_swap_ltc_to_eth(client, firmware):
         "nanosp": 4
     }
 
-    signed_payout_conf = LEDGER_SIGNER.sign(ex.payout_currency_conf)
-    signed_refund_conf = LEDGER_SIGNER.sign(ex.refund_currency_conf)
-    ex.check_address(signed_payout_conf, signed_refund_conf, right_clicks=right_clicks[firmware.device])
+    ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
 
     sleep(0.1)

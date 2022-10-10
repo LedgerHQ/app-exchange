@@ -24,9 +24,8 @@ def test_fund_flow_ethereum_max_partner_name_length(client, firmware):
     }
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
-    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
-    signed_payout_conf = LEDGER_SIGNER.sign(ex.payout_currency_conf)
-    ex.check_address(signed_payout_conf, right_clicks=5)
+    ex.check_transaction_signature(partner)
+    ex.check_address(LEDGER_SIGNER, right_clicks=5)
     ex.start_signing_transaction()
 
     sleep(0.1)
@@ -59,9 +58,8 @@ def test_fund_flow_ethereum_min_partner_name_length(client, firmware):
     }
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
-    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
-    signed_payout_conf = LEDGER_SIGNER.sign(ex.payout_currency_conf)
-    ex.check_address(signed_payout_conf, right_clicks=5)
+    ex.check_transaction_signature(partner)
+    ex.check_address(LEDGER_SIGNER, right_clicks=5)
     ex.start_signing_transaction()
 
     sleep(0.1)

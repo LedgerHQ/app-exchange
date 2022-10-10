@@ -25,15 +25,14 @@ def test_sell_flow(client, firmware):
     }
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
-    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
+    ex.check_transaction_signature(partner)
 
     right_clicks = {
         "nanos": 5,
         "nanox": 5,
         "nanosp": 5
     }
-    signed_payout_conf = LEDGER_SIGNER.sign(ex.payout_currency_conf)
-    ex.check_address(signed_payout_conf, right_clicks=right_clicks[firmware.device])
+    ex.check_address(LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
 
     sleep(0.1)

@@ -143,53 +143,41 @@ class ExchangeClient:
         self._transaction = self._subcommand_specs.create_transaction(conf, self.transaction_id)
 
         self._payout_currency = conf[self._subcommand_specs.payout_field]
+        assert self._payout_currency.upper() in TICKER_TO_CONF
+        assert self._payout_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
         if self._subcommand_specs.refund_field:
             self._refund_currency = conf[self._subcommand_specs.refund_field]
+            assert self._refund_currency.upper() in TICKER_TO_CONF
+            assert self._refund_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
 
         payload = prefix_with_len(self._transaction) + prefix_with_len(fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
 
-    @property
-    def formated_transaction(self) -> bytes:
-        return self._subcommand_specs.format_transaction(self._transaction)
-
-    def check_transaction_signature(self, signed_transaction: bytes) -> RAPDU:
+    def check_transaction_signature(self, signer: SigningAuthority) -> RAPDU:
+        formated_transaction = self._subcommand_specs.format_transaction(self._transaction)
+        signed_transaction = signer.sign(formated_transaction)
         encoded_transaction = self._subcommand_specs.encode_signature(signed_transaction)
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
 
-    @property
-    def payout_currency_conf(self) -> bytes:
-        assert self._payout_currency.upper() in TICKER_TO_CONF
-        return TICKER_TO_CONF[self._payout_currency.upper()]
-
-    @property
-    def payout_currency_derivation_path(self) -> bytes:
-        assert self._payout_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
-        return TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
-
-    @property
-    def refund_currency_conf(self) -> bytes:
-        assert self._refund_currency.upper() in TICKER_TO_CONF
-        return TICKER_TO_CONF[self._refund_currency.upper()]
-
-    @property
-    def refund_currency_derivation_path(self) -> bytes:
-        assert self._refund_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
-        return TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
-
-    def check_address(self, signed_payout_conf: bytes, signed_refund_conf: Optional[bytes] = None, right_clicks: int = 0, accept: bool = True) -> RAPDU:
+    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None, right_clicks: int = 0, accept: bool = True) -> RAPDU:
         command = Command.CHECK_PAYOUT_ADDRESS
-        payload = prefix_with_len(self.payout_currency_conf) + signed_payout_conf + prefix_with_len(self.payout_currency_derivation_path)
+        payout_currency_conf = TICKER_TO_CONF[self._payout_currency.upper()]
+        signed_payout_conf = payout_signer.sign(payout_currency_conf)
+        payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
+        payload = prefix_with_len(payout_currency_conf) + signed_payout_conf + prefix_with_len(payout_currency_derivation_path)
 
         if self._refund_currency:
-            assert signed_refund_conf != None
+            assert refund_signer != None
             # If refund adress has to be checked, send sync CHECk_PAYOUT_ADDRESS first
             rapdu = self._exchange(command, payload=payload)
             if rapdu.status != 0x9000:
                 return rapdu
             # In this case, send async CHECK_REFUND_ADDRESS after
             command = Command.CHECK_REFUND_ADDRESS
-            payload = prefix_with_len(self.refund_currency_conf) + signed_refund_conf + prefix_with_len(self.refund_currency_derivation_path)
+            refund_currency_conf = TICKER_TO_CONF[self._refund_currency.upper()]
+            signed_refund_conf = refund_signer.sign(refund_currency_conf)
+            refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
+            payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
 
         with self._exchange_async(command, payload=payload):
             for _ in range(right_clicks):

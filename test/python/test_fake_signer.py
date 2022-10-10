@@ -52,27 +52,11 @@ SUB_COMMAND = {
 
 FEES = bytes.fromhex("0216c86b20c000") # ETH 0.000588
 
-        # self._fake_ledger_test_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_test_signer")
-
-        # self._exchange_partner = SigningAuthority(curve=self.subcommand_specs.curve, name=name)
-        # self._fake_exchange_partner = SigningAuthority(curve=self.subcommand_specs.curve, name=name)
-
-
-        #     return self._exchange(Command.SET_PARTNER_KEY, self._exchange_partner.credentials)
-        # else:
-        #     return self._exchange(Command.SET_PARTNER_KEY, self._fake_exchange_partner.credentials)
-
-
-        # if use_test_key:
-        #     signed_credentials = self._ledger_test_signer.sign(self._exchange_partner.credentials)
-        # else:
-        #     signed_credentials = self._fake_ledger_test_signer.sign(self._exchange_partner.credentials)
 
 # CHECK THAT A PARTNER SIGNED BY THE LEDGER KEY BUT DIFFERENT THAN THE SET IS REFUSED
 
 @pytest.mark.parametrize("operation", ["SWAP", "FUND", "SELL"])
 def test_fake_partner_credentials_sent(client, firmware, operation):
-    ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
     ex = ExchangeClient(client, Rate.FIXED, SUB_COMMAND[operation])
     partner = SigningAuthority(curve=ex.partner_curve, name="partner")
     partner_fake = SigningAuthority(curve=ex.partner_curve, name="partner_fake")
@@ -81,7 +65,7 @@ def test_fake_partner_credentials_sent(client, firmware, operation):
     ex.set_partner_key(partner_fake.credentials)
 
     client.raise_policy = RaisePolicy.RAISE_NOTHING
-    rapdu: RAPDU = ex.check_partner_key(ledger_fake_signer.sign(partner.credentials))
+    rapdu: RAPDU = ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
     assert rapdu.status == SIGN_VERIFICATION_FAIL
 
 
@@ -115,7 +99,7 @@ def test_fake_transaction_infos(client, firmware, operation):
     ex.process_transaction(TX_INFOS[operation], FEES)
 
     client.raise_policy = RaisePolicy.RAISE_NOTHING
-    rapdu: RAPDU = ex.check_transaction_signature(partner_fake.sign(ex.formated_transaction))
+    rapdu: RAPDU = ex.check_transaction_signature(partner_fake)
     assert rapdu.status == SIGN_VERIFICATION_FAIL
 
 
@@ -131,11 +115,10 @@ def test_fake_payout_coin_configuration(client, firmware, operation):
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
     ex.process_transaction(TX_INFOS[operation], FEES)
-    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
+    ex.check_transaction_signature(partner)
 
-    signed_payout_conf = ledger_fake_signer.sign(ex.payout_currency_conf)
     client.raise_policy = RaisePolicy.RAISE_NOTHING
-    rapdu: RAPDU = ex.check_address(signed_payout_conf)
+    rapdu: RAPDU = ex.check_address(payout_signer=ledger_fake_signer)
     assert rapdu.status == SIGN_VERIFICATION_FAIL
 
 def test_fake_payout_coin_configuration_swap(client, firmware):
@@ -147,12 +130,10 @@ def test_fake_payout_coin_configuration_swap(client, firmware):
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
     ex.process_transaction(SWAP_TX_INFOS, FEES)
-    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
+    ex.check_transaction_signature(partner)
 
-    signed_payout_conf = ledger_fake_signer.sign(ex.payout_currency_conf)
-    signed_refund_conf = LEDGER_SIGNER.sign(ex.refund_currency_conf)
     client.raise_policy = RaisePolicy.RAISE_NOTHING
-    rapdu: RAPDU = ex.check_address(signed_payout_conf, signed_refund_conf)
+    rapdu: RAPDU = ex.check_address(payout_signer=ledger_fake_signer, refund_signer=LEDGER_SIGNER)
     assert rapdu.status == SIGN_VERIFICATION_FAIL
 
 def test_fake_refund_coin_configuration_swap(client, firmware):
@@ -164,11 +145,9 @@ def test_fake_refund_coin_configuration_swap(client, firmware):
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
     ex.process_transaction(SWAP_TX_INFOS, FEES)
-    ex.check_transaction_signature(partner.sign(ex.formated_transaction))
+    ex.check_transaction_signature(partner)
 
-    signed_payout_conf = LEDGER_SIGNER.sign(ex.payout_currency_conf)
-    signed_refund_conf = ledger_fake_signer.sign(ex.refund_currency_conf)
     client.raise_policy = RaisePolicy.RAISE_NOTHING
-    rapdu: RAPDU = ex.check_address(signed_payout_conf, signed_refund_conf)
+    rapdu: RAPDU = ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=ledger_fake_signer)
     assert rapdu.status == SIGN_VERIFICATION_FAIL
 
