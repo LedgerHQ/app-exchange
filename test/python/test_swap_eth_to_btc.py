@@ -7,14 +7,17 @@ from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient, ERR_SILENT_MODE_CHECK_FAILED
-from .utils import concatenate
+
+from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
 
 def prepare_exchange(client, firmware, amount: str):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
+    partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+
     ex.init_transaction()
-    ex.set_partner_key()
-    ex.check_partner_key()
+    ex.set_partner_key(partner.credentials)
+    ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
     tx_infos = {
         "payin_address": b"0xd692Cb1346262F584D17B4B470954501f6715a82",
@@ -31,7 +34,7 @@ def prepare_exchange(client, firmware, amount: str):
     fees = bytes.fromhex("0216c86b20c000") # ETH 0.000588
 
     ex.process_transaction(tx_infos, fees)
-    ex.check_transaction()
+    ex.check_transaction_signature(partner)
 
     right_clicks = {
         "nanos": 4,
@@ -39,7 +42,7 @@ def prepare_exchange(client, firmware, amount: str):
         "nanosp": 4
     }
 
-    ex.check_address(right_clicks=right_clicks[firmware.device])
+    ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
     sleep(0.1)
 

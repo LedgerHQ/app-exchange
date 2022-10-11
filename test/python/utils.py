@@ -16,11 +16,8 @@ def app_path_from_app_name(app_dir, app_name: str, device: str) -> Path:
     assert app_path.is_file(), f"{app_path} must exist"
     return app_path
 
-def concatenate(*args):
-    result = b''
-    for arg in args:
-        result += (bytes([len(arg)]) + arg)
-    return result
+def prefix_with_len(to_prefix: bytes) -> bytes:
+    return len(to_prefix).to_bytes(1, byteorder="big") + to_prefix
 
 def validate_displayed_message(client: SpeculosBackend, num_screen_skip: int):
     for _ in range(num_screen_skip):
@@ -54,14 +51,11 @@ def bitcoin_pack_derivation_path(format: BtcDerivationPathFormat, derivation_pat
 
 # CURRENCY CONFIG CALCULATIONS
 
-def _to_length_prefixed_bytes(to_prefix: bytes) -> bytes:
-    return len(to_prefix).to_bytes(1, byteorder="big") + to_prefix
-
 def create_currency_config(main_ticker: str, application_name: str, sub_coin_config: Optional[Tuple[str, int]] = None) -> bytes:
     sub_config: bytes = b""
     if sub_coin_config is not None:
-        sub_config = _to_length_prefixed_bytes(sub_coin_config[0].encode()) + sub_coin_config[1].to_bytes(1, byteorder="big")
+        sub_config = prefix_with_len(sub_coin_config[0].encode()) + sub_coin_config[1].to_bytes(1, byteorder="big")
     coin_config: bytes = b""
     for element in [main_ticker.encode(), application_name.encode(), sub_config]:
-        coin_config += _to_length_prefixed_bytes(element)
+        coin_config += prefix_with_len(element)
     return coin_config

@@ -5,14 +5,17 @@ from ledger_bitcoin import createClient, Chain
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
-from .utils import concatenate
+
+from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
 
-def test_swap_flow(client, firmware):
+def test_swap_btc_to_etc(client, firmware):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
+    partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+
     ex.init_transaction()
-    ex.set_partner_key()
-    ex.check_partner_key()
+    ex.set_partner_key(partner.credentials)
+    ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
     tx_infos = {
         "payin_address": "bc1q4uj6h8qmdq5699azdagacptw66p202kn0fte56",
@@ -29,7 +32,7 @@ def test_swap_flow(client, firmware):
     fees = b'\t\xba'
 
     ex.process_transaction(tx_infos, fees)
-    ex.check_transaction()
+    ex.check_transaction_signature(partner)
 
     right_clicks = {
         "nanos": 4,
@@ -37,7 +40,7 @@ def test_swap_flow(client, firmware):
         "nanosp": 4
     }
 
-    ex.check_address(right_clicks=right_clicks[firmware.device])
+    ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
 
     sleep(0.1)

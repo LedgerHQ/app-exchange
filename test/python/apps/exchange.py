@@ -5,19 +5,16 @@ from enum import IntEnum
 from ragger.backend.interface import BackendInterface, RAPDU
 from ragger.error import ExceptionRAPDU
 
-from ..common import LEDGER_TEST_PRIVATE_KEY
+from ..signing_authority import SigningAuthority
 
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import ec, dh
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
 from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
-from ..utils import concatenate
+from ..utils import prefix_with_len
 
 
 class Command(IntEnum):
@@ -43,6 +40,20 @@ class SubCommand(IntEnum):
     FUND = 0x02
 
 
+TICKER_TO_CONF = {
+    "ETC": ETC_CONF,
+    "ETH": ETH_CONF,
+    "BTC": BTC_CONF,
+    "LTC": LTC_CONF,
+}
+
+TICKER_TO_PACKED_DERIVATION_PATH = {
+    "ETC": ETC_PACKED_DERIVATION_PATH,
+    "ETH": ETH_PACKED_DERIVATION_PATH,
+    "BTC": BTC_PACKED_DERIVATION_PATH,
+    "LTC": LTC_PACKED_DERIVATION_PATH,
+}
+
 
 ERRORS = (
     ExceptionRAPDU(0x6A80, "INCORRECT_COMMAND_DATA"),
@@ -58,58 +69,18 @@ ERRORS = (
     ExceptionRAPDU(0x9D1A, "SIGN_VERIFICATION_FAIL")
 )
 
-
-class ExchangePartnerIdentity:
-    _private_key: ec.EllipticCurvePrivateKey
-    _public_key: dh.DHPublicKey
-    _name: str
-    credentials: bytes
-    signed_credentials: bytes
-
-    def __init__(self, curve: ec.EllipticCurve, name: str):
-        # Set self identity
-        self._private_key = ec.generate_private_key(curve, backend=default_backend())
-        self._public_key = self._private_key.public_key()
-        self._name = name
-
-        # Generate credentials from self identity
-        encoded_name = self._name.encode('utf-8')
-        public_bytes = self._public_key.public_bytes(
-            encoding=serialization.Encoding.X962,
-            format=serialization.PublicFormat.UncompressedPoint
-        )
-        self.credentials = len(encoded_name).to_bytes(1, "big") + encoded_name + public_bytes
-
-    def sign_transaction(self, payload_to_sign: bytes) -> bytes:
-        return self._private_key.sign(payload_to_sign, ec.ECDSA(hashes.SHA256()))
-
-
-class LedgerTestSigner:
-    private_key: ec.EllipticCurvePrivateKey
-
-    def __init__(self, ledger_test_private_key: bytes):
-        device_number = int.from_bytes(ledger_test_private_key, "big")
-        self.private_key = ec.derive_private_key(private_value=device_number, curve=ec.SECP256K1(), backend=default_backend())
-
-    def sign(self, payload: bytes) -> bytes:
-        return self.private_key.sign(payload, ec.ECDSA(hashes.SHA256()))
-
-
 class ExchangeClient:
     CLA = 0xE0
     def __init__(self,
                  client: BackendInterface,
                  rate: Rate,
-                 subcommand: SubCommand,
-                 name: str = "DefaultPartner"):
+                 subcommand: SubCommand):
         if not isinstance(client, BackendInterface):
             raise TypeError('client must be an instance of BackendInterface')
         if not isinstance(rate, Rate):
             raise TypeError('rate must be an instance of Rate')
         if not isinstance(subcommand, SubCommand):
             raise TypeError('subcommand must be an instance of SubCommand')
-
-        self.ledger_test_signer = LedgerTestSigner(LEDGER_TEST_PRIVATE_KEY)
 
         self._client = client
         self._rate = rate
@@ -120,15 +91,15 @@ class ExchangeClient:
         self._refund_currency: Optional[str] = None
 
         if self._subcommand == SubCommand.SWAP:
-            self.subcommand_specs = SWAP_SPECS
+            self._subcommand_specs = SWAP_SPECS
         elif self._subcommand == SubCommand.SELL:
-            self.subcommand_specs = SELL_SPECS
+            self._subcommand_specs = SELL_SPECS
         elif self._subcommand == SubCommand.FUND:
-            self.subcommand_specs = FUND_SPECS
+            self._subcommand_specs = FUND_SPECS
 
-        self._exchange_partner = ExchangePartnerIdentity(self.subcommand_specs.curve, name)
-        self._exchange_partner.signed_credentials = self.ledger_test_signer.sign(self._exchange_partner.credentials)
-
+    @property
+    def partner_curve(self) -> ec.EllipticCurve:
+        return self._subcommand_specs.curve
 
     @property
     def rate(self) -> Rate:
@@ -160,52 +131,53 @@ class ExchangeClient:
         self._transaction_id = response.data
         return response
 
-    def set_partner_key(self) -> RAPDU:
-        return self._exchange(Command.SET_PARTNER_KEY, self._exchange_partner.credentials)
+    def set_partner_key(self, credentials: bytes) -> RAPDU:
+        return self._exchange(Command.SET_PARTNER_KEY, credentials)
 
-    def check_partner_key(self) -> RAPDU:
-        return self._exchange(Command.CHECK_PARTNER, self._exchange_partner.signed_credentials)
+    def check_partner_key(self, signed_credentials: bytes) -> RAPDU:
+        return self._exchange(Command.CHECK_PARTNER, signed_credentials)
 
     def process_transaction(self, conf: Dict, fees: bytes) -> RAPDU:
-        assert self.subcommand_specs.check_conf(conf)
+        assert self._subcommand_specs.check_conf(conf)
 
-        self._transaction = self.subcommand_specs.create_transaction(conf, self.transaction_id)
+        self._transaction = self._subcommand_specs.create_transaction(conf, self.transaction_id)
 
-        self._payout_currency = conf[self.subcommand_specs.payout_field]
-        if self.subcommand_specs.refund_field:
-            self._refund_currency = conf[self.subcommand_specs.refund_field]
+        self._payout_currency = conf[self._subcommand_specs.payout_field]
+        assert self._payout_currency.upper() in TICKER_TO_CONF
+        assert self._payout_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
+        if self._subcommand_specs.refund_field:
+            self._refund_currency = conf[self._subcommand_specs.refund_field]
+            assert self._refund_currency.upper() in TICKER_TO_CONF
+            assert self._refund_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
 
-        payload = concatenate(self._transaction, fees)
+        payload = prefix_with_len(self._transaction) + prefix_with_len(fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
 
-    def check_transaction(self) -> RAPDU:
-        formated_transaction = self.subcommand_specs.format_transaction(self._transaction)
-        signed_transaction = self._exchange_partner.sign_transaction(formated_transaction)
-        encoded_transaction = self.subcommand_specs.encode_signature(signed_transaction)
-
+    def check_transaction_signature(self, signer: SigningAuthority) -> RAPDU:
+        formated_transaction = self._subcommand_specs.format_transaction(self._transaction)
+        signed_transaction = signer.sign(formated_transaction)
+        encoded_transaction = self._subcommand_specs.encode_signature(signed_transaction)
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
 
-    def _ticker_to_coin_payload(self, ticker) -> bytes:
-        ticker_to_conf = {
-            "ETC": (ETC_CONF, ETC_PACKED_DERIVATION_PATH),
-            "ETH": (ETH_CONF, ETH_PACKED_DERIVATION_PATH),
-            "BTC": (BTC_CONF, BTC_PACKED_DERIVATION_PATH),
-            "LTC": (LTC_CONF, LTC_PACKED_DERIVATION_PATH),
-        }
-        assert ticker.upper() in ticker_to_conf
-        conf, derivation_path = ticker_to_conf[ticker.upper()]
-        signature = self.ledger_test_signer.sign(conf)
-        return concatenate(conf) + signature + concatenate(derivation_path)
-
-    def check_address(self, right_clicks: int, accept: bool = True) -> None:
+    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None, right_clicks: int = 0, accept: bool = True) -> RAPDU:
         command = Command.CHECK_PAYOUT_ADDRESS
-        payload = self._ticker_to_coin_payload(self._payout_currency)
+        payout_currency_conf = TICKER_TO_CONF[self._payout_currency.upper()]
+        signed_payout_conf = payout_signer.sign(payout_currency_conf)
+        payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
+        payload = prefix_with_len(payout_currency_conf) + signed_payout_conf + prefix_with_len(payout_currency_derivation_path)
 
         if self._refund_currency:
-            # If refund adress has to be checked, send CHECk_PAYOUT_ADDRESS first
-            self._exchange(command, payload=payload)
+            assert refund_signer != None
+            # If refund adress has to be checked, send sync CHECk_PAYOUT_ADDRESS first
+            rapdu = self._exchange(command, payload=payload)
+            if rapdu.status != 0x9000:
+                return rapdu
+            # In this case, send async CHECK_REFUND_ADDRESS after
             command = Command.CHECK_REFUND_ADDRESS
-            payload = self._ticker_to_coin_payload(self._refund_currency)
+            refund_currency_conf = TICKER_TO_CONF[self._refund_currency.upper()]
+            signed_refund_conf = refund_signer.sign(refund_currency_conf)
+            refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
+            payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
 
         with self._exchange_async(command, payload=payload):
             for _ in range(right_clicks):
@@ -214,5 +186,7 @@ class ExchangeClient:
                 self._client.right_click()
             self._client.both_click()
 
+        return self._client.last_async_response
+
     def start_signing_transaction(self) -> RAPDU:
-        self._exchange(Command.START_SIGNING_TRANSACTION)
+        return self._exchange(Command.START_SIGNING_TRANSACTION)

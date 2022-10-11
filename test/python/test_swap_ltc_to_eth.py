@@ -2,14 +2,18 @@ from time import sleep
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
-from .utils import concatenate
+from .utils import prefix_with_len
+
+from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
 
-def test_swap_flow(client, firmware):
+def test_swap_ltc_to_eth(client, firmware):
     ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
+    partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+
     ex.init_transaction()
-    ex.set_partner_key()
-    ex.check_partner_key()
+    ex.set_partner_key(partner.credentials)
+    ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
     tx_infos = {
         "payin_address": "LKY4hyq7ucxtdGoQ6ajkwv4ddTNA4WpYhF",
@@ -26,7 +30,7 @@ def test_swap_flow(client, firmware):
     fees = b'\x01S'
 
     ex.process_transaction(tx_infos, fees)
-    ex.check_transaction()
+    ex.check_transaction_signature(partner)
 
     right_clicks = {
         "nanos": 4,
@@ -34,7 +38,7 @@ def test_swap_flow(client, firmware):
         "nanosp": 4
     }
 
-    ex.check_address(right_clicks=right_clicks[firmware.device])
+    ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
 
     sleep(0.1)
@@ -51,6 +55,6 @@ def test_swap_flow(client, firmware):
     result = ltc.get_trusted_input(bytes.fromhex('00000000')).data
     ltc.get_public_key(bytes.fromhex('058000005480000002800000000000000000000000'))
     ltc.hash_input(bytes.fromhex('0100000001'))
-    ltc.hash_input(bytes.fromhex('01') + concatenate(result) + bytes.fromhex('00'))
+    ltc.hash_input(bytes.fromhex('01') + prefix_with_len(result) + bytes.fromhex('00'))
     ltc.hash_input(bytes.fromhex('00000000'))
     ltc.hash_input(bytes.fromhex('0156325408000000001976a914036cdde130e7b93b86d27425145082bc2b6c724488ac'), finalize=True)
