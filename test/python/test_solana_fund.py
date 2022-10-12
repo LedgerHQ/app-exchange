@@ -1,5 +1,3 @@
-from time import sleep
-
 from .apps.exchange import ExchangeClient, Rate, SubCommand, ERRORS
 from .apps.ethereum import EthereumClient
 
@@ -34,7 +32,6 @@ def valid_fund(client, firmware, tx_infos, fees, right_clicks):
     ex.check_transaction_signature(partner)
     ex.check_address(LEDGER_SIGNER, right_clicks=right_clicks)
     ex.start_signing_transaction()
-    sleep(0.1)
 
 
 def test_solana_fund_ok(client, firmware):

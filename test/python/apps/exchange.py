@@ -206,7 +206,11 @@ class ExchangeClient:
 
     def start_signing_transaction(self) -> RAPDU:
         rapdu = self._exchange(Command.START_SIGNING_TRANSACTION)
+
+        # The reception of the APDU means that the Exchange app has received the request
+        # and will start os_lib_call.
+        # We give some time to the OS to actually process the os_lib_call
         if rapdu.status == 0x9000:
             # If the exchange app accepts starting the library app, give it time to actually start
-            sleep(1)
+            sleep(0.5)
         return rapdu
