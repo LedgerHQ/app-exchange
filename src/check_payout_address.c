@@ -39,13 +39,11 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
                         der.bytes,
                         der.size) == 0) {
         PRINTF("Error: Fail to verify signature of coin config\n");
-
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
 
     if (parse_coin_config(&config, &ticker, &application_name, &config) == 0) {
         PRINTF("Error: Can't parse payout coin config command\n");
-
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
@@ -62,7 +60,6 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
         strncmp(ctx->received_transaction.currency_to, (const char *) ticker.bytes, ticker.size) !=
             0) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
-
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
@@ -74,6 +71,12 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
+    if (ctx->received_transaction
+            .payout_address[sizeof(ctx->received_transaction.payout_address) - 1] != '\0') {
+        PRINTF("Address to check is not NULL terminated\n");
+        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
+    }
+
     // check address
     if (check_address(&config,
                       &address_parameters,
@@ -81,7 +84,6 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
                       ctx->received_transaction.payout_address,
                       ctx->received_transaction.payout_extra_id) != 1) {
         PRINTF("Error: Payout address validation failed\n");
-
         return reply_error(ctx, INVALID_ADDRESS, send);
     }
 
@@ -96,7 +98,6 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
                              sizeof(ctx->printable_get_amount),
                              false) < 0) {
         PRINTF("Error: Failed to get destination currency printable amount\n");
-
         return reply_error(ctx, INTERNAL_ERROR, send);
     }
 
@@ -106,7 +107,6 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
 
     if (send(output_buffer, 2) < 0) {
         PRINTF("Error: failed to send\n");
-
         return -1;
     }
 
