@@ -1,5 +1,3 @@
-from time import sleep
-
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
@@ -27,8 +25,6 @@ def test_fund_flow_ethereum_max_partner_name_length(client, firmware):
     ex.check_transaction_signature(partner)
     ex.check_address(LEDGER_SIGNER, right_clicks=5)
     ex.start_signing_transaction()
-
-    sleep(0.1)
 
     assert eth.get_public_key().status == 0x9000
     # The original bug was that the Ethereum app was returning just after
@@ -61,8 +57,6 @@ def test_fund_flow_ethereum_min_partner_name_length(client, firmware):
     ex.check_transaction_signature(partner)
     ex.check_address(LEDGER_SIGNER, right_clicks=5)
     ex.start_signing_transaction()
-
-    sleep(0.1)
 
     assert eth.get_public_key().status == 0x9000
     # The original bug was that the Ethereum app was returning just after

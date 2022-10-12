@@ -1,4 +1,3 @@
-from time import sleep
 from unittest.mock import patch
 
 from ledger_bitcoin import createClient, Chain
@@ -42,8 +41,6 @@ def test_swap_btc_to_etc(client, firmware):
 
     ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
-
-    sleep(0.1)
 
     # forcing the client to return the new client instead of the legacy one
     with patch("ledger_bitcoin.client.Client") as patched_base_client:

@@ -1,5 +1,3 @@
-from time import sleep
-
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
@@ -34,8 +32,6 @@ def test_sell_flow(client, firmware):
     }
     ex.check_address(LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
-
-    sleep(0.1)
 
     assert eth.get_public_key().status == 0x9000
     # The original bug was that the Ethereum app was returning just after

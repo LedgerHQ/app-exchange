@@ -1,5 +1,3 @@
-from time import sleep
-
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
 from .utils import prefix_with_len
@@ -40,8 +38,6 @@ def test_swap_ltc_to_eth(client, firmware):
 
     ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
-
-    sleep(0.1)
 
     ltc = LitecoinClient(client)
 

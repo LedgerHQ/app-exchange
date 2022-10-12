@@ -1,5 +1,3 @@
-from time import sleep
-
 import pytest
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
@@ -44,7 +42,7 @@ def prepare_exchange(client, firmware, amount: str):
 
     ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
     ex.start_signing_transaction()
-    sleep(0.1)
+
 
 def test_swap_eth_to_btc_wrong_amount(client, firmware):
     amount       = '013fc3a717fb5000'
