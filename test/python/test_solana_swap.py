@@ -211,7 +211,7 @@ def test_solana_swap_sender_wrong_amount(client, firmware):
     client.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu: RAPDU = sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message)
     print("Received rapdu :", rapdu)
-    assert rapdu.status == ErrorType.USER_CANCEL
+    assert rapdu.status == ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
 
 
 def test_solana_swap_sender_wrong_destination(client, firmware):
@@ -224,4 +224,4 @@ def test_solana_swap_sender_wrong_destination(client, firmware):
     client.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu: RAPDU = sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message)
     print("Received rapdu :", rapdu)
-    assert rapdu.status == ErrorType.USER_CANCEL
+    assert rapdu.status == ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
