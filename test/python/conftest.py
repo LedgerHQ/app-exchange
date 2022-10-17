@@ -63,7 +63,7 @@ def pytest_generate_tests(metafunc):
 def prepare_speculos_args(firmware):
     speculos_args = []
     # Uncomment line below to enable display
-    # speculos_args += ["--display", "qt"]
+    speculos_args += ["--display", "qt"]
 
     # Add "-l Appname:filepath" to Speculos command line for every required app
     for filename, appname in SIDELOADED_APPS.items():

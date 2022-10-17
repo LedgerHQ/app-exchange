@@ -186,11 +186,11 @@ class ExchangeClient:
 
         with self._exchange_async(command, payload=payload):
             sleep(0.3)
-            for _ in range(right_clicks):
-                self._client.right_click()
-            if not accept:
-                self._client.right_click()
-            self._client.both_click()
+            # for _ in range(right_clicks):
+            #     self._client.right_click()
+            # if not accept:
+            #     self._client.right_click()
+            # self._client.both_click()
 
         return self._client.last_async_response
 
