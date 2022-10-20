@@ -1,7 +1,7 @@
 from time import sleep
-from unittest.mock import patch
 
-from ledger_bitcoin import createClient, Chain
+from ledger_bitcoin import Chain
+from ledger_bitcoin.client import NewClient
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
@@ -45,11 +45,7 @@ def test_swap_btc_to_etc(client, firmware):
 
     sleep(0.1)
 
-    # forcing the client to return the new client instead of the legacy one
-    with patch("ledger_bitcoin.client.Client") as patched_base_client:
-        patched_base_client().get_version.return_value = ("", "2", "")
-
-        # client._client is the Speculos backend within the Ragger client,
-        # because BitcoinClient is not Ragger-compatible (yet?)
-        with createClient(client._client, Chain.MAIN) as btc:
-            assert btc.get_master_fingerprint() == bytes.fromhex("f5acc2fd")
+    # client._client is the Speculos backend within the Ragger client,
+    # because BitcoinClient is not Ragger-compatible (yet?)
+    with NewClient(client._client, Chain.MAIN) as btc:
+        assert btc.get_master_fingerprint() == bytes.fromhex("f5acc2fd")
