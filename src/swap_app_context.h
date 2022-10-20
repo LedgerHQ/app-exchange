@@ -9,9 +9,12 @@
 #include "globals.h"
 #include "buffer.h"
 
+#define MIN_PARTNER_NAME_LENGHT 3
+#define MAX_PARTNER_NAME_LENGHT 15
+
 typedef struct partner_data_s {
     unsigned char name_length;
-    char name[15];
+    char name[MAX_PARTNER_NAME_LENGHT + 1];
     cx_ecfp_256_public_key_t public_key;
 } partner_data_t;
 
@@ -28,10 +31,19 @@ typedef struct swap_app_context_s {
     state_e state;
     subcommand_e subcommand;
 
+    // SWAP, SELL, and FUND flows are unionized as they cannot be used in the same context
     union {
-        ledger_swap_NewTransactionResponse received_transaction;  // SWAP
-        ledger_swap_NewSellResponse sell_transaction;             // SELL
-        ledger_swap_NewFundResponse fund_transaction;             // FUND
+        ledger_swap_NewTransactionResponse received_transaction;
+        struct {
+            ledger_swap_NewSellResponse sell_transaction;
+            // Field not received from protobuf but needed by the application called as lib
+            char sell_transaction_extra_id[1];
+        };
+        struct {
+            ledger_swap_NewFundResponse fund_transaction;
+            // Field not received from protobuf but needed by the application called as lib
+            char fund_transaction_extra_id[1];
+        };
     };
 
     unsigned char sha256_digest[32];

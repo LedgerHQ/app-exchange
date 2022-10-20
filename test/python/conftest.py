@@ -1,59 +1,78 @@
-from dataclasses import dataclass
 from pathlib import Path
-
 import pytest
 
 from ragger import Firmware
 from ragger.backend import SpeculosBackend, LedgerCommBackend, LedgerWalletBackend
 
+from .apps.exchange import ERRORS
+from .utils import app_path_from_app_name
 
-@dataclass(frozen=True)
-class Application:
-    path: Path
-    firmware: Firmware
+def __str__(self):        # also tried __repr__()
+        # Attempt to print the 'select' attribute in "pytest -v" output
+        return self.select
 
-APPLICATION_DIRECTORY = (Path(__file__).parent.parent / "elfs").resolve()
-APPLICATIONS = {"bitcoin": "Bitcoin",
-                "ethereum": "Ethereum",
-                "tezos": "Tezos",
-                "stellar": "Stellar",
-                "xrp": "RXP",
-                "litecoin": "Litecoin"}
+
+APPS_DIRECTORY = (Path(__file__).parent.parent / "elfs").resolve()
+
+EXCHANGE_APP="exchange"
+
+SIDELOADED_APPS = {
+        "bitcoin": "Bitcoin",
+        "bitcoin_legacy": "Bitcoin Legacy",
+        "ethereum": "Ethereum",
+        "ethereum_classic": "Ethereum Classic",
+        "tezos": "Tezos",
+        "stellar": "Stellar",
+        "xrp": "RXP",
+        "litecoin": "Litecoin"
+}
+
 BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
-EXCHANGES = [
-    Application(APPLICATION_DIRECTORY / 'exchange_nanos.elf',
-                Firmware('nanos', '2.1')),
-    Application(APPLICATION_DIRECTORY / 'exchange_nanox.elf',
-                Firmware('nanox', '2.0.2')),
-    Application(APPLICATION_DIRECTORY / 'exchange_nanosp.elf',
-                Firmware('nanosp', '1.0'))
+
+FIRMWARES = [
+        Firmware('nanos', '2.1'),
+        Firmware('nanox', '2.0.2'),
+        Firmware('nanosp', '1.0.3')
 ]
-
-@pytest.fixture(params=EXCHANGES)
-def exchange(request):
-    return request.param
-
-def prepare_speculos_args(exchange):
-    current_device = exchange.firmware.device
-    assert APPLICATION_DIRECTORY.is_dir(), \
-        f"{APPLICATION_DIRECTORY} is not a directory"
-    application = None
-    speculos_args = ["--model", current_device, "--sdk", exchange.firmware.version]
-    original_size = len(speculos_args)
-    for application_elf in [a for a in APPLICATION_DIRECTORY.iterdir()
-                            if a.name.endswith(".elf") and f"{current_device}." in a.name]:
-        for k, v in APPLICATIONS.items():
-            if k in application_elf.name:
-                speculos_args.append(f"-l{v}:{application_elf}")
-                break
-    application = exchange.path
-    assert exchange.path.is_file(), f"{exchange.path} must exist"
-    assert len(speculos_args) == original_size + len(APPLICATIONS), \
-        f"Speculos argument number mismatch, some application elf may be missing!"
-    return ([application], {"args": speculos_args})
 
 def pytest_addoption(parser):
     parser.addoption("--backend", action="store", default="speculos")
+    # Enable ussing --'device' in the pytest command line to restrict testing to specific devices
+    for fw in FIRMWARES:
+        parser.addoption("--"+fw.device, action="store_true", help="run on nanos only")
+
+
+# Glue to call every test that depends on the firmware once for each required firmware
+def pytest_generate_tests(metafunc):
+    if "firmware" in metafunc.fixturenames:
+        fw_list = []
+        ids = []
+        # First pass: enable only demanded firmwares
+        for fw in FIRMWARES:
+            if metafunc.config.getoption(fw.device):
+                fw_list.append(fw)
+                ids.append(fw.device + " " + fw.version)
+        # Second pass if no specific firmware demanded: add them all
+        if not fw_list:
+            for fw in FIRMWARES:
+                fw_list.append(fw)
+                ids.append(fw.device + " " + fw.version)
+        metafunc.parametrize("firmware", fw_list, ids=ids)
+
+def prepare_speculos_args(firmware):
+    speculos_args = []
+    # Uncomment line below to enable display
+    # speculos_args += ["--display", "qt"]
+
+    # Add "-l Appname:filepath" to Speculos command line for every required app
+    for filename, appname in SIDELOADED_APPS.items():
+        app_path = app_path_from_app_name(APPS_DIRECTORY, filename, firmware.device)
+        speculos_args.append(f"-l{appname}:{app_path}")
+
+    # Compute Exchange App binary
+    exchange_app_path = app_path_from_app_name(APPS_DIRECTORY, EXCHANGE_APP, firmware.device)
+
+    return ([exchange_app_path], {"args": speculos_args})
 
 
 @pytest.fixture(scope="session")
@@ -61,29 +80,21 @@ def backend(pytestconfig):
     return pytestconfig.getoption("backend")
 
 
-def create_backend(backend: bool, exchange: Application, raises: bool = True):
+def create_backend(backend: str, firmware: Firmware):
     if backend.lower() == "ledgercomm":
-        return LedgerCommBackend(exchange.firmware, interface="hid", raises=raises)
+        return LedgerCommBackend(firmware, interface="hid")
     elif backend.lower() == "ledgerwallet":
-        return LedgerWalletBackend(exchange.firmware)
+        return LedgerWalletBackend(firmware)
     elif backend.lower() == "speculos":
-        args, kwargs = prepare_speculos_args(exchange)
-        return SpeculosBackend(*args, exchange.firmware, **kwargs, raises=raises)
+        args, kwargs = prepare_speculos_args(firmware)
+        return SpeculosBackend(*args, firmware, **kwargs)
     else:
         raise ValueError(f"Backend '{backend}' is unknown. Valid backends are: {BACKENDS}")
 
-
 @pytest.fixture
-def client(backend, exchange):
-    with create_backend(backend, exchange) as b:
+def client(backend, firmware):
+    with create_backend(backend, firmware) as b:
         yield b
-
-
-@pytest.fixture
-def client_no_raise(backend, exchange):
-    with create_backend(backend, exchange, raises=False) as b:
-        yield b
-
 
 @pytest.fixture(autouse=True)
 def use_only_on_backend(request, backend):

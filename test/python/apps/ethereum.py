@@ -1,4 +1,11 @@
-from ragger.utils import pack_APDU
+from ragger.utils import pack_APDU, RAPDU
+from ragger.error import ExceptionRAPDU
+
+from ..utils import create_currency_config, pack_derivation_path
+
+ETH_CONF = create_currency_config("ETH", "Ethereum", ("ETH", 18))
+
+ETH_PACKED_DERIVATION_PATH = pack_derivation_path("m/44'/60'/0'/0/0")
 
 
 class Command:
@@ -36,26 +43,25 @@ class TxType:
     MAX =  0x7f
 
 
-# length (5) + 44'/60'/0'/0/0
-ETH_PACKED_DERIVATION_PATH = bytes([0x05,
-                                    0x80, 0x00, 0x00, 0x2c,
-                                    0x80, 0x00, 0x00, 0x3c,
-                                    0x80, 0x00, 0x00, 0x00,
-                                    0x00, 0x00, 0x00, 0x00,
-                                    0x00, 0x00, 0x00, 0x00])
+ERR_SILENT_MODE_CHECK_FAILED = ExceptionRAPDU(0x6001, "ERR_SILENT_MODE_CHECK_FAILED")
 
 
 class EthereumClient:
     CLA = 0xE0
-    def __init__(self, client):
+    def __init__(self, client, derivation_path=b''):
         self._client = client
+        self._derivation_path = derivation_path or ETH_PACKED_DERIVATION_PATH
 
     @property
     def client(self):
         return self._client
 
+    @property
+    def derivation_path(self):
+        return self._derivation_path
+
     def _forge_signature_payload(self, additional_payload: bytes):
-        return pack_APDU(self.CLA, Command.SIGN, data=(ETH_PACKED_DERIVATION_PATH + additional_payload))
+        return pack_APDU(self.CLA, Command.SIGN, data=(self.derivation_path + additional_payload))
 
     def _exchange(self,
                   ins: int,
@@ -65,9 +71,9 @@ class EthereumClient:
         return self.client.exchange(self.CLA, ins=ins, p1=p1, p2=p2, data=payload)
 
     def get_public_key(self):
-        return self._exchange(Command.GET_PUBLIC_KEY, payload=ETH_PACKED_DERIVATION_PATH)
+        return self._exchange(Command.GET_PUBLIC_KEY, payload=self.derivation_path)
 
-    def sign(self):
+    def sign(self, extra_payload: bytes = bytes.fromhex('eb')):
         # TODO: finish ETH signature with proper payload
-        payload = ETH_PACKED_DERIVATION_PATH + bytes.fromhex('eb')
+        payload = self.derivation_path + extra_payload
         return self._exchange(Command.SIGN, payload=payload)

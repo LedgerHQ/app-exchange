@@ -10,9 +10,10 @@
   Inter-application doc:
 
   `os_lib_call` is called with an `unsigned int [5]` argument.
-  The first argument is used to choose the app to start, the rest is used as
+  The first `int` is used to choose the app to start, the rest is used as
   this app's main arguments.
-  For instance, in Ethereum 1.9.19, the args are casted into a struct like:
+  For instance, in Ethereum 1.9.19, the final `int`s are casted into a struct
+  like:
 
   ```
   struct libargs_s {
@@ -58,8 +59,13 @@ int get_printable_amount(const buf_t *const coin_config,
     // Speculos workaround
     // io_seproxyhal_general_status();
     os_lib_call(libcall_params);
+    // the lib application should have something for us to display
+    if (lib_input_params.printable_amount[0] == '\0') {
+        PRINTF("Error: Printable amount should exist\n");
+        return -1;
+    }
     // result should be null terminated string, so we need to have at least one 0
-    if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != 0) {
+    if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != '\0') {
         PRINTF("Error: Printable amount should be null-terminated\n");
         return -1;
     }

@@ -10,6 +10,7 @@
 #include "parse_coin_config.h"
 #include "printable_amount.h"
 #include "menu.h"
+#include "checks.h"
 
 int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
@@ -46,15 +47,11 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    if (ticker.size < 2 || ticker.size > 9) {
-        PRINTF("Error: Ticker length should be in [2, 9]\n");
-
+    if (!check_ticker_length(&ticker)) {
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    if (application_name.size < 3 || application_name.size > 15) {
-        PRINTF("Error: Application name should be in [3, 15]\n");
-
+    if (!check_app_name_length(&application_name)) {
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
