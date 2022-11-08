@@ -1,9 +1,10 @@
-#ifdef HAVE_BAGL
+#ifdef HAVE_NBGL
 
-#include "menu.h"
 #include "commands.h"
 #include "globals.h"
 #include "glyphs.h"
+#include "menu.h"
+#include "nbgl_use_case.h"
 #include "os.h"
 #include "reply_error.h"
 #include "send_function.h"
@@ -35,30 +36,6 @@ void on_reject()
     reply_error(application_context, USER_REFUSED, send_function);
 }
 
-// clang-format off
-UX_STEP_NOCB(ux_idle_flow_1_step, nn,
-{
-    "Exchange",
-    "is ready",
-});
-UX_STEP_NOCB(ux_idle_flow_2_step, bn,
-{
-    "Version",
-    APPVERSION,
-});
-UX_STEP_VALID(ux_idle_flow_3_step, pb, os_sched_exit(-1),
-{
-    &C_icon_dashboard_x,
-    "Quit",
-});
-
-UX_FLOW(ux_idle_flow,
-&ux_idle_flow_1_step,
-&ux_idle_flow_2_step,
-&ux_idle_flow_3_step,
-FLOW_LOOP);
-// clang-format on
-
 //////////////////////////
 
 #define member_size(type, member) sizeof(((type*)0)->member)
@@ -73,100 +50,93 @@ struct ValidationInfo {
     UserChoiseCallback OnReject;
 } validationInfo;
 
-unsigned int io_accept(__attribute__((unused)) const bagl_element_t* e)
+unsigned int io_accept(void)
 {
     validationInfo.OnAccept();
     ui_idle();
     return 0;
 }
 
-unsigned int io_reject(__attribute__((unused)) const bagl_element_t* e)
+unsigned int io_reject(void)
 {
     validationInfo.OnReject();
     ui_idle();
     return 0;
 }
 
-// clang-format off
-UX_STEP_NOCB(ux_confirm_flow_1_step, pnn,
+static void reviewChoice(bool confirm)
 {
-    &C_icon_eye,
-    "Review",
-    "transaction",
-});
-UX_STEP_NOCB(ux_confirm_flow_1_2_step, bnnn_paging,
-{
-    .title = "Email",
-    .text = validationInfo.email,
-});
-UX_STEP_NOCB(ux_confirm_flow_1_3_step, bnnn_paging,
-{
-    .title = "User",
-    .text = validationInfo.email,
-});
-UX_STEP_NOCB(ux_confirm_flow_2_step, bnnn_paging,
-{
-    .title = "Send",
-    .text = validationInfo.send,
-});
-UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
-{
-    .title = "Get",
-    .text = validationInfo.get,
-});
-UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
-{
-    .title = "Get estimated",
-    .text = validationInfo.get,
-});
-UX_STEP_NOCB(ux_confirm_flow_3_2_step, bnnn_paging,
-{
-    .title = validationInfo.provider,
-    .text = validationInfo.get,
-});
-UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
-{
-    .title = "Fees",
-    .text = validationInfo.fees,
-});
-UX_STEP_CB(ux_confirm_flow_5_step, pbb, io_accept(NULL),
-{
-    &C_icon_validate_14,
-    "Accept",
-    "and send",
-});
-UX_STEP_CB(ux_confirm_flow_6_step, pb, io_reject(NULL),
-{
-    &C_icon_crossmark,
-    "Reject",
-});
+    if (confirm) {
+        io_accept();
+    } else {
+        io_reject();
+    }
+}
 
-// clang-format on
-const ux_flow_step_t* ux_confirm_flow[8];
+static nbgl_layoutTagValue_t tlv[7];
+static rate_e _rate;
+static subcommand_e _subcommand;
+static bool displayTransactionPage(uint8_t page, nbgl_pageContent_t* content)
+{
+    uint8_t itemCount = 0;
+    if (page == 0) {
+        if (_subcommand == SELL) {
+            tlv[itemCount].item = "Email";
+            tlv[itemCount].value = validationInfo.email;
+            itemCount++;
+        } else if (_subcommand == FUND) {
+            tlv[itemCount].item = "User";
+            tlv[itemCount].value = validationInfo.email;
+            itemCount++;
+        }
+        tlv[itemCount].item = "Send";
+        tlv[itemCount].value = validationInfo.send;
+        itemCount++;
+
+        if (_subcommand == FUND) {
+            tlv[itemCount].item = validationInfo.provider;
+            tlv[itemCount].value = validationInfo.get;
+            itemCount++;
+        } else if (_rate == FLOATING) {
+            tlv[itemCount].item = "Get estimated";
+            tlv[itemCount].value = validationInfo.get;
+            itemCount++;
+        } else {
+            tlv[itemCount].item = "Get";
+            tlv[itemCount].value = validationInfo.get;
+            itemCount++;
+        }
+
+        tlv[itemCount].item = "Fees";
+        tlv[itemCount].value = validationInfo.fees;
+        itemCount++;
+
+        content->type = TAG_VALUE_LIST;
+        content->tagValueList.nbPairs = itemCount;
+        content->tagValueList.pairs = (nbgl_layoutTagValue_t*)tlv;
+    } else if (page == 1) {
+        content->type = INFO_LONG_PRESS,
+        content->infoLongPress.icon = &C_badge_transaction_56;
+        content->infoLongPress.text = "Review transaction";
+        content->infoLongPress.longPressText = "Hold to confirm";
+    }
+    return true;
+}
+static void reviewContinue(void)
+{
+    nbgl_useCaseRegularReview(0, 2, "Reject", NULL, displayTransactionPage, reviewChoice);
+}
+
+static void buildFirstPage(void)
+{
+    nbgl_useCaseReviewStart(&C_badge_transaction_56, "Review transaction", NULL, "Reject", reviewContinue, io_reject);
+}
 
 void ux_confirm(rate_e rate, subcommand_e subcommand)
 {
-    int step = 0;
-    ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
-    if (subcommand == SELL) {
-        ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
-    } else if (subcommand == FUND) {
-        ux_confirm_flow[step++] = &ux_confirm_flow_1_3_step;
-    }
-    ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
-    if (subcommand == FUND) {
-        ux_confirm_flow[step++] = &ux_confirm_flow_3_2_step;
-    } else if (rate == FLOATING) {
-        ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
-    } else {
-        ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
-    }
-    ux_confirm_flow[step++] = &ux_confirm_flow_4_step;
-    ux_confirm_flow[step++] = &ux_confirm_flow_5_step;
-    ux_confirm_flow[step++] = &ux_confirm_flow_6_step;
-    ux_confirm_flow[step++] = FLOW_END_STEP;
-
-    ux_flow_init(0, ux_confirm_flow, NULL);
+    _rate = rate;
+    _subcommand = subcommand;
+    buildFirstPage();
 }
 
 void ui_validate_amounts(rate_e rate,
@@ -217,19 +187,35 @@ void ux_init()
     UX_INIT();
 }
 
-void ui_idle(void)
+void app_quit(void)
 {
-    // reserve a display stack slot if none yet
-    if (G_ux.stack_count == 0) {
-        ux_stack_push();
-    }
-    ux_flow_init(0, ux_idle_flow, NULL);
+    os_sched_exit(-1);
 }
 
-// override point, but nothing more to do
-void io_seproxyhal_display(const bagl_element_t* element)
+static bool settingsNavCallback(uint8_t page, nbgl_pageContent_t* content)
 {
-    io_seproxyhal_display_default((bagl_element_t*)element);
+    static const char* const infoTypes[] = { "Version", "Exchange App" };
+    static const char* const infoContents[] = { APPVERSION, "(c) 2022 Ledger" };
+
+    content->type = INFOS_LIST;
+    content->infosList.nbInfos = 2;
+    content->infosList.infoTypes = (const char**)infoTypes;
+    content->infosList.infoContents = (const char**)infoContents;
+    return true;
+}
+
+static void settingsControlsCallback(int token, uint8_t index)
+{
+}
+
+void ui_menu_settings(void)
+{
+    nbgl_useCaseSettings("Exchange settings", 0, 1, true, ui_idle, settingsNavCallback, settingsControlsCallback);
+}
+
+void ui_idle(void)
+{
+    nbgl_useCaseHome(APPNAME, NULL, APPNAME, true, ui_menu_settings, app_quit);
 }
 
 unsigned char io_event(__attribute__((unused)) unsigned char channel)
@@ -242,10 +228,6 @@ unsigned char io_event(__attribute__((unused)) unsigned char channel)
         UX_FINGER_EVENT(G_io_seproxyhal_spi_buffer);
         break;
 
-    case SEPROXYHAL_TAG_BUTTON_PUSH_EVENT: {
-        UX_BUTTON_PUSH_EVENT(G_io_seproxyhal_spi_buffer);
-        break;
-    }
     case SEPROXYHAL_TAG_STATUS_EVENT:
         if (G_io_apdu_media == IO_APDU_MEDIA_USB_HID && !(U4BE(G_io_seproxyhal_spi_buffer, 3) & SEPROXYHAL_TAG_STATUS_EVENT_FLAG_USB_POWERED)) {
             THROW(EXCEPTION_IO_RESET);
@@ -253,10 +235,6 @@ unsigned char io_event(__attribute__((unused)) unsigned char channel)
         // no break is intentional
     default:
         UX_DEFAULT_EVENT();
-        break;
-
-    case SEPROXYHAL_TAG_DISPLAY_PROCESSED_EVENT:
-        UX_DISPLAYED_EVENT({});
         break;
 
     case SEPROXYHAL_TAG_TICKER_EVENT:
@@ -299,4 +277,4 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len)
     return 0;
 }
 
-#endif // HAVE_BAGL
+#endif // HAVE_NBGL
