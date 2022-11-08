@@ -30,7 +30,7 @@ int set_partner_key(swap_app_context_t *ctx, const command_t *cmd, SendFunction 
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
-
+    memset(ctx->partner.name, 0, sizeof(ctx->partner.name));
     memcpy(ctx->partner.name, cmd->data.bytes + 1, ctx->partner.name_length);
 
     if (cmd->subcommand == SWAP) {

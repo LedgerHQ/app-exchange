@@ -11,7 +11,7 @@
 
 typedef struct partner_data_s {
     unsigned char name_length;
-    char name[15];
+    char name[15 + 1];
     cx_ecfp_256_public_key_t public_key;
 } partner_data_t;
 
