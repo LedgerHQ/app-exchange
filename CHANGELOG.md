@@ -5,11 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [2.0.12](https://github.com/ledgerhq/app-exchange/compare/2.0.11...2.0.12) - 2022-??-??
+## [2.0.13](https://github.com/ledgerhq/app-exchange/compare/2.0.12...2.0.13) - 2022-??-??
 
 ### Changed
 
 - Application name length is no longer caped to 15B, but synced with BOLOS maximum length
+
+## [2.0.12](https://github.com/ledgerhq/app-exchange/compare/2.0.11...2.0.12) - 2022-10-19
+
+### Added
+
+- DERIVE_MASTER flag, needed for app-bitcoin-new v2.1+
 
 ## [2.0.11](https://github.com/ledgerhq/app-exchange/compare/2.0.3...2.0.11) - 2022-05-24
 
