@@ -21,7 +21,8 @@ SIDELOADED_APPS = {
         "ethereum_classic": "Ethereum Classic",
         "tezos": "Tezos",
         "xrp": "RXP",
-        "litecoin": "Litecoin"
+        "litecoin": "Litecoin",
+        "stellar": "Stellar"
 }
 
 BACKENDS = ["speculos", "ledgercomm", "ledgerwallet"]
