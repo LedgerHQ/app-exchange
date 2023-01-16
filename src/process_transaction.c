@@ -45,10 +45,9 @@ void set_ledger_currency_name(char *currency, size_t currency_size) {
  * field value does overflow, the coin application would return an error.
  *
  * The operation should be valid for any kind of PB_BYTES_ARRAY_T, but is
- * currently restricted to PB_BYTES_ARRAY_T(16) (pb_bytes_array_16_t) for
- * type consistency.
+ * currently restricted to PB_BYTES_ARRAY_T(16) for type consistency.
  */
-void trim_pb_bytes_array(pb_bytes_array_16_t *transaction) {
+void trim_pb_bytes_array(PB_BYTES_ARRAY_T(16) * transaction) {
     pb_size_t i;
     for (i = 0; i < transaction->size; i++) {
         if (transaction->bytes[i] != 0) {
