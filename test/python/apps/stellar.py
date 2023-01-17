@@ -1,8 +1,7 @@
-from ..utils import create_currency_config, pack_derivation_path
 from enum import IntEnum, Enum, auto
 
 from ragger.bip import pack_derivation_path
-from ragger.utils import RAPDU
+from ragger.utils import create_currency_config, RAPDU
 from stellar_sdk import StrKey
 
 XLM_CONF = create_currency_config("XLM", "Stellar")
