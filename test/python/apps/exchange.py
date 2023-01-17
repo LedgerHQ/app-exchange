@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from typing import Generator, Optional, Dict
 from enum import IntEnum
+from time import sleep
 
 from ragger.backend.interface import BackendInterface, RAPDU
 from ragger.error import ExceptionRAPDU
@@ -55,19 +56,19 @@ TICKER_TO_PACKED_DERIVATION_PATH = {
 }
 
 
-ERRORS = (
-    ExceptionRAPDU(0x6A80, "INCORRECT_COMMAND_DATA"),
-    ExceptionRAPDU(0x6A81, "DESERIALIZATION_FAILED"),
-    ExceptionRAPDU(0x6A82, "WRONG_TRANSACTION_ID"),
-    ExceptionRAPDU(0x6A83, "INVALID_ADDRESS"),
-    ExceptionRAPDU(0x6A84, "USER_REFUSED"),
-    ExceptionRAPDU(0x6A85, "INTERNAL_ERROR"),
-    ExceptionRAPDU(0x6A86, "WRONG_P1"),
-    ExceptionRAPDU(0x6A87, "WRONG_P2"),
-    ExceptionRAPDU(0x6E00, "CLASS_NOT_SUPPORTED"),
-    ExceptionRAPDU(0x6D00, "INVALID_INSTRUCTION"),
-    ExceptionRAPDU(0x9D1A, "SIGN_VERIFICATION_FAIL")
-)
+class Errors(IntEnum):
+    INCORRECT_COMMAND_DATA  = 0x6A80
+    DESERIALIZATION_FAILED  = 0x6A81
+    WRONG_TRANSACTION_ID    = 0x6A82
+    INVALID_ADDRESS         = 0x6A83
+    USER_REFUSED            = 0x6A84
+    INTERNAL_ERROR          = 0x6A85
+    WRONG_P1                = 0x6A86
+    WRONG_P2                = 0x6A87
+    CLASS_NOT_SUPPORTED     = 0x6E00
+    INVALID_INSTRUCTION     = 0x6D00
+    SIGN_VERIFICATION_FAIL  = 0x9D1A
+
 
 class ExchangeClient:
     CLA = 0xE0
@@ -143,12 +144,12 @@ class ExchangeClient:
         self._transaction = self._subcommand_specs.create_transaction(conf, self.transaction_id)
 
         self._payout_currency = conf[self._subcommand_specs.payout_field]
-        assert self._payout_currency.upper() in TICKER_TO_CONF
-        assert self._payout_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
+        assert self._payout_currency.upper() in TICKER_TO_CONF, f'No conf found for payout ticker {self._payout_currency.upper()}'
+        assert self._payout_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH, f'No conf found for payout ticker {self._payout_currency.upper()}'
         if self._subcommand_specs.refund_field:
             self._refund_currency = conf[self._subcommand_specs.refund_field]
-            assert self._refund_currency.upper() in TICKER_TO_CONF
-            assert self._refund_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH
+            assert self._refund_currency.upper() in TICKER_TO_CONF, f'No conf found for refund ticker {self._refund_currency.upper()}'
+            assert self._refund_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH, f'No conf found for refund ticker {self._refund_currency.upper()}'
 
         payload = prefix_with_len(self._transaction) + prefix_with_len(fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
@@ -159,34 +160,43 @@ class ExchangeClient:
         encoded_transaction = self._subcommand_specs.encode_signature(signed_transaction)
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
 
-    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None, right_clicks: int = 0, accept: bool = True) -> RAPDU:
-        command = Command.CHECK_PAYOUT_ADDRESS
+    @contextmanager
+    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None) -> Generator[None, None, None]:
         payout_currency_conf = TICKER_TO_CONF[self._payout_currency.upper()]
         signed_payout_conf = payout_signer.sign(payout_currency_conf)
         payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
         payload = prefix_with_len(payout_currency_conf) + signed_payout_conf + prefix_with_len(payout_currency_derivation_path)
+        self._premature_error=False
 
         if self._refund_currency:
-            assert refund_signer != None
+            assert refund_signer != None, f'A refund currency is specified but no SigningAuthority as been given to sign it'
             # If refund adress has to be checked, send sync CHECk_PAYOUT_ADDRESS first
-            rapdu = self._exchange(command, payload=payload)
+            rapdu = self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
             if rapdu.status != 0x9000:
-                return rapdu
-            # In this case, send async CHECK_REFUND_ADDRESS after
-            command = Command.CHECK_REFUND_ADDRESS
-            refund_currency_conf = TICKER_TO_CONF[self._refund_currency.upper()]
-            signed_refund_conf = refund_signer.sign(refund_currency_conf)
-            refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
-            payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
+                self._premature_error = True
+                self._check_address_result = rapdu
+                yield rapdu
+            else:
+                refund_currency_conf = TICKER_TO_CONF[self._refund_currency.upper()]
+                signed_refund_conf = refund_signer.sign(refund_currency_conf)
+                refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
+                payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
 
-        with self._exchange_async(command, payload=payload):
-            for _ in range(right_clicks):
-                self._client.right_click()
-            if not accept:
-                self._client.right_click()
-            self._client.both_click()
+                with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
+                    yield response
+        else:
+            with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload) as response:
+                yield response
 
-        return self._client.last_async_response
+    def get_check_address_response(self) -> RAPDU:
+        if self._premature_error:
+            return self._check_address_result
+        else:
+            return self._client.last_async_response
 
     def start_signing_transaction(self) -> RAPDU:
-        return self._exchange(Command.START_SIGNING_TRANSACTION)
+        rapdu = self._exchange(Command.START_SIGNING_TRANSACTION)
+        if rapdu.status == 0x9000:
+            # If the exchange app accepts starting the library app, give it time to actually start
+            sleep(0.5)
+        return rapdu

@@ -1,4 +1,4 @@
-from time import sleep
+from ragger.navigator import NavInsID, NavIns
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
@@ -6,9 +6,11 @@ from .utils import prefix_with_len
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
+from .utils import ROOT_SCREENSHOT_PATH
 
-def test_swap_ltc_to_eth(client, firmware):
-    ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
+
+def test_swap_ltc_to_eth(backend, firmware, navigator, test_name):
+    ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
     partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
 
     ex.init_transaction()
@@ -32,18 +34,15 @@ def test_swap_ltc_to_eth(client, firmware):
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)
 
-    right_clicks = {
-        "nanos": 4,
-        "nanox": 4,
-        "nanosp": 4
-    }
-
-    ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
+    with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
+        navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
+                                                  [NavIns(NavInsID.BOTH_CLICK)],
+                                                  "Accept",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name)
     ex.start_signing_transaction()
 
-    sleep(0.1)
-
-    ltc = LitecoinClient(client)
+    ltc = LitecoinClient(backend)
 
     ltc.get_public_key(bytes.fromhex('058000005480000002800000000000000000000001'))
     ltc.get_coin_version()

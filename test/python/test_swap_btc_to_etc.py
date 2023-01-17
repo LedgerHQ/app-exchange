@@ -1,16 +1,18 @@
-from time import sleep
-
 from ledger_bitcoin import Chain
 from ledger_bitcoin.client import NewClient
+
+from ragger.navigator import NavInsID, NavIns
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
+from .utils import ROOT_SCREENSHOT_PATH
 
-def test_swap_btc_to_etc(client, firmware):
-    ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
+
+def test_swap_btc_to_etc(backend, firmware, navigator, test_name):
+    ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
     partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
 
     ex.init_transaction()
@@ -34,18 +36,15 @@ def test_swap_btc_to_etc(client, firmware):
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)
 
-    right_clicks = {
-        "nanos": 4,
-        "nanox": 4,
-        "nanosp": 4
-    }
-
-    ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
+    with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
+        navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
+                                                  [NavIns(NavInsID.BOTH_CLICK)],
+                                                  "Accept",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name)
     ex.start_signing_transaction()
-
-    sleep(0.1)
 
     # client._client is the Speculos backend within the Ragger client,
     # because BitcoinClient is not Ragger-compatible (yet?)
-    with NewClient(client._client, Chain.MAIN) as btc:
+    with NewClient(backend._client, Chain.MAIN) as btc:
         assert btc.get_master_fingerprint() == bytes.fromhex("f5acc2fd")

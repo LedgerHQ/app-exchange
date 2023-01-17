@@ -10,6 +10,9 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 
 
+ROOT_SCREENSHOT_PATH = Path(__file__).parent.resolve()
+
+
 def app_path_from_app_name(app_dir, app_name: str, device: str) -> Path:
     assert app_dir.is_dir(), f"{app_dir} is not a directory"
     app_path = app_dir / (app_name + "_" + device + ".elf")
