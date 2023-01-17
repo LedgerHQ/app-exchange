@@ -58,6 +58,7 @@ jobs:
 
       - name: Build in ${{ matrix.coin.repo }} coin ${{ matrix.coin.name }} for SDK ${{ matrix.sdk.name }}
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           make clean ; make COIN=${{ matrix.coin.name }} BOLOS_SDK=${{ matrix.sdk.path }} DEBUG=1
           cp bin/app.elf bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
 
@@ -68,7 +69,7 @@ jobs:
           path: ./bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
           if-no-files-found: error
 
-  job_build_exchange:
+  build_exchange_application:
     name: Build Exchange
     runs-on: ubuntu-latest
     strategy:
@@ -81,9 +82,13 @@ jobs:
     steps:
       - name: Clone
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Build Exchange
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          make -C ledger-nanopb/generator/proto
           make clean ; make BOLOS_SDK=${{ matrix.sdk.path }} TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1
           cp bin/app.elf bin/exchange_${{ matrix.sdk.name }}.elf
 
@@ -99,7 +104,7 @@ jobs:
       matrix:
         device: ["Nano S", "Nano X", "Nano SP"]
     needs:
-      - job_build_exchange
+      - build_exchange_application
       - build_sideloaded_applications
     runs-on: ubuntu-latest
 
@@ -132,29 +137,36 @@ jobs:
       - name: Run zemu tests for device ${{ matrix.device }}
         run: cd test && yarn test -t "\[${{ matrix.device }}\]"
 
-  python_tests_nano_S:
-    name: NanoS Ragger tests
+  python_tests:
+    name: Ragger tests
     needs:
-      - job_build_exchange
+      - build_exchange_application
       - build_sideloaded_applications
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        device: ["nanos", "nanox", "nanosp"]
     steps:
       - name: Clone
         uses: actions/checkout@v3
+
       - name: Download all binaries
         uses: actions/download-artifact@v3
+
       - name: Gather artifacts
         run: |
           mkdir test/elfs
           mv *_binaries/*.elf test/elfs
+
       - name: Install APT dependencies
         run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+
       - name: Install Ragger
         run: |
           pip install --extra-index-url https://test.pypi.org/simple/ -U -r test/python/requirements.txt
-      - name: Run tests
-        run: pytest test/python/ -v --tb=short
 
+      - name: Run test for device ${{ matrix.device }}
+        run: pytest test/python/ -v --tb=short --device ${{ matrix.device }}
 
   job_scan_build:
     name: Clang Static Analyzer
@@ -163,8 +175,12 @@ jobs:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Build with Clang Static Analyzer
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          make -C ledger-nanopb/generator/proto
           make clean
           scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default
       - uses: actions/upload-artifact@v3
