@@ -1,7 +1,7 @@
 import pytest
 from time import sleep
 from typing import Optional, Tuple
-from requests.exceptions import ChunkedEncodingError
+from requests.exceptions import ChunkedEncodingError, ConnectionError
 
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
@@ -183,9 +183,9 @@ def test_stellar_swap_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_swap(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises(ChunkedEncodingError) as excinfo:
+    with pytest.raises((ChunkedEncodingError, ConnectionError)) as excinfo:
         performer.perform_stellar_tx(backend)
-    assert "0 bytes read" in str(excinfo.value)
+    assert "0 bytes read" in str(excinfo.value) or "Connection reset by peer" in str(excinfo.value)
 
 
 # Test swap with a malicious Stellar TX with tampered fees
@@ -194,7 +194,7 @@ def test_stellar_swap_wrong_fees(backend, navigator, test_name):
     performer.perform_valid_swap(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, fees=performer.def_fees + 100)
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test swap with a malicious Stellar TX with tampered memo
@@ -203,7 +203,7 @@ def test_stellar_swap_wrong_memo(backend, navigator, test_name):
     performer.perform_valid_swap(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, memo=performer.def_memo + "0")
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test swap with a malicious Stellar TX with tampered dest
@@ -212,7 +212,7 @@ def test_stellar_swap_wrong_dest(backend, navigator, test_name):
     performer.perform_valid_swap(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, destination="GB5ZQJYKSZP3JOMOCWCBI7SPQUBW6ZL3642FUB7IYNAOC2EQMAFXI3P2")
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test swap with a malicious Stellar TX with tampered amount
@@ -221,7 +221,7 @@ def test_stellar_swap_wrong_amount(backend, navigator, test_name):
     performer.perform_valid_swap(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, send_amount=performer.def_send_amount + 351)
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 ##############
@@ -273,9 +273,9 @@ def test_stellar_fund_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_fund(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises(ChunkedEncodingError) as excinfo:
+    with pytest.raises((ChunkedEncodingError, ConnectionError)) as excinfo:
         performer.perform_stellar_tx(backend)
-    assert "0 bytes read" in str(excinfo.value)
+    assert "0 bytes read" in str(excinfo.value) or "Connection reset by peer" in str(excinfo.value)
 
 
 # Test fund with a malicious Stellar TX with tampered fees
@@ -284,7 +284,7 @@ def test_stellar_fund_wrong_fees(backend, navigator, test_name):
     performer.perform_valid_fund(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, fees=performer.def_fees + 100)
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test fund with a malicious Stellar TX with tampered memo
@@ -293,7 +293,7 @@ def test_stellar_fund_wrong_memo(backend, navigator, test_name):
     performer.perform_valid_fund(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, memo=performer.def_memo + "0")
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test fund with a malicious Stellar TX with tampered dest
@@ -302,7 +302,7 @@ def test_stellar_fund_wrong_dest(backend, navigator, test_name):
     performer.perform_valid_fund(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, destination="GB5ZQJYKSZP3JOMOCWCBI7SPQUBW6ZL3642FUB7IYNAOC2EQMAFXI3P2")
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test fund with a malicious Stellar TX with tampered amount
@@ -311,7 +311,7 @@ def test_stellar_fund_wrong_amount(backend, navigator, test_name):
     performer.perform_valid_fund(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, send_amount=performer.def_send_amount + 351)
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 ##############
@@ -364,9 +364,9 @@ def test_stellar_sell_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_sell(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises(ChunkedEncodingError) as excinfo:
+    with pytest.raises((ChunkedEncodingError, ConnectionError)) as excinfo:
         performer.perform_stellar_tx(backend)
-    assert "0 bytes read" in str(excinfo.value)
+    assert "0 bytes read" in str(excinfo.value) or "Connection reset by peer" in str(excinfo.value)
 
 
 # Test sell with a malicious Stellar TX with tampered fees
@@ -375,7 +375,7 @@ def test_stellar_sell_wrong_fees(backend, navigator, test_name):
     performer.perform_valid_sell(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, fees=performer.def_fees + 100)
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test sell with a malicious Stellar TX with tampered memo
@@ -384,7 +384,7 @@ def test_stellar_sell_wrong_memo(backend, navigator, test_name):
     performer.perform_valid_sell(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, memo=performer.def_memo + "0")
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test sell with a malicious Stellar TX with tampered dest
@@ -393,7 +393,7 @@ def test_stellar_sell_wrong_dest(backend, navigator, test_name):
     performer.perform_valid_sell(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, destination="GB5ZQJYKSZP3JOMOCWCBI7SPQUBW6ZL3642FUB7IYNAOC2EQMAFXI3P2")
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test sell with a malicious Stellar TX with tampered amount
@@ -402,4 +402,4 @@ def test_stellar_sell_wrong_amount(backend, navigator, test_name):
     performer.perform_valid_sell(backend, navigator, test_name)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, send_amount=performer.def_send_amount + 351)
-    assert rapdu.status == StellarErrors.SW_DENY
+    assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL

@@ -112,6 +112,7 @@ def _format_memo_text(memo: str) -> bytes:
 
 class StellarErrors(IntEnum):
     SW_DENY = 0x6985
+    SW_SWAP_CHECKING_FAIL = 0xB009
 
 class StellarClient:
     CLA = 0xE0
