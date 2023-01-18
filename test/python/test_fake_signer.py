@@ -1,13 +1,12 @@
-from .apps.exchange import ExchangeClient, Rate, SubCommand
+import pytest
+from cryptography.hazmat.primitives.asymmetric import ec
 from ragger.utils import RAPDU
 from ragger.backend import RaisePolicy
-import pytest
 
-from cryptography.hazmat.primitives.asymmetric import ec
+from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
+
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
-
-SIGN_VERIFICATION_FAIL = 0x9D1A
 
 SWAP_TX_INFOS = {
      "payin_address": b"0xd692Cb1346262F584D17B4B470954501f6715a82",
@@ -69,7 +68,7 @@ class TestFakeSigner:
 
         backend.raise_policy = RaisePolicy.RAISE_NOTHING
         rapdu: RAPDU = ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        assert rapdu.status == SIGN_VERIFICATION_FAIL
+        assert rapdu.status == Errors.SIGN_VERIFICATION_FAIL
 
 
     # CHECK THAT A PARTNER NOT SIGNED BY THE LEDGER KEY IS REFUSED
@@ -85,7 +84,7 @@ class TestFakeSigner:
 
         backend.raise_policy = RaisePolicy.RAISE_NOTHING
         rapdu: RAPDU = ex.check_partner_key(ledger_fake_signer.sign(partner.credentials))
-        assert rapdu.status == SIGN_VERIFICATION_FAIL
+        assert rapdu.status == Errors.SIGN_VERIFICATION_FAIL
 
 
     # CHECK THAT A TRANSACTION INFORMATION NOT SIGNED BY THE PARTNER KEY IS REFUSED
@@ -103,7 +102,7 @@ class TestFakeSigner:
 
         backend.raise_policy = RaisePolicy.RAISE_NOTHING
         rapdu: RAPDU = ex.check_transaction_signature(partner_fake)
-        assert rapdu.status == SIGN_VERIFICATION_FAIL
+        assert rapdu.status == Errors.SIGN_VERIFICATION_FAIL
 
 
     # CHECK THAT A COIN CONFIGURATION NOT SIGNED BY THE LEDGER KEY IS REFUSED
@@ -123,7 +122,7 @@ class TestFakeSigner:
         backend.raise_policy = RaisePolicy.RAISE_NOTHING
         with ex.check_address(payout_signer=ledger_fake_signer):
             pass
-        assert ex.get_check_address_response().status == SIGN_VERIFICATION_FAIL
+        assert ex.get_check_address_response().status == Errors.SIGN_VERIFICATION_FAIL
 
     def test_fake_payout_coin_configuration_swap(self, backend, firmware):
         ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
@@ -139,7 +138,7 @@ class TestFakeSigner:
         backend.raise_policy = RaisePolicy.RAISE_NOTHING
         with ex.check_address(payout_signer=ledger_fake_signer, refund_signer=LEDGER_SIGNER):
             pass
-        assert ex.get_check_address_response().status == SIGN_VERIFICATION_FAIL
+        assert ex.get_check_address_response().status == Errors.SIGN_VERIFICATION_FAIL
 
     def test_fake_refund_coin_configuration_swap(self, backend, firmware):
         ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
@@ -155,5 +154,5 @@ class TestFakeSigner:
         backend.raise_policy = RaisePolicy.RAISE_NOTHING
         with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=ledger_fake_signer):
             pass
-        assert ex.get_check_address_response().status == SIGN_VERIFICATION_FAIL
+        assert ex.get_check_address_response().status == Errors.SIGN_VERIFICATION_FAIL
 
