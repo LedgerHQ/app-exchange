@@ -51,6 +51,7 @@ else
 endif
 
 PROTO_C_FILE = src/proto/protocol.pb.c
+PROTO_PYTHON_FILE = test/python/apps/pb/exchange_pb2.py
 
 ################
 # Default rule #
@@ -153,8 +154,12 @@ PROTO_FILE = src/proto/protocol.proto
 
 # This will generate both the .pb.c and the .pb.h files
 $(PROTO_C_FILE): $(PROTO_FILE)
-	protoc --nanopb_out=. $(PROTO_FILE) --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
+	protoc --nanopb_out=. $^ --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
 
+# This will generate the .py needed for the tests
+$(PROTO_PYTHON_FILE):$(PROTO_FILE)
+	protoc --python_out=. $^
+	mv src/proto/protocol_pb2.py $@
 
 load: all
 	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS)

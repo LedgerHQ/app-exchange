@@ -11,6 +11,7 @@
 #include "printable_amount.h"
 #include "menu.h"
 #include "checks.h"
+#include "pb_structs.h"
 
 int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
@@ -76,8 +77,12 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
 
     static char in_printable_amount[MAX_PRINTABLE_AMOUNT_SIZE];
 
-    pb_bytes_array_16_t *in_amount = (ctx->subcommand == SELL ? &ctx->sell_transaction.in_amount
-                                                              : &ctx->fund_transaction.in_amount);
+    const pb_bytes_array_16_t *in_amount;
+    if (ctx->subcommand == SELL) {
+        in_amount = (pb_bytes_array_16_t *) &ctx->sell_transaction.in_amount;
+    } else {
+        in_amount = (pb_bytes_array_16_t *) &ctx->fund_transaction.in_amount;
+    }
 
     // getting printable amount
     if (get_printable_amount(&ctx->payin_coin_config,

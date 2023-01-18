@@ -62,7 +62,7 @@ jobs:
           cp bin/app.elf bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
 
       - name: Upload ${{ matrix.coin.name }} binaries
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: coins_binaries
           path: ./bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
@@ -80,7 +80,7 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build Exchange
         run: |
@@ -88,7 +88,7 @@ jobs:
           cp bin/app.elf bin/exchange_${{ matrix.sdk.name }}.elf
 
       - name: Upload Exchange binaries
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: exchange_binaries
           path: ./bin/exchange_${{ matrix.sdk.name }}.elf
@@ -105,13 +105,13 @@ jobs:
 
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install APT dependencies
         run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
 
       - name: Install Node
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16
 
@@ -122,7 +122,7 @@ jobs:
         run: cd test && yarn install
 
       - name: Download all binaries
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
 
       - name: Gather artifacts
         run: |
@@ -140,9 +140,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Download all binaries
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
       - name: Gather artifacts
         run: |
           mkdir test/elfs
@@ -153,7 +153,7 @@ jobs:
         run: |
           pip install --extra-index-url https://test.pypi.org/simple/ -U -r test/python/requirements.txt
       - name: Run tests
-        run: pytest test/python/ -v
+        run: pytest test/python/ -v --tb=short
 
 
   job_scan_build:
@@ -162,12 +162,12 @@ jobs:
     container:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build with Clang Static Analyzer
         run: |
           make clean
           scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: scan-build

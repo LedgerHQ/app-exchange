@@ -6,6 +6,7 @@
 #include "swap_errors.h"
 #include "reply_error.h"
 #include "base64.h"
+#include "pb_structs.h"
 
 typedef struct currency_alias_s {
     const char *const foreign_name;
@@ -48,6 +49,7 @@ void set_ledger_currency_name(char *currency, size_t currency_size) {
  * currently restricted to PB_BYTES_ARRAY_T(16) (pb_bytes_array_16_t) for
  * type consistency.
  */
+
 void trim_pb_bytes_array(pb_bytes_array_16_t *transaction) {
     pb_size_t i;
     for (i = 0; i < transaction->size; i++) {
@@ -74,8 +76,8 @@ void normalize_currencies(swap_app_context_t *ctx) {
                              sizeof(ctx->received_transaction.currency_to) /
                                  sizeof(ctx->received_transaction.currency_to[0]));
     // triming leading 0s
-    trim_pb_bytes_array(&(ctx->received_transaction.amount_to_provider));
-    trim_pb_bytes_array(&(ctx->received_transaction.amount_to_wallet));
+    trim_pb_bytes_array((pb_bytes_array_16_t *) &(ctx->received_transaction.amount_to_provider));
+    trim_pb_bytes_array((pb_bytes_array_16_t *) &(ctx->received_transaction.amount_to_wallet));
 
     // strip bcash CashAddr header, and other bicmd->subcommand1 like headers
     for (size_t i = 0; i < sizeof(ctx->received_transaction.payin_address); i++) {
@@ -186,24 +188,40 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
         }
 
         // trim leading 0s
-        trim_pb_bytes_array((cmd->subcommand == SELL ? &(ctx->sell_transaction.in_amount)
-                                                     : &(ctx->fund_transaction.in_amount)));
+        pb_bytes_array_16_t *in_amount;
+        if (ctx->subcommand == SELL) {
+            in_amount = (pb_bytes_array_16_t *) &ctx->sell_transaction.in_amount;
+        } else {
+            in_amount = (pb_bytes_array_16_t *) &ctx->fund_transaction.in_amount;
+        }
+        trim_pb_bytes_array(in_amount);
 
-        pb_byte_t *device_transaction_id_to_check =
-            (cmd->subcommand == SELL ? ctx->sell_transaction.device_transaction_id.bytes
-                                     : ctx->fund_transaction.device_transaction_id.bytes);
+        pb_bytes_array_32_t *tx_id;
+        if (ctx->subcommand == SELL) {
+            tx_id = (pb_bytes_array_32_t *) &ctx->sell_transaction.device_transaction_id;
+            PRINTF("ctx->sell_transaction->device_transaction_id @%p: %.*H\n",
+                   ctx->sell_transaction.device_transaction_id.bytes,
+                   ctx->sell_transaction.device_transaction_id.size,
+                   ctx->sell_transaction.device_transaction_id.bytes);
+        } else {
+            tx_id = (pb_bytes_array_32_t *) &ctx->fund_transaction.device_transaction_id;
+            PRINTF("ctx->fund_transaction->device_transaction_id @%p: %.*H\n",
+                   ctx->fund_transaction.device_transaction_id.bytes,
+                   ctx->fund_transaction.device_transaction_id.size,
+                   ctx->fund_transaction.device_transaction_id.bytes);
+        }
 
-        PRINTF("ctx->%s->device_transaction_id @%p: %.*H\n",
-               (cmd->subcommand == SELL ? "sell_transaction" : "fund_transaction"),
-               device_transaction_id_to_check,
-               32,
-               device_transaction_id_to_check);
-
-        if (memcmp(ctx->device_transaction_id.sell_fund, device_transaction_id_to_check, 32) != 0) {
+        if (tx_id->size != sizeof(ctx->device_transaction_id.sell_fund)) {
+            PRINTF("Error: Device transaction ID (SELL/FUND) size doesn't match\n");
+            PRINTF("tx_id->size = %d\n", tx_id->size);
+            PRINTF("sizeof(ctx->device_transaction_id.sell_fund) = %d\n",
+                   sizeof(ctx->device_transaction_id.sell_fund));
+        }
+        if (memcmp(ctx->device_transaction_id.sell_fund, tx_id->bytes, tx_id->size) != 0) {
             PRINTF("Error: Device transaction IDs (SELL/FUND) don't match\n");
             PRINTF("ctx->device_transaction_id @%p: %.*H\n",
                    ctx->device_transaction_id.sell_fund,
-                   32,
+                   sizeof(ctx->device_transaction_id.sell_fund),
                    ctx->device_transaction_id.sell_fund);
 
             return reply_error(ctx, WRONG_TRANSACTION_ID, send);
