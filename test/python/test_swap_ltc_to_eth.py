@@ -1,8 +1,8 @@
 from ragger.navigator import NavInsID, NavIns
+from ragger.utils import prefix_with_len
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
-from .utils import prefix_with_len
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 

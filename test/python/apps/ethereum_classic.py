@@ -1,4 +1,5 @@
-from ..utils import create_currency_config, pack_derivation_path
+from ragger.utils import create_currency_config
+from ragger.bip import pack_derivation_path
 
 ETC_CONF = create_currency_config("ETC", "Ethereum Classic", ("ETC", 18))
 
