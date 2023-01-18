@@ -1,7 +1,8 @@
 from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
 
-from ..utils import create_currency_config, pack_derivation_path
+from ragger.utils import create_currency_config
+from ragger.bip import pack_derivation_path
 
 ETH_CONF = create_currency_config("ETH", "Ethereum", ("ETH", 18))
 

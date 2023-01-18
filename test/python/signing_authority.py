@@ -4,7 +4,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec, dh
 from cryptography.hazmat.primitives import serialization, hashes
 
-from .utils import prefix_with_len
+from ragger.utils import prefix_with_len
 
 
 # A helper class to simulate a Signing Authority

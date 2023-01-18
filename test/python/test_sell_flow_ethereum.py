@@ -1,14 +1,16 @@
-from time import sleep
+from ragger.navigator import NavInsID, NavIns
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
+from .utils import ROOT_SCREENSHOT_PATH
 
-def test_sell_flow(client, firmware):
-    ex = ExchangeClient(client, Rate.FIXED, SubCommand.SELL)
-    eth = EthereumClient(client)
+
+def test_sell_flow(backend, firmware, navigator, test_name):
+    ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SELL)
+    eth = EthereumClient(backend)
     partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
 
     ex.init_transaction()
@@ -26,16 +28,13 @@ def test_sell_flow(client, firmware):
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction_signature(partner)
-
-    right_clicks = {
-        "nanos": 5,
-        "nanox": 5,
-        "nanosp": 5
-    }
-    ex.check_address(LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
+    with ex.check_address(LEDGER_SIGNER):
+        navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
+                                                  [NavIns(NavInsID.BOTH_CLICK)],
+                                                  "Accept",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name)
     ex.start_signing_transaction()
-
-    sleep(0.1)
 
     assert eth.get_public_key().status == 0x9000
     # The original bug was that the Ethereum app was returning just after

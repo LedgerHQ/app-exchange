@@ -1,18 +1,19 @@
-from time import sleep
-
 import pytest
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
+from ragger.navigator import NavInsID, NavIns
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient, ERR_SILENT_MODE_CHECK_FAILED
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
+from .utils import ROOT_SCREENSHOT_PATH
 
-def prepare_exchange(client, firmware, amount: str):
-    ex = ExchangeClient(client, Rate.FIXED, SubCommand.SWAP)
+
+def prepare_exchange(backend, firmware, navigator, test_name, amount: str):
+    ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
     partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
 
     ex.init_transaction()
@@ -35,33 +36,31 @@ def prepare_exchange(client, firmware, amount: str):
 
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)
-
-    right_clicks = {
-        "nanos": 4,
-        "nanox": 4,
-        "nanosp": 4
-    }
-
-    ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER, right_clicks=right_clicks[firmware.device])
+    with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
+        navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
+                                                  [NavIns(NavInsID.BOTH_CLICK)],
+                                                  "Accept",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name)
     ex.start_signing_transaction()
-    sleep(0.1)
 
-def test_swap_eth_to_btc_wrong_amount(client, firmware):
+
+def test_swap_eth_to_btc_wrong_amount(backend, firmware, navigator, test_name):
     amount       = '013fc3a717fb5000'
     wrong_amount = '013fc3a6be932100'
-    prepare_exchange(client, firmware, amount)
-    eth = EthereumClient(client, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
+    prepare_exchange(backend, firmware, navigator, test_name, amount)
+    eth = EthereumClient(backend, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
     try:
-        client.raise_policy = RaisePolicy.RAISE_ALL
+        backend.raise_policy = RaisePolicy.RAISE_ALL
         eth.sign(extra_payload=bytes.fromhex("ec09850684ee180082520894d692cb1346262f584d17b4b470954501f6715a8288" + wrong_amount + "80018080"))
     except ExceptionRAPDU as rapdu:
         assert rapdu.status == ERR_SILENT_MODE_CHECK_FAILED.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SILENT_MODE_CHECK_FAILED.status)}"
 
 
-def test_swap_eth_to_btc_ok(client, firmware):
+def test_swap_eth_to_btc_ok(backend, firmware, navigator, test_name):
     amount = '013fc3a717fb5000'
-    prepare_exchange(client, firmware, amount)
-    eth = EthereumClient(client, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
+    prepare_exchange(backend, firmware, navigator, test_name, amount)
+    eth = EthereumClient(backend, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
     eth.sign(extra_payload=bytes.fromhex("ec09850684ee180082520894d692cb1346262f584d17b4b470954501f6715a8288" + amount + "80018080"))

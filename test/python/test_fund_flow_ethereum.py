@@ -1,14 +1,15 @@
-from time import sleep
+from ragger.navigator import NavInsID, NavIns
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
+from .utils import ROOT_SCREENSHOT_PATH
 
-def test_fund_flow_ethereum_max_partner_name_length(client, firmware):
-    ex = ExchangeClient(client, Rate.FIXED, SubCommand.FUND)
-    eth = EthereumClient(client)
+
+def test_fund_flow_ethereum_max_partner_name_length(backend, firmware, navigator, test_name):
+    ex = ExchangeClient(backend, Rate.FIXED, SubCommand.FUND)
     partner = SigningAuthority(curve=ex.partner_curve, name="PARTNER_NAME_12")
 
     ex.init_transaction()
@@ -25,11 +26,15 @@ def test_fund_flow_ethereum_max_partner_name_length(client, firmware):
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction_signature(partner)
-    ex.check_address(LEDGER_SIGNER, right_clicks=5)
+    with ex.check_address(LEDGER_SIGNER):
+        navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
+                                                  [NavIns(NavInsID.BOTH_CLICK)],
+                                                  "Accept",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name)
     ex.start_signing_transaction()
 
-    sleep(0.1)
-
+    eth = EthereumClient(backend)
     assert eth.get_public_key().status == 0x9000
     # The original bug was that the Ethereum app was returning just after
     # launch, and the first Ethereum:get_public_key call was in fact catched
@@ -40,9 +45,8 @@ def test_fund_flow_ethereum_max_partner_name_length(client, firmware):
     assert eth.sign().status == 0x9000
 
 
-def test_fund_flow_ethereum_min_partner_name_length(client, firmware):
-    ex = ExchangeClient(client, Rate.FIXED, SubCommand.FUND)
-    eth = EthereumClient(client)
+def test_fund_flow_ethereum_min_partner_name_length(backend, firmware, navigator, test_name):
+    ex = ExchangeClient(backend, Rate.FIXED, SubCommand.FUND)
     partner = SigningAuthority(curve=ex.partner_curve, name="PAR")
 
     ex.init_transaction()
@@ -59,11 +63,15 @@ def test_fund_flow_ethereum_min_partner_name_length(client, firmware):
 
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction_signature(partner)
-    ex.check_address(LEDGER_SIGNER, right_clicks=5)
+    with ex.check_address(LEDGER_SIGNER):
+        navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
+                                                  [NavIns(NavInsID.BOTH_CLICK)],
+                                                  "Accept",
+                                                  ROOT_SCREENSHOT_PATH,
+                                                  test_name)
     ex.start_signing_transaction()
 
-    sleep(0.1)
-
+    eth = EthereumClient(backend)
     assert eth.get_public_key().status == 0x9000
     # The original bug was that the Ethereum app was returning just after
     # launch, and the first Ethereum:get_public_key call was in fact catched

@@ -45,3 +45,5 @@ __pycache__
 .egg
 .pyc
 *~
+
+snapshots-tmp/
