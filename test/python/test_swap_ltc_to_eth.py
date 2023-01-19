@@ -1,4 +1,4 @@
-from ragger.navigator import NavInsID, NavIns
+from ragger.navigator import NavInsID
 from ragger.utils import prefix_with_len
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
@@ -35,8 +35,8 @@ def test_swap_ltc_to_eth(backend, firmware, navigator, test_name):
     ex.check_transaction_signature(partner)
 
     with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
-                                                  [NavIns(NavInsID.BOTH_CLICK)],
+        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                  [NavInsID.BOTH_CLICK],
                                                   "Accept",
                                                   ROOT_SCREENSHOT_PATH,
                                                   test_name)
