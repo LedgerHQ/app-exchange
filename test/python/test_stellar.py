@@ -7,7 +7,7 @@ from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
 from ragger.bip import pack_derivation_path
-from ragger.navigator import NavInsID, NavIns
+from ragger.navigator import NavInsID
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
 from .apps.stellar import Network, StellarClient, StellarErrors
@@ -119,8 +119,8 @@ class StellarValidTxPerformer:
         ex.process_transaction(tx_infos, fees_bytes)
         ex.check_transaction_signature(partner)
         with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
-            navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
-                                                      [NavIns(NavInsID.BOTH_CLICK)],
+            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                      [NavInsID.BOTH_CLICK],
                                                       "Accept",
                                                       ROOT_SCREENSHOT_PATH,
                                                       test_name)

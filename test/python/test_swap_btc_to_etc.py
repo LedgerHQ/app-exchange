@@ -1,7 +1,7 @@
 from ledger_bitcoin import Chain
 from ledger_bitcoin.client import NewClient
 
-from ragger.navigator import NavInsID, NavIns
+from ragger.navigator import NavInsID
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
@@ -37,8 +37,8 @@ def test_swap_btc_to_etc(backend, firmware, navigator, test_name):
     ex.check_transaction_signature(partner)
 
     with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
-                                                  [NavIns(NavInsID.BOTH_CLICK)],
+        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                  [NavInsID.BOTH_CLICK],
                                                   "Accept",
                                                   ROOT_SCREENSHOT_PATH,
                                                   test_name)

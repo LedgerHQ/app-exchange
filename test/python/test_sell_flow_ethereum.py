@@ -1,4 +1,4 @@
-from ragger.navigator import NavInsID, NavIns
+from ragger.navigator import NavInsID
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
@@ -29,8 +29,8 @@ def test_sell_flow(backend, firmware, navigator, test_name):
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction_signature(partner)
     with ex.check_address(LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavIns(NavInsID.RIGHT_CLICK),
-                                                  [NavIns(NavInsID.BOTH_CLICK)],
+        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                  [NavInsID.BOTH_CLICK],
                                                   "Accept",
                                                   ROOT_SCREENSHOT_PATH,
                                                   test_name)
