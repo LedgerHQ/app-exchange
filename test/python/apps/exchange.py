@@ -18,7 +18,6 @@ from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
 from .solana_utils import SOL_PACKED_DERIVATION_PATH, SOL_CONF
 
->>>>>>> Add Solana E2E exchange tests
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
 
 

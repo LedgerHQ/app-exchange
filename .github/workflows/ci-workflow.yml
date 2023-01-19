@@ -44,6 +44,9 @@ jobs:
         - name: bitcoin
           repo: app-bitcoin-new
           branch: develop
+        - name: solana
+          repo: app-solana
+          branch: develop
 
     runs-on: ubuntu-latest
     container:
