@@ -46,7 +46,7 @@ jobs:
           branch: develop
         - name: solana
           repo: app-solana
-          branch: develop
+          branch: wip/fbeutin/swap_rebase_post_refacto
 
     runs-on: ubuntu-latest
     container:
