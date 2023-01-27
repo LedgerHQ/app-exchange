@@ -1,4 +1,4 @@
-from ragger.utils import RAPDU, prefix_with_len
+from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.backend import RaisePolicy
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, TICKER_TO_CONF, TICKER_TO_PACKED_DERIVATION_PATH, Command
@@ -67,7 +67,7 @@ class TestRobustnessCHECK_ADDRESS:
         ex.process_transaction(self.tx_infos, self.fees_bytes)
         ex.check_transaction_signature(partner)
 
-    def test_robustness_check_check_payout_address(self, backend):
+    def test_robustness_check_payout_address(self, backend):
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
         partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
 
@@ -91,10 +91,9 @@ class TestRobustnessCHECK_ADDRESS:
             rapdu = ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
             assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
 
-    def test_robustness_check_check_refund_address(self, backend):
+    def test_robustness_check_refund_address(self, backend):
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
         partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
-        backend.raise_policy = RaisePolicy.RAISE_NOTHING
 
         payloads_to_test = (
             # Nothing
@@ -119,3 +118,28 @@ class TestRobustnessCHECK_ADDRESS:
             backend.raise_policy = RaisePolicy.RAISE_NOTHING
             rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=refund_payload)
             assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
+
+    def test_robustness_coin_configuration(self, backend):
+        ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
+        partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+        currency_conf_to_test = (
+            # Ticker missing
+            create_currency_config("", "ethereum"),
+            # Ticker too small
+            create_currency_config("A", "ethereum"),
+            # Ticker too long
+            create_currency_config("abcdefghij", "ethereum"),
+            # Appname missing
+            create_currency_config("ETH", ""),
+            # Appname too small
+            create_currency_config("ETH", "ab"),
+            # Appname too small
+            create_currency_config("ETH", "abcdefghijklmnopqrstuvwxyz0123456"),
+        )
+
+        for conf in currency_conf_to_test:
+            backend.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
+            self._restart_test(backend, ex, partner)
+            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(self.payout_currency_derivation_path)
+            backend.raise_policy = RaisePolicy.RAISE_NOTHING
+            ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
