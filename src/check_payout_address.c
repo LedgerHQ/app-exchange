@@ -61,7 +61,9 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     if (strlen(ctx->received_transaction.currency_to) != ticker.size ||
         strncmp(ctx->received_transaction.currency_to, (const char *) ticker.bytes, ticker.size) !=
             0) {
-        PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
+        PRINTF("Error: Payout ticker '%s' doesn't match configuration ticker '%s'\n",
+               ticker.bytes,
+               ctx->received_transaction.currency_to);
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
