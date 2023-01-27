@@ -2,6 +2,7 @@
 #define _SWAP_APP_CONTEXT_H_
 
 #include <swap_lib_calls.h>
+#include <os_app.h>  // includes BOLOS_APPNAME_MAX_SIZE_B which is 32
 
 #include "states.h"
 #include "proto/protocol.pb.h"
@@ -51,7 +52,7 @@ typedef struct swap_app_context_s {
     cx_ecfp_256_public_key_t ledger_public_key;
 
     buf_t payin_coin_config;  // serialized coin configuration
-    char payin_binary_name[16];
+    char payin_binary_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
 
     char printable_get_amount[MAX_PRINTABLE_AMOUNT_SIZE];
 } swap_app_context_t;
