@@ -19,7 +19,7 @@ SIDELOADED_APPS = {
         "bitcoin_legacy": "Bitcoin Legacy",
         "ethereum": "Ethereum",
         "ethereum_classic": "Ethereum Classic",
-        "tezos": "Tezos",
+        "tezos": "Tezos Wallet",
         "xrp": "RXP",
         "litecoin": "Litecoin",
         "stellar": "Stellar"
