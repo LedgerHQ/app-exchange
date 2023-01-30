@@ -137,7 +137,7 @@ def create_backend(backend_name: str, firmware: Firmware, display: bool, log_apd
 # If your tests needs to be run on independent Speculos instances (in case they affect
 # settings for example), then you should change this fixture scope and choose between
 # function, class, module or session.
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="function")
 def backend(backend_name, firmware, display, log_apdu_file):
     with create_backend(backend_name, firmware, display, log_apdu_file) as b:
         yield b
