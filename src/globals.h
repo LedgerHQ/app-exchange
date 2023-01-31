@@ -1,5 +1,4 @@
-#ifndef _GLOBALS_H_
-#define _GLOBALS_H_
+#pragma once
 
 #include "os.h"
 #include "os_io_seproxyhal.h"
@@ -11,7 +10,9 @@
 
 #define CURVE_SIZE_BYTES         32U
 #define UNCOMPRESSED_KEY_LENGTH  65U
-#define MAX_DER_SIGNATURE_LENGTH 72U
 #define MIN_DER_SIGNATURE_LENGTH 67U
+#define MAX_DER_SIGNATURE_LENGTH 72U
 
-#endif
+#define TICKER_MIN_SIZE_B  2
+#define TICKER_MAX_SIZE_B  9
+#define APPNAME_MIN_SIZE_B 3

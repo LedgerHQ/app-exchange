@@ -10,7 +10,6 @@
 #include "parse_coin_config.h"
 #include "printable_amount.h"
 #include "menu.h"
-#include "checks.h"
 
 int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
@@ -46,14 +45,6 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     if (parse_coin_config(&config, &ticker, &application_name, &config) == 0) {
         PRINTF("Error: Can't parse payout coin config command\n");
 
-        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
-    }
-
-    if (!check_ticker_length(&ticker)) {
-        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
-    }
-
-    if (!check_app_name_length(&application_name)) {
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 

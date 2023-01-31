@@ -2,6 +2,7 @@
 #include <os.h>
 
 #include "parse_coin_config.h"
+#include "checks.h"
 
 typedef struct app_name_alias_s {
     const char *const foreign_name;
@@ -24,39 +25,42 @@ const app_name_alias_t appnames_aliases[] = {
  *  - A the application name, La its size
  *  - C the configuration, Lc its size
  */
-int parse_coin_config(const buf_t *const buffer,
+int parse_coin_config(const buf_t *const orig_buffer,
                       buf_t *ticker,
                       buf_t *application_name,
                       buf_t *configuration) {
-    // This function can be called with buffer == configuration, so making a copy
-    const buf_t buffer_copy = *buffer;
+    size_t total_read = 0;
+    // This function can be called with orig_buffer == configuration, so making a copy
+    const buf_t input = *orig_buffer;
 
-    ticker->bytes = 0;
-    ticker->size = 0;
-    application_name->bytes = 0;
-    application_name->size = 0;
-    configuration->bytes = 0;
-    configuration->size = 0;
-    // ticker
-    if (buffer_copy.size < 3) return 0;
-    ticker->size = buffer_copy.bytes[0];
-    if (buffer_copy.size < 3 + ticker->size) return 0;
-    if (ticker->size > 0) ticker->bytes = buffer_copy.bytes + 1;
-    // application_name
-    application_name->size = buffer_copy.bytes[1 + ticker->size];
-    if (buffer_copy.size < 3 + ticker->size + application_name->size ||
-        application_name->size == 0) {
+    // Read ticker
+    if (!parse_to_sized_buffer(input.bytes, input.size, ticker, &total_read)) {
+        PRINTF("Cannot read the ticker\n");
         return 0;
     }
-    application_name->bytes = buffer_copy.bytes + 1 + ticker->size + 1;
-    // configuration
-    configuration->size = buffer_copy.bytes[1 + ticker->size + 1 + application_name->size];
-    if (buffer_copy.size != 3 + ticker->size + application_name->size + configuration->size) {
+    if (!check_ticker_length(ticker)) {
         return 0;
     }
-    if (configuration->size > 0) {
-        configuration->bytes =
-            buffer_copy.bytes + 1 + ticker->size + 1 + application_name->size + 1;
+
+    // Read application_name
+    if (!parse_to_sized_buffer(input.bytes, input.size, application_name, &total_read)) {
+        PRINTF("Cannot read the application_name\n");
+        return 0;
+    }
+    if (!check_app_name_length(application_name)) {
+        return 0;
+    }
+
+    // Read configuration
+    if (!parse_to_sized_buffer(input.bytes, input.size, configuration, &total_read)) {
+        PRINTF("Cannot read the configuration\n");
+        return 0;
+    }
+
+    // Check that there is nothing else to read
+    if (input.size != total_read) {
+        PRINTF("Bytes to read: %d, bytes read: %d\n", input.size, total_read);
+        return 0;
     }
 
     // Update the application name to match Ledger's naming.
