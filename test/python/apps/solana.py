@@ -134,12 +134,12 @@ class SolanaClient:
         # Send all chunks with P2_EXTEND except for the first chunk
         if len(message_splited_prefixed) > 1:
             final_p2 |= P2_EXTEND
-            self.send_first_message_batch(message_splited_prefixed[:-1], P1_NON_CONFIRM)
+            self.send_first_message_batch(message_splited_prefixed[:-1], P1_CONFIRM)
         else:
             final_p2 = 0
 
         return self._client.exchange(CLA,
                                      INS.INS_SIGN_MESSAGE,
-                                     P1_NON_CONFIRM,
+                                     P1_CONFIRM,
                                      final_p2,
                                      message_splited_prefixed[-1])
