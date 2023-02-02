@@ -4,7 +4,7 @@
 
 // Small wrapper around parse_to_sized_buffer as the DER signature encompasses the
 // first special byte and the size byte
-static bool parse_der_signature(uint8_t *in, size_t in_size, buf_t *der, size_t *offset) {
+static bool parse_der_signature(uint8_t *in, uint16_t in_size, buf_t *der, uint16_t *offset) {
     // Ignore first bytes 0x30
     ++*offset;
 
@@ -31,7 +31,7 @@ int parse_check_address_message(const command_t *cmd,
                                 buf_t *config,
                                 buf_t *der,
                                 buf_t *address_parameters) {
-    size_t read = 0;
+    uint16_t read = 0;
 
     // Read currency configuration
     if (!parse_to_sized_buffer(cmd->data.bytes, cmd->data.size, config, &read)) {
