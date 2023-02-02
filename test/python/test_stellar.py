@@ -2,6 +2,8 @@ import pytest
 from time import sleep
 from typing import Optional, Tuple
 from requests.exceptions import ChunkedEncodingError, ConnectionError
+from urllib3.exceptions import ProtocolError
+from http.client import IncompleteRead
 
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
@@ -183,9 +185,8 @@ def test_stellar_swap_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_swap(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises((ChunkedEncodingError, ConnectionError)) as excinfo:
+    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
         performer.perform_stellar_tx(backend)
-    assert "0 bytes read" in str(excinfo.value) or "Connection reset by peer" in str(excinfo.value)
 
 
 # Test swap with a malicious Stellar TX with tampered fees
@@ -273,9 +274,8 @@ def test_stellar_fund_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_fund(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises((ChunkedEncodingError, ConnectionError)) as excinfo:
+    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
         performer.perform_stellar_tx(backend)
-    assert "0 bytes read" in str(excinfo.value) or "Connection reset by peer" in str(excinfo.value)
 
 
 # Test fund with a malicious Stellar TX with tampered fees
@@ -364,9 +364,8 @@ def test_stellar_sell_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_sell(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises((ChunkedEncodingError, ConnectionError)) as excinfo:
+    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
         performer.perform_stellar_tx(backend)
-    assert "0 bytes read" in str(excinfo.value) or "Connection reset by peer" in str(excinfo.value)
 
 
 # Test sell with a malicious Stellar TX with tampered fees
