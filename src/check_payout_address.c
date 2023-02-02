@@ -13,6 +13,7 @@
 
 int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
+    static buf_t sub_config;
     static buf_t der;
     static buf_t address_parameters;
     static buf_t ticker;
@@ -42,9 +43,8 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
         return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
     }
 
-    if (parse_coin_config(&config, &ticker, &application_name, &config) == 0) {
-        PRINTF("Error: Can't parse payout coin config command\n");
-
+    if (parse_coin_config(&config, &ticker, &application_name, &sub_config) == 0) {
+        PRINTF("Error: Can't parse payout coin sub_config\n");
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
@@ -57,7 +57,7 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    PRINTF("Coin config parsed OK\n");
+    PRINTF("Coin config and sub_config parsed OK\n");
 
     // creating 0-terminated application name
     memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
@@ -66,7 +66,7 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
     // check address
-    if (check_address(&config,
+    if (check_address(&sub_config,
                       &address_parameters,
                       ctx->payin_binary_name,
                       ctx->received_transaction.payout_address,
@@ -79,7 +79,7 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     PRINTF("Payout address is OK\n");
 
     // getting printable amount
-    if (get_printable_amount(&config,
+    if (get_printable_amount(&sub_config,
                              ctx->payin_binary_name,
                              ctx->received_transaction.amount_to_wallet.bytes,
                              ctx->received_transaction.amount_to_wallet.size,

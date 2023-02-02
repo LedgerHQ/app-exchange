@@ -22,6 +22,8 @@ bool parse_to_sized_buffer(uint8_t *in_buffer, uint16_t in_size, buf_t *out, uin
     // Read the data if there is any
     if (out->size != 0) {
         out->bytes = &(in_buffer[*offset]);
+    } else {
+        out->bytes = NULL;
     }
     *offset += out->size;
 
