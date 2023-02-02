@@ -195,13 +195,11 @@ class ExchangeClient:
             with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload) as response:
                 yield response
 
-
     def get_check_address_response(self) -> RAPDU:
         if self._premature_error:
             return self._check_address_result
         else:
             return self._client.last_async_response
-
 
     def start_signing_transaction(self) -> RAPDU:
         rapdu = self._exchange(Command.START_SIGNING_TRANSACTION)
