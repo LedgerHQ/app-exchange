@@ -86,7 +86,9 @@ def test_solana_swap_sender_ok(backend, navigator, test_name):
     message: bytes = Message([instruction]).serialize()
 
     sol = SolanaClient(backend)
-    signature: bytes = sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message).data
+    with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
+        pass
+    signature: bytes = sol.get_async_response().data
     verify_signature(SOL.OWNED_PUBLIC_KEY, message, signature)
 
 def test_solana_swap_sender_double_sign(backend, navigator, test_name):
@@ -96,12 +98,15 @@ def test_solana_swap_sender_double_sign(backend, navigator, test_name):
     message: bytes = Message([instruction]).serialize()
 
     sol = SolanaClient(backend)
-    signature: bytes = sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message).data
+    with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
+        pass
+    signature: bytes = sol.get_async_response().data
     verify_signature(SOL.OWNED_PUBLIC_KEY, message, signature)
 
-    with pytest.raises(Exception) as e_info:
+    with pytest.raises(Exception):
         # App should have quit
-        sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message)
+        with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
+            pass
 
 # Validate canceled ETH <-> SOL exchanges
 
@@ -228,7 +233,9 @@ def test_solana_swap_sender_wrong_amount(backend, navigator, test_name):
 
     sol = SolanaClient(backend)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    rapdu: RAPDU = sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message)
+    with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
+        pass
+    rapdu: RAPDU = sol.get_async_response()
     print("Received rapdu :", rapdu)
     assert rapdu.status == ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
 
@@ -241,6 +248,8 @@ def test_solana_swap_sender_wrong_destination(backend, navigator, test_name):
 
     sol = SolanaClient(backend)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    rapdu: RAPDU = sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message)
+    with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
+        pass
+    rapdu: RAPDU = sol.get_async_response()
     print("Received rapdu :", rapdu)
     assert rapdu.status == ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
