@@ -73,7 +73,7 @@ def _extend_and_serialize_multiple_derivations_paths(derivations_paths: List[byt
 class SolanaClient:
     client: BackendInterface
 
-    def __init__(self, client):
+    def __init__(self, client: BackendInterface):
         self._client = client
 
 
@@ -125,21 +125,3 @@ class SolanaClient:
 
     def get_async_response(self) -> RAPDU:
         return self._client.last_async_response
-
-
-    def send_blind_sign_message(self, derivation_path : bytes, message: bytes) -> RAPDU:
-        message_splited_prefixed = self.split_and_prefix_message(derivation_path, message)
-
-        # Send all chunks with P2_MORE except for the last chunk
-        # Send all chunks with P2_EXTEND except for the first chunk
-        if len(message_splited_prefixed) > 1:
-            final_p2 |= P2_EXTEND
-            self.send_first_message_batch(message_splited_prefixed[:-1], P1_CONFIRM)
-        else:
-            final_p2 = 0
-
-        return self._client.exchange(CLA,
-                                     INS.INS_SIGN_MESSAGE,
-                                     P1_CONFIRM,
-                                     final_p2,
-                                     message_splited_prefixed[-1])

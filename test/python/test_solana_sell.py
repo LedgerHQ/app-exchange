@@ -50,7 +50,10 @@ def test_solana_sell_ok(backend, navigator, test_name):
     message: bytes = Message([instruction]).serialize()
 
     sol = SolanaClient(backend)
-    signature: bytes = sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message).data
+    with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
+        # Instant rapdu expected
+        pass
+    signature: bytes = sol.get_async_response().data
     verify_signature(SOL.OWNED_PUBLIC_KEY, message, signature)
 
 
@@ -62,7 +65,10 @@ def test_solana_sell_wrong_amount(backend, navigator, test_name):
 
     sol = SolanaClient(backend)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    rapdu: RAPDU = sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message)
+    with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
+        # Instant rapdu expected
+        pass
+    rapdu: RAPDU = sol.get_async_response()
     print("Received rapdu :", rapdu)
     assert rapdu.status == ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
 
@@ -75,7 +81,10 @@ def test_solana_sell_wrong_destination(backend, navigator, test_name):
 
     sol = SolanaClient(backend)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    rapdu: RAPDU = sol.send_blind_sign_message(SOL_PACKED_DERIVATION_PATH, message)
+    with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
+        # Instant rapdu expected
+        pass
+    rapdu: RAPDU = sol.get_async_response()
     print("Received rapdu :", rapdu)
     assert rapdu.status == ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
 
