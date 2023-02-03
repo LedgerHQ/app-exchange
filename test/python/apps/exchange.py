@@ -16,7 +16,7 @@ from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
-from .polkadot import DOT_PACKED_DERIVATION_PATH, DOT_CONF, DOT_CONF_DER_SIGNATURE
+from .polkadot import DOT_PACKED_DERIVATION_PATH, DOT_CONF
 from .tezos import XTZ_PACKED_DERIVATION_PATH, XTZ_CONF
 from .ripple import XRP_PACKED_DERIVATION_PATH, XRP_CONF
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
@@ -173,14 +173,12 @@ class ExchangeClient:
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
     
     @contextmanager
-    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None, right_clicks: int = 0, accept: bool = True) -> RAPDU:
-        command = Command.CHECK_PAYOUT_ADDRESS
+    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None) -> RAPDU:
         payout_currency_conf = TICKER_TO_CONF[self._payout_currency.upper()]
         signed_payout_conf = payout_signer.sign(payout_currency_conf)
         payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
         payload = prefix_with_len(payout_currency_conf) + signed_payout_conf + prefix_with_len(payout_currency_derivation_path)
         self._premature_error=False
-        snap = f"test/python/snapshots/exchange/{self._client._firmware.device}/00000.png"
 
         if self._refund_currency:
             assert refund_signer != None, f'A refund currency is specified but no SigningAuthority as been given to sign it'
@@ -195,18 +193,8 @@ class ExchangeClient:
                 signed_refund_conf = refund_signer.sign(refund_currency_conf)
                 refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
                 payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
-
-                with self._exchange_async(command, payload=payload):
-                    for _ in range(right_clicks):
-                        self._client.right_click()
-                    if not accept:
-                        snap = f"test/python/snapshots/exchange/{self._client._firmware.device}/00001.png"
-                        self._client.right_click()
-                    if(compare_screenshot_with_timeout(self._client._client,snap,timeout_s)):
-                        self._client.both_click()
-
-                #with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
-                #    yield response
+                with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
+                   yield response
         else:
             with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload) as response:
                 yield response

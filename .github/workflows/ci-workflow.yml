@@ -50,48 +50,48 @@ jobs:
           name: nanosp
         coin:
         - name: stellar
-          repo: app-stellar
+          repo: LedgerHQ/app-stellar
           branch: develop
           extra_build_step:
           bin_path: bin
         - name: tezos
-          repo: app-tezos
+          repo: LedgerHQ/app-tezos
           branch: develop
           extra_build_step:
           bin_path: bin
         - name: xrp
-          repo: app-xrp
+          repo: LedgerHQ/app-xrp
           branch: develop
           extra_build_step:
           bin_path: bin
         - name: ethereum
-          repo: app-ethereum
+          repo: LedgerHQ/app-ethereum
           branch: develop
           extra_build_step:
           bin_path: bin
         - name: ethereum_classic
-          repo: app-ethereum
+          repo: LedgerHQ/app-ethereum
           branch: develop
           extra_build_step:
           bin_path: bin
         - name: litecoin
-          repo: app-bitcoin
+          repo: LedgerHQ/app-bitcoin
           branch: master
           extra_build_step:
           bin_path: bin
         - name: bitcoin_legacy
-          repo: app-bitcoin
+          repo: LedgerHQ/app-bitcoin
           branch: master
           extra_build_step:
           bin_path: bin
         - name: bitcoin
-          repo: app-bitcoin-new
+          repo: LedgerHQ/app-bitcoin-new
           branch: develop
           extra_build_step:
           bin_path: bin
         - name: polkadot
-          repo: app-polkadot
-          branch: add-swap-feature
+          repo: Zondax/ledger-polkadot
+          branch: swap_feature
           bin_path: app/bin
           extra_build_step: git config --global --add safe.directory '*' && git submodule update --init --recursive && APP_COIN=DOT
 
@@ -104,7 +104,7 @@ jobs:
       - name: Clone ${{ matrix.coin.repo }} for coin ${{ matrix.coin.name }}
         uses: actions/checkout@v3
         with:
-          repository: LedgerHQ/${{ matrix.coin.repo }}
+          repository: ${{ matrix.coin.repo }}
           ref: ${{ matrix.coin.branch }}
 
       - name: Build in ${{ matrix.coin.repo }} coin ${{ matrix.coin.name }} for SDK ${{ matrix.sdk.name }}
@@ -119,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: coins_binaries
-          path: ./bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
+          path: ./${{ matrix.coin.bin_path }}/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
           if-no-files-found: error
 
   build_exchange_application:
