@@ -29,7 +29,7 @@ int parse_coin_config(const buf_t *const orig_buffer,
                       buf_t *ticker,
                       buf_t *application_name,
                       buf_t *configuration) {
-    size_t total_read = 0;
+    uint16_t total_read = 0;
     // This function can be called with orig_buffer == configuration, so making a copy
     const buf_t input = *orig_buffer;
 

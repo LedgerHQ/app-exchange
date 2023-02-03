@@ -5,7 +5,7 @@
 // param[in]        <in_size>   the total size of the buffer to parse
 // param[out]       <out>       the buf_t read from in_buffer at offset, can by 0 sized
 // param[in/out]    <offset>    the current offset at wich we are in <in_buffer>
-bool parse_to_sized_buffer(uint8_t *in_buffer, size_t in_size, buf_t *out, size_t *offset) {
+bool parse_to_sized_buffer(uint8_t *in_buffer, uint16_t in_size, buf_t *out, uint16_t *offset) {
     if (*offset + 1 > in_size) {
         // We can't even read the size
         return false;

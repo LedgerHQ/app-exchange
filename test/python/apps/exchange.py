@@ -201,5 +201,5 @@ class ExchangeClient:
         rapdu = self._exchange(Command.START_SIGNING_TRANSACTION)
         if rapdu.status == 0x9000:
             # If the exchange app accepts starting the library app, give it time to actually start
-            sleep(0.5)
+            sleep(1)
         return rapdu
