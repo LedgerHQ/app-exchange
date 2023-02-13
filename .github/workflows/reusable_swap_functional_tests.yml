@@ -1,0 +1,210 @@
+name: Reusable swap functional tests
+
+on:
+  workflow_call:
+    inputs:
+      branch_for_exchange:
+        required: false
+        default: "develop"
+        type: string
+      branch_for_stellar:
+        required: false
+        default: "develop"
+        type: string
+      branch_for_tezos:
+        required: false
+        default: "develop"
+        type: string
+      branch_for_xrp:
+        required: false
+        default: "develop"
+        type: string
+      branch_for_ethereum:
+        required: false
+        default: "develop"
+        type: string
+      branch_for_ethereum_classic:
+        required: false
+        default: "develop"
+        type: string
+      branch_for_litecoin:
+        required: false
+        default: "master"
+        type: string
+      branch_for_bitcoin_legacy:
+        required: false
+        default: "master"
+        type: string
+      branch_for_bitcoin:
+        required: false
+        default: "develop"
+        type: string
+
+jobs:
+  build_sideloaded_applications:
+    strategy:
+      matrix:
+        sdk:
+        - path: $NANOS_SDK
+          name: nanos
+        - path: $NANOX_SDK
+          name: nanox
+        - path: $NANOSP_SDK
+          name: nanosp
+        coin:
+        - name: stellar
+          repo: app-stellar
+          branch: ${{ inputs.branch_for_stellar }}
+        - name: tezos
+          repo: app-tezos
+          branch: ${{ inputs.branch_for_tezos }}
+        - name: xrp
+          repo: app-xrp
+          branch: ${{ inputs.branch_for_xrp }}
+        - name: ethereum
+          repo: app-ethereum
+          branch: ${{ inputs.branch_for_ethereum }}
+        - name: ethereum_classic
+          repo: app-ethereum
+          branch: ${{ inputs.branch_for_ethereum_classic }}
+        - name: litecoin
+          repo: app-bitcoin
+          branch: ${{ inputs.branch_for_litecoin }}
+        - name: bitcoin_legacy
+          repo: app-bitcoin
+          branch: ${{ inputs.branch_for_bitcoin_legacy }}
+        - name: bitcoin
+          repo: app-bitcoin-new
+          branch: ${{ inputs.branch_for_bitcoin }}
+
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+
+    steps:
+      - name: Clone ${{ matrix.coin.repo }} for coin ${{ matrix.coin.name }}
+        uses: actions/checkout@v3
+        with:
+          repository: LedgerHQ/${{ matrix.coin.repo }}
+          ref: ${{  matrix.coin.branch }}
+
+      - name: Build in ${{ matrix.coin.repo }} coin ${{ matrix.coin.name }} for SDK ${{ matrix.sdk.name }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          make clean ; make COIN=${{ matrix.coin.name }} BOLOS_SDK=${{ matrix.sdk.path }} DEBUG=1
+          cp bin/app.elf bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
+
+      - name: Upload ${{ matrix.coin.name }} binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: coins_binaries
+          path: ./bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
+          if-no-files-found: error
+
+  build_exchange_application:
+    name: Build Exchange
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sdk: [{path: $NANOS_SDK, name: nanos}, {path: $NANOX_SDK, name: nanox}, {path: $NANOSP_SDK, name: nanosp}]
+
+    container:
+      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v3
+        with:
+          repository: LedgerHQ/app-exchange
+          ref: ${{ inputs.branch_for_exchange }}
+          submodules: recursive
+
+      - name: Build Exchange
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          make -C ledger-nanopb/generator/proto
+          make clean ; make BOLOS_SDK=${{ matrix.sdk.path }} TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1
+          cp bin/app.elf bin/exchange_${{ matrix.sdk.name }}.elf
+
+      - name: Upload Exchange binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: exchange_binaries
+          path: ./bin/exchange_${{ matrix.sdk.name }}.elf
+          if-no-files-found: error
+
+  zemu_tests:
+    name: Zemu tests
+    strategy:
+      matrix:
+        device: ["Nano S", "Nano X", "Nano SP"]
+    needs:
+      - build_exchange_application
+      - build_sideloaded_applications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone
+        uses: actions/checkout@v3
+        with:
+          repository: LedgerHQ/app-exchange
+          ref: ${{ inputs.branch_for_exchange }}
+
+      - name: Install APT dependencies
+        run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
+
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install JS dependencies
+        run: cd test && yarn install
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v3
+
+      - name: Gather artifacts
+        run: |
+          mkdir test/elfs
+          mv *_binaries/*.elf test/elfs
+
+      - name: Run zemu tests for device ${{ matrix.device }}
+        run: cd test && yarn test -t "\[${{ matrix.device }}\]"
+
+  ragger_tests:
+    name: Ragger tests
+    needs:
+      - build_exchange_application
+      - build_sideloaded_applications
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        device: ["nanos", "nanox", "nanosp"]
+    steps:
+      - name: Clone
+        uses: actions/checkout@v3
+        with:
+          repository: LedgerHQ/app-exchange
+          ref: ${{ inputs.branch_for_exchange }}
+
+      - name: Download all binaries
+        uses: actions/download-artifact@v3
+
+      - name: Gather artifacts
+        run: |
+          mkdir test/elfs
+          mv *_binaries/*.elf test/elfs
+
+      - name: Install APT dependencies
+        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+
+      - name: Install Ragger
+        run: |
+          pip install --extra-index-url https://test.pypi.org/simple/ -U -r test/python/requirements.txt
+
+      - name: Run test for device ${{ matrix.device }}
+        run: pytest test/python/ -v --tb=short --device ${{ matrix.device }}
