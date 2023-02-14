@@ -30,9 +30,11 @@ int parse_coin_config(const buf_t *const config,
                       buf_t *application_name,
                       buf_t *sub_config) {
     uint16_t total_read = 0;
+    // This function can be called with orig_buffer == configuration, so making a copy
+    const buf_t input = *config;
 
     // Read ticker
-    if (!parse_to_sized_buffer(config->bytes, config->size, ticker, &total_read)) {
+    if (!parse_to_sized_buffer(input.bytes, input.size, ticker, &total_read)) {
         PRINTF("Cannot read the ticker\n");
         return 0;
     }
@@ -41,7 +43,7 @@ int parse_coin_config(const buf_t *const config,
     }
 
     // Read application_name
-    if (!parse_to_sized_buffer(config->bytes, config->size, application_name, &total_read)) {
+    if (!parse_to_sized_buffer(input.bytes, input.size, application_name, &total_read)) {
         PRINTF("Cannot read the application_name\n");
         return 0;
     }
@@ -50,14 +52,14 @@ int parse_coin_config(const buf_t *const config,
     }
 
     // Read sub_config
-    if (!parse_to_sized_buffer(config->bytes, config->size, sub_config, &total_read)) {
+    if (!parse_to_sized_buffer(input.bytes, input.size, sub_config, &total_read)) {
         PRINTF("Cannot read the sub_config\n");
         return 0;
     }
 
     // Check that there is nothing else to read
-    if (config->size != total_read) {
-        PRINTF("Bytes to read: %d, bytes read: %d\n", config->size, total_read);
+    if (input.size != total_read) {
+        PRINTF("Bytes to read: %d, bytes read: %d\n", input.size, total_read);
         return 0;
     }
 
