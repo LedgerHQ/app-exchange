@@ -33,13 +33,15 @@ packages/
 build/
 bin/
 debug/
+
+# Legacy zemu tests
 node_modules
-test/libs
-test/lib_binaries/
 test/elfs
 test/snapshots-tmp
 
-# Python
+# Functional tests
+test/python/snapshots-tmp/
+test/python/lib_binaries/*.elf
 __pycache__
 .egg
 .pyc
