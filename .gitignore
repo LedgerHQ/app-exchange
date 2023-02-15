@@ -29,15 +29,11 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 .vs/
 #Nuget packages folder
-test/elfs
 packages/
-bin
-debug
-dep
-src/glyphs.c
-src/glyphs.h
+build
 node_modules
-test/lib
+test/libs
+test/elfs
 test/snapshots-tmp
 
 # Python

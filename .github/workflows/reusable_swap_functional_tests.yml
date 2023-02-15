@@ -91,14 +91,22 @@ jobs:
       - name: Build in ${{ matrix.coin.repo }} coin ${{ matrix.coin.name }} for SDK ${{ matrix.sdk.name }}
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          make clean ; make COIN=${{ matrix.coin.name }} BOLOS_SDK=${{ matrix.sdk.path }} DEBUG=1
-          cp bin/app.elf bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
+          make COIN=${{ matrix.coin.name }} BOLOS_SDK=${{ matrix.sdk.path }} DEBUG=1
 
-      - name: Upload ${{ matrix.coin.name }} binaries
+      - name: Remove build artifacts before upload
+        run: |
+          find ./build/*/ -mindepth 1 -type d ! -name 'bin' -exec rm -r {} +
+
+      - name: Nest build
+        run: |
+          mkdir -p ./artifact/${{ matrix.coin.name }}/
+          mv ./build/* ./artifact/${{ matrix.coin.name }}/
+
+      - name: Upload ${{ matrix.coin.name }} app binaries
         uses: actions/upload-artifact@v3
         with:
-          name: coins_binaries
-          path: ./bin/${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
+          name: libraries_binaries
+          path: ./artifact/*
           if-no-files-found: error
 
   build_exchange_application:
@@ -123,14 +131,17 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           make -C ledger-nanopb/generator/proto
-          make clean ; make BOLOS_SDK=${{ matrix.sdk.path }} TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1
-          cp bin/app.elf bin/exchange_${{ matrix.sdk.name }}.elf
+          make BOLOS_SDK=${{ matrix.sdk.path }} TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1
+
+      - name: Remove build artifacts before upload
+        run: |
+          find ./build/*/ -mindepth 1 -type d ! -name 'bin' -exec rm -r {} +
 
       - name: Upload Exchange binaries
         uses: actions/upload-artifact@v3
         with:
           name: exchange_binaries
-          path: ./bin/exchange_${{ matrix.sdk.name }}.elf
+          path: ./build/*
           if-no-files-found: error
 
   zemu_tests:
@@ -167,10 +178,22 @@ jobs:
       - name: Download all binaries
         uses: actions/download-artifact@v3
 
-      - name: Gather artifacts
+      - name: Download exchange binaries
+        uses: actions/download-artifact@v3
+        with:
+          name: exchange_binaries
+          path: ./build/
+
+      - name: Download lib binaries
+        uses: actions/download-artifact@v3
+        with:
+          name: libraries_binaries
+          path: ./test/libs/
+
+      - name: Dispatch to the tests/elfs
         run: |
-          mkdir test/elfs
-          mv *_binaries/*.elf test/elfs
+          ./copy_elfs_for_zemu.sh
+          tree test/elfs
 
       - name: Run zemu tests for device ${{ matrix.device }}
         run: cd test && yarn test -t "\[${{ matrix.device }}\]"
@@ -191,16 +214,22 @@ jobs:
           repository: LedgerHQ/app-exchange
           ref: ${{ inputs.branch_for_exchange }}
 
-      - name: Download all binaries
+      - name: Download exchange binaries
         uses: actions/download-artifact@v3
+        with:
+          name: exchange_binaries
+          path: ./build/
 
-      - name: Gather artifacts
-        run: |
-          mkdir test/elfs
-          mv *_binaries/*.elf test/elfs
+      - name: Download lib binaries
+        uses: actions/download-artifact@v3
+        with:
+          name: libraries_binaries
+          path: ./test/libs/
 
       - name: Install APT dependencies
-        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
+        run: |
+          tree .
+          sudo apt-get update && sudo apt-get install -y qemu-user-static
 
       - name: Install Ragger
         run: |
