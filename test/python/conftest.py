@@ -1,9 +1,13 @@
-from pathlib import Path
-
 from ragger.conftest import configuration
 
+###########################
+### CONFIGURATION START ###
+###########################
 
-configuration.OPTIONAL_CONFIGURATION["SIDELOADED_APPS"] = {
+# You can configure optional parameters by overriding the value of ragger.configuration.OPTIONAL_CONFIGURATION
+# Please refer to ragger/conftest/configuration.py for their descriptions and accepted values
+
+configuration.OPTIONAL["SIDELOADED_APPS"] = {
     "bitcoin": "Bitcoin",
     "bitcoin_legacy": "Bitcoin Legacy",
     "ethereum": "Ethereum",
@@ -14,10 +18,13 @@ configuration.OPTIONAL_CONFIGURATION["SIDELOADED_APPS"] = {
     "stellar": "Stellar",
 }
 
-configuration.OPTIONAL_CONFIGURATION["SIDELOADED_APPS_DIR"] = "test/libs"
+configuration.OPTIONAL["SIDELOADED_APPS_DIR"] = "test/lib_binaries/"
 
-configuration.OPTIONAL_CONFIGURATION["BACKEND_SCOPE"] = "function"
+configuration.OPTIONAL["BACKEND_SCOPE"] = "function"
 
+#########################
+### CONFIGURATION END ###
+#########################
 
 # Pull all features from the base ragger conftest using the overridden configuration
-from ragger.conftest.base_conftest import *
+pytest_plugins = ("ragger.conftest.base_conftest", )
