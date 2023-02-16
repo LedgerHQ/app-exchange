@@ -7,20 +7,20 @@ from ragger.conftest import configuration
 # You can configure optional parameters by overriding the value of ragger.configuration.OPTIONAL_CONFIGURATION
 # Please refer to ragger/conftest/configuration.py for their descriptions and accepted values
 
-configuration.OPTIONAL["SIDELOADED_APPS"] = {
+configuration.OPTIONAL.SIDELOADED_APPS = {
     "bitcoin": "Bitcoin",
     "bitcoin_legacy": "Bitcoin Legacy",
     "ethereum": "Ethereum",
     "ethereum_classic": "Ethereum Classic",
     "tezos": "Tezos Wallet",
-    "xrp": "RXP",
+    "xrp": "XRP",
     "litecoin": "Litecoin",
     "stellar": "Stellar",
 }
 
-configuration.OPTIONAL["SIDELOADED_APPS_DIR"] = "test/lib_binaries/"
+configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
 
-configuration.OPTIONAL["BACKEND_SCOPE"] = "function"
+configuration.OPTIONAL.BACKEND_SCOPE = "function"
 
 #########################
 ### CONFIGURATION END ###

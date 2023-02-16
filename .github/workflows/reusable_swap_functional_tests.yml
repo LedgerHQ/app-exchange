@@ -72,23 +72,23 @@ jobs:
           repo: app-bitcoin-new
           branch: ${{ inputs.branch_for_bitcoin }}
 
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@fbe/more_options
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
       app_repository: LedgerHQ/${{ matrix.coin.repo }}
       app_branch_name: ${{  matrix.coin.branch }}
       flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} DEBUG=1"
-      app_binaries_artifact: libraries_binaries
+      upload_app_binaries_artifact: libraries_binaries
       upload_as_lib_artifact: ${{ matrix.coin.name }}
       skip_stax: true
 
   build_exchange_application:
     name: Build application using the reusable workflow
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@fbe/more_options
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
       app_repository: LedgerHQ/app-exchange
       app_branch_name: ${{ inputs.branch_for_exchange }}
       flags: "TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1"
-      app_binaries_artifact: exchange_binaries
+      upload_app_binaries_artifact: exchange_binaries
       skip_stax: true
 
   ragger_tests:
@@ -96,11 +96,11 @@ jobs:
     needs:
       - build_exchange_application
       - build_sideloaded_applications
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_ragger_tests.yml@fbe/more_options
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_ragger_tests.yml@v1
     with:
       app_repository: LedgerHQ/app-exchange
       app_branch_name: ${{ inputs.branch_for_exchange }}
-      app_binaries_artifact: exchange_binaries
+      download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
       test_dir: test/python
       skip_stax: true
