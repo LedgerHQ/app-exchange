@@ -152,9 +152,13 @@ endif
 
 PROTO_FILE = src/proto/protocol.proto
 
+# Fix of build sometimes failing if the python protobuf files are not generated
+./ledger-nanopb/generator/proto/nanopb_pb2.py:
+	make -C ledger-nanopb/generator/proto
+
 # This will generate both the .pb.c and the .pb.h files
-$(PROTO_C_FILE): $(PROTO_FILE)
-	protoc --nanopb_out=. $^ --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
+$(PROTO_C_FILE): $(PROTO_FILE) ./ledger-nanopb/generator/proto/nanopb_pb2.py
+	protoc --nanopb_out=. $< --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
 
 # This will generate the .py needed for the tests
 $(PROTO_PYTHON_FILE):$(PROTO_FILE)
