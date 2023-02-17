@@ -289,4 +289,4 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
     }
     return 0;
 }
-#endif // HAVE_BAGL
+#endif  // HAVE_BAGL
