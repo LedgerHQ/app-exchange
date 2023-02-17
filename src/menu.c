@@ -1,3 +1,5 @@
+#ifdef HAVE_BAGL
+
 #include "menu.h"
 #include "ux.h"
 #include "os.h"
@@ -287,3 +289,4 @@ unsigned short io_exchange_al(unsigned char channel, unsigned short tx_len) {
     }
     return 0;
 }
+#endif // HAVE_BAGL
