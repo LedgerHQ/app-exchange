@@ -150,7 +150,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: libraries_binaries
-          path: ./test/lib_binaries/
+          path: ./test/python/lib_binaries/
 
       - name: Dispatch to the tests/elfs
         run: |

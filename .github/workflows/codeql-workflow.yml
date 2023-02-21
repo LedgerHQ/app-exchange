@@ -39,8 +39,7 @@ jobs:
       # CodeQL will create the database during the compilation
       - name: Build
         run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          make BOLOS_SDK=${{ matrix.sdk }}
+          PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python make BOLOS_SDK=${{ matrix.sdk }}
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
