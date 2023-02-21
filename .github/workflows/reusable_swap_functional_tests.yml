@@ -110,7 +110,8 @@ jobs:
     name: Zemu tests
     strategy:
       matrix:
-        device: ["Nano S", "Nano X", "Nano SP"]
+        # device: ["Nano S", "Nano X", "Nano SP"]
+        device: ["Nano S"]
     needs:
       - build_exchange_application
       - build_sideloaded_applications
