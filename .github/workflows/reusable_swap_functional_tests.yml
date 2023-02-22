@@ -39,6 +39,12 @@ on:
         required: false
         default: "develop"
         type: string
+      branch_for_polkadot:
+        required: false
+        default: "swap_feature"
+        type: string
+
+
 
 jobs:
   build_sideloaded_applications:
@@ -50,35 +56,58 @@ jobs:
         - name: stellar
           repo: app-stellar
           branch: ${{ inputs.branch_for_stellar }}
+          build_path: .
+          builder: ledger-app-builder-lite
         - name: tezos
           repo: app-tezos
           branch: ${{ inputs.branch_for_tezos }}
+          build_path: .
+          builder: ledger-app-builder-lite
         - name: xrp
           repo: app-xrp
           branch: ${{ inputs.branch_for_xrp }}
+          build_path: .
+          builder: ledger-app-builder-lite
         - name: ethereum
           repo: app-ethereum
           branch: ${{ inputs.branch_for_ethereum }}
+          build_path: .
+          builder: ledger-app-builder-lite
         - name: ethereum_classic
           repo: app-ethereum
           branch: ${{ inputs.branch_for_ethereum_classic }}
+          build_path: .
+          builder: ledger-app-builder-lite
         - name: litecoin
           repo: app-bitcoin
           branch: ${{ inputs.branch_for_litecoin }}
+          build_path: .
+          builder: ledger-app-builder-lite
         - name: bitcoin_legacy
           repo: app-bitcoin
           branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          build_path: .
+          builder: ledger-app-builder-lite
         - name: bitcoin
           repo: app-bitcoin-new
           branch: ${{ inputs.branch_for_bitcoin }}
+          build_path: .
+          builder: ledger-app-builder-lite
+        - name: DOT
+          repo: app-polkadot
+          branch: ${{ inputs.branch_for_polkadot }}
+          build_path: app/
+          builder: ledger-app-builder
 
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@master
     with:
       app_repository: LedgerHQ/${{ matrix.coin.repo }}
       app_branch_name: ${{  matrix.coin.branch }}
       flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} DEBUG=1"
       upload_app_binaries_artifact: libraries_binaries
       upload_as_lib_artifact: ${{ matrix.coin.name }}
+      relative_app_directory: ${{ matrix.coin.build_path }}
+      builder: ${{ matrix.coin.builder }}
       skip_stax: true
 
   build_exchange_application:
