@@ -20,7 +20,7 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS = --curve ed25519 --curve secp256k1 --curve secp256r1 --path "" $(COMMON_LOAD_PARAMS)
+APP_LOAD_PARAMS = --curve ed25519 --curve secp256k1 --curve secp256r1 $(COMMON_LOAD_PARAMS)
 
 # Permissions: DERIVE_MASTER, GLOBAL_PIN, APPLICATION_FLAG_BOLOS_SETTINGS
 # DERIVE_MASTER is needed to compute the master key fingerprint in app-bitcoin-new
@@ -29,7 +29,7 @@ APP_LOAD_PARAMS += --appFlags 0x250
 APPVERSION_M=2
 APPVERSION_N=0
 APPVERSION_P=13
-APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-dev
+APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-debug
 APPNAME = "Exchange"
 
 DEFINES += $(DEFINES_LIB)
@@ -39,6 +39,8 @@ ifdef TESTING
     DEFINES += TESTING
 endif
 
+# Special version for PTX testing
+TEST_PUBLIC_KEY := 1
 ifdef TEST_PUBLIC_KEY
     $(info [INFO] TEST_PUBLIC_KEY enabled)
     DEFINES += TEST_PUBLIC_KEY
