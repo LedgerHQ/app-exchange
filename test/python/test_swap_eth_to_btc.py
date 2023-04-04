@@ -1,4 +1,5 @@
 import pytest
+from time import sleep
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
@@ -61,6 +62,9 @@ def test_swap_eth_to_btc_wrong_amount(backend, firmware, navigator, test_name):
 def test_swap_eth_to_btc_ok(backend, firmware, navigator, test_name):
     amount = '013fc3a717fb5000'
     prepare_exchange(backend, firmware, navigator, test_name, amount)
+    sleep(1)
     eth = EthereumClient(backend, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
+    sleep(1)
     eth.get_public_key()
+    sleep(1)
     eth.sign(extra_payload=bytes.fromhex("ec09850684ee180082520894d692cb1346262f584d17b4b470954501f6715a8288" + amount + "80018080"))

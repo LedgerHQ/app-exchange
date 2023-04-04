@@ -16,6 +16,8 @@ from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
+from .solana_utils import SOL_PACKED_DERIVATION_PATH, SOL_CONF
+
 from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
 
 
@@ -48,6 +50,7 @@ TICKER_TO_CONF = {
     "BTC": BTC_CONF,
     "LTC": LTC_CONF,
     "XLM": XLM_CONF,
+    "SOL": SOL_CONF,
 }
 
 TICKER_TO_PACKED_DERIVATION_PATH = {
@@ -56,6 +59,7 @@ TICKER_TO_PACKED_DERIVATION_PATH = {
     "BTC": BTC_PACKED_DERIVATION_PATH,
     "LTC": LTC_PACKED_DERIVATION_PATH,
     "XLM": XLM_PACKED_DERIVATION_PATH,
+    "SOL": SOL_PACKED_DERIVATION_PATH,
 }
 
 
@@ -199,7 +203,11 @@ class ExchangeClient:
 
     def start_signing_transaction(self) -> RAPDU:
         rapdu = self._exchange(Command.START_SIGNING_TRANSACTION)
+
+        # The reception of the APDU means that the Exchange app has received the request
+        # and will start os_lib_call.
+        # We give some time to the OS to actually process the os_lib_call
         if rapdu.status == 0x9000:
             # If the exchange app accepts starting the library app, give it time to actually start
-            sleep(1)
+            sleep(0.5)
         return rapdu

@@ -1,5 +1,4 @@
 import pytest
-from time import sleep
 from typing import Optional, Tuple
 from requests.exceptions import ChunkedEncodingError, ConnectionError
 from urllib3.exceptions import ProtocolError
@@ -127,7 +126,6 @@ class StellarValidTxPerformer:
                                                       ROOT_SCREENSHOT_PATH,
                                                       test_name)
         ex.start_signing_transaction()
-        sleep(0.5)
 
 
 ##############

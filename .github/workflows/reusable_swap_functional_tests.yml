@@ -39,6 +39,10 @@ on:
         required: false
         default: "develop"
         type: string
+      branch_for_solana:
+        required: false
+        default: "wip/fbeutin/swap_rebase_post_refacto"
+        type: string
 
 jobs:
   build_sideloaded_applications:
@@ -71,6 +75,9 @@ jobs:
         - name: bitcoin
           repo: app-bitcoin-new
           branch: ${{ inputs.branch_for_bitcoin }}
+        - name: solana
+          repo: app-solana
+          branch: ${{ inputs.branch_for_solana }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
