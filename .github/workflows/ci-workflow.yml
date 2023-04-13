@@ -26,8 +26,6 @@ jobs:
       - name: Build with Clang Static Analyzer
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          make -C ledger-nanopb/generator/proto
-          make clean
           scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default
       - uses: actions/upload-artifact@v3
         if: failure()

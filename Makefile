@@ -50,13 +50,10 @@ else
 	ICONNAME=icons/nanox_app_exchange.gif
 endif
 
-PROTO_C_FILE = src/proto/protocol.pb.c
-PROTO_PYTHON_FILE = test/python/apps/pb/exchange_pb2.py
-
 ################
 # Default rule #
 ################
-all: $(PROTO_C_FILE) default
+all: default
 
 ############
 # Platform #
@@ -150,20 +147,12 @@ ifeq ($(TARGET_NAME),TARGET_NANOX)
 SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 endif
 
-PROTO_FILE = src/proto/protocol.proto
-
-# Fix of build sometimes failing if the python protobuf files are not generated
-./ledger-nanopb/generator/proto/nanopb_pb2.py:
+.PHONY: proto
+proto:
 	make -C ledger-nanopb/generator/proto
-
-# This will generate both the .pb.c and the .pb.h files
-$(PROTO_C_FILE): $(PROTO_FILE) ./ledger-nanopb/generator/proto/nanopb_pb2.py
-	protoc --nanopb_out=. $< --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
-
-# This will generate the .py needed for the tests
-$(PROTO_PYTHON_FILE):$(PROTO_FILE)
-	protoc --python_out=. $^
-	mv src/proto/protocol_pb2.py $@
+	protoc --nanopb_out=. src/proto/protocol.proto --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
+	protoc --python_out=. src/proto/protocol.proto
+	mv src/proto/protocol_pb2.py test/python/apps/pb/exchange_pb2.py
 
 load: all
 	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
