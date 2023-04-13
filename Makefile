@@ -50,13 +50,10 @@ else
 	ICONNAME=icons/nanox_app_exchange.gif
 endif
 
-PROTO_C_FILE = src/proto/protocol.pb.c
-PROTO_PYTHON_FILE = test/python/apps/pb/exchange_pb2.py
-
 ################
 # Default rule #
 ################
-all: $(PROTO_C_FILE) default
+all: default
 
 ############
 # Platform #
@@ -112,30 +109,10 @@ endif
 ##############
 #  Compiler  #
 ##############
-ifneq ($(BOLOS_ENV),)
-$(info BOLOS_ENV=$(BOLOS_ENV))
-CLANGPATH := $(BOLOS_ENV)/clang-arm-fropi/bin/
-GCCPATH := $(BOLOS_ENV)/gcc-arm-none-eabi-5_3-2016q1/bin/
-else
-$(info BOLOS_ENV is not set: falling back to CLANGPATH and GCCPATH)
-endif
-ifeq ($(CLANGPATH),)
-$(info CLANGPATH is not set: clang will be used from PATH)
-endif
-ifeq ($(GCCPATH),)
-$(info GCCPATH is not set: arm-none-eabi-* will be used from PATH)
-endif
 
 CC       := $(CLANGPATH)clang
-
-#CFLAGS   += -O0
-CFLAGS   += -O3 -Os
-
-AS     := $(GCCPATH)arm-none-eabi-gcc
-
+AS       := $(GCCPATH)arm-none-eabi-gcc
 LD       := $(GCCPATH)arm-none-eabi-gcc
-LDFLAGS  += -O3 -Os
-#LDFLAGS  += -O0
 LDLIBS   += -lm -lgcc -lc
 
 # import rules to compile glyphs(/pone)
@@ -150,20 +127,12 @@ ifeq ($(TARGET_NAME),TARGET_NANOX)
 SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
 endif
 
-PROTO_FILE = src/proto/protocol.proto
-
-# Fix of build sometimes failing if the python protobuf files are not generated
-./ledger-nanopb/generator/proto/nanopb_pb2.py:
+.PHONY: proto
+proto:
 	make -C ledger-nanopb/generator/proto
-
-# This will generate both the .pb.c and the .pb.h files
-$(PROTO_C_FILE): $(PROTO_FILE) ./ledger-nanopb/generator/proto/nanopb_pb2.py
-	protoc --nanopb_out=. $< --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
-
-# This will generate the .py needed for the tests
-$(PROTO_PYTHON_FILE):$(PROTO_FILE)
-	protoc --python_out=. $^
-	mv src/proto/protocol_pb2.py $@
+	protoc --nanopb_out=. src/proto/protocol.proto --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
+	protoc --python_out=. src/proto/protocol.proto
+	mv src/proto/protocol_pb2.py test/python/apps/pb/exchange_pb2.py
 
 load: all
 	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
@@ -183,10 +152,6 @@ release: all
 
 # import generic rules from the sdk
 include $(BOLOS_SDK)/Makefile.rules
-
-#add dependency on custom makefile filename
-dep/%.d: %.c Makefile
-
 
 
 listvariants:
