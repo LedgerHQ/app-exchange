@@ -68,7 +68,7 @@ int parse_coin_config(const buf_t *const orig_buffer,
         if (!strncmp((const char *) application_name->bytes,
                      (char *) (PIC(appnames_aliases[i].foreign_name)),
                      application_name->size)) {
-            application_name->bytes = (unsigned char *) appnames_aliases[i].app_name;
+            application_name->bytes = (uint8_t *) appnames_aliases[i].app_name;
             application_name->size = strlen((char *) PIC(appnames_aliases[i].app_name));
             break;
         }

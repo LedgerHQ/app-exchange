@@ -4,9 +4,10 @@
 #include "pb_decode.h"
 #include "proto/protocol.pb.h"
 #include "swap_errors.h"
-#include "reply_error.h"
+#include "io.h"
 #include "base64.h"
 #include "pb_structs.h"
+#include "globals.h"
 
 typedef struct currency_alias_s {
     const char *const foreign_name;
@@ -50,7 +51,7 @@ void set_ledger_currency_name(char *currency, size_t currency_size) {
  * type consistency.
  */
 
-void trim_pb_bytes_array(pb_bytes_array_16_t *transaction) {
+static void trim_pb_bytes_array(pb_bytes_array_16_t *transaction) {
     pb_size_t i;
     for (i = 0; i < transaction->size; i++) {
         if (transaction->bytes[i] != 0) {
@@ -64,44 +65,46 @@ void trim_pb_bytes_array(pb_bytes_array_16_t *transaction) {
     memmove(transaction->bytes, transaction->bytes + i, transaction->size);
 }
 
-void normalize_currencies(swap_app_context_t *ctx) {
-    to_uppercase(ctx->received_transaction.currency_from,
-                 sizeof(ctx->received_transaction.currency_from));
-    to_uppercase(ctx->received_transaction.currency_to,
-                 sizeof(ctx->received_transaction.currency_to));
-    set_ledger_currency_name(ctx->received_transaction.currency_from,
-                             sizeof(ctx->received_transaction.currency_from) /
-                                 sizeof(ctx->received_transaction.currency_from[0]));
-    set_ledger_currency_name(ctx->received_transaction.currency_to,
-                             sizeof(ctx->received_transaction.currency_to) /
-                                 sizeof(ctx->received_transaction.currency_to[0]));
+static void normalize_currencies(void) {
+    to_uppercase(G_swap_ctx.received_transaction.currency_from,
+                 sizeof(G_swap_ctx.received_transaction.currency_from));
+    to_uppercase(G_swap_ctx.received_transaction.currency_to,
+                 sizeof(G_swap_ctx.received_transaction.currency_to));
+    set_ledger_currency_name(G_swap_ctx.received_transaction.currency_from,
+                             sizeof(G_swap_ctx.received_transaction.currency_from) /
+                                 sizeof(G_swap_ctx.received_transaction.currency_from[0]));
+    set_ledger_currency_name(G_swap_ctx.received_transaction.currency_to,
+                             sizeof(G_swap_ctx.received_transaction.currency_to) /
+                                 sizeof(G_swap_ctx.received_transaction.currency_to[0]));
     // triming leading 0s
-    trim_pb_bytes_array((pb_bytes_array_16_t *) &(ctx->received_transaction.amount_to_provider));
-    trim_pb_bytes_array((pb_bytes_array_16_t *) &(ctx->received_transaction.amount_to_wallet));
+    trim_pb_bytes_array(
+        (pb_bytes_array_16_t *) &(G_swap_ctx.received_transaction.amount_to_provider));
+    trim_pb_bytes_array(
+        (pb_bytes_array_16_t *) &(G_swap_ctx.received_transaction.amount_to_wallet));
 
     // strip bcash CashAddr header, and other bicmd->subcommand1 like headers
-    for (size_t i = 0; i < sizeof(ctx->received_transaction.payin_address); i++) {
-        if (ctx->received_transaction.payin_address[i] == ':') {
-            memmove(ctx->received_transaction.payin_address,
-                    ctx->received_transaction.payin_address + i + 1,
-                    sizeof(ctx->received_transaction.payin_address) - i - 1);
+    for (size_t i = 0; i < sizeof(G_swap_ctx.received_transaction.payin_address); i++) {
+        if (G_swap_ctx.received_transaction.payin_address[i] == ':') {
+            memmove(G_swap_ctx.received_transaction.payin_address,
+                    G_swap_ctx.received_transaction.payin_address + i + 1,
+                    sizeof(G_swap_ctx.received_transaction.payin_address) - i - 1);
             break;
         }
     }
 }
 
-int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
+int process_transaction(const command_t *cmd) {
     if (cmd->data.size < 1) {
         PRINTF("Error: Can't parse process_transaction message, length should be more than 1\n");
 
-        return reply_error(ctx, DESERIALIZATION_FAILED, send);
+        return reply_error(DESERIALIZATION_FAILED);
     }
 
     size_t payload_length = cmd->data.bytes[0];
     if (cmd->data.size < 1 + payload_length) {
         PRINTF("Error: Can't parse process_transaction message, invalid payload length\n");
 
-        return reply_error(ctx, DESERIALIZATION_FAILED, send);
+        return reply_error(DESERIALIZATION_FAILED);
     }
 
     pb_istream_t stream;
@@ -117,29 +120,29 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
 
         if (!pb_decode(&stream,
                        ledger_swap_NewTransactionResponse_fields,
-                       &ctx->received_transaction)) {
+                       &G_swap_ctx.received_transaction)) {
             PRINTF("Error: Can't parse SWAP transaction protobuf\n%.*H\n",
                    payload_length,
                    cmd->data.bytes + 1);
 
-            return reply_error(ctx, DESERIALIZATION_FAILED, send);
+            return reply_error(DESERIALIZATION_FAILED);
         }
 
-        if (memcmp(ctx->device_transaction_id.swap,
-                   ctx->received_transaction.device_transaction_id,
-                   sizeof(ctx->device_transaction_id.swap)) != 0) {
+        if (memcmp(G_swap_ctx.device_transaction_id.swap,
+                   G_swap_ctx.received_transaction.device_transaction_id,
+                   sizeof(G_swap_ctx.device_transaction_id.swap)) != 0) {
             PRINTF(
                 "Error: Device transaction IDs (SWAP) doesn't match. Expected: {%.*H}, got "
                 "{%.*H}\n",
-                sizeof(ctx->device_transaction_id.swap),
-                ctx->device_transaction_id.swap,
-                sizeof(ctx->device_transaction_id.swap),
-                ctx->received_transaction.device_transaction_id);
+                sizeof(G_swap_ctx.device_transaction_id.swap),
+                G_swap_ctx.device_transaction_id.swap,
+                sizeof(G_swap_ctx.device_transaction_id.swap),
+                G_swap_ctx.received_transaction.device_transaction_id);
 
-            return reply_error(ctx, WRONG_TRANSACTION_ID, send);
+            return reply_error(WRONG_TRANSACTION_ID);
         }
 
-        normalize_currencies(ctx);
+        normalize_currencies();
     }
 
     if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
@@ -156,7 +159,7 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
         if (n < 0) {
             PRINTF("Error: Can't decode SELL/FUND transaction base64\n");
 
-            return reply_error(ctx, DESERIALIZATION_FAILED, send);
+            return reply_error(DESERIALIZATION_FAILED);
         }
 
         PRINTF("decode_base64(payload): %.*H\n", n, payload);
@@ -172,59 +175,59 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
                                      : ledger_swap_NewFundResponse_fields);
 
         if (cmd->subcommand == SELL) {
-            if (!pb_decode(&stream, pb_fields, &ctx->sell_transaction)) {
+            if (!pb_decode(&stream, pb_fields, &G_swap_ctx.sell_transaction)) {
                 PRINTF("Error: Can't parse SELL transaction protobuf\n");
-                return reply_error(ctx, DESERIALIZATION_FAILED, send);
+                return reply_error(DESERIALIZATION_FAILED);
             }
             // Field not received from protobuf
-            ctx->sell_transaction_extra_id[0] = '\0';
+            G_swap_ctx.sell_transaction_extra_id[0] = '\0';
         } else {
-            if (!pb_decode(&stream, pb_fields, &ctx->fund_transaction)) {
+            if (!pb_decode(&stream, pb_fields, &G_swap_ctx.fund_transaction)) {
                 PRINTF("Error: Can't parse FUND transaction protobuf\n");
-                return reply_error(ctx, DESERIALIZATION_FAILED, send);
+                return reply_error(DESERIALIZATION_FAILED);
             }
             // Field not received from protobuf
-            ctx->fund_transaction_extra_id[0] = '\0';
+            G_swap_ctx.fund_transaction_extra_id[0] = '\0';
         }
 
         // trim leading 0s
         pb_bytes_array_16_t *in_amount;
-        if (ctx->subcommand == SELL) {
-            in_amount = (pb_bytes_array_16_t *) &ctx->sell_transaction.in_amount;
+        if (G_swap_ctx.subcommand == SELL) {
+            in_amount = (pb_bytes_array_16_t *) &G_swap_ctx.sell_transaction.in_amount;
         } else {
-            in_amount = (pb_bytes_array_16_t *) &ctx->fund_transaction.in_amount;
+            in_amount = (pb_bytes_array_16_t *) &G_swap_ctx.fund_transaction.in_amount;
         }
         trim_pb_bytes_array(in_amount);
 
         pb_bytes_array_32_t *tx_id;
-        if (ctx->subcommand == SELL) {
-            tx_id = (pb_bytes_array_32_t *) &ctx->sell_transaction.device_transaction_id;
-            PRINTF("ctx->sell_transaction->device_transaction_id @%p: %.*H\n",
-                   ctx->sell_transaction.device_transaction_id.bytes,
-                   ctx->sell_transaction.device_transaction_id.size,
-                   ctx->sell_transaction.device_transaction_id.bytes);
+        if (G_swap_ctx.subcommand == SELL) {
+            tx_id = (pb_bytes_array_32_t *) &G_swap_ctx.sell_transaction.device_transaction_id;
+            PRINTF("G_swap_ctx.sell_transaction->device_transaction_id @%p: %.*H\n",
+                   G_swap_ctx.sell_transaction.device_transaction_id.bytes,
+                   G_swap_ctx.sell_transaction.device_transaction_id.size,
+                   G_swap_ctx.sell_transaction.device_transaction_id.bytes);
         } else {
-            tx_id = (pb_bytes_array_32_t *) &ctx->fund_transaction.device_transaction_id;
-            PRINTF("ctx->fund_transaction->device_transaction_id @%p: %.*H\n",
-                   ctx->fund_transaction.device_transaction_id.bytes,
-                   ctx->fund_transaction.device_transaction_id.size,
-                   ctx->fund_transaction.device_transaction_id.bytes);
+            tx_id = (pb_bytes_array_32_t *) &G_swap_ctx.fund_transaction.device_transaction_id;
+            PRINTF("G_swap_ctx.fund_transaction->device_transaction_id @%p: %.*H\n",
+                   G_swap_ctx.fund_transaction.device_transaction_id.bytes,
+                   G_swap_ctx.fund_transaction.device_transaction_id.size,
+                   G_swap_ctx.fund_transaction.device_transaction_id.bytes);
         }
 
-        if (tx_id->size != sizeof(ctx->device_transaction_id.sell_fund)) {
+        if (tx_id->size != sizeof(G_swap_ctx.device_transaction_id.sell_fund)) {
             PRINTF("Error: Device transaction ID (SELL/FUND) size doesn't match\n");
             PRINTF("tx_id->size = %d\n", tx_id->size);
-            PRINTF("sizeof(ctx->device_transaction_id.sell_fund) = %d\n",
-                   sizeof(ctx->device_transaction_id.sell_fund));
+            PRINTF("sizeof(G_swap_ctx.device_transaction_id.sell_fund) = %d\n",
+                   sizeof(G_swap_ctx.device_transaction_id.sell_fund));
         }
-        if (memcmp(ctx->device_transaction_id.sell_fund, tx_id->bytes, tx_id->size) != 0) {
+        if (memcmp(G_swap_ctx.device_transaction_id.sell_fund, tx_id->bytes, tx_id->size) != 0) {
             PRINTF("Error: Device transaction IDs (SELL/FUND) don't match\n");
-            PRINTF("ctx->device_transaction_id @%p: %.*H\n",
-                   ctx->device_transaction_id.sell_fund,
-                   sizeof(ctx->device_transaction_id.sell_fund),
-                   ctx->device_transaction_id.sell_fund);
+            PRINTF("G_swap_ctx.device_transaction_id @%p: %.*H\n",
+                   G_swap_ctx.device_transaction_id.sell_fund,
+                   sizeof(G_swap_ctx.device_transaction_id.sell_fund),
+                   G_swap_ctx.device_transaction_id.sell_fund);
 
-            return reply_error(ctx, WRONG_TRANSACTION_ID, send);
+            return reply_error(WRONG_TRANSACTION_ID);
         }
     }
 
@@ -232,46 +235,46 @@ int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunct
             CX_LAST,
             cmd->data.bytes + 1,
             payload_length,
-            ctx->sha256_digest,
-            sizeof(ctx->sha256_digest));
+            G_swap_ctx.sha256_digest,
+            sizeof(G_swap_ctx.sha256_digest));
 
-    PRINTF("sha256_digest: %.*H\n", 32, ctx->sha256_digest);
+    PRINTF("sha256_digest: %.*H\n", 32, G_swap_ctx.sha256_digest);
 
     if (cmd->data.size < 1 + payload_length + 1) {
         PRINTF("Error: Can't parse process_transaction message, should include fee\n");
 
-        return reply_error(ctx, DESERIALIZATION_FAILED, send);
+        return reply_error(DESERIALIZATION_FAILED);
     }
 
-    ctx->transaction_fee_length = cmd->data.bytes[1 + payload_length];
+    G_swap_ctx.transaction_fee_length = cmd->data.bytes[1 + payload_length];
 
-    if (ctx->transaction_fee_length > sizeof(ctx->transaction_fee)) {
+    if (G_swap_ctx.transaction_fee_length > sizeof(G_swap_ctx.transaction_fee)) {
         PRINTF("Error: Transaction fee is to long\n");
 
-        return reply_error(ctx, DESERIALIZATION_FAILED, send);
+        return reply_error(DESERIALIZATION_FAILED);
     }
 
-    if (cmd->data.size < 1 + payload_length + 1 + ctx->transaction_fee_length) {
+    if (cmd->data.size < 1 + payload_length + 1 + G_swap_ctx.transaction_fee_length) {
         PRINTF("Error: Input buffer is too small");
 
-        return reply_error(ctx, DESERIALIZATION_FAILED, send);
+        return reply_error(DESERIALIZATION_FAILED);
     }
 
-    memset(ctx->transaction_fee, 0, sizeof(ctx->transaction_fee));
-    memcpy(ctx->transaction_fee,
+    memset(G_swap_ctx.transaction_fee, 0, sizeof(G_swap_ctx.transaction_fee));
+    memcpy(G_swap_ctx.transaction_fee,
            cmd->data.bytes + 1 + payload_length + 1,
-           ctx->transaction_fee_length);
-    PRINTF("Transaction fees BE = %.*H\n", ctx->transaction_fee_length, ctx->transaction_fee);
+           G_swap_ctx.transaction_fee_length);
+    PRINTF("Transaction fees BE = %.*H\n",
+           G_swap_ctx.transaction_fee_length,
+           G_swap_ctx.transaction_fee);
 
-    unsigned char output_buffer[2] = {0x90, 0x00};
-
-    if (send(output_buffer, 2) < 0) {
+    if (reply_success() < 0) {
         PRINTF("Error: failed to send response\n");
 
         return -1;
     }
 
-    ctx->state = TRANSACTION_RECEIVED;
+    G_swap_ctx.state = TRANSACTION_RECEIVED;
 
     return 0;
 }

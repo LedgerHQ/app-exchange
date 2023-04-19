@@ -1,7 +1,6 @@
 #include <string.h>
 
 #include "os_io_seproxyhal.h"
-#include "ux.h"
 #include "os.h"
 
 #include "currency_lib_calls.h"
@@ -35,13 +34,13 @@
   `libcall_params[4]` -> `libargs_s` union
  */
 
-int get_printable_amount(const buf_t *const coin_config,
-                         const char *const application_name,
-                         const unsigned char *const amount,
-                         const unsigned char amount_size,
-                         char *const printable_amount,
-                         const unsigned char printable_amount_size,
-                         const bool is_fee) {
+int get_printable_amount(buf_t *coin_config,
+                         char *application_name,
+                         unsigned char *amount,
+                         unsigned char amount_size,
+                         char *printable_amount,
+                         unsigned char printable_amount_size,
+                         bool is_fee) {
     static unsigned int libcall_params[5];
     static get_printable_amount_parameters_t lib_input_params = {0};
     lib_input_params.coin_configuration = coin_config->bytes;

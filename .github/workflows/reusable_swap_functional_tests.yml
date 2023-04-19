@@ -41,7 +41,7 @@ on:
         type: string
       branch_for_solana:
         required: false
-        default: "wip/fbeutin/swap_rebase_post_refacto"
+        default: "develop"
         type: string
 
 jobs:
