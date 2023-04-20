@@ -16,89 +16,31 @@
  *****************************************************************************/
 
 #include "os.h"
+#include "ux.h"
 #include "os_io_seproxyhal.h"
 #include "init.h"
+#include "io.h"
 #include "menu.h"
-#include "swap_app_context.h"
+#include "globals.h"
 #include "commands.h"
 #include "command_dispatcher.h"
 #include "apdu_offsets.h"
 #include "swap_errors.h"
-#include "reply_error.h"
 
 #include "usbd_core.h"
 #define CLA 0xE0
 
+ux_state_t G_ux;
+bolos_ux_params_t G_ux_params;
+
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-swap_app_context_t swap_ctx;
-
-// recv()
-// send()
-// recv()
-// UI
-// recv(ASYNC)
-//   send()->io_exchange(RETURN)
-// recv()
-//
-//             READY         RECEIVED          WAITING_USER
-// recv()   to Received  ASYNC+to waiting          ERROR
-// send()      ERROR         to ready      RETURN_AFTER_RX + to ready
-
-typedef enum io_state { READY, RECEIVED, WAITING_USER } io_state_e;
-
-int output_length = 0;
-io_state_e io_state = READY;
-
-int recv_apdu() {
-    PRINTF("Im inside recv_apdu\n");
-    switch (io_state) {
-        case READY:
-            PRINTF("In state READY\n");
-            io_state = RECEIVED;
-            return io_exchange(CHANNEL_APDU, output_length);
-        case RECEIVED:
-            PRINTF("In state RECEIVED\n");
-            io_state = WAITING_USER;
-            int ret = io_exchange(CHANNEL_APDU | IO_ASYNCH_REPLY, output_length);
-            io_state = RECEIVED;
-            return ret;
-        case WAITING_USER:
-            PRINTF("Error: Unexpected recv call in WAITING_USER state\n");
-            io_state = READY;
-            return -1;
-    };
-    PRINTF("ERROR unknown state\n");
-    return -1;
-}
-
-// return -1 in case of error
-int send_apdu(unsigned char *buffer, unsigned int buffer_length) {
-    memmove(G_io_apdu_buffer, buffer, buffer_length);
-    output_length = buffer_length;
-    PRINTF("Sending apdu\n");
-    switch (io_state) {
-        case READY:
-            PRINTF("Error: Unexpected send call in READY state\n");
-            return -1;
-        case RECEIVED:
-            io_state = READY;
-            return 0;
-        case WAITING_USER:
-            PRINTF("Sending reply with IO_RETURN_AFTER_TX\n");
-            io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, output_length);
-            output_length = 0;
-            io_state = READY;
-            return 0;
-    }
-    PRINTF("Error: Unknown io_state\n");
-    return -1;
-}
+swap_app_context_t G_swap_ctx;
 
 void app_main(void) {
     int input_length = 0;
 
-    output_length = 0;
-    io_state = READY;
+    init_io();
+
     for (;;) {
         input_length = recv_apdu();
         PRINTF("New APDU received:\n%.*H\n", input_length, G_io_apdu_buffer);
@@ -106,7 +48,7 @@ void app_main(void) {
             return;
         if (input_length < OFFSET_CDATA || G_io_apdu_buffer[OFFSET_CLA] != CLA) {
             PRINTF("Error: bad APDU\n");
-            reply_error(&swap_ctx, INVALID_INSTRUCTION, send_apdu);
+            reply_error(INVALID_INSTRUCTION);
             continue;
         }
 
@@ -121,12 +63,9 @@ void app_main(void) {
                 },
         };
 
-        if (dispatch_command(&swap_ctx,  //
-                             &cmd,       //
-                             send_apdu) < 0)
-            return;  // some non recoverable error happened
+        if (dispatch_command(&cmd) < 0) return;  // some non recoverable error happened
 
-        if (swap_ctx.state == INITIAL_STATE) {
+        if (G_swap_ctx.state == INITIAL_STATE) {
             ui_idle();
         }
     }
@@ -151,7 +90,7 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
     os_boot();
 
     for (;;) {
-        ux_init();
+        UX_INIT();
 
         BEGIN_TRY {
             TRY {
@@ -161,8 +100,6 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 // grab the current plane mode setting
                 G_io_app.plane_mode = os_setting_get(OS_SETTING_PLANEMODE, NULL, 0);
 #endif  // TARGET_NANOX
-
-                init_application_context(&swap_ctx);
 
                 USB_power(0);
                 USB_power(1);

@@ -5,13 +5,13 @@
 #include "swap_errors.h"
 #include "globals.h"
 #include "currency_lib_calls.h"
-#include "reply_error.h"
+#include "io.h"
 #include "parse_check_address_message.h"
 #include "parse_coin_config.h"
 #include "printable_amount.h"
 #include "menu.h"
 
-int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
+int check_payout_address(const command_t *cmd) {
     static buf_t config;
     static buf_t der;
     static buf_t address_parameters;
@@ -21,16 +21,16 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
     if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         PRINTF("Error: Can't parse CHECK_PAYOUT_ADDRESS command\n");
 
-        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(INCORRECT_COMMAND_DATA);
     }
 
     PRINTF("CHECK_PAYOUT_ADDRESS parsed OK\n");
 
-    static unsigned char hash[CURVE_SIZE_BYTES];
+    uint8_t hash[CURVE_SIZE_BYTES];
 
     cx_hash_sha256(config.bytes, config.size, hash, CURVE_SIZE_BYTES);
 
-    if (cx_ecdsa_verify(&ctx->ledger_public_key,
+    if (cx_ecdsa_verify(&G_swap_ctx.ledger_public_key,
                         CX_LAST,
                         CX_SHA256,
                         hash,
@@ -38,70 +38,69 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
                         der.bytes,
                         der.size) == 0) {
         PRINTF("Error: Fail to verify signature of coin config\n");
-        return reply_error(ctx, SIGN_VERIFICATION_FAIL, send);
+        return reply_error(SIGN_VERIFICATION_FAIL);
     }
 
     if (parse_coin_config(&config, &ticker, &application_name, &config) == 0) {
         PRINTF("Error: Can't parse payout coin config command\n");
-        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(INCORRECT_COMMAND_DATA);
     }
 
     // Check that given ticker match current context
-    if (strlen(ctx->received_transaction.currency_to) != ticker.size ||
-        strncmp(ctx->received_transaction.currency_to, (const char *) ticker.bytes, ticker.size) !=
-            0) {
+    if (strlen(G_swap_ctx.received_transaction.currency_to) != ticker.size ||
+        strncmp(G_swap_ctx.received_transaction.currency_to,
+                (const char *) ticker.bytes,
+                ticker.size) != 0) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
-        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(INCORRECT_COMMAND_DATA);
     }
 
     PRINTF("Coin config parsed OK\n");
 
     // creating 0-terminated application name
-    memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
-    memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
+    memset(G_swap_ctx.payin_binary_name, 0, sizeof(G_swap_ctx.payin_binary_name));
+    memcpy(G_swap_ctx.payin_binary_name, application_name.bytes, application_name.size);
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
-    if (ctx->received_transaction
-            .payout_address[sizeof(ctx->received_transaction.payout_address) - 1] != '\0') {
+    if (G_swap_ctx.received_transaction
+            .payout_address[sizeof(G_swap_ctx.received_transaction.payout_address) - 1] != '\0') {
         PRINTF("Address to check is not NULL terminated\n");
-        return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
+        return reply_error(INCORRECT_COMMAND_DATA);
     }
 
     // check address
     if (check_address(&config,
                       &address_parameters,
-                      ctx->payin_binary_name,
-                      ctx->received_transaction.payout_address,
-                      ctx->received_transaction.payout_extra_id) != 1) {
+                      G_swap_ctx.payin_binary_name,
+                      G_swap_ctx.received_transaction.payout_address,
+                      G_swap_ctx.received_transaction.payout_extra_id) != 1) {
         PRINTF("Error: Payout address validation failed\n");
-        return reply_error(ctx, INVALID_ADDRESS, send);
+        return reply_error(INVALID_ADDRESS);
     }
 
     PRINTF("Payout address is OK\n");
 
     // getting printable amount
     if (get_printable_amount(&config,
-                             ctx->payin_binary_name,
-                             ctx->received_transaction.amount_to_wallet.bytes,
-                             ctx->received_transaction.amount_to_wallet.size,
-                             ctx->printable_get_amount,
-                             sizeof(ctx->printable_get_amount),
+                             G_swap_ctx.payin_binary_name,
+                             (uint8_t *) G_swap_ctx.received_transaction.amount_to_wallet.bytes,
+                             G_swap_ctx.received_transaction.amount_to_wallet.size,
+                             G_swap_ctx.printable_get_amount,
+                             sizeof(G_swap_ctx.printable_get_amount),
                              false) < 0) {
         PRINTF("Error: Failed to get destination currency printable amount\n");
-        return reply_error(ctx, INTERNAL_ERROR, send);
+        return reply_error(INTERNAL_ERROR);
     }
 
-    PRINTF("Amount = %s\n", ctx->printable_get_amount);
+    PRINTF("Amount = %s\n", G_swap_ctx.printable_get_amount);
 
-    unsigned char output_buffer[2] = {0x90, 0x00};
-
-    if (send(output_buffer, 2) < 0) {
+    if (reply_success() < 0) {
         PRINTF("Error: failed to send\n");
         return -1;
     }
 
-    ctx->state = TO_ADDR_CHECKED;
+    G_swap_ctx.state = TO_ADDR_CHECKED;
 
     return 0;
 }
