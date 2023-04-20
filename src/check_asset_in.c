@@ -132,7 +132,6 @@ int check_asset_in(const command_t *cmd) {
     }
 
     G_swap_ctx.state = WAITING_USER_VALIDATION;
-    G_swap_ctx.rate = cmd->rate;
 
     ui_validate_amounts();
 

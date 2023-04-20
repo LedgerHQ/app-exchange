@@ -54,6 +54,7 @@ int start_new_transaction(const command_t *cmd) {
 
     G_swap_ctx.state = WAITING_TRANSACTION;
     G_swap_ctx.subcommand = cmd->subcommand;
+    G_swap_ctx.rate = cmd->rate;
 
     return 0;
 }

@@ -45,32 +45,35 @@ int dispatch_command(const command_t *cmd) {
             break;
         case SET_PARTNER_KEY_COMMAND:
             if (G_swap_ctx.state == WAITING_TRANSACTION &&
-                cmd->subcommand == G_swap_ctx.subcommand) {
+                cmd->subcommand == G_swap_ctx.subcommand && cmd->rate == G_swap_ctx.rate) {
                 ret = set_partner_key(cmd);
                 valid_command_received = true;
             }
             break;
         case CHECK_PARTNER_COMMAND:
-            if (G_swap_ctx.state == PROVIDER_SET && cmd->subcommand == G_swap_ctx.subcommand) {
+            if (G_swap_ctx.state == PROVIDER_SET && cmd->subcommand == G_swap_ctx.subcommand &&
+                cmd->rate == G_swap_ctx.rate) {
                 ret = check_partner(cmd);
                 valid_command_received = true;
             }
             break;
         case PROCESS_TRANSACTION_RESPONSE_COMMAND:
-            if (G_swap_ctx.state == PROVIDER_CHECKED && cmd->subcommand == G_swap_ctx.subcommand) {
+            if (G_swap_ctx.state == PROVIDER_CHECKED && cmd->subcommand == G_swap_ctx.subcommand &&
+                cmd->rate == G_swap_ctx.rate) {
                 ret = process_transaction(cmd);
                 valid_command_received = true;
             }
             break;
         case CHECK_TRANSACTION_SIGNATURE_COMMAND:
             if (G_swap_ctx.state == TRANSACTION_RECEIVED &&
-                cmd->subcommand == G_swap_ctx.subcommand) {
+                cmd->subcommand == G_swap_ctx.subcommand && cmd->rate == G_swap_ctx.rate) {
                 ret = check_tx_signature(cmd);
                 valid_command_received = true;
             }
             break;
         case CHECK_PAYOUT_ADDRESS:
-            if (G_swap_ctx.state == SIGNATURE_CHECKED && cmd->subcommand == G_swap_ctx.subcommand) {
+            if (G_swap_ctx.state == SIGNATURE_CHECKED && cmd->subcommand == G_swap_ctx.subcommand &&
+                cmd->rate == G_swap_ctx.rate) {
                 if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
                     ret = check_asset_in(cmd);
                 } else {
@@ -80,13 +83,15 @@ int dispatch_command(const command_t *cmd) {
             }
             break;
         case CHECK_REFUND_ADDRESS:
-            if (G_swap_ctx.state == TO_ADDR_CHECKED && cmd->subcommand == G_swap_ctx.subcommand) {
+            if (G_swap_ctx.state == TO_ADDR_CHECKED && cmd->subcommand == G_swap_ctx.subcommand &&
+                cmd->rate == G_swap_ctx.rate) {
                 ret = check_refund_address(cmd);
                 valid_command_received = true;
             }
             break;
         case START_SIGNING_TRANSACTION:
-            if (G_swap_ctx.state == WAITING_SIGNING && cmd->subcommand == G_swap_ctx.subcommand) {
+            if (G_swap_ctx.state == WAITING_SIGNING && cmd->subcommand == G_swap_ctx.subcommand &&
+                cmd->rate == G_swap_ctx.rate) {
                 ret = start_signing_transaction(cmd);
                 valid_command_received = true;
             }
