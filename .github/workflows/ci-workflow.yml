@@ -10,9 +10,27 @@ on:
 
 jobs:
   job_swap_functional_tests:
+    name: Test current Exchange version with P4 prototype apps
     uses: ./.github/workflows/reusable_swap_functional_tests.yml
     with:
       branch_for_exchange: ${{ github.ref }}
+      suffix_artifact: "_P4"
+
+  job_swap_functional_tests_master:
+    name: Test current Exchange version with P1 released apps
+    uses: ./.github/workflows/reusable_swap_functional_tests.yml
+    with:
+      branch_for_exchange: ${{ github.ref }}
+      branch_for_stellar: "master"
+      branch_for_tezos: "master"
+      branch_for_xrp: "master"
+      branch_for_ethereum: "master"
+      branch_for_ethereum_classic: "master"
+      branch_for_litecoin: "master"
+      branch_for_bitcoin_legacy: "master"
+      branch_for_bitcoin: "master"
+      # branch_for_solana: "master"
+      suffix_artifact: "_P1"
 
   job_scan_build:
     name: Clang Static Analyzer

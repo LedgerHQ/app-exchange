@@ -43,6 +43,10 @@ on:
         required: false
         default: "develop"
         type: string
+      suffix_artifact:
+        required: false
+        default: ""
+        type: string
 
 jobs:
   build_sideloaded_applications:
@@ -84,7 +88,7 @@ jobs:
       app_repository: LedgerHQ/${{ matrix.coin.repo }}
       app_branch_name: ${{  matrix.coin.branch }}
       flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} DEBUG=1"
-      upload_app_binaries_artifact: libraries_binaries
+      upload_app_binaries_artifact: libraries_binaries${{ inputs.suffix_artifact }}
       upload_as_lib_artifact: ${{ matrix.coin.name }}
       run_for_devices: '["nanos", "nanox", "nanosp"]'
 
@@ -95,7 +99,7 @@ jobs:
       app_repository: LedgerHQ/app-exchange
       app_branch_name: ${{ inputs.branch_for_exchange }}
       flags: "TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1"
-      upload_app_binaries_artifact: exchange_binaries
+      upload_app_binaries_artifact: exchange_binaries${{ inputs.suffix_artifact }}
       run_for_devices: '["nanos", "nanox", "nanosp"]'
 
   ragger_tests:
@@ -107,8 +111,8 @@ jobs:
     with:
       app_repository: LedgerHQ/app-exchange
       app_branch_name: ${{ inputs.branch_for_exchange }}
-      download_app_binaries_artifact: exchange_binaries
-      lib_binaries_artifact: libraries_binaries
+      download_app_binaries_artifact: exchange_binaries${{ inputs.suffix_artifact }}
+      lib_binaries_artifact: libraries_binaries${{ inputs.suffix_artifact }}
       test_dir: test/python
       run_for_devices: '["nanos", "nanox", "nanosp"]'
 
@@ -151,13 +155,13 @@ jobs:
       - name: Download exchange binaries
         uses: actions/download-artifact@v3
         with:
-          name: exchange_binaries
+          name: exchange_binaries${{ inputs.suffix_artifact }}
           path: ./build/
 
       - name: Download lib binaries
         uses: actions/download-artifact@v3
         with:
-          name: libraries_binaries
+          name: libraries_binaries${{ inputs.suffix_artifact }}
           path: ./test/python/lib_binaries/
 
       - name: Dispatch to the tests/elfs
