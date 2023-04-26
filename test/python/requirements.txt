@@ -3,3 +3,4 @@ ragger[tests,speculos]
 protobuf==3.20.0
 stellar_sdk
 base58
+xrpl-py
