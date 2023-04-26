@@ -5,43 +5,47 @@ on:
     inputs:
       branch_for_exchange:
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       branch_for_stellar:
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       branch_for_tezos:
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       branch_for_xrp:
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       branch_for_ethereum:
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       branch_for_ethereum_classic:
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       branch_for_litecoin:
         required: false
-        default: "master"
+        default: 'master'
         type: string
       branch_for_bitcoin_legacy:
         required: false
-        default: "master"
+        default: 'master'
         type: string
       branch_for_bitcoin:
         required: false
-        default: "develop"
+        default: 'develop'
         type: string
       branch_for_solana:
         required: false
-        default: "develop"
+        default: 'develop'
+        type: string
+      test_filter:
+        required: false
+        default: '""'
         type: string
 
 jobs:
@@ -110,6 +114,7 @@ jobs:
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
       test_dir: test/python
+      test_filter: ${{ inputs.test_filter }}
       run_for_devices: '["nanos", "nanox", "nanosp"]'
 
   # Legacy
