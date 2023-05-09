@@ -216,4 +216,7 @@ class ExchangeClient:
         if rapdu.status == 0x9000:
             # If the exchange app accepts starting the library app, give it time to actually start
             sleep(0.5)
+
+            # The USB stack will be reset by the called app
+            self._client.handle_usb_reset()
         return rapdu

@@ -183,7 +183,7 @@ def test_stellar_swap_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_swap(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
+    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead, OSError)):
         performer.perform_stellar_tx(backend)
 
 
@@ -272,7 +272,7 @@ def test_stellar_fund_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_fund(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
+    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead, OSError)):
         performer.perform_stellar_tx(backend)
 
 
@@ -362,7 +362,7 @@ def test_stellar_sell_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_sell(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
+    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead, OSError)):
         performer.perform_stellar_tx(backend)
 
 
