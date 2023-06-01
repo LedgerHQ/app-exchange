@@ -11,7 +11,7 @@ from ragger.bip import pack_derivation_path
 from ragger.navigator import NavInsID
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
-# from .apps.tezos import TezosClient, StatusCode
+from .apps.tezos import TezosClient, encode_address, XTZ_PACKED_DERIVATION_PATH, StatusCode
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -80,10 +80,10 @@ def test_tezos_wrong_payout(backend):
 
 class TezosValidTxPerformer:
     # Default valid tx values used for the tests
-    def_path = "m/44'/148'/0'"
+    def_path = XTZ_PACKED_DERIVATION_PATH
     def_fees = 100
     def_memo = ""
-    def_destination = "tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9"
+    def_destination = "e6330795ffe18f873b83cb13662442b87bd98c22"
     def_send_amount = 10000000
 
     # Helper to use default args if none provided
@@ -95,22 +95,19 @@ class TezosValidTxPerformer:
         return (fees, memo, destination, send_amount)
 
     # Helper to send a valid TX to the Tezos app, provide parameters to overload te default values
-    # TODO: implement Tezos E2E signature
-    # def perform_tezos_tx(self,
-    #                        backend,
-    #                        fees: Optional[int]=None,
-    #                        memo: Optional[str]=None,
-    #                        destination: Optional[str]=None,
-    #                        send_amount: Optional[int]=None) -> RAPDU:
-    #     fees, memo, destination, send_amount = self._maybe_default(fees, memo, destination, send_amount)
+    def perform_tezos_tx(self,
+                         backend,
+                         fees: Optional[int]=None,
+                         memo: Optional[str]=None,
+                         destination: Optional[str]=None,
+                         send_amount: Optional[int]=None) -> RAPDU:
+        fees, memo, destination, send_amount = self._maybe_default(fees, memo, destination, send_amount)
 
-        # return TezosClient(backend).sign_message_exchange()
-        # path=self.def_path,
-        #                                                   network=Network.MAINNET,
-        #                                                   fees=fees,
-        #                                                   memo=memo,
-        #                                                   destination=destination,
-        #                                                   send_amount=send_amount)
+        return TezosClient(backend).send_simple_sign_tx(path=self.def_path,
+                                                        fees=fees,
+                                                        memo=memo,
+                                                        destination=destination,
+                                                        send_amount=send_amount)
 
     def perform_valid_exchange_tx(self, backend, navigator, test_name, subcommand, tx_infos, fees):
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
@@ -133,7 +130,6 @@ class TezosValidTxPerformer:
 # ##############
 # # SWAP tests #
 # ##############
-
 class TezosValidSwapPerformer(TezosValidTxPerformer):
     # Helper to send a valid SWAP TX to the Exchange app, provide parameters to overload te default values
     def perform_valid_swap(self,
@@ -146,7 +142,7 @@ class TezosValidSwapPerformer(TezosValidTxPerformer):
                            send_amount: Optional[int]=None):
         fees, memo, destination, send_amount = self._maybe_default(fees, memo, destination, send_amount)
         tx_infos = {
-            "payin_address": destination,
+            "payin_address": encode_address(destination),
             "payin_extra_id": memo.encode(),
             "refund_address": b"tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9",
             "refund_extra_id": b"",
@@ -164,38 +160,38 @@ class TezosValidSwapPerformer(TezosValidTxPerformer):
 def test_tezos_swap_valid_1(backend, navigator, test_name):
     performer = TezosValidSwapPerformer()
     performer.perform_valid_swap(backend, navigator, test_name)
-    # performer.perform_tezos_tx(backend)
+    performer.perform_tezos_tx(backend)
 
 
 # Valid swap test with non default values
 def test_tezos_swap_valid_2(backend, navigator, test_name):
     fees = 10078
-    memo = "starlight"
-    destination = "tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9"
+    memo = ""
+    destination = "e6330795ffe18f873b83cb13662442b87bd98c40"
     send_amount = 446739662
 
     performer = TezosValidSwapPerformer()
     performer.perform_valid_swap(backend, navigator, test_name, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
-    # performer.perform_tezos_tx(backend, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
+    performer.perform_tezos_tx(backend, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
 
 
-# # Make a valid swap and then ask a second signature
-# def test_tezos_swap_refuse_double_sign(backend, navigator, test_name):
-#     performer = TezosValidSwapPerformer()
-#     performer.perform_valid_swap(backend, navigator, test_name)
-#     performer.perform_tezos_tx(backend)
+# Make a valid swap and then ask a second signature
+def test_tezos_swap_refuse_double_sign(backend, navigator, test_name):
+    performer = TezosValidSwapPerformer()
+    performer.perform_valid_swap(backend, navigator, test_name)
+    performer.perform_tezos_tx(backend)
 
-#     with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
-#         performer.perform_tezos_tx(backend)
+    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
+        performer.perform_tezos_tx(backend)
 
 
-# # Test swap with a malicious Tezos TX with tampered fees
-# def test_tezos_swap_wrong_fees(backend, navigator, test_name):
-#     performer = TezosValidSwapPerformer()
-#     performer.perform_valid_swap(backend, navigator, test_name)
-#     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-#     rapdu = performer.perform_tezos_tx(backend, fees=performer.def_fees + 100)
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+# Test swap with a malicious Tezos TX with tampered fees
+def test_tezos_swap_wrong_fees(backend, navigator, test_name):
+    performer = TezosValidSwapPerformer()
+    performer.perform_valid_swap(backend, navigator, test_name)
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    rapdu = performer.perform_tezos_tx(backend, fees=performer.def_fees + 100)
+    assert rapdu.status == StatusCode.EXC_REJECT
 
 
 # # Test swap with a malicious Tezos TX with tampered memo
@@ -204,25 +200,25 @@ def test_tezos_swap_valid_2(backend, navigator, test_name):
 #     performer.perform_valid_swap(backend, navigator, test_name)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_tezos_tx(backend, memo=performer.def_memo + "0")
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+#     assert rapdu.status == StatusCode.EXC_REJECT
 
 
-# # Test swap with a malicious Tezos TX with tampered dest
-# def test_tezos_swap_wrong_dest(backend, navigator, test_name):
-#     performer = TezosValidSwapPerformer()
-#     performer.perform_valid_swap(backend, navigator, test_name)
-#     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-#     rapdu = performer.perform_tezos_tx(backend, destination="tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9")
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+# Test swap with a malicious Tezos TX with tampered dest
+def test_tezos_swap_wrong_dest(backend, navigator, test_name):
+    performer = TezosValidSwapPerformer()
+    performer.perform_valid_swap(backend, navigator, test_name)
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    rapdu = performer.perform_tezos_tx(backend, destination="e6330795ffe18f873b83cb13662442b87bd98c45")
+    assert rapdu.status == StatusCode.EXC_REJECT
 
 
-# # Test swap with a malicious Tezos TX with tampered amount
-# def test_tezos_swap_wrong_amount(backend, navigator, test_name):
-#     performer = TezosValidSwapPerformer()
-#     performer.perform_valid_swap(backend, navigator, test_name)
-#     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-#     rapdu = performer.perform_tezos_tx(backend, send_amount=performer.def_send_amount + 351)
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+# Test swap with a malicious Tezos TX with tampered amount
+def test_tezos_swap_wrong_amount(backend, navigator, test_name):
+    performer = TezosValidSwapPerformer()
+    performer.perform_valid_swap(backend, navigator, test_name)
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    rapdu = performer.perform_tezos_tx(backend, send_amount=performer.def_send_amount + 351)
+    assert rapdu.status == StatusCode.EXC_REJECT
 
 
 # ##############
@@ -245,7 +241,7 @@ class TezosValidFundPerformer(TezosValidTxPerformer):
             "account_name": "My account 00",
             "in_currency": "XTZ",
             "in_amount": int.to_bytes(send_amount, length=4, byteorder='big'),
-            "in_address": destination,
+            "in_address": encode_address(destination),
         }
         self.perform_valid_exchange_tx(backend, navigator, test_name, SubCommand.FUND, tx_infos, fees)
 
@@ -254,37 +250,37 @@ class TezosValidFundPerformer(TezosValidTxPerformer):
 def test_tezos_fund_valid_1(backend, navigator, test_name):
     performer = TezosValidFundPerformer()
     performer.perform_valid_fund(backend, navigator, test_name)
-    # performer.perform_tezos_tx(backend)
+    performer.perform_tezos_tx(backend)
 
 
 # Valid fund test with non default values
 def test_tezos_fund_valid_2(backend, navigator, test_name):
     fees = 10078
-    destination="tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9"
+    destination="e6330795ffe18f873b83cb13662442b87bd98c40"
     send_amount = 446739662
 
     performer = TezosValidFundPerformer()
     performer.perform_valid_fund(backend, navigator, test_name, fees=fees, destination=destination, send_amount=send_amount)
-    # performer.perform_tezos_tx(backend, fees=fees, destination=destination, send_amount=send_amount)
+    performer.perform_tezos_tx(backend, fees=fees, destination=destination, send_amount=send_amount)
 
 
-# # Make a valid fund and then ask a second signature
-# def test_tezos_fund_refuse_double_sign(backend, navigator, test_name):
-#     performer = TezosValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
-#     performer.perform_tezos_tx(backend)
+# Make a valid fund and then ask a second signature
+def test_tezos_fund_refuse_double_sign(backend, navigator, test_name):
+    performer = TezosValidFundPerformer()
+    performer.perform_valid_fund(backend, navigator, test_name)
+    performer.perform_tezos_tx(backend)
 
-#     with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
-#         performer.perform_tezos_tx(backend)
+    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
+        performer.perform_tezos_tx(backend)
 
 
-# # Test fund with a malicious Tezos TX with tampered fees
-# def test_tezos_fund_wrong_fees(backend, navigator, test_name):
-#     performer = TezosValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
-#     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-#     rapdu = performer.perform_tezos_tx(backend, fees=performer.def_fees + 100)
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+# Test fund with a malicious Tezos TX with tampered fees
+def test_tezos_fund_wrong_fees(backend, navigator, test_name):
+    performer = TezosValidFundPerformer()
+    performer.perform_valid_fund(backend, navigator, test_name)
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    rapdu = performer.perform_tezos_tx(backend, fees=performer.def_fees + 100)
+    assert rapdu.status == StatusCode.EXC_REJECT
 
 
 # # Test fund with a malicious Tezos TX with tampered memo
@@ -293,25 +289,25 @@ def test_tezos_fund_valid_2(backend, navigator, test_name):
 #     performer.perform_valid_fund(backend, navigator, test_name)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_tezos_tx(backend, memo=performer.def_memo + "0")
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+#     assert rapdu.status == StatusCode.EXC_REJECT
 
 
-# # Test fund with a malicious Tezos TX with tampered dest
-# def test_tezos_fund_wrong_dest(backend, navigator, test_name):
-#     performer = TezosValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
-#     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-#     rapdu = performer.perform_tezos_tx(backend, destination="tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9")
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+# Test fund with a malicious Tezos TX with tampered dest
+def test_tezos_fund_wrong_dest(backend, navigator, test_name):
+    performer = TezosValidFundPerformer()
+    performer.perform_valid_fund(backend, navigator, test_name)
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    rapdu = performer.perform_tezos_tx(backend, destination="e6330795ffe18f873b83cb13662442b87bd98c45")
+    assert rapdu.status == StatusCode.EXC_REJECT
 
 
-# # Test fund with a malicious Tezos TX with tampered amount
-# def test_tezos_fund_wrong_amount(backend, navigator, test_name):
-#     performer = TezosValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
-#     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-#     rapdu = performer.perform_tezos_tx(backend, send_amount=performer.def_send_amount + 351)
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+# Test fund with a malicious Tezos TX with tampered amount
+def test_tezos_fund_wrong_amount(backend, navigator, test_name):
+    performer = TezosValidFundPerformer()
+    performer.perform_valid_fund(backend, navigator, test_name)
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    rapdu = performer.perform_tezos_tx(backend, send_amount=performer.def_send_amount + 351)
+    assert rapdu.status == StatusCode.EXC_REJECT
 
 
 # ##############
@@ -335,7 +331,7 @@ class TezosValidSellPerformer(TezosValidTxPerformer):
             "out_amount": {"coefficient": b"\x01", "exponent": 3},
             "in_currency": "XTZ",
             "in_amount": int.to_bytes(send_amount, length=4, byteorder='big'),
-            "in_address": destination,
+            "in_address": encode_address(destination),
         }
         self.perform_valid_exchange_tx(backend, navigator, test_name, SubCommand.SELL, tx_infos, fees)
 
@@ -344,37 +340,37 @@ class TezosValidSellPerformer(TezosValidTxPerformer):
 def test_tezos_sell_valid_1(backend, navigator, test_name):
     performer = TezosValidSellPerformer()
     performer.perform_valid_sell(backend, navigator, test_name)
-    # performer.perform_tezos_tx(backend)
+    performer.perform_tezos_tx(backend)
 
 
 # Valid sell test with non default values
 def test_tezos_sell_valid_2(backend, navigator, test_name):
     fees = 10078
-    destination="tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9"
+    destination="e6330795ffe18f873b83cb13662442b87bd98c40"
     send_amount = 446739662
 
     performer = TezosValidSellPerformer()
     performer.perform_valid_sell(backend, navigator, test_name, fees=fees, destination=destination, send_amount=send_amount)
-    # performer.perform_tezos_tx(backend, fees=fees, destination=destination, send_amount=send_amount)
+    performer.perform_tezos_tx(backend, fees=fees, destination=destination, send_amount=send_amount)
 
 
-# # Make a valid sell and then ask a second signature
-# def test_tezos_sell_refuse_double_sign(backend, navigator, test_name):
-#     performer = TezosValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
-#     performer.perform_tezos_tx(backend)
+# Make a valid sell and then ask a second signature
+def test_tezos_sell_refuse_double_sign(backend, navigator, test_name):
+    performer = TezosValidSellPerformer()
+    performer.perform_valid_sell(backend, navigator, test_name)
+    performer.perform_tezos_tx(backend)
 
-#     with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
-#         performer.perform_tezos_tx(backend)
+    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
+        performer.perform_tezos_tx(backend)
 
 
-# # Test sell with a malicious Tezos TX with tampered fees
-# def test_tezos_sell_wrong_fees(backend, navigator, test_name):
-#     performer = TezosValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
-#     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-#     rapdu = performer.perform_tezos_tx(backend, fees=performer.def_fees + 100)
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+# Test sell with a malicious Tezos TX with tampered fees
+def test_tezos_sell_wrong_fees(backend, navigator, test_name):
+    performer = TezosValidSellPerformer()
+    performer.perform_valid_sell(backend, navigator, test_name)
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    rapdu = performer.perform_tezos_tx(backend, fees=performer.def_fees + 100)
+    assert rapdu.status == StatusCode.EXC_REJECT
 
 
 # # Test sell with a malicious Tezos TX with tampered memo
@@ -383,22 +379,22 @@ def test_tezos_sell_valid_2(backend, navigator, test_name):
 #     performer.perform_valid_sell(backend, navigator, test_name)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_tezos_tx(backend, memo=performer.def_memo + "0")
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+#     assert rapdu.status == StatusCode.EXC_REJECT
 
 
-# # Test sell with a malicious Tezos TX with tampered dest
-# def test_tezos_sell_wrong_dest(backend, navigator, test_name):
-#     performer = TezosValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
-#     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-#     rapdu = performer.perform_tezos_tx(backend, destination="tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9")
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+# Test sell with a malicious Tezos TX with tampered dest
+def test_tezos_sell_wrong_dest(backend, navigator, test_name):
+    performer = TezosValidSellPerformer()
+    performer.perform_valid_sell(backend, navigator, test_name)
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    rapdu = performer.perform_tezos_tx(backend, destination="e6330795ffe18f873b83cb13662442b87bd98c45")
+    assert rapdu.status == StatusCode.EXC_REJECT
 
 
-# # Test sell with a malicious Tezos TX with tampered amount
-# def test_tezos_sell_wrong_amount(backend, navigator, test_name):
-#     performer = TezosValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
-#     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-#     rapdu = performer.perform_tezos_tx(backend, send_amount=performer.def_send_amount + 351)
-#     assert rapdu.status == StatusCode.SW_SWAP_CHECKING_FAIL
+# Test sell with a malicious Tezos TX with tampered amount
+def test_tezos_sell_wrong_amount(backend, navigator, test_name):
+    performer = TezosValidSellPerformer()
+    performer.perform_valid_sell(backend, navigator, test_name)
+    backend.raise_policy = RaisePolicy.RAISE_NOTHING
+    rapdu = performer.perform_tezos_tx(backend, send_amount=performer.def_send_amount + 351)
+    assert rapdu.status == StatusCode.EXC_REJECT

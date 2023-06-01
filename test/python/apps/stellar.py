@@ -140,7 +140,7 @@ class StellarClient:
         tx += int.to_bytes(send_amount, length=8, byteorder='big')
         return tx
 
-    def send_simple_sign_tx(self, path:str, network: Network, fees: int, memo: str, destination: str, send_amount: int) -> RAPDU:
+    def send_simple_sign_tx(self, path: str, network: Network, fees: int, memo: str, destination: str, send_amount: int) -> RAPDU:
         packed_path = pack_derivation_path(path)
         tx = self._craft_simple_tx(network=network, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
         return self._backend.exchange(self.CLA, Ins.SIGN, P1.FIRST, P2.LAST, packed_path + tx)
