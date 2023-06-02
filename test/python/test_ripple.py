@@ -1,8 +1,5 @@
 import pytest
 from typing import Optional, Tuple
-from requests.exceptions import ChunkedEncodingError, ConnectionError
-from urllib3.exceptions import ProtocolError
-from http.client import IncompleteRead
 from time import sleep
 
 from ragger.backend import RaisePolicy
@@ -104,13 +101,14 @@ class RippleValidTxPerformer:
                            send_amount: Optional[int]=None) -> RAPDU:
         fees, memo, destination, send_amount = self._maybe_default(fees, memo, destination, send_amount)
 
-        return XRPClient(backend).send_simple_sign_tx(path=self.def_path,
-                                                      fees=fees,
-                                                      memo=memo,
-                                                      destination=destination,
-                                                      send_amount=send_amount)
-
-        # return XRPClient(backend).sign(payload)
+        rapdu = XRPClient(backend).send_simple_sign_tx(path=self.def_path,
+                                                       fees=fees,
+                                                       memo=memo,
+                                                       destination=destination,
+                                                       send_amount=send_amount)
+        sleep(2)
+        # TODO : assert signature validity
+        return rapdu
 
     def perform_valid_exchange_tx(self, backend, navigator, test_name, subcommand, tx_infos, fees):
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
@@ -186,8 +184,9 @@ def test_ripple_swap_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_swap(backend, navigator, test_name)
     performer.perform_ripple_tx(backend)
 
-    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead, OSError)):
+    with pytest.raises(ExceptionRAPDU) as e:
         performer.perform_ripple_tx(backend)
+    assert e.value.status == Errors.INVALID_INSTRUCTION
 
 
 # Test swap with a malicious Ripple TX with tampered fees
@@ -275,8 +274,9 @@ def test_ripple_swap_wrong_amount(backend, navigator, test_name):
 #     performer.perform_valid_fund(backend, navigator, test_name)
 #     performer.perform_ripple_tx(backend)
 
-#     with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead, OSError)):
+#     with pytest.raises(ExceptionRAPDU) as e:
 #         performer.perform_ripple_tx(backend)
+#     assert e.value.status == Errors.INVALID_INSTRUCTION
 
 
 # # Test fund with a malicious Ripple TX with tampered fees
@@ -365,8 +365,9 @@ def test_ripple_swap_wrong_amount(backend, navigator, test_name):
 #     performer.perform_valid_sell(backend, navigator, test_name)
 #     performer.perform_ripple_tx(backend)
 
-#     with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead, OSError)):
+#     with pytest.raises(ExceptionRAPDU) as e:
 #         performer.perform_ripple_tx(backend)
+#     assert e.value.status == Errors.INVALID_INSTRUCTION
 
 
 # # Test sell with a malicious Ripple TX with tampered fees
