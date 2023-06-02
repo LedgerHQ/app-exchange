@@ -63,7 +63,16 @@ void app_main(void) {
                 },
         };
 
-        if (dispatch_command(&cmd) < 0) return;  // some non recoverable error happened
+        if (dispatch_command(&cmd) < 0) {
+            // some non recoverable error happened
+            return;
+        }
+
+        if (G_swap_ctx.state == SIGN_FINISHED) {
+            // We are back from an app started in signing mode, our globals are corrupted
+            // Force a return to the main function in order to trigger a full clean restart
+            return;
+        }
 
         if (G_swap_ctx.state == INITIAL_STATE) {
             ui_idle();
@@ -90,6 +99,11 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
     os_boot();
 
     for (;;) {
+        // Fully reset the global space, as it may be corrupted if we come back from an app started
+        // for signing
+        PRINTF("Exchange new cycle, reset BSS\n");
+        os_explicit_zero_BSS_segment();
+
         UX_INIT();
 
         BEGIN_TRY {
