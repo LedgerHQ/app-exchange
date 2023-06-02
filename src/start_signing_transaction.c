@@ -4,6 +4,7 @@
 #include "io.h"
 
 int start_signing_transaction(const command_t *cmd) {
+    int ret = 0;
     G_io_apdu_buffer[0] = 0x90;
     G_io_apdu_buffer[1] = 0x00;
     io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
@@ -39,7 +40,9 @@ int start_signing_transaction(const command_t *cmd) {
         lib_in_out_params.destination_address_extra_id = G_swap_ctx.fund_transaction_extra_id;
     }
 
-    create_payin_transaction(G_swap_ctx.payin_binary_name, &lib_in_out_params);
+    ret = create_payin_transaction(G_swap_ctx.payin_binary_name, &lib_in_out_params);
+    // Write G_swap_ctx.state AFTER coming back to exchange to avoid erasure by the app
+    G_swap_ctx.state = SIGN_FINISHED;
 
-    return 0;
+    return ret;
 }

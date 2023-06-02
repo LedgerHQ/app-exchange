@@ -41,40 +41,40 @@ int get_printable_amount(buf_t *coin_config,
                          char *printable_amount,
                          unsigned char printable_amount_size,
                          bool is_fee) {
-    static unsigned int libcall_params[5];
-    static get_printable_amount_parameters_t lib_input_params = {0};
-    lib_input_params.coin_configuration = coin_config->bytes;
-    lib_input_params.coin_configuration_length = coin_config->size;
-    lib_input_params.amount = amount;
-    lib_input_params.amount_length = amount_size;
-    lib_input_params.is_fee = is_fee;
+    unsigned int libcall_params[5];
+    get_printable_amount_parameters_t lib_in_out_params;
+    memset(&lib_in_out_params, 0, sizeof(lib_in_out_params));
+
+    lib_in_out_params.coin_configuration = coin_config->bytes;
+    lib_in_out_params.coin_configuration_length = coin_config->size;
+    lib_in_out_params.amount = amount;
+    lib_in_out_params.amount_length = amount_size;
+    lib_in_out_params.is_fee = is_fee;
+
     libcall_params[0] = (unsigned int) application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = GET_PRINTABLE_AMOUNT;
     libcall_params[3] = 0;
-    libcall_params[4] = (unsigned int) &lib_input_params;
-    PRINTF("Address of printable_amount %d\n", lib_input_params.printable_amount);
-    memset(lib_input_params.printable_amount, 0, sizeof(lib_input_params.printable_amount));
-    // Speculos workaround
-    // io_seproxyhal_general_status();
-    PRINTF("Calling coin %s as library, for command GET_PRINTABLE_AMOUNT\n", libcall_params[0]);
+    libcall_params[4] = (unsigned int) &lib_in_out_params;
+
+    PRINTF("Exchange will call '%s' as library for GET_PRINTABLE_AMOUNT\n", application_name);
     os_lib_call(libcall_params);
+    PRINTF("Back in Exchange, the app finished the library command GET_PRINTABLE_AMOUNT\n");
+
     // the lib application should have something for us to display
-    if (lib_input_params.printable_amount[0] == '\0') {
+    if (lib_in_out_params.printable_amount[0] == '\0') {
         PRINTF("Error: Printable amount should exist\n");
         return -1;
     }
     // result should be null terminated string, so we need to have at least one 0
-    if (lib_input_params.printable_amount[sizeof(lib_input_params.printable_amount) - 1] != '\0') {
+    if (lib_in_out_params.printable_amount[sizeof(lib_in_out_params.printable_amount) - 1] !=
+        '\0') {
         PRINTF("Error: Printable amount should be null-terminated\n");
         return -1;
     }
-    if (strlen(lib_input_params.printable_amount) >= printable_amount_size) {
-        PRINTF("Error: Printable amount is too big to fit into input buffer\n");
-        return -1;
-    }
-    strncpy(printable_amount, lib_input_params.printable_amount, printable_amount_size);
-    printable_amount[printable_amount_size - 1] = '\x00';
+    strlcpy(printable_amount, lib_in_out_params.printable_amount, printable_amount_size);
+    PRINTF("Returned printable_amount '%s'\n", printable_amount);
+
     return 0;
 }
 
@@ -83,42 +83,50 @@ int check_address(buf_t *coin_config,
                   char *application_name,
                   char *address_to_check,
                   char *address_extra_to_check) {
-    static unsigned int libcall_params[5];
-    static check_address_parameters_t lib_in_out_params = {0};
+    unsigned int libcall_params[5];
+    check_address_parameters_t lib_in_out_params;
+    memset(&lib_in_out_params, 0, sizeof(lib_in_out_params));
+
     lib_in_out_params.coin_configuration = coin_config->bytes;
     lib_in_out_params.coin_configuration_length = coin_config->size;
     lib_in_out_params.address_parameters = address_parameters->bytes;
     lib_in_out_params.address_parameters_length = address_parameters->size;
     lib_in_out_params.address_to_check = address_to_check;
     lib_in_out_params.extra_id_to_check = address_extra_to_check;
+
     libcall_params[0] = (unsigned int) application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = CHECK_ADDRESS;
     libcall_params[3] = 0;
     libcall_params[4] = (unsigned int) &lib_in_out_params;
-    PRINTF("I am calling %s to check address\n", application_name);
-    PRINTF("I am going to check address %s\n", lib_in_out_params.address_to_check);
-    // Speculos workaround
-    // io_seproxyhal_general_status();
-    PRINTF("Calling coin %s as library, for command CHECK_ADDRESS\n", libcall_params[0]);
+
+    PRINTF("Exchange will call '%s' as library for CHECK_ADDRESS\n", application_name);
+    PRINTF("The address to check '%s'\n", lib_in_out_params.address_to_check);
     os_lib_call(libcall_params);
-    // PRINTF("Debug data sent by library %.*H\n", 20, lib_in_out_params.address_to_check);
-    PRINTF("I am back\n");
+    PRINTF("Back in Exchange, the app finished the library command CHECK_ADDRESS\n");
+    PRINTF("Returned code %d\n", lib_in_out_params.result);
+
     return lib_in_out_params.result;
 }
 
-void create_payin_transaction(char *application_name,
-                              create_transaction_parameters_t *lib_in_out_params) {
+int create_payin_transaction(char *application_name,
+                             create_transaction_parameters_t *lib_in_out_params) {
     unsigned int libcall_params[5];
+
+    lib_in_out_params->result = 0;
+
     libcall_params[0] = (unsigned int) application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = SIGN_TRANSACTION;
     libcall_params[3] = 0;
     libcall_params[4] = (unsigned int) lib_in_out_params;
-    PRINTF("Calling %s app\n", application_name);
+
+    PRINTF("Exchange will call '%s' as library for SIGN_TRANSACTION\n", application_name);
     USB_power(0);
-    PRINTF("Calling coin %s as library, for command SIGN_TRANSACTION\n", libcall_params[0]);
     os_lib_call(libcall_params);
-    USB_power(0);
-    USB_power(1);
+    // From now our BSS is corrupted and unusable. Return to main loop start ASAP
+    PRINTF("Back in Exchange, the app finished the library command SIGN_TRANSACTION\n");
+    PRINTF("Returned code %d\n", lib_in_out_params->result);
+
+    return lib_in_out_params->result;
 }
