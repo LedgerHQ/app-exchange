@@ -1,8 +1,6 @@
 import pytest
 from typing import Optional, Tuple
-from requests.exceptions import ChunkedEncodingError, ConnectionError
-from urllib3.exceptions import ProtocolError
-from http.client import IncompleteRead
+from time import sleep
 
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
@@ -103,12 +101,15 @@ class StellarValidTxPerformer:
                            send_amount: Optional[int]=None) -> RAPDU:
         fees, memo, destination, send_amount = self._maybe_default(fees, memo, destination, send_amount)
 
-        return StellarClient(backend).send_simple_sign_tx(path=self.def_path,
-                                                          network=Network.MAINNET,
-                                                          fees=fees,
-                                                          memo=memo,
-                                                          destination=destination,
-                                                          send_amount=send_amount)
+        rapdu = StellarClient(backend).send_simple_sign_tx(path=self.def_path,
+                                                           network=Network.MAINNET,
+                                                           fees=fees,
+                                                           memo=memo,
+                                                           destination=destination,
+                                                           send_amount=send_amount)
+        sleep(2)
+        # TODO : assert signature validity
+        return rapdu
 
     def perform_valid_exchange_tx(self, backend, navigator, test_name, subcommand, tx_infos, fees):
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
@@ -176,15 +177,14 @@ def test_stellar_swap_valid_2(backend, navigator, test_name):
     performer.perform_valid_swap(backend, navigator, test_name, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
     performer.perform_stellar_tx(backend, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
 
-
 # Make a valid swap and then ask a second signature
 def test_stellar_swap_refuse_double_sign(backend, navigator, test_name):
     performer = StellarValidSwapPerformer()
     performer.perform_valid_swap(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
-
-    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead, OSError)):
-        performer.perform_stellar_tx(backend)
+    with pytest.raises(ExceptionRAPDU) as e:
+        rapdu = performer.perform_stellar_tx(backend)
+    assert e.value.status == Errors.INVALID_INSTRUCTION
 
 
 # Test swap with a malicious Stellar TX with tampered fees
@@ -272,8 +272,9 @@ def test_stellar_fund_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_fund(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead, OSError)):
-        performer.perform_stellar_tx(backend)
+    with pytest.raises(ExceptionRAPDU) as e:
+        rapdu = performer.perform_stellar_tx(backend)
+    assert e.value.status == Errors.INVALID_INSTRUCTION
 
 
 # Test fund with a malicious Stellar TX with tampered fees
@@ -362,8 +363,9 @@ def test_stellar_sell_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_sell(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
-    with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead, OSError)):
-        performer.perform_stellar_tx(backend)
+    with pytest.raises(ExceptionRAPDU) as e:
+        rapdu = performer.perform_stellar_tx(backend)
+    assert e.value.status == Errors.INVALID_INSTRUCTION
 
 
 # Test sell with a malicious Stellar TX with tampered fees
