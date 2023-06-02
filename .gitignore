@@ -42,6 +42,7 @@ test/snapshots-tmp
 # Functional tests
 test/python/snapshots-tmp/
 test/python/lib_binaries/*.elf
+test/python/lib_binaries/*.zip
 __pycache__
 .egg
 .pyc

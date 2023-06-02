@@ -182,6 +182,8 @@ def test_stellar_swap_refuse_double_sign(backend, navigator, test_name):
     performer = StellarValidSwapPerformer()
     performer.perform_valid_swap(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
+
+    sleep(0.5)
     with pytest.raises(ExceptionRAPDU) as e:
         rapdu = performer.perform_stellar_tx(backend)
     assert e.value.status == Errors.INVALID_INSTRUCTION
@@ -272,6 +274,7 @@ def test_stellar_fund_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_fund(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
+    sleep(0.5)
     with pytest.raises(ExceptionRAPDU) as e:
         rapdu = performer.perform_stellar_tx(backend)
     assert e.value.status == Errors.INVALID_INSTRUCTION
@@ -363,6 +366,7 @@ def test_stellar_sell_refuse_double_sign(backend, navigator, test_name):
     performer.perform_valid_sell(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
 
+    sleep(0.5)
     with pytest.raises(ExceptionRAPDU) as e:
         rapdu = performer.perform_stellar_tx(backend)
     assert e.value.status == Errors.INVALID_INSTRUCTION
