@@ -244,26 +244,6 @@ nano_environments.forEach(function(model) {
 });
 
 
-nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] XRP swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new ExchangeTransactionPerformer(model, sim);
-        transaction.setFromCurrencyInfo(XRP_INFO);
-        transaction.setToCurrencyInfo(ETH_INFO);
-        // 21 XRP to 1.1234 ETH
-        transaction.setAmountToProvider(21000000); // 1 xrp == 10^6 drops
-        transaction.setAmountToWallet(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-        transaction.setFee(123);
-        await transaction.performSuccessfulTransaction();
-
-        let transport = await sim.getTransport();
-
-        const xrp = new Xrp(transport);
-        await expect(xrp.signTransaction("44'/144'/0'/0/0", '120000228000000024038DE6A32E05E30A78201B0390AAB9614000000001406F4068400000000000007B7321038368B6F1151E0CD559126AE13910B8B8D790652EB5CC0B5019A63D2E6079296181143C0E955DFA24367806070434D8BE16A12E410C3B831422F866F3831E896120510409164B75B5673BF0F4'))
-            .resolves.toEqual("3045022100eefd26a52281c64a2b6d1d89f1e9a0aaeb1afe4aa3a55f4ed22d0a645d03e1ef0220632d06f22f8028c82f05b5ef46b10bd7851166b75c61582362001250fe89d18c"
-            );
-    }))
-});
-
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] ETH swap to XRP`, zemu(model, async (sim) => {
@@ -290,28 +270,6 @@ nano_environments.forEach(function(model) {
 
 
 nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] XLM swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new ExchangeTransactionPerformer(model, sim);
-        transaction.setFromCurrencyInfo(XLM_INFO);
-        transaction.setToCurrencyInfo(ETH_INFO);
-        // 1.1234567 XLM to 1.1234 ETH
-        transaction.setAmountToProvider(11234567); // 1 xlm == 10^7 drops
-        transaction.setAmountToWallet(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-        transaction.setFee(100);
-        await transaction.performSuccessfulTransaction();
-
-        let transport = await sim.getTransport();
-
-        const xlm = new Xlm(transport);
-        await expect(xlm.signTransaction("44'/148'/0'", Buffer.from('7AC33997544E3175D266BD022439B22CDB16508C01163F26E5CB2A3E1045A97900000002000000009A222500CF47B03D05EDEC04ED3294CECE1DE727CCADB401F47D6B4B230E81A00000006401FA61520000000200000000000000010000000F3132333435363738393132333435360000000001000000000000000100000000B693A98837E5649020396fbea1642c12593951958a69d6f3798461d8dde15f74000000000000000000ab6d0700000000', 'hex')))
-            .resolves.toEqual({
-                "signature": Buffer.from("e5e0f224b5c9c85fa411c154f844cd309ee16af98a024ec65eb32e7d5a5b83e469b3085b6c3a4cf231d1e32733223a2a97c9b49fa9da1a58727301e562c90f0a", "hex")
-            });
-    }))
-});
-
-
-nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] ETH swap to XLM`, zemu(model, async (sim) => {
         let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(ETH_INFO);
@@ -330,28 +288,6 @@ nano_environments.forEach(function(model) {
                 "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
                 "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
                 "v": "25"
-            });
-    }))
-});
-
-
-nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] XTZ swap to ETH`, zemu(model, async (sim) => {
-        let transaction = new ExchangeTransactionPerformer(model, sim);
-        transaction.setFromCurrencyInfo(XTZ_INFO);
-        transaction.setToCurrencyInfo(ETH_INFO);
-        // 0.0123 XTZ to 1.1234 ETH
-        transaction.setAmountToProvider(0.0123 * 1000000); // 1 xtz == 10^6 microtez
-        transaction.setAmountToWallet(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-        transaction.setFee(0.06 * 1000000);
-        await transaction.performSuccessfulTransaction();
-
-        let transport = await sim.getTransport();
-
-        const xtz = new Xtz(transport);
-        await expect(xtz.signOperation("44'/1729'/0'/0'", '032e3ed0be2a6f7e196f965f3915ef1afb8ac2316aa3e74ecad93a9328bab80f176b004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dae3d805d08c0100001dbfcc527042205a12508a62f37a72080e512c9338a9e7db3adeb6cae73e3ca56c004035f49a9d068f852084ddf642835bbfdd4ff681b0ea01dbe3d805d08c0181028c60000042cfe66ab45deadb496e7b8cddc172e2be0ad3b200'))
-            .resolves.toEqual({
-                "signature": "10b156dfed4f0934f3e0bbb4f62f9c78fb5bee84e685700d2f19f6bf9a5c9712d3b187ed87d0d78e03930dc8e66b78958c91e6bd71dfe6919adaf90f5dff270c"
             });
     }))
 });

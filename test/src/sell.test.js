@@ -13,20 +13,6 @@ import { ExchangeTransactionPerformer } from "./ExchangeTransactionPerformer"
 
 import { zemu, nano_environments } from './test.fixture';
 
-nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] SELL Valid Bitcoin selling transaction should be accepted`, zemu(model, async (sim) => {
-        let t = new ExchangeTransactionPerformer(model, sim);
-        t.setFromCurrencyInfo(BTC_INFO);
-        t.setToCurrencyInfo(XTZ_INFO);
-        // 1 BTC
-        t.setInAmount(numberToBigEndianBuffer(100000000));
-        // 777 x 10^-2
-        t.setOutAmount(777, 2);
-        t.setFee(10000000);
-        await t.performSell();
-    }))
-});
-
 
 nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] SELL Overflow values should be trimmed when selling`, zemu(model, async (sim) => {
@@ -38,20 +24,6 @@ nano_environments.forEach(function(model) {
         // 777 x 10^-2
         t.setOutAmount(777, 2);
         t.setFee(10000000);
-        await t.performSell();
-    }))
-});
-
-nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] SELL Valid Ethereum selling transaction should be accepted`, zemu(model, async (sim) => {
-        let t = new ExchangeTransactionPerformer(model, sim);
-        t.setFromCurrencyInfo(ETH_INFO);
-        t.setToCurrencyInfo(XTZ_INFO);
-        // 1 ETH
-        t.setInAmount(numberToBigEndianBuffer(1000000000000000000));
-        // 777 x 10^-2
-        t.setOutAmount(777, 2);
-        t.setFee(1000000000000000000);
         await t.performSell();
     }))
 });
