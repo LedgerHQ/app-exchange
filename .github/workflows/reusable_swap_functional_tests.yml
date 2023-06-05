@@ -100,7 +100,6 @@ jobs:
       app_branch_name: ${{ inputs.branch_for_exchange }}
       flags: "TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1"
       upload_app_binaries_artifact: exchange_binaries
-      run_for_devices: '["nanos", "nanox", "nanosp"]'
 
   ragger_tests:
     name: Run ragger tests using the reusable workflow

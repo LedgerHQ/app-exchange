@@ -35,12 +35,22 @@ def valid_sell(backend, navigator, test_name, tx_infos, fees):
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)
     with ex.check_address(payout_signer=LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                  [NavInsID.BOTH_CLICK],
-                                                  "Accept",
-                                                  ROOT_SCREENSHOT_PATH,
-                                                  test_name)
+        if backend.firmware.device.startswith("nano"):
+            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                      [NavInsID.BOTH_CLICK],
+                                                      "Accept",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
+        else:
+            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
+                                                      [NavInsID.USE_CASE_REVIEW_CONFIRM],
+                                                      "Hold to sign",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
     ex.start_signing_transaction()
+    # On Stax, wait for the called app modal
+    if backend.firmware.device == "stax":
+        backend.wait_for_text_on_screen("Signing")
 
 
 def test_solana_sell_ok(backend, navigator, test_name):
@@ -101,9 +111,16 @@ def test_solana_sell_cancel(backend, navigator, test_name):
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     with ex.check_address(payout_signer=LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                          [NavInsID.BOTH_CLICK],
-                                          "Reject",
-                                          ROOT_SCREENSHOT_PATH,
-                                          test_name)
+        if backend.firmware.device.startswith("nano"):
+            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                              [NavInsID.BOTH_CLICK],
+                                              "Reject",
+                                              ROOT_SCREENSHOT_PATH,
+                                              test_name)
+        else:
+            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
+                                                      [NavInsID.USE_CASE_REVIEW_REJECT, NavInsID.USE_CASE_CHOICE_CONFIRM, NavInsID.USE_CASE_STATUS_DISMISS],
+                                                      "Hold to sign",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
     assert ex.get_check_address_response().status == Errors.USER_REFUSED

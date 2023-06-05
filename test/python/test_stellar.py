@@ -121,11 +121,18 @@ class StellarValidTxPerformer:
         ex.process_transaction(tx_infos, fees_bytes)
         ex.check_transaction_signature(partner)
         with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
-            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                      [NavInsID.BOTH_CLICK],
-                                                      "Accept",
-                                                      ROOT_SCREENSHOT_PATH,
-                                                      test_name)
+            if backend.firmware.device.startswith("nano"):
+                navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                          [NavInsID.BOTH_CLICK],
+                                                          "Accept",
+                                                          ROOT_SCREENSHOT_PATH,
+                                                          test_name)
+            else:
+                navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
+                                                          [NavInsID.USE_CASE_REVIEW_CONFIRM],
+                                                          "Hold to sign",
+                                                          ROOT_SCREENSHOT_PATH,
+                                                          test_name)
         ex.start_signing_transaction()
 
 
@@ -158,11 +165,12 @@ class StellarValidSwapPerformer(StellarValidTxPerformer):
         }
         self.perform_valid_exchange_tx(backend, navigator, test_name, SubCommand.SWAP, tx_infos, fees)
 
-
+from time import sleep
 # Valid swap test with default values
 def test_stellar_swap_valid_1(backend, navigator, test_name):
     performer = StellarValidSwapPerformer()
     performer.perform_valid_swap(backend, navigator, test_name)
+    sleep(5)
     performer.perform_stellar_tx(backend)
 
 
@@ -255,6 +263,7 @@ def test_stellar_fund_valid_1(backend, navigator, test_name):
     performer = StellarValidFundPerformer()
     performer.perform_valid_fund(backend, navigator, test_name)
     performer.perform_stellar_tx(backend)
+    sleep(5)
 
 
 # Valid fund test with non default values
@@ -287,6 +296,7 @@ def test_stellar_fund_wrong_fees(backend, navigator, test_name):
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_stellar_tx(backend, fees=performer.def_fees + 100)
     assert rapdu.status == StellarErrors.SW_SWAP_CHECKING_FAIL
+    sleep(10)
 
 
 # Test fund with a malicious Stellar TX with tampered memo
