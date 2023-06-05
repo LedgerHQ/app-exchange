@@ -12,8 +12,29 @@
 #include "io.h"
 #include "ux.h"
 
+#define SPINNER_TEXT_PART_1 "Starting the "
+#define SPINNER_TEXT_PART_2 " app to sign the transaction"
+static char spinner_text[(sizeof(SPINNER_TEXT_PART_1) - 1)
+                         + BOLOS_APPNAME_MAX_SIZE_B
+                         + (sizeof(SPINNER_TEXT_PART_2) - 1)
+                         + 1];
+
+
+#define REFUSAL_TEXT_PART_1 "Incorrect transaction\nrejected by the\n"
+#define REFUSAL_TEXT_PART_2 " app"
+static char refusal_text[(sizeof(REFUSAL_TEXT_PART_1) - 1)
+                         + BOLOS_APPNAME_MAX_SIZE_B
+                         + (sizeof(REFUSAL_TEXT_PART_2) - 1)
+                         + 1];
+
 static void accept_tx(void) {
-    nbgl_useCaseSpinner("Starting paying application");
+    snprintf(spinner_text,
+             sizeof(spinner_text),
+             "%s%s%s",
+             SPINNER_TEXT_PART_1,
+             G_swap_ctx.payin_binary_name,
+             SPINNER_TEXT_PART_2);
+    nbgl_useCaseSpinner(spinner_text);
     reply_success();
     G_swap_ctx.state = WAITING_SIGNING;
 }
@@ -98,6 +119,20 @@ void ui_validate_amounts(void) {
                             "Reject",
                             continue_review,
                             rejectUseCaseChoice);
+}
+
+void display_signing_success(void) {
+    nbgl_useCaseStatus("TRANSACTION\nSUCCESS", true, ui_idle);
+}
+
+void display_signing_failure(const char *appname) {
+    snprintf(refusal_text,
+             sizeof(refusal_text),
+             "%s%s%s",
+             REFUSAL_TEXT_PART_1,
+             appname,
+             REFUSAL_TEXT_PART_2);
+    nbgl_useCaseStatus(refusal_text, false, ui_idle);
 }
 
 #endif  // HAVE_NBGL

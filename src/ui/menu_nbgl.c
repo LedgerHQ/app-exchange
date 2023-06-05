@@ -23,8 +23,8 @@ static bool nav_callback(uint8_t page, nbgl_pageContent_t* content) {
     if (page == 0) {
         content->type = INFOS_LIST;
         content->infosList.nbInfos = 2;
-        content->infosList.infoTypes = (const char**) info_types;
-        content->infosList.infoContents = (const char**) info_contents;
+        content->infosList.infoTypes = info_types;
+        content->infosList.infoContents = info_contents;
     } else {
         return false;
     }
