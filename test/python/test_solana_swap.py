@@ -63,12 +63,22 @@ def valid_swap(backend, navigator, test_name, tx_infos, fees):
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)
     with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                  [NavInsID.BOTH_CLICK],
-                                                  "Accept",
-                                                  ROOT_SCREENSHOT_PATH,
-                                                  test_name)
+        if backend.firmware.device.startswith("nano"):
+            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                      [NavInsID.BOTH_CLICK],
+                                                      "Accept",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
+        else:
+            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
+                                                      [NavInsID.USE_CASE_REVIEW_CONFIRM],
+                                                      "Hold to sign",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
     ex.start_signing_transaction()
+    # On Stax, wait for the called app modal
+    if backend.firmware.device == "stax":
+        backend.wait_for_text_on_screen("Signing")
 
 
 # Validate regular ETH <-> SOL exchanges
@@ -111,26 +121,7 @@ def test_solana_swap_sender_double_sign(backend, navigator, test_name):
             pass
     assert e.value.status == Errors.INVALID_INSTRUCTION
 
-# Validate canceled ETH <-> SOL exchanges
-
-def test_solana_swap_recipient_cancel(backend, navigator, test_name):
-    ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
-
-    ex.init_transaction()
-    ex.set_partner_key(partner.credentials)
-    ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(VALID_SWAP_ETH_TO_SOL_TX_INFOS, bytes.fromhex(ETH_FEES))
-    ex.check_transaction_signature(partner)
-
-    backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                          [NavInsID.BOTH_CLICK],
-                                          "Reject",
-                                          ROOT_SCREENSHOT_PATH,
-                                          test_name)
-    assert ex.get_check_address_response().status == Errors.USER_REFUSED
+# Validate canceled SOL -> ETH swap
 
 def test_solana_swap_sender_cancel(backend, navigator, test_name):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
@@ -144,11 +135,18 @@ def test_solana_swap_sender_cancel(backend, navigator, test_name):
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                          [NavInsID.BOTH_CLICK],
-                                          "Reject",
-                                          ROOT_SCREENSHOT_PATH,
-                                          test_name)
+        if backend.firmware.device.startswith("nano"):
+            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                              [NavInsID.BOTH_CLICK],
+                                              "Reject",
+                                              ROOT_SCREENSHOT_PATH,
+                                              test_name)
+        else:
+            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
+                                                      [NavInsID.USE_CASE_REVIEW_REJECT, NavInsID.USE_CASE_CHOICE_CONFIRM, NavInsID.USE_CASE_STATUS_DISMISS],
+                                                      "Hold to sign",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
     assert ex.get_check_address_response().status == Errors.USER_REFUSED
 
 

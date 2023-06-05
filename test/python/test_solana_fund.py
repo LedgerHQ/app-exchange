@@ -34,12 +34,22 @@ def valid_fund(backend, navigator, test_name, tx_infos, fees):
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)
     with ex.check_address(payout_signer=LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                  [NavInsID.BOTH_CLICK],
-                                                  "Accept",
-                                                  ROOT_SCREENSHOT_PATH,
-                                                  test_name)
+        if backend.firmware.device.startswith("nano"):
+            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                      [NavInsID.BOTH_CLICK],
+                                                      "Accept",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
+        else:
+            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
+                                                      [NavInsID.USE_CASE_REVIEW_CONFIRM],
+                                                      "Hold to sign",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
     ex.start_signing_transaction()
+    # On Stax, wait for the called app modal
+    if backend.firmware.device == "stax":
+        backend.wait_for_text_on_screen("Signing")
 
 
 def test_solana_fund_ok(backend, navigator, test_name):
@@ -52,6 +62,7 @@ def test_solana_fund_ok(backend, navigator, test_name):
     with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
         # Instant rapdu expected
         pass
+
     signature: bytes = sol.get_async_response().data
     verify_signature(SOL.OWNED_PUBLIC_KEY, message, signature)
 
@@ -100,9 +111,16 @@ def test_solana_fund_cancel(backend, navigator, test_name):
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     with ex.check_address(LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                          [NavInsID.BOTH_CLICK],
-                                          "Reject",
-                                          ROOT_SCREENSHOT_PATH,
-                                          test_name)
+        if backend.firmware.device.startswith("nano"):
+            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                              [NavInsID.BOTH_CLICK],
+                                              "Reject",
+                                              ROOT_SCREENSHOT_PATH,
+                                              test_name)
+        else:
+            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
+                                                      [NavInsID.USE_CASE_REVIEW_REJECT, NavInsID.USE_CASE_CHOICE_CONFIRM],
+                                                      "Hold to sign",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
     assert ex.get_check_address_response().status == Errors.USER_REFUSED
