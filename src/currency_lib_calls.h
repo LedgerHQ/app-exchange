@@ -19,4 +19,4 @@ int get_printable_amount(buf_t *coin_config,
                          unsigned char printable_amount_size,
                          bool is_fee);
 
-int create_payin_transaction(char *application_name, create_transaction_parameters_t *params);
+int create_payin_transaction(create_transaction_parameters_t *params);

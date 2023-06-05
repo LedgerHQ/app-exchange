@@ -9,7 +9,7 @@ int start_signing_transaction(const command_t *cmd) {
     G_io_apdu_buffer[1] = 0x00;
     io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
     G_swap_ctx.state = INITIAL_STATE;
-    static create_transaction_parameters_t lib_in_out_params;
+    create_transaction_parameters_t lib_in_out_params;
 
     lib_in_out_params.fee_amount = G_swap_ctx.transaction_fee;
     lib_in_out_params.fee_amount_length = G_swap_ctx.transaction_fee_length;
@@ -40,9 +40,14 @@ int start_signing_transaction(const command_t *cmd) {
         lib_in_out_params.destination_address_extra_id = G_swap_ctx.fund_transaction_extra_id;
     }
 
-    ret = create_payin_transaction(G_swap_ctx.payin_binary_name, &lib_in_out_params);
+    ret = create_payin_transaction(&lib_in_out_params);
     // Write G_swap_ctx.state AFTER coming back to exchange to avoid erasure by the app
-    G_swap_ctx.state = SIGN_FINISHED;
+    if (ret == 1) {
+        G_swap_ctx.state = SIGN_FINISHED_SUCCESS;
+    } else {
+        G_swap_ctx.state = SIGN_FINISHED_FAIL;
+    }
 
-    return ret;
+    // The called app refusing to sign is NOT an handler error, we report a success
+    return 0;
 }

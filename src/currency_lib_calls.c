@@ -2,6 +2,7 @@
 
 #include "os_io_seproxyhal.h"
 #include "os.h"
+#include "globals.h"
 
 #include "currency_lib_calls.h"
 
@@ -109,24 +110,37 @@ int check_address(buf_t *coin_config,
     return lib_in_out_params.result;
 }
 
-int create_payin_transaction(char *application_name,
-                             create_transaction_parameters_t *lib_in_out_params) {
+int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params) {
     unsigned int libcall_params[5];
 
     lib_in_out_params->result = 0;
 
-    libcall_params[0] = (unsigned int) application_name;
+    libcall_params[0] = (unsigned int) G_swap_ctx.payin_binary_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = SIGN_TRANSACTION;
     libcall_params[3] = 0;
     libcall_params[4] = (unsigned int) lib_in_out_params;
 
-    PRINTF("Exchange will call '%s' as library for SIGN_TRANSACTION\n", application_name);
+    PRINTF("Exchange will call '%s' as library for SIGN_TRANSACTION\n", G_swap_ctx.payin_binary_name);
     USB_power(0);
+
+#ifdef HAVE_NBGL
+    // Save appname in stack to keep it from being erased
+    // We'll need it later for the failure modale on Stax
+    char appanme[BOLOS_APPNAME_MAX_SIZE_B];
+    strlcpy(appanme, G_swap_ctx.payin_binary_name, sizeof(appanme));
+#endif
+
     os_lib_call(libcall_params);
-    // From now our BSS is corrupted and unusable. Return to main loop start ASAP
+
+    // From now on our BSS is corrupted and unusable. Return to main loop to start a new cycle ASAP
     PRINTF("Back in Exchange, the app finished the library command SIGN_TRANSACTION\n");
     PRINTF("Returned code %d\n", lib_in_out_params->result);
+
+#ifdef HAVE_NBGL
+    // Retrieve the appname from the stack and put it back in the BSS
+    strlcpy(G_swap_ctx.payin_binary_name, appanme, sizeof(G_swap_ctx.payin_binary_name));
+#endif
 
     return lib_in_out_params->result;
 }
