@@ -5,6 +5,10 @@
 #include "send_function.h"
 #include "commands.h"
 
+void to_uppercase(char *str, unsigned char size);
+
+void set_ledger_currency_name(char *currency, size_t currency_size);
+
 int process_transaction(swap_app_context_t *ctx, const command_t *cmd, SendFunction send);
 
 #endif  // _PROCESS_TRANSACTION_H_

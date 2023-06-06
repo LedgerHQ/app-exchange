@@ -20,15 +20,17 @@ const currency_alias_t currencies_aliases[] = {
 
 void to_uppercase(char *str, unsigned char size) {
     for (unsigned char i = 0; i < size && str[i] != 0; i++) {
-        str[i] = str[i] >= 'a' ? str[i] - ('a' - 'A') : str[i];
+        if (str[i] >= 'a' && str[i] <= 'z') {
+            str[i] -= ('a' - 'A');
+        }
     }
 }
 
 void set_ledger_currency_name(char *currency, size_t currency_size) {
     for (size_t i = 0; i < sizeof(currencies_aliases) / sizeof(currencies_aliases[0]); i++) {
-        if (!strncmp(currency,
-                     (char *) (PIC(currencies_aliases[i].foreign_name)),
-                     strlen((char *) PIC(currencies_aliases[i].foreign_name)))) {
+        if (strncmp(currency,
+                    (char *) (PIC(currencies_aliases[i].foreign_name)),
+                    strlen((char *) PIC(currencies_aliases[i].foreign_name))) == 0) {
             strlcpy(currency, (char *) (PIC(currencies_aliases[i].ledger_name)), currency_size);
             return;
         }
