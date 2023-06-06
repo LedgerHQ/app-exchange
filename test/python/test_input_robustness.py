@@ -142,4 +142,43 @@ class TestRobustnessCHECK_ADDRESS:
             self._restart_test(backend, ex, partner)
             payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(self.payout_currency_derivation_path)
             backend.raise_policy = RaisePolicy.RAISE_NOTHING
-            ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
+            rapdu = ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
+            assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
+
+    def test_currency_normalization(self, backend):
+        ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
+        partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+        
+        # This tickers should be normalized and accepted
+        currency_conf_to_test = (
+            create_currency_config("xlm", "Stellar"),
+            create_currency_config("xLm", "Stellar"),
+        )
+        payout_payload = prefix_with_len(self.payout_currency_conf) \
+                         + self.signed_payout_conf \
+                         + prefix_with_len(self.payout_currency_derivation_path)
+
+        for conf in currency_conf_to_test:
+            backend.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
+            self._restart_test(backend, ex, partner)
+            ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
+            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(self.refund_currency_derivation_path)
+            backend.raise_policy = RaisePolicy.RAISE_NOTHING
+            rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=payload)
+            # The address is false on purpose to prevent from having to handle the UI
+            # What we want to test is before the actual address check by Stellar
+            assert rapdu.status == Errors.INVALID_ADDRESS
+
+        # This time the tickers must not match with the conf given in tx_infos
+        currency_conf_to_test = (
+            create_currency_config("XLMm", "Stellar"),
+            create_currency_config("XL ", "Stellar"),
+            create_currency_config("XL", "Stellar"),
+        )
+        for conf in currency_conf_to_test:
+            self._restart_test(backend, ex, partner)
+            ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
+            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(self.refund_currency_derivation_path)
+            backend.raise_policy = RaisePolicy.RAISE_NOTHING
+            rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=payload)
+            assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
