@@ -52,8 +52,8 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    if (application_name.size < 3 || application_name.size > 15) {
-        PRINTF("Error: Application name should be in [3, 15]\n");
+    if (application_name.size < 3 || application_name.size > BOLOS_APPNAME_MAX_SIZE_B) {
+        PRINTF("Error: Application name should be in [3, BOLOS_APPNAME_MAX_SIZE_B]\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
@@ -73,7 +73,7 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
 
     // creating 0-terminated application name
     memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
-    memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
+    memcpy(ctx->payin_binary_name, PIC(application_name.bytes), application_name.size);
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
