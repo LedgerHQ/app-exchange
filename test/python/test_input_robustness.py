@@ -2,6 +2,7 @@ from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.backend import RaisePolicy
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, TICKER_TO_CONF, TICKER_TO_PACKED_DERIVATION_PATH, Command
+from .apps.bsc import BSC_CONF, BSC_CONF_ALIAS_1, BSC_CONF_ALIAS_2, BSC_PACKED_DERIVATION_PATH
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
 class TestRobustnessSET_PARTNER_KEY:
@@ -122,6 +123,7 @@ class TestRobustnessCHECK_ADDRESS:
     def test_robustness_coin_configuration(self, backend):
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
         partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+
         currency_conf_to_test = (
             # Ticker missing
             create_currency_config("", "ethereum"),
@@ -148,7 +150,7 @@ class TestRobustnessCHECK_ADDRESS:
     def test_currency_normalization(self, backend):
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
         partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
-        
+
         # This tickers should be normalized and accepted
         currency_conf_to_test = (
             create_currency_config("xlm", "Stellar"),
@@ -182,3 +184,32 @@ class TestRobustnessCHECK_ADDRESS:
             backend.raise_policy = RaisePolicy.RAISE_NOTHING
             rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=payload)
             assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
+
+class TestAliasAppname:
+    tx_infos = {
+        "payin_address": b"0xd692Cb1346262F584D17B4B470954501f6715a82",
+        "payin_extra_id": b"",
+        "refund_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+        "refund_extra_id": b"",
+        "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+        "payout_extra_id": b"",
+        "currency_from": "ETH",
+        "currency_to": "BSC",
+        "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
+        "amount_to_wallet": b"\246\333t\233+\330\000",
+    }
+    fees_bytes = int.to_bytes(100, length=4, byteorder='big')
+
+    def test_currency_alias(self, backend):
+        for conf in BSC_CONF, BSC_CONF_ALIAS_1, BSC_CONF_ALIAS_2:
+            ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
+            partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+            ex.init_transaction()
+            ex.set_partner_key(partner.credentials)
+            ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+            ex.process_transaction(self.tx_infos, self.fees_bytes)
+            ex.check_transaction_signature(partner)
+
+            # If the alias does not work, CHECK_PAYOUT_ADDRESS will crash
+            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(BSC_PACKED_DERIVATION_PATH)
+            ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)

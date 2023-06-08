@@ -9,8 +9,11 @@ typedef struct app_name_alias_s {
     const char *const app_name;
 } app_name_alias_t;
 
+// The CAL is wrong on some appnames, alias them to the correct one
 const app_name_alias_t appnames_aliases[] = {
-    {"Tezos", "Tezos Wallet"}  // The app name is 'Tezos Wallet' so change accordingly.
+    {"Tezos", "Tezos Wallet"},
+    {"bsc", "Binance Smart Chain"},
+    {"Bsc", "Binance Smart Chain"},
 };
 
 /*
@@ -65,11 +68,18 @@ int parse_coin_config(const buf_t *const orig_buffer,
 
     // Update the application name to match Ledger's naming.
     for (size_t i = 0; i < sizeof(appnames_aliases) / sizeof(appnames_aliases[0]); i++) {
-        if (!strncmp((const char *) application_name->bytes,
-                     (char *) (PIC(appnames_aliases[i].foreign_name)),
-                     application_name->size)) {
+        if (strlen((char *) PIC(appnames_aliases[i].foreign_name)) == application_name->size &&
+            strncmp((const char *) application_name->bytes,
+                    (char *) (PIC(appnames_aliases[i].foreign_name)),
+                    application_name->size) == 0) {
+            PRINTF("Aliased appname, from '%.*s'\n",
+                   application_name->size,
+                   application_name->bytes);
             application_name->bytes = (uint8_t *) appnames_aliases[i].app_name;
             application_name->size = strlen((char *) PIC(appnames_aliases[i].app_name));
+            PRINTF("Aliased appname, to '%.*s'\n",
+                   application_name->size,
+                   PIC(application_name->bytes));
             break;
         }
     }
