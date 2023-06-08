@@ -9,7 +9,45 @@
 #include "parse_check_address_message.h"
 #include "menu.h"
 #include "validate_transaction.h"
+#include "process_transaction.h"
 #include "parse_coin_config.h"
+
+// Check if a given ticker matches the current swap context
+static bool check_matching_ticker(const buf_t *ticker) {
+    char normalized_ticker_name[TICKER_MAX_SIZE_B];
+    uint8_t normalized_ticker_len;
+
+    // Normalize the ticker name first
+    memcpy(normalized_ticker_name, ticker->bytes, sizeof(normalized_ticker_name));
+    normalized_ticker_name[ticker->size] = '\0';
+    to_uppercase(normalized_ticker_name, ticker->size);
+    set_ledger_currency_name(normalized_ticker_name, sizeof(normalized_ticker_name));
+    // Recalculate length in case it changed
+    normalized_ticker_len = strlen(normalized_ticker_name);
+
+    if (strncmp(normalized_ticker_name,
+                (const char *) ticker->bytes,
+                MAX(normalized_ticker_len, ticker->size)) != 0) {
+        PRINTF("Normalized ticker, from '%.*s' to '%s'\n",
+               ticker->size,
+               ticker->bytes,
+               normalized_ticker_name);
+    }
+
+    if (strlen(G_swap_ctx.received_transaction.currency_from) != normalized_ticker_len ||
+        strncmp(G_swap_ctx.received_transaction.currency_from,
+                normalized_ticker_name,
+                normalized_ticker_len) != 0) {
+        PRINTF("Error: Refund ticker '%.*s' doesn't match expected ticker '%.*s'\n",
+               normalized_ticker_len,
+               normalized_ticker_name,
+               strlen(G_swap_ctx.received_transaction.currency_from),
+               G_swap_ctx.received_transaction.currency_from);
+        return false;
+    }
+
+    return true;
+}
 
 int check_refund_address(const command_t *cmd) {
     static buf_t config;
@@ -47,17 +85,8 @@ int check_refund_address(const command_t *cmd) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
-    // Check that given ticker match current context
-    if (strlen(G_swap_ctx.received_transaction.currency_from) != ticker.size ||
-        strncmp(G_swap_ctx.received_transaction.currency_from,  //
-                (const char *) ticker.bytes,                    //
-                ticker.size) != 0) {
-        PRINTF("Error: Refund ticker doesn't match configuration ticker\n %.*H vs %.*H\n",
-               10,
-               G_swap_ctx.received_transaction.currency_from,
-               ticker.size,
-               ticker.bytes);
-
+    // Check that refund ticker matches the current context
+    if (!check_matching_ticker(&ticker)) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
