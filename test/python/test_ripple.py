@@ -1,11 +1,9 @@
 import pytest
 from typing import Optional, Tuple
-from time import sleep
 
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
-from ragger.bip import pack_derivation_path
 from ragger.navigator import NavInsID
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
@@ -13,7 +11,7 @@ from .apps.xrp import XRPClient, DEFAULT_PATH, XRP_PACKED_DERIVATION_PATH, Rippl
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
-from .utils import ROOT_SCREENSHOT_PATH
+from .utils import ROOT_SCREENSHOT_PATH, handle_lib_call_start_or_stop
 
 
 def test_ripple_wrong_refund(backend):
@@ -106,8 +104,9 @@ class RippleValidTxPerformer:
                                                        memo=memo,
                                                        destination=destination,
                                                        send_amount=send_amount)
-        sleep(2)
         # TODO : assert signature validity
+
+        handle_lib_call_start_or_stop(backend)
         return rapdu
 
     def perform_valid_exchange_tx(self, backend, navigator, test_name, subcommand, tx_infos, fees):
@@ -126,7 +125,6 @@ class RippleValidTxPerformer:
                                                       ROOT_SCREENSHOT_PATH,
                                                       test_name)
         ex.start_signing_transaction()
-        sleep(1)
 
 
 ##############
