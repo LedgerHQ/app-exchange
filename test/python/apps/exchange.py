@@ -1,13 +1,12 @@
 from contextlib import contextmanager
 from typing import Generator, Optional, Dict
 from enum import IntEnum
-from time import sleep
 
 from ragger.backend.interface import BackendInterface, RAPDU
-from ragger.error import ExceptionRAPDU
 from ragger.utils import prefix_with_len
 
 from ..signing_authority import SigningAuthority
+from ..utils import handle_lib_call_start_or_stop
 
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -217,9 +216,5 @@ class ExchangeClient:
         # and will start os_lib_call.
         # We give some time to the OS to actually process the os_lib_call
         if rapdu.status == 0x9000:
-            # If the exchange app accepts starting the library app, give it time to actually start
-            sleep(0.5)
-
-            # The USB stack will be reset by the called app
-            self._client.handle_usb_reset()
+            handle_lib_call_start_or_stop(self._client)
         return rapdu
