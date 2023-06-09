@@ -46,7 +46,7 @@ class SubCommand(IntEnum):
     FUND = 0x02
 
 
-TICKER_TO_CONF = {
+TICKER_ID_TO_CONF = {
     "ETC": ETC_CONF,
     "ETH": ETH_CONF,
     "BTC": BTC_CONF,
@@ -58,7 +58,7 @@ TICKER_TO_CONF = {
     "BSC": BSC_CONF,
 }
 
-TICKER_TO_PACKED_DERIVATION_PATH = {
+TICKER_ID_TO_PACKED_DERIVATION_PATH = {
     "ETC": ETC_PACKED_DERIVATION_PATH,
     "ETH": ETH_PACKED_DERIVATION_PATH,
     "BTC": BTC_PACKED_DERIVATION_PATH,
@@ -83,6 +83,12 @@ class Errors(IntEnum):
     CLASS_NOT_SUPPORTED     = 0x6E00
     INVALID_INSTRUCTION     = 0x6D00
     SIGN_VERIFICATION_FAIL  = 0x9D1A
+
+
+def get_conf_ticker(ticker_id):
+    config = TICKER_ID_TO_CONF[ticker_id]
+    ticker_len = config[0]
+    return config[1:ticker_len+1].decode()
 
 
 class ExchangeClient:
@@ -155,16 +161,20 @@ class ExchangeClient:
 
     def process_transaction(self, conf: Dict, fees: bytes) -> RAPDU:
         assert self._subcommand_specs.check_conf(conf)
-
-        self._transaction = self._subcommand_specs.create_transaction(conf, self.transaction_id)
+        expanded_conf = conf.copy()
 
         self._payout_currency = conf[self._subcommand_specs.payout_field]
-        assert self._payout_currency.upper() in TICKER_TO_CONF, f'No conf found for payout ticker {self._payout_currency.upper()}'
-        assert self._payout_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH, f'No conf found for payout ticker {self._payout_currency.upper()}'
+        assert self._payout_currency in TICKER_ID_TO_CONF, f'No conf found for payout ticker {self._payout_currency}'
+        assert self._payout_currency in TICKER_ID_TO_PACKED_DERIVATION_PATH, f'No conf found for payout ticker {self._payout_currency}'
+        expanded_conf[self._subcommand_specs.payout_field] = get_conf_ticker(self._payout_currency)
+
         if self._subcommand_specs.refund_field:
             self._refund_currency = conf[self._subcommand_specs.refund_field]
-            assert self._refund_currency.upper() in TICKER_TO_CONF, f'No conf found for refund ticker {self._refund_currency.upper()}'
-            assert self._refund_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH, f'No conf found for refund ticker {self._refund_currency.upper()}'
+            assert self._refund_currency in TICKER_ID_TO_CONF, f'No conf found for refund ticker {self._refund_currency}'
+            assert self._refund_currency in TICKER_ID_TO_PACKED_DERIVATION_PATH, f'No conf found for refund ticker {self._refund_currency}'
+            expanded_conf[self._subcommand_specs.refund_field] = get_conf_ticker(self._refund_currency)
+
+        self._transaction = self._subcommand_specs.create_transaction(expanded_conf, self.transaction_id)
 
         payload = prefix_with_len(self._transaction) + prefix_with_len(fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
@@ -177,9 +187,9 @@ class ExchangeClient:
 
     @contextmanager
     def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None) -> Generator[None, None, None]:
-        payout_currency_conf = TICKER_TO_CONF[self._payout_currency.upper()]
+        payout_currency_conf = TICKER_ID_TO_CONF[self._payout_currency]
         signed_payout_conf = payout_signer.sign(payout_currency_conf)
-        payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
+        payout_currency_derivation_path = TICKER_ID_TO_PACKED_DERIVATION_PATH[self._payout_currency]
         payload = prefix_with_len(payout_currency_conf) + signed_payout_conf + prefix_with_len(payout_currency_derivation_path)
         self._premature_error=False
 
@@ -192,9 +202,9 @@ class ExchangeClient:
                 self._check_address_result = rapdu
                 yield rapdu
             else:
-                refund_currency_conf = TICKER_TO_CONF[self._refund_currency.upper()]
+                refund_currency_conf = TICKER_ID_TO_CONF[self._refund_currency]
                 signed_refund_conf = refund_signer.sign(refund_currency_conf)
-                refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
+                refund_currency_derivation_path = TICKER_ID_TO_PACKED_DERIVATION_PATH[self._refund_currency]
                 payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
 
                 with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
