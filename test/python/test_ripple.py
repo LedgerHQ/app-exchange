@@ -186,7 +186,7 @@ def test_ripple_swap_refuse_double_sign(backend, navigator, test_name):
 
     with pytest.raises(ExceptionRAPDU) as e:
         performer.perform_ripple_tx(backend)
-    assert e.value.status == Errors.INVALID_INSTRUCTION
+    assert e.value.status == Errors.WRONG_P2
 
 
 # Test swap with a malicious Ripple TX with tampered fees
@@ -276,7 +276,7 @@ def test_ripple_swap_wrong_amount(backend, navigator, test_name):
 
 #     with pytest.raises(ExceptionRAPDU) as e:
 #         performer.perform_ripple_tx(backend)
-#     assert e.value.status == Errors.INVALID_INSTRUCTION
+#     assert e.value.status == Errors.WRONG_P2
 
 
 # # Test fund with a malicious Ripple TX with tampered fees
@@ -367,7 +367,7 @@ def test_ripple_swap_wrong_amount(backend, navigator, test_name):
 
 #     with pytest.raises(ExceptionRAPDU) as e:
 #         performer.perform_ripple_tx(backend)
-#     assert e.value.status == Errors.INVALID_INSTRUCTION
+#     assert e.value.status == Errors.WRONG_P2
 
 
 # # Test sell with a malicious Ripple TX with tampered fees
