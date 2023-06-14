@@ -80,6 +80,7 @@ const main = () => {
     console.log("DER signature: " + toHexPrintableConst(changellyData.signatureInDER));
 
     const btcConfig = createCurrencyConfig("BTC", "Bitcoin", Buffer(0), ledgerTestPrivateKey);
+    const btcLegacyConfig = createCurrencyConfig("BTC", "Bitcoin Legacy", Buffer(0), ledgerTestPrivateKey);
     const ltcConfig = createCurrencyConfig("LTC", "Litecoin", Buffer(0), ledgerTestPrivateKey);
     const xrpConfig = createCurrencyConfig("XRP", "XRP", Buffer(0), ledgerTestPrivateKey);
     const xlmConfig = createCurrencyConfig("XLM", "Stellar", Buffer(0), ledgerTestPrivateKey);
@@ -88,6 +89,9 @@ const main = () => {
 
     const ethSubConfig = Buffer.concat([Buffer.from(["ETH".length]), Buffer.from("ETH"), Buffer.from([18])])
     const ethConfig = createCurrencyConfig("ETH", "Ethereum", ethSubConfig, ledgerTestPrivateKey);
+
+    const etcSubConfig = Buffer.concat([Buffer.from(["ETC".length]), Buffer.from("ETC"), Buffer.from([18])])
+    const etcConfig = createCurrencyConfig("ETC", "Ethereum Classic", etcSubConfig, ledgerTestPrivateKey);
 
     const aeSubConfig = Buffer.concat([Buffer.from(["AE".length]), Buffer.from("AE"), Buffer.from([18])])
     const aeConfig = createCurrencyConfig("AE", "Ethereum", aeSubConfig, ledgerTestPrivateKey);
@@ -103,6 +107,8 @@ const main = () => {
 
     console.log("\nconst BTCConfig = Buffer.from(" + toHexPrintableConst(btcConfig.coinConfig));
     console.log("const BTCConfigSignature = Buffer.from(" + toHexPrintableConst(btcConfig.signature));
+    console.log("\nconst BTCLegacyConfig = Buffer.from(" + toHexPrintableConst(btcLegacyConfig.coinConfig));
+    console.log("const BTCLegacyConfigSignature = Buffer.from(" + toHexPrintableConst(btcLegacyConfig.signature));
     console.log("\nconst LTCConfig = Buffer.from(" + toHexPrintableConst(ltcConfig.coinConfig));
     console.log("const LTCConfigSignature = Buffer.from(" + toHexPrintableConst(ltcConfig.signature));
     console.log("\nconst XRPConfig = Buffer.from(" + toHexPrintableConst(xrpConfig.coinConfig));
@@ -115,6 +121,8 @@ const main = () => {
     console.log("const XTZLegacyConfigSignature = Buffer.from(" + toHexPrintableConst(xtzLegacyConfig.signature));
     console.log("\nconst ETHConfig = Buffer.from(" + toHexPrintableConst(ethConfig.coinConfig));
     console.log("const ETHConfigSignature = Buffer.from(" + toHexPrintableConst(ethConfig.signature));
+    console.log("\nconst ETCConfig = Buffer.from(" + toHexPrintableConst(etcConfig.coinConfig));
+    console.log("const ETCConfigSignature = Buffer.from(" + toHexPrintableConst(etcConfig.signature));
     console.log("\nconst AEConfig = Buffer.from(" + toHexPrintableConst(aeConfig.coinConfig));
     console.log("const AEConfigSignature = Buffer.from(" + toHexPrintableConst(aeConfig.signature));
     console.log("\nconst SHIBConfig = Buffer.from(" + toHexPrintableConst(shibConfig.coinConfig));
