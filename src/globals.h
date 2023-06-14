@@ -80,7 +80,7 @@ typedef struct swap_app_context_s {
     cx_ecfp_256_public_key_t ledger_public_key;
 
     buf_t payin_coin_config;  // serialized coin configuration
-    char payin_binary_name[16];
+    char payin_binary_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
 
     char printable_get_amount[MAX_PRINTABLE_AMOUNT_SIZE];
     char printable_send_amount[MAX_PRINTABLE_AMOUNT_SIZE];

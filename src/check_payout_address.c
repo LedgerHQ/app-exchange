@@ -59,7 +59,7 @@ int check_payout_address(const command_t *cmd) {
 
     // creating 0-terminated application name
     memset(G_swap_ctx.payin_binary_name, 0, sizeof(G_swap_ctx.payin_binary_name));
-    memcpy(G_swap_ctx.payin_binary_name, application_name.bytes, application_name.size);
+    memcpy(G_swap_ctx.payin_binary_name, PIC(application_name.bytes), application_name.size);
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
