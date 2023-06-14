@@ -12,7 +12,7 @@ ledger_swap.NewTransactionResponse.device_transaction_id max_size:11;
 ledger_swap.NewSellResponse.trader_email max_size:50;
 ledger_swap.NewSellResponse.in_currency max_size:10;
 ledger_swap.NewSellResponse.in_amount max_size:16;
-ledger_swap.NewSellResponse.in_address max_size:50;
+ledger_swap.NewSellResponse.in_address max_size:63;
 ledger_swap.NewSellResponse.out_currency max_size:10;
 ledger_swap.NewSellResponse.device_transaction_id max_size:32;
 
@@ -20,7 +20,7 @@ ledger_swap.NewFundResponse.user_id max_size:50;
 ledger_swap.NewFundResponse.account_name max_size:50;
 ledger_swap.NewFundResponse.in_currency max_size:10;
 ledger_swap.NewFundResponse.in_amount max_size:16;
-ledger_swap.NewFundResponse.in_address max_size:50;
+ledger_swap.NewFundResponse.in_address max_size:63;
 ledger_swap.NewFundResponse.device_transaction_id max_size:32;
 
 ledger_swap.UDecimal.coefficient max_size:16;
