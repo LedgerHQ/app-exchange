@@ -2,6 +2,8 @@
 #include "currency_lib_calls.h"
 #include "reply_error.h"
 
+char not_applicable;
+
 int start_signing_transaction(swap_app_context_t *ctx,
                               const command_t *cmd,
                               __attribute__((unused)) SendFunction send) {
@@ -28,9 +30,9 @@ int start_signing_transaction(swap_app_context_t *ctx,
         lib_in_out_params.amount_length = ctx->sell_transaction.in_amount.size;
         lib_in_out_params.destination_address = ctx->sell_transaction.in_address;
 
-        // extraid field seems weird here shouldn't be cast to ctx->received_transaction in this
-        // context
-        lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
+        // Not applicable
+        not_applicable = '\0';
+        lib_in_out_params.destination_address_extra_id = &not_applicable;
     }
 
     if (cmd->subcommand == FUND) {
@@ -38,9 +40,9 @@ int start_signing_transaction(swap_app_context_t *ctx,
         lib_in_out_params.amount_length = ctx->fund_transaction.in_amount.size;
         lib_in_out_params.destination_address = ctx->fund_transaction.in_address;
 
-        // extraid field seems weird here shouldn't be cast to ctx->received_transaction in this
-        // context
-        lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
+        // Not applicable
+        not_applicable = '\0';
+        lib_in_out_params.destination_address_extra_id = &not_applicable;
     }
 
     create_payin_transaction(ctx->payin_binary_name, &lib_in_out_params);
