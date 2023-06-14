@@ -111,6 +111,9 @@ void create_payin_transaction(char *application_name,
     PRINTF("Calling %s app\n", application_name);
     USB_power(0);
     os_lib_call(libcall_params);
+    // Quit in case the lib app returns to us
+    // This versions does not support it
+    os_sched_exit(0);
     USB_power(0);
     USB_power(1);
 }
