@@ -152,24 +152,28 @@ class TestRobustnessCHECK_ADDRESS:
         partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
 
         # This tickers should be normalized and accepted
-        currency_conf_to_test = (
+        payout_currency_conf_to_test = (
+            create_currency_config("eth", "Ethereum", ("ETH", 18)),
+            create_currency_config("Eth", "Ethereum", ("ETH", 18)),
+        )
+        refund_currency_conf_to_test = (
             create_currency_config("xlm", "Stellar"),
             create_currency_config("xLm", "Stellar"),
         )
-        payout_payload = prefix_with_len(self.payout_currency_conf) \
-                         + self.signed_payout_conf \
-                         + prefix_with_len(self.payout_currency_derivation_path)
 
-        for conf in currency_conf_to_test:
-            backend.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
-            self._restart_test(backend, ex, partner)
-            ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
-            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(self.refund_currency_derivation_path)
-            backend.raise_policy = RaisePolicy.RAISE_NOTHING
-            rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=payload)
-            # The address is false on purpose to prevent from having to handle the UI
-            # What we want to test is before the actual address check by Stellar
-            assert rapdu.status == Errors.INVALID_ADDRESS
+        for payout_conf in payout_currency_conf_to_test:
+            for refund_conf in refund_currency_conf_to_test:
+                payout_payload = prefix_with_len(payout_conf) + LEDGER_SIGNER.sign(payout_conf) + prefix_with_len(self.payout_currency_derivation_path)
+                refund_payload = prefix_with_len(refund_conf) + LEDGER_SIGNER.sign(refund_conf) + prefix_with_len(self.refund_currency_derivation_path)
+
+                backend.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
+                self._restart_test(backend, ex, partner)
+                ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
+                backend.raise_policy = RaisePolicy.RAISE_NOTHING
+                rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=refund_payload)
+                # The address is false on purpose to prevent from having to handle the UI
+                # What we want to test is before the actual address check by Stellar
+                assert rapdu.status == Errors.INVALID_ADDRESS
 
         # This time the tickers must not match with the conf given in tx_infos
         currency_conf_to_test = (

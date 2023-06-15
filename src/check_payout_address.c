@@ -10,6 +10,7 @@
 #include "parse_coin_config.h"
 #include "printable_amount.h"
 #include "menu.h"
+#include "ticker_normalization.h"
 
 int check_payout_address(const command_t *cmd) {
     static buf_t config;
@@ -46,11 +47,8 @@ int check_payout_address(const command_t *cmd) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
-    // Check that given ticker match current context
-    if (strlen(G_swap_ctx.received_transaction.currency_to) != ticker.size ||
-        strncmp(G_swap_ctx.received_transaction.currency_to,
-                (const char *) ticker.bytes,
-                ticker.size) != 0) {
+    // Check that refund ticker matches the current context
+    if (!check_matching_ticker(&ticker, G_swap_ctx.received_transaction.currency_to)) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
         return reply_error(INCORRECT_COMMAND_DATA);
     }
