@@ -6,36 +6,7 @@
 #include "swap_errors.h"
 #include "reply_error.h"
 #include "base64.h"
-
-typedef struct currency_alias_s {
-    const char *const foreign_name;
-    const char *const ledger_name;
-} currency_alias_t;
-
-const currency_alias_t currencies_aliases[] = {
-    {"USDT20", "USDT"},  // Changelly's name must be changed to match the ticker from Ledger's
-                         // cryptoasset list
-    {"REP", "REPv2"}     // Changelly's name isn't up to date...
-};
-
-void to_uppercase(char *str, unsigned char size) {
-    for (unsigned char i = 0; i < size && str[i] != 0; i++) {
-        if (str[i] >= 'a' && str[i] <= 'z') {
-            str[i] -= ('a' - 'A');
-        }
-    }
-}
-
-void set_ledger_currency_name(char *currency, size_t currency_size) {
-    for (size_t i = 0; i < sizeof(currencies_aliases) / sizeof(currencies_aliases[0]); i++) {
-        if (strncmp(currency,
-                    (char *) (PIC(currencies_aliases[i].foreign_name)),
-                    strlen((char *) PIC(currencies_aliases[i].foreign_name))) == 0) {
-            strlcpy(currency, (char *) (PIC(currencies_aliases[i].ledger_name)), currency_size);
-            return;
-        }
-    }
-}
+#include "ticker_normalization.h"
 
 /*
  * Trims leading 0s on `PB_BYTES_ARRAY_T.bytes` fields.
