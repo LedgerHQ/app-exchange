@@ -12,6 +12,7 @@
 #include "validate_transaction.h"
 #include "menu.h"
 #include "pb_structs.h"
+#include "ticker_normalization.h"
 
 int check_asset_in(const command_t *cmd) {
     static buf_t config;
@@ -53,10 +54,9 @@ int check_asset_in(const command_t *cmd) {
     char *in_currency = (G_swap_ctx.subcommand == SELL ? G_swap_ctx.sell_transaction.in_currency
                                                        : G_swap_ctx.fund_transaction.in_currency);
 
-    if (strlen(in_currency) != ticker.size ||
-        strncmp(in_currency, (const char *) ticker.bytes, ticker.size) != 0) {
-        PRINTF("Error: currency ticker doesn't match configuration ticker\n");
-
+    // Check that ticker matches the current context
+    if (!check_matching_ticker(&ticker, in_currency)) {
+        PRINTF("Error: ticker doesn't match configuration ticker\n");
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 

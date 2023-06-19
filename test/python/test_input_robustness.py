@@ -1,6 +1,8 @@
 from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.backend import RaisePolicy
+from ragger.navigator import NavInsID
 
+from .utils import ROOT_SCREENSHOT_PATH
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, TICKER_TO_CONF, TICKER_TO_PACKED_DERIVATION_PATH, Command
 from .apps.bsc import BSC_CONF, BSC_CONF_ALIAS_1, BSC_CONF_ALIAS_2, BSC_PACKED_DERIVATION_PATH
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
@@ -188,6 +190,39 @@ class TestRobustnessCHECK_ADDRESS:
             backend.raise_policy = RaisePolicy.RAISE_NOTHING
             rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=payload)
             assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
+
+def test_currency_normalization_fund(backend, navigator, test_name):
+    tx_infos = {
+        "user_id": "Jon Wick",
+        "account_name": "My account 00",
+        "in_currency": "XLM",
+        "in_amount": int.to_bytes(10000000, length=4, byteorder='big'),
+        "in_address": "GB5ZQJYKSZP3JOMOCWCBI7SPQUBW6ZL3642FUB7IYNAOC2EQMAFXI3P2",
+    }
+    fees = 100
+    currency_conf_to_test = (
+        create_currency_config("xlm", "Stellar"),
+        create_currency_config("xLm", "Stellar"),
+    )
+
+    for conf in currency_conf_to_test:
+        ex = ExchangeClient(backend, Rate.FIXED, SubCommand.FUND)
+        partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+        ex.init_transaction()
+        ex.set_partner_key(partner.credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+        fees_bytes = int.to_bytes(fees, length=4, byteorder='big')
+        ex.process_transaction(tx_infos, fees_bytes)
+        ex.check_transaction_signature(partner)
+
+        payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(BSC_PACKED_DERIVATION_PATH)
+        backend.raise_policy = RaisePolicy.RAISE_NOTHING
+        with ex._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload):
+            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                      [NavInsID.BOTH_CLICK],
+                                                      "Accept",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
 
 class TestAliasAppname:
     tx_infos = {

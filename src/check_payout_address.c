@@ -47,7 +47,7 @@ int check_payout_address(const command_t *cmd) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
-    // Check that refund ticker matches the current context
+    // Check that payout ticker matches the current context
     if (!check_matching_ticker(&ticker, G_swap_ctx.received_transaction.currency_to)) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
         return reply_error(INCORRECT_COMMAND_DATA);
