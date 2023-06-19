@@ -10,6 +10,7 @@
 #include "parse_coin_config.h"
 #include "printable_amount.h"
 #include "menu.h"
+#include "ticker_normalization.h"
 
 int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
@@ -62,10 +63,9 @@ int check_asset_in(swap_app_context_t *ctx, const command_t *cmd, SendFunction s
     char *in_currency = (ctx->subcommand == SELL ? ctx->sell_transaction.in_currency
                                                  : ctx->fund_transaction.in_currency);
 
-    if (strlen(in_currency) != ticker.size ||
-        strncmp(in_currency, (const char *) ticker.bytes, ticker.size) != 0) {
-        PRINTF("Error: currency ticker doesn't match configuration ticker\n");
-
+    // Check that ticker matches the current context
+    if (!check_matching_ticker(&ticker, in_currency)) {
+        PRINTF("Error: ticker doesn't match configuration ticker\n");
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
