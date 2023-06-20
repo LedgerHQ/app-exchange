@@ -1,4 +1,5 @@
 import pytest
+from time import sleep
 
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
@@ -103,10 +104,12 @@ def test_solana_swap_sender_double_sign(backend, navigator, test_name):
     signature: bytes = sol.get_async_response().data
     verify_signature(SOL.OWNED_PUBLIC_KEY, message, signature)
 
-    with pytest.raises(Exception):
-        # App should have quit
+    sleep(0.5)
+
+    with pytest.raises(ExceptionRAPDU) as e:
         with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
             pass
+    assert e.value.status == Errors.INVALID_INSTRUCTION
 
 # Validate canceled ETH <-> SOL exchanges
 

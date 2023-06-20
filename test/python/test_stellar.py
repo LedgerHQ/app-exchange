@@ -185,7 +185,7 @@ def test_stellar_swap_refuse_double_sign(backend, navigator, test_name):
 
     sleep(0.5)
     with pytest.raises(ExceptionRAPDU) as e:
-        rapdu = performer.perform_stellar_tx(backend)
+        performer.perform_stellar_tx(backend)
     assert e.value.status == Errors.INVALID_INSTRUCTION
 
 
