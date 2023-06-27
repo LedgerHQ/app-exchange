@@ -51,6 +51,10 @@ on:
         required: false
         default: 'develop'
         type: string
+      branch_for_tron:
+        required: false
+        default: 'develop'
+        type: string
       test_filter:
         required: false
         default: '""'
@@ -107,6 +111,10 @@ jobs:
           repo: app-polkadot
           branch: ${{ inputs.branch_for_polkadot }}
           dir: ./app
+        - name: tron
+          repo: app-tron
+          branch: ${{ inputs.branch_for_tron }}
+          dir: .
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:

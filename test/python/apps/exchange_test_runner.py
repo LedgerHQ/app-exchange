@@ -267,7 +267,8 @@ class ExchangeTestRunner:
 
     # Test swap with a malicious TX with tampered memo
     def perform_test_swap_wrong_memo(self, legacy):
-        assert self.valid_destination_memo_1 != self.valid_destination_memo_2, "This test won't work if the values are the same"
+        if self.valid_destination_memo_1 == self.valid_destination_memo_2:
+            pytest.skip("This test won't work if the values are the same")
         self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, legacy=legacy)
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_2)
@@ -403,7 +404,9 @@ ALL_TESTS_NAME = [str(i).replace(TEST_METHOD_PREFIX, '') for i in _all_test_meth
 ALL_TESTS = [x + suffix for x in ALL_TESTS_NAME for suffix in (TEST_LEGACY_SUFFIX, TEST_UNIFIED_SUFFIX)]
 
 ALL_TESTS_EXCEPT_MEMO = [test for test in ALL_TESTS if not "memo" in test]
+ALL_TESTS_EXCEPT_FEES = [test for test in ALL_TESTS if not "fees" in test]
 ALL_TESTS_EXCEPT_MEMO_AND_FEES = [test for test in ALL_TESTS if (not "memo" in test and not "fees" in test)]
 SWAP_TESTS = [test for test in ALL_TESTS if "swap" in test]
 FUND_TESTS = [test for test in ALL_TESTS if "fund" in test]
 SELL_TESTS = [test for test in ALL_TESTS if "sell" in test]
+VALID_TESTS = [test for test in ALL_TESTS if "valid" in test]
