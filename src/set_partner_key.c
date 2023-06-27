@@ -41,17 +41,23 @@ int set_partner_key(const command_t *cmd) {
     memcpy(G_swap_ctx.partner.name, cmd->data.bytes + 1, G_swap_ctx.partner.name_length);
 
     if (cmd->subcommand == SWAP) {
-        cx_ecfp_init_public_key(CX_CURVE_SECP256K1,
-                                cmd->data.bytes + 1 + G_swap_ctx.partner.name_length,
-                                UNCOMPRESSED_KEY_LENGTH,
-                                &(G_swap_ctx.partner.public_key));
+        if (cx_ecfp_init_public_key_no_throw(CX_CURVE_SECP256K1,
+                                             cmd->data.bytes + 1 + G_swap_ctx.partner.name_length,
+                                             UNCOMPRESSED_KEY_LENGTH,
+                                             &(G_swap_ctx.partner.public_key)) != CX_OK) {
+            PRINTF("Error: cx_ecfp_init_public_key_no_throw\n");
+            return reply_error(INTERNAL_ERROR);
+        }
     }
 
     if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
-        cx_ecfp_init_public_key(CX_CURVE_256R1,
-                                cmd->data.bytes + 1 + G_swap_ctx.partner.name_length,
-                                UNCOMPRESSED_KEY_LENGTH,
-                                &(G_swap_ctx.partner.public_key));
+        if (cx_ecfp_init_public_key_no_throw(CX_CURVE_256R1,
+                                             cmd->data.bytes + 1 + G_swap_ctx.partner.name_length,
+                                             UNCOMPRESSED_KEY_LENGTH,
+                                             &(G_swap_ctx.partner.public_key)) != CX_OK) {
+            PRINTF("Error: cx_ecfp_init_public_key_no_throw\n");
+            return reply_error(INTERNAL_ERROR);
+        }
     }
 
     cx_hash_sha256(cmd->data.bytes,
