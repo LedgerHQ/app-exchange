@@ -3,9 +3,11 @@ from ragger.backend import RaisePolicy
 from ragger.navigator import NavInsID
 
 from .utils import ROOT_SCREENSHOT_PATH
-from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, TICKER_TO_CONF, TICKER_TO_PACKED_DERIVATION_PATH, Command
+from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command
+from .apps.exchange import TICKER_ID_TO_CONF, TICKER_ID_TO_PACKED_DERIVATION_PATH
 from .apps.bsc import BSC_CONF, BSC_CONF_ALIAS_1, BSC_CONF_ALIAS_2, BSC_PACKED_DERIVATION_PATH
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
+
 
 class TestRobustnessSET_PARTNER_KEY:
 
@@ -55,13 +57,13 @@ class TestRobustnessCHECK_ADDRESS:
     }
     fees_bytes = int.to_bytes(100, length=4, byteorder='big')
 
-    payout_currency_conf = TICKER_TO_CONF[tx_infos["currency_to"].upper()]
+    payout_currency_conf = TICKER_ID_TO_CONF[tx_infos["currency_to"]]
     signed_payout_conf = LEDGER_SIGNER.sign(payout_currency_conf)
-    payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[tx_infos["currency_to"].upper()]
+    payout_currency_derivation_path = TICKER_ID_TO_PACKED_DERIVATION_PATH[tx_infos["currency_to"]]
 
-    refund_currency_conf = TICKER_TO_CONF[tx_infos["currency_from"].upper()]
+    refund_currency_conf = TICKER_ID_TO_CONF[tx_infos["currency_from"]]
     signed_refund_conf = LEDGER_SIGNER.sign(refund_currency_conf)
-    refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[tx_infos["currency_from"].upper()]
+    refund_currency_derivation_path = TICKER_ID_TO_PACKED_DERIVATION_PATH[tx_infos["currency_from"]]
 
     def _restart_test(self, backend, ex, partner):
         ex.init_transaction()

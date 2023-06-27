@@ -26,8 +26,8 @@ def test_swap_btc_to_etc(backend, firmware, navigator, test_name):
         "payin_extra_id": "",
         "refund_extra_id": "",
         "payout_extra_id": "",
-        "currency_from": "btc",
-        "currency_to": "etc",
+        "currency_from": "BTC",
+        "currency_to": "ETC",
         "amount_to_provider": b"\021=\\",
         "amount_to_wallet": b"eA\372:cl@\000",
     }

@@ -1,13 +1,12 @@
 from contextlib import contextmanager
 from typing import Generator, Optional, Dict
 from enum import IntEnum
-from time import sleep
 
 from ragger.backend.interface import BackendInterface, RAPDU
-from ragger.error import ExceptionRAPDU
 from ragger.utils import prefix_with_len
 
 from ..signing_authority import SigningAuthority
+from ..utils import handle_lib_call_start_or_stop
 
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -47,7 +46,7 @@ class SubCommand(IntEnum):
     FUND = 0x02
 
 
-TICKER_TO_CONF = {
+TICKER_ID_TO_CONF = {
     "ETC": ETC_CONF,
     "ETH": ETH_CONF,
     "BTC": BTC_CONF,
@@ -59,7 +58,7 @@ TICKER_TO_CONF = {
     "BSC": BSC_CONF,
 }
 
-TICKER_TO_PACKED_DERIVATION_PATH = {
+TICKER_ID_TO_PACKED_DERIVATION_PATH = {
     "ETC": ETC_PACKED_DERIVATION_PATH,
     "ETH": ETH_PACKED_DERIVATION_PATH,
     "BTC": BTC_PACKED_DERIVATION_PATH,
@@ -84,6 +83,13 @@ class Errors(IntEnum):
     CLASS_NOT_SUPPORTED     = 0x6E00
     INVALID_INSTRUCTION     = 0x6D00
     SIGN_VERIFICATION_FAIL  = 0x9D1A
+
+
+def _craft_conf_from_ticker(ticker_id: str, signer: SigningAuthority) -> bytes:
+    currency_conf = TICKER_ID_TO_CONF[ticker_id]
+    signed_conf = signer.sign(currency_conf)
+    derivation_path = TICKER_ID_TO_PACKED_DERIVATION_PATH[ticker_id]
+    return prefix_with_len(currency_conf) + signed_conf + prefix_with_len(derivation_path)
 
 
 class ExchangeClient:
@@ -159,13 +165,10 @@ class ExchangeClient:
 
         self._transaction = self._subcommand_specs.create_transaction(conf, self.transaction_id)
 
+        # Remember payout and refund tickers to automatically infer the currency conf later
         self._payout_currency = conf[self._subcommand_specs.payout_field]
-        assert self._payout_currency.upper() in TICKER_TO_CONF, f'No conf found for payout ticker {self._payout_currency.upper()}'
-        assert self._payout_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH, f'No conf found for payout ticker {self._payout_currency.upper()}'
         if self._subcommand_specs.refund_field:
             self._refund_currency = conf[self._subcommand_specs.refund_field]
-            assert self._refund_currency.upper() in TICKER_TO_CONF, f'No conf found for refund ticker {self._refund_currency.upper()}'
-            assert self._refund_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH, f'No conf found for refund ticker {self._refund_currency.upper()}'
 
         payload = prefix_with_len(self._transaction) + prefix_with_len(fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
@@ -177,11 +180,18 @@ class ExchangeClient:
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
 
     @contextmanager
-    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None) -> Generator[None, None, None]:
-        payout_currency_conf = TICKER_TO_CONF[self._payout_currency.upper()]
-        signed_payout_conf = payout_signer.sign(payout_currency_conf)
-        payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
-        payload = prefix_with_len(payout_currency_conf) + signed_payout_conf + prefix_with_len(payout_currency_derivation_path)
+    def check_address(self,
+                      payout_signer: SigningAuthority,
+                      refund_signer: Optional[SigningAuthority] = None,
+                      overload_payout_ticker: str = None,
+                      overload_refund_ticker: str = None) -> Generator[None, None, None]:
+        # If a ticker is explicitly requested, use it to craft the coin configuration
+        # otherwise, infer the conf from the ticker id saved during PROCESS_TRANSACTION_RESPONSE
+        if overload_payout_ticker:
+            payload = _craft_conf_from_ticker(overload_payout_ticker, payout_signer)
+        else:
+            payload = _craft_conf_from_ticker(self._payout_currency, payout_signer)
+
         self._premature_error=False
 
         if self._refund_currency:
@@ -193,10 +203,12 @@ class ExchangeClient:
                 self._check_address_result = rapdu
                 yield rapdu
             else:
-                refund_currency_conf = TICKER_TO_CONF[self._refund_currency.upper()]
-                signed_refund_conf = refund_signer.sign(refund_currency_conf)
-                refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
-                payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
+                # If a ticker is explicitly requested, use it to craft the coin configuration
+                # otherwise, infer the conf from the ticker id saved during PROCESS_TRANSACTION_RESPONSE
+                if overload_refund_ticker:
+                    payload = _craft_conf_from_ticker(overload_refund_ticker, refund_signer)
+                else:
+                    payload = _craft_conf_from_ticker(self._refund_currency, refund_signer)
 
                 with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
                     yield response
@@ -217,9 +229,5 @@ class ExchangeClient:
         # and will start os_lib_call.
         # We give some time to the OS to actually process the os_lib_call
         if rapdu.status == 0x9000:
-            # If the exchange app accepts starting the library app, give it time to actually start
-            sleep(0.5)
-
-            # The USB stack will be reset by the called app
-            self._client.handle_usb_reset()
+            handle_lib_call_start_or_stop(self._client)
         return rapdu

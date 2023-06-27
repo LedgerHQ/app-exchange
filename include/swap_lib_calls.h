@@ -33,7 +33,7 @@ typedef struct check_address_parameters_s {
     uint8_t *coin_configuration;
     uint8_t coin_configuration_length;
     // serialized path, segwit, version prefix, hash used, dictionary etc.
-    // fields and serialization format depends on spesific coin app
+    // fields and serialization format depends on specific coin app
     uint8_t *address_parameters;
     uint8_t address_parameters_length;
     char *address_to_check;

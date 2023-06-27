@@ -51,6 +51,11 @@ int get_printable_amount(buf_t *coin_config,
     lib_in_out_params.amount_length = amount_size;
     lib_in_out_params.is_fee = is_fee;
 
+    // Initialize result with error value.
+    // This might be used in case the called app catch a throw and call os_lib_end()
+    // before setting the result value.
+    lib_in_out_params.printable_amount[0] = '\0';
+
     libcall_params[0] = (unsigned int) application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = GET_PRINTABLE_AMOUNT;
@@ -94,6 +99,11 @@ int check_address(buf_t *coin_config,
     lib_in_out_params.address_to_check = address_to_check;
     lib_in_out_params.extra_id_to_check = address_extra_to_check;
 
+    // Initialize result with error value.
+    // This might be used in case the called app catch a throw and call os_lib_end()
+    // before setting the result value.
+    lib_in_out_params.result = 0;
+
     libcall_params[0] = (unsigned int) application_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = CHECK_ADDRESS;
@@ -113,6 +123,9 @@ int create_payin_transaction(char *application_name,
                              create_transaction_parameters_t *lib_in_out_params) {
     unsigned int libcall_params[5];
 
+    // Initialize result with error value.
+    // This might be used in case the called app catch a throw and call os_lib_end()
+    // before setting the result value.
     lib_in_out_params->result = 0;
 
     libcall_params[0] = (unsigned int) application_name;
