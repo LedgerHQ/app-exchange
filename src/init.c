@@ -3,7 +3,7 @@
 #include "cx.h"
 
 // Init public keys
-void init_application_context(void) {
+int init_application_context(void) {
 #if defined(TEST_PUBLIC_KEY)
     // this key is the ERC20signer test key
     unsigned char LedgerPubKey[] = {0x4,                                             //
@@ -43,12 +43,19 @@ void init_application_context(void) {
 
 #endif
     memset(&G_swap_ctx, 0, sizeof(G_swap_ctx));
+    // Prepare the prefixed name for FUND display, don't copy the trailing '\0' on purpose
+    // as we want the second part of the string to be concatenated automatically
     memcpy(&G_swap_ctx.partner.prefix,
            PARTNER_NAME_PREFIX_FOR_FUND,
            sizeof(G_swap_ctx.partner.prefix));
-    cx_ecfp_init_public_key(CX_CURVE_SECP256K1,
-                            LedgerPubKey,
-                            sizeof(LedgerPubKey),
-                            &(G_swap_ctx.ledger_public_key));
+    if (cx_ecfp_init_public_key_no_throw(CX_CURVE_SECP256K1,
+                                         LedgerPubKey,
+                                         sizeof(LedgerPubKey),
+                                         &(G_swap_ctx.ledger_public_key)) != CX_OK) {
+        PRINTF("Error: cx_ecfp_init_public_key_no_throw\n");
+        return -1;
+    }
+
     G_swap_ctx.state = INITIAL_STATE;
+    return 0;
 }

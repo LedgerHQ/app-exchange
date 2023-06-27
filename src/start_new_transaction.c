@@ -3,13 +3,17 @@
 #include "start_new_transaction.h"
 #include "init.h"
 #include "io.h"
+#include "globals.h"
 
 int start_new_transaction(const command_t *cmd) {
     // prepare size for device_transaction_id + 0x9000
     uint8_t output_buffer[sizeof(G_swap_ctx.device_transaction_id) + 2];
     size_t output_buffer_size = 0;
 
-    init_application_context();
+    if (init_application_context() != 0) {
+        PRINTF("Error: init_application_context failed\n");
+        return reply_error(INTERNAL_ERROR);
+    }
 
     if (cmd->subcommand == SWAP) {
         output_buffer_size = sizeof(G_swap_ctx.device_transaction_id.swap);
@@ -48,7 +52,7 @@ int start_new_transaction(const command_t *cmd) {
     output_buffer_size += 2;
 
     if (send_apdu(output_buffer, output_buffer_size) < 0) {
-        PRINTF("Error: failed to send");
+        PRINTF("Error: failed to send\n");
         return -1;
     }
 

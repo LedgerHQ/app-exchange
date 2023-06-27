@@ -139,7 +139,10 @@ int process_transaction(const command_t *cmd) {
 
         unsigned char dot = '.';
 
-        cx_hash(&sha256.header, 0, (const unsigned char *) &dot, 1, NULL, 0);
+        if (cx_hash_no_throw(&sha256.header, 0, &dot, 1, NULL, 0) != CX_OK) {
+            PRINTF("Error: cx_hash_no_throw\n");
+            return reply_error(INTERNAL_ERROR);
+        }
 
         stream = pb_istream_from_buffer(payload, n);
 
@@ -204,12 +207,15 @@ int process_transaction(const command_t *cmd) {
         }
     }
 
-    cx_hash(&sha256.header,
-            CX_LAST,
-            cmd->data.bytes + 1,
-            payload_length,
-            G_swap_ctx.sha256_digest,
-            sizeof(G_swap_ctx.sha256_digest));
+    if (cx_hash_no_throw(&sha256.header,
+                         CX_LAST,
+                         cmd->data.bytes + 1,
+                         payload_length,
+                         G_swap_ctx.sha256_digest,
+                         sizeof(G_swap_ctx.sha256_digest)) != CX_OK) {
+        PRINTF("Error: cx_hash_no_throw\n");
+        return reply_error(INTERNAL_ERROR);
+    }
 
     PRINTF("sha256_digest: %.*H\n", 32, G_swap_ctx.sha256_digest);
 
