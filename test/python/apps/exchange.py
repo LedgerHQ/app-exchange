@@ -85,10 +85,11 @@ class Errors(IntEnum):
     SIGN_VERIFICATION_FAIL  = 0x9D1A
 
 
-def get_conf_ticker(ticker_id):
-    config = TICKER_ID_TO_CONF[ticker_id]
-    ticker_len = config[0]
-    return config[1:ticker_len+1].decode()
+def _craft_conf_from_ticker(ticker_id: str, signer: SigningAuthority) -> bytes:
+    currency_conf = TICKER_ID_TO_CONF[ticker_id]
+    signed_conf = signer.sign(currency_conf)
+    derivation_path = TICKER_ID_TO_PACKED_DERIVATION_PATH[ticker_id]
+    return prefix_with_len(currency_conf) + signed_conf + prefix_with_len(derivation_path)
 
 
 class ExchangeClient:
@@ -161,20 +162,13 @@ class ExchangeClient:
 
     def process_transaction(self, conf: Dict, fees: bytes) -> RAPDU:
         assert self._subcommand_specs.check_conf(conf)
-        expanded_conf = conf.copy()
 
+        # Remember payout and refund tickers to automatically infer the currency conf later
         self._payout_currency = conf[self._subcommand_specs.payout_field]
-        assert self._payout_currency in TICKER_ID_TO_CONF, f'No conf found for payout ticker {self._payout_currency}'
-        assert self._payout_currency in TICKER_ID_TO_PACKED_DERIVATION_PATH, f'No conf found for payout ticker {self._payout_currency}'
-        expanded_conf[self._subcommand_specs.payout_field] = get_conf_ticker(self._payout_currency)
-
         if self._subcommand_specs.refund_field:
             self._refund_currency = conf[self._subcommand_specs.refund_field]
-            assert self._refund_currency in TICKER_ID_TO_CONF, f'No conf found for refund ticker {self._refund_currency}'
-            assert self._refund_currency in TICKER_ID_TO_PACKED_DERIVATION_PATH, f'No conf found for refund ticker {self._refund_currency}'
-            expanded_conf[self._subcommand_specs.refund_field] = get_conf_ticker(self._refund_currency)
 
-        self._transaction = self._subcommand_specs.create_transaction(expanded_conf, self.transaction_id)
+        self._transaction = self._subcommand_specs.create_transaction(conf, self.transaction_id)
 
         payload = prefix_with_len(self._transaction) + prefix_with_len(fees)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
@@ -186,11 +180,18 @@ class ExchangeClient:
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
 
     @contextmanager
-    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None) -> Generator[None, None, None]:
-        payout_currency_conf = TICKER_ID_TO_CONF[self._payout_currency]
-        signed_payout_conf = payout_signer.sign(payout_currency_conf)
-        payout_currency_derivation_path = TICKER_ID_TO_PACKED_DERIVATION_PATH[self._payout_currency]
-        payload = prefix_with_len(payout_currency_conf) + signed_payout_conf + prefix_with_len(payout_currency_derivation_path)
+    def check_address(self,
+                      payout_signer: SigningAuthority,
+                      refund_signer: Optional[SigningAuthority] = None,
+                      overload_payout_ticker: str = None,
+                      overload_refund_ticker: str = None) -> Generator[None, None, None]:
+        # If a ticker is explicitly requested, use it to craft the coin configuration
+        # otherwise, infer the conf from the ticker id saved during PROCESS_TRANSACTION_RESPONSE
+        if overload_payout_ticker:
+            payload = _craft_conf_from_ticker(overload_payout_ticker, payout_signer)
+        else:
+            payload = _craft_conf_from_ticker(self._payout_currency, payout_signer)
+
         self._premature_error=False
 
         if self._refund_currency:
@@ -202,10 +203,12 @@ class ExchangeClient:
                 self._check_address_result = rapdu
                 yield rapdu
             else:
-                refund_currency_conf = TICKER_ID_TO_CONF[self._refund_currency]
-                signed_refund_conf = refund_signer.sign(refund_currency_conf)
-                refund_currency_derivation_path = TICKER_ID_TO_PACKED_DERIVATION_PATH[self._refund_currency]
-                payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
+                # If a ticker is explicitly requested, use it to craft the coin configuration
+                # otherwise, infer the conf from the ticker id saved during PROCESS_TRANSACTION_RESPONSE
+                if overload_refund_ticker:
+                    payload = _craft_conf_from_ticker(overload_refund_ticker, refund_signer)
+                else:
+                    payload = _craft_conf_from_ticker(self._refund_currency, refund_signer)
 
                 with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
                     yield response
