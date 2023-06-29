@@ -134,7 +134,8 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
     libcall_params[3] = 0;
     libcall_params[4] = (unsigned int) lib_in_out_params;
 
-    PRINTF("Exchange will call '%s' as library for SIGN_TRANSACTION\n", G_swap_ctx.payin_binary_name);
+    PRINTF("Exchange will call '%s' as library for SIGN_TRANSACTION\n",
+           G_swap_ctx.payin_binary_name);
     USB_power(0);
 
 #ifdef HAVE_NBGL

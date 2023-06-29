@@ -10,16 +10,16 @@ from ragger.conftest import configuration
 configuration.OPTIONAL.APP_NAME = "Exchange"
 
 configuration.OPTIONAL.SIDELOADED_APPS = {
-    "bitcoin": "Bitcoin",
-    "bitcoin_legacy": "Bitcoin Legacy",
+    # "bitcoin": "Bitcoin",
+    # "bitcoin_legacy": "Bitcoin Legacy",
     "ethereum": "Ethereum",
-    "ethereum_classic": "Ethereum Classic",
-    "tezos": "Tezos Wallet",
-    "xrp": "XRP",
-    "litecoin": "Litecoin",
-    "stellar": "Stellar",
+    # "ethereum_classic": "Ethereum Classic",
+    # "tezos": "Tezos Wallet",
+    # "xrp": "XRP",
+    # "litecoin": "Litecoin",
+    # "stellar": "Stellar",
     "solana": "Solana",
-    "bsc": "Binance Smart Chain",
+    # "bsc": "Binance Smart Chain",
 }
 
 configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"

@@ -17,7 +17,7 @@ from .utils import ROOT_SCREENSHOT_PATH
 # Swap transaction infos for valid ETH <-> SOL exchanges. Tamper the values to generate errors
 VALID_FUND_SOL_TX_INFOS = {
     "user_id": "Daft Punk",
-    "account_name": "Account 0",
+    "account_name": "Acc 0",
     "in_currency": "SOL",
     "in_amount": SOL.AMOUNT_BYTES,
     "in_address": SOL.FOREIGN_ADDRESS
@@ -49,6 +49,7 @@ def valid_fund(backend, navigator, test_name, tx_infos, fees):
     ex.start_signing_transaction()
     # On Stax, wait for the called app modal
     if backend.firmware.device == "stax":
+        backend.wait_for_text_on_screen("Processing")
         backend.wait_for_text_on_screen("Signing")
 
 
@@ -62,6 +63,12 @@ def test_solana_fund_ok(backend, navigator, test_name):
     with sol.send_async_sign_message(SOL_PACKED_DERIVATION_PATH, message):
         # Instant rapdu expected
         pass
+
+    if backend.firmware.device == "stax":
+            navigator.navigate_and_compare(path=ROOT_SCREENSHOT_PATH,
+                test_case_name=test_name + "/final/",
+                instructions=[NavInsID.USE_CASE_REVIEW_TAP],
+                screen_change_before_first_instruction=False)
 
     signature: bytes = sol.get_async_response().data
     verify_signature(SOL.OWNED_PUBLIC_KEY, message, signature)
