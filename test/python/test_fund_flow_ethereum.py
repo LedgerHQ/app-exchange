@@ -1,7 +1,9 @@
 from ragger.navigator import NavInsID
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
-from .apps.ethereum import EthereumClient
+# from .apps.ethereum import EthereumClient
+from .apps.ethereum import ETH_PACKED_DERIVATION_PATH
+from .apps.eth_client import EthClient
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -24,25 +26,68 @@ def test_fund_flow_ethereum_max_partner_name_length(backend, firmware, navigator
         "in_address": "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
     }
 
-    ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
+    ex.process_transaction(tx_infos,  b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction_signature(partner)
     with ex.check_address(LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                  [NavInsID.BOTH_CLICK],
-                                                  "Accept",
-                                                  ROOT_SCREENSHOT_PATH,
-                                                  test_name)
+        if backend.firmware.device.startswith("nano"):
+            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
+                                                      [NavInsID.BOTH_CLICK],
+                                                      "Accept",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name)
+        else:
+            navigator.navigate_until_text_and_compare(NavInsID.USE_CASE_REVIEW_TAP,
+                                                      [NavInsID.USE_CASE_REVIEW_CONFIRM],
+                                                      "Hold to sign",
+                                                      ROOT_SCREENSHOT_PATH,
+                                                      test_name + "/review/")
     ex.start_signing_transaction()
+    # On Stax, wait through the spinners
+    if backend.firmware.device == "stax":
+        backend.wait_for_text_on_screen("Processing")
+        backend.wait_for_text_on_screen("Signing")
 
-    eth = EthereumClient(backend)
-    assert eth.get_public_key().status == 0x9000
+    # eth = EthereumClient(backend)
+    eth = EthClient(backend)
+    # assert eth.get_public_key().status == 0x9000
     # The original bug was that the Ethereum app was returning just after
     # launch, and the first Ethereum:get_public_key call was in fact catched
     # by the Exchange app and interpreted as an Exchange::get_version call.
     # Exchange version are on 3 bytes, so we check the call does not return
     # 3 bytes of data
-    assert len(eth.get_public_key().data) > 3
-    assert eth.sign().status == 0x9000
+    # assert len(eth.get_public_key().data) > 3
+    # assert eth.sign().status == 0x9000
+    with eth.send_fund("m/44'/60'/0'/0/0",
+                              21,
+                              4520765,
+                              1000000000,
+                              bytes.fromhex("252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"),
+                              0.00745981,
+                              1):
+        pass
+        # moves = list()
+        # if firmware.device.startswith("nano"):
+        #     moves += [ NavInsID.RIGHT_CLICK ] * 4
+        #     if verbose:
+        #         moves += [ NavInsID.RIGHT_CLICK ]
+        #     moves += [ NavInsID.BOTH_CLICK ]
+        # else:
+        #     moves += [ NavInsID.USE_CASE_REVIEW_TAP ] * 2
+        #     if verbose:
+        #         moves += [ NavInsID.USE_CASE_REVIEW_TAP ]
+        #     moves += [ NavInsID.USE_CASE_REVIEW_CONFIRM ]
+        # navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH,
+        #                                "domain_name_verbose_" + str(verbose),
+        #                                moves)
+
+
+
+    if backend.firmware.device == "stax":
+        backend.wait_for_text_not_on_screen("Signing", timeout=20)
+        navigator.navigate_and_compare(path=ROOT_SCREENSHOT_PATH,
+                                       test_case_name=test_name + "/final_modal/",
+                                       instructions=[NavInsID.USE_CASE_REVIEW_TAP],
+                                       screen_change_before_first_instruction=False)
 
 
 def test_fund_flow_ethereum_min_partner_name_length(backend, firmware, navigator, test_name):

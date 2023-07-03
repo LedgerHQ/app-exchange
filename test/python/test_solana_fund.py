@@ -47,7 +47,7 @@ def valid_fund(backend, navigator, test_name, tx_infos, fees):
                                                       ROOT_SCREENSHOT_PATH,
                                                       test_name)
     ex.start_signing_transaction()
-    # On Stax, wait for the called app modal
+    # On Stax, wait through the spinners
     if backend.firmware.device == "stax":
         backend.wait_for_text_on_screen("Processing")
         backend.wait_for_text_on_screen("Signing")
@@ -65,10 +65,10 @@ def test_solana_fund_ok(backend, navigator, test_name):
         pass
 
     if backend.firmware.device == "stax":
-            navigator.navigate_and_compare(path=ROOT_SCREENSHOT_PATH,
-                test_case_name=test_name + "/final/",
-                instructions=[NavInsID.USE_CASE_REVIEW_TAP],
-                screen_change_before_first_instruction=False)
+        navigator.navigate_and_compare(path=ROOT_SCREENSHOT_PATH,
+                                       test_case_name=test_name + "/final_modal/",
+                                       instructions=[NavInsID.USE_CASE_REVIEW_TAP],
+                                       screen_change_before_first_instruction=False)
 
     signature: bytes = sol.get_async_response().data
     verify_signature(SOL.OWNED_PUBLIC_KEY, message, signature)
