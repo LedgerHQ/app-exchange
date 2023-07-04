@@ -8,7 +8,9 @@
 #include "reply_error.h"
 #include "parse_check_address_message.h"
 #include "menu.h"
+#include "process_transaction.h"
 #include "parse_coin_config.h"
+#include "ticker_normalization.h"
 
 int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
@@ -51,29 +53,22 @@ int check_refund_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    if (application_name.size < 3 || application_name.size > 15) {
-        PRINTF("Error: Application name should be in [3, 15]\n");
+    if (application_name.size < 3 || application_name.size > BOLOS_APPNAME_MAX_SIZE_B) {
+        PRINTF("Error: Application name should be in [3, BOLOS_APPNAME_MAX_SIZE_B]\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    // Check that given ticker match current context
-    if (strlen(ctx->received_transaction.currency_from) != ticker.size ||
-        strncmp(ctx->received_transaction.currency_from,  //
-                (const char *) ticker.bytes,              //
-                ticker.size) != 0) {
-        PRINTF("Error: Refund ticker doesn't match configuration ticker\n %.*H vs %.*H\n",
-               10,
-               ctx->received_transaction.currency_from,
-               ticker.size,
-               ticker.bytes);
+    // Check that refund ticker matches the current context
+    if (!check_matching_ticker(&ticker, ctx->received_transaction.currency_from)) {
+        PRINTF("Error: Refund ticker doesn't match configuration ticker\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
     // creating 0-terminated application name
     memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
-    memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
+    memcpy(ctx->payin_binary_name, PIC(application_name.bytes), application_name.size);
 
     // check address
     if (check_address(&ctx->payin_coin_config,

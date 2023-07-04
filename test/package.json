@@ -21,7 +21,7 @@
     "@ledgerhq/hw-app-xrp": "^5.30.0",
     "@ledgerhq/hw-transport-http": "^4.74.2",
     "@ledgerhq/logs": "^5.30.0",
-    "@zondax/zemu": "^0.29.0",
+    "@zondax/zemu": "^0.32.0",
     "base64url": "^3.0.1",
     "bignumber.js": "^9.0.0",
     "bip32-path": "^0.4.2",

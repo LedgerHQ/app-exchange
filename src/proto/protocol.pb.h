@@ -23,7 +23,7 @@ typedef struct _ledger_swap_NewFundResponse {
     char account_name[50];
     char in_currency[10];
     ledger_swap_NewFundResponse_in_amount_t in_amount;
-    char in_address[50];
+    char in_address[63];
     ledger_swap_NewFundResponse_device_transaction_id_t device_transaction_id;
 /* @@protoc_insertion_point(struct:ledger_swap_NewFundResponse) */
 } ledger_swap_NewFundResponse;
@@ -58,7 +58,7 @@ typedef struct _ledger_swap_NewSellResponse {
     char trader_email[50];
     char in_currency[10];
     ledger_swap_NewSellResponse_in_amount_t in_amount;
-    char in_address[50];
+    char in_address[63];
     char out_currency[10];
     ledger_swap_UDecimal out_amount;
     ledger_swap_NewSellResponse_device_transaction_id_t device_transaction_id;
@@ -114,8 +114,8 @@ extern const pb_field_t ledger_swap_NewFundResponse_fields[7];
 /* Maximum encoded size of messages (where known) */
 #define ledger_swap_NewTransactionResponse_size  334
 #define ledger_swap_UDecimal_size                24
-#define ledger_swap_NewSellResponse_size         206
-#define ledger_swap_NewFundResponse_size         220
+#define ledger_swap_NewSellResponse_size         219
+#define ledger_swap_NewFundResponse_size         233
 
 /* Message IDs (where set with "msgid" option) */
 #ifdef PB_MSGID

@@ -7,144 +7,12 @@ on:
     - master
     - develop
   pull_request:
-    branches:
-    - master
-    - develop
 
 jobs:
-  build_sideloaded_applications:
-    strategy:
-      matrix:
-        sdk:
-        - path: $NANOS_SDK
-          name: nanos
-        - path: $NANOX_SDK
-          name: nanox
-        - path: $NANOSP_SDK
-          name: nanosp
-        coin:
-        - name: stellar
-          repo: app-stellar
-        - name: tezos
-          repo: app-tezos
-        - name: xrp
-          repo: app-xrp
-        - name: ethereum
-          repo: app-ethereum
-        - name: litecoin
-          repo: app-bitcoin-new
-        - name: bitcoin
-          repo: app-bitcoin-new
-
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
-
-    steps:
-      - name: Clone ${{ matrix.coin.repo }} for coin ${{ matrix.coin.name }}
-        uses: actions/checkout@v3
-        with:
-          repository: LedgerHQ/${{ matrix.coin.repo }}
-          ref: develop
-
-      - name: Build in ${{ matrix.coin.repo }} coin ${{ matrix.coin.name }} for SDK ${{ matrix.sdk.name }}
-        run: |
-          make clean ; make COIN=${{ matrix.coin.name }} BOLOS_SDK=${{ matrix.sdk.path }}
-          cp bin/app.elf ${{ matrix.coin.name }}_${{ matrix.sdk.name }}.elf
-
-      - name: Upload ${{ matrix.coin.name }} binaries
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.coin.name }}_binaries
-          path: ./*.elf
-          if-no-files-found: error
-
-  job_build_exchange:
-    name: Build Exchange
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        sdk: [{path: $NANOS_SDK, name: nanos}, {path: $NANOX_SDK, name: nanox}, {path: $NANOSP_SDK, name: nanosp}]
-
-    container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v2
-
-      - name: Build Exchange
-        run: |
-          make clean ; make BOLOS_SDK=${{ matrix.sdk.path }} TESTING=1 TEST_PUBLIC_KEY=1
-          cp bin/app.elf exchange_${{ matrix.sdk.name }}.elf
-
-      - name: Upload Exchange binaries
-        uses: actions/upload-artifact@v2
-        with:
-          name: exchange_binaries
-          path: ./*.elf
-          if-no-files-found: error
-
-  jobs_e2e_tests:
-    strategy:
-      matrix:
-        device: ["Nano S", "Nano X", "Nano SP"]
-    needs:
-      - job_build_exchange
-      - build_sideloaded_applications
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Clone
-        uses: actions/checkout@v2
-
-      - name: Install APT dependencies
-        run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
-
-      - name: Install Node
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16
-
-      - name: Install Yarn
-        run: npm install -g yarn
-
-      - name: Install JS dependencies
-        run: cd test && yarn install
-
-      - name: Download all binaries
-        uses: actions/download-artifact@v2
-
-      - name: Gather artifacts
-        run: |
-          mkdir test/elfs
-          mv *_binaries/*.elf test/elfs
-
-      - name: Run zemu tests for device ${{ matrix.device }}
-        run: cd test && yarn test -t "\[${{ matrix.device }}\]"
-
-  python_tests_nano_S:
-    name: NanoS Ragger tests
-    needs:
-      - job_build_exchange
-      - build_sideloaded_applications
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone
-        uses: actions/checkout@v2
-      - name: Download all binaries
-        uses: actions/download-artifact@v2
-      - name: Gather artifacts
-        run: |
-          mkdir test/elfs
-          mv *_binaries/*.elf test/elfs
-      - name: Install APT dependencies
-        run: sudo apt-get update && sudo apt-get install -y qemu-user-static
-      - name: Install Ragger
-        run: pip install --extra-index-url https://test.pypi.org/simple/ ragger[tests]
-      - name: Run tests
-        run: pytest test/python/ --tb=short
-
+  job_swap_functional_tests:
+    uses: ./.github/workflows/reusable_swap_functional_tests.yml
+    with:
+      branch_for_exchange: ${{ github.ref }}
 
   job_scan_build:
     name: Clang Static Analyzer
@@ -152,12 +20,14 @@ jobs:
     container:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
       - name: Build with Clang Static Analyzer
         run: |
-          make clean
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: scan-build

@@ -10,6 +10,7 @@
 #include "parse_coin_config.h"
 #include "printable_amount.h"
 #include "menu.h"
+#include "ticker_normalization.h"
 
 int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunction send) {
     static buf_t config;
@@ -54,16 +55,14 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    if (application_name.size < 3 || application_name.size > 15) {
-        PRINTF("Error: Application name should be in [3, 15]\n");
+    if (application_name.size < 3 || application_name.size > BOLOS_APPNAME_MAX_SIZE_B) {
+        PRINTF("Error: Application name should be in [3, BOLOS_APPNAME_MAX_SIZE_B]\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
     }
 
-    // Check that given ticker match current context
-    if (strlen(ctx->received_transaction.currency_to) != ticker.size ||
-        strncmp(ctx->received_transaction.currency_to, (const char *) ticker.bytes, ticker.size) !=
-            0) {
+    // Check that payout ticker matches the current context
+    if (!check_matching_ticker(&ticker, ctx->received_transaction.currency_to)) {
         PRINTF("Error: Payout ticker doesn't match configuration ticker\n");
 
         return reply_error(ctx, INCORRECT_COMMAND_DATA, send);
@@ -73,7 +72,7 @@ int check_payout_address(swap_app_context_t *ctx, const command_t *cmd, SendFunc
 
     // creating 0-terminated application name
     memset(ctx->payin_binary_name, 0, sizeof(ctx->payin_binary_name));
-    memcpy(ctx->payin_binary_name, application_name.bytes, application_name.size);
+    memcpy(ctx->payin_binary_name, PIC(application_name.bytes), application_name.size);
 
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
