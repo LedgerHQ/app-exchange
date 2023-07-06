@@ -1,14 +1,10 @@
-from ragger.navigator import NavInsID
-
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
-from .utils import ROOT_SCREENSHOT_PATH
 
-
-def test_sell_flow(backend, firmware, navigator, test_name):
+def test_sell_flow(backend, firmware, exchange_navigation_helper):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SELL)
     eth = EthereumClient(backend)
     partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
@@ -29,11 +25,7 @@ def test_sell_flow(backend, firmware, navigator, test_name):
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction_signature(partner)
     with ex.check_address(LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                  [NavInsID.BOTH_CLICK],
-                                                  "Accept",
-                                                  ROOT_SCREENSHOT_PATH,
-                                                  test_name)
+        exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 
     assert eth.get_public_key().status == 0x9000

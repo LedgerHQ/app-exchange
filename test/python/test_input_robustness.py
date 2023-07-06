@@ -1,8 +1,6 @@
 from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.backend import RaisePolicy
-from ragger.navigator import NavInsID
 
-from .utils import ROOT_SCREENSHOT_PATH
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command
 from .apps.exchange import TICKER_ID_TO_CONF, TICKER_ID_TO_PACKED_DERIVATION_PATH
 from .apps.bsc import BSC_CONF, BSC_CONF_ALIAS_1, BSC_CONF_ALIAS_2, BSC_PACKED_DERIVATION_PATH
@@ -193,7 +191,7 @@ class TestRobustnessCHECK_ADDRESS:
             rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=payload)
             assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
 
-def test_currency_normalization_fund(backend, navigator, test_name):
+def test_currency_normalization_fund(backend, exchange_navigation_helper):
     tx_infos = {
         "user_id": "Jon Wick",
         "account_name": "My account 00",
@@ -220,11 +218,8 @@ def test_currency_normalization_fund(backend, navigator, test_name):
         payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(BSC_PACKED_DERIVATION_PATH)
         backend.raise_policy = RaisePolicy.RAISE_NOTHING
         with ex._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload):
-            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                      [NavInsID.BOTH_CLICK],
-                                                      "Accept",
-                                                      ROOT_SCREENSHOT_PATH,
-                                                      test_name)
+            exchange_navigation_helper.simple_accept()
+
 
 class TestAliasAppname:
     tx_infos = {
