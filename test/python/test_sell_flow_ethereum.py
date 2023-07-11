@@ -22,7 +22,7 @@ def test_sell_flow(backend, firmware, exchange_navigation_helper):
         "in_address": "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
     }
 
-    ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
+    ex.process_transaction(tx_infos, 4520765000000000)
     ex.check_transaction_signature(partner)
     with ex.check_address(LEDGER_SIGNER):
         exchange_navigation_helper.simple_accept()

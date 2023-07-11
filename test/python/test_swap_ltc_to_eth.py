@@ -26,7 +26,7 @@ def test_swap_ltc_to_eth(backend, firmware, exchange_navigation_helper):
         "amount_to_provider": b"\010T2V",
         "amount_to_wallet": b"\246\333t\233+\330\000",
     }
-    fees = b'\x01S'
+    fees = 339
 
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)

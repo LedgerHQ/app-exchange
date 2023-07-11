@@ -49,7 +49,7 @@ SUB_COMMAND = {
     "SELL": SubCommand.SELL,
 }
 
-FEES = bytes.fromhex("0216c86b20c000") # ETH 0.000588
+FEES = 100
 
 
 # Use a class to reuse the same Speculos instance

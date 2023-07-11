@@ -6,7 +6,7 @@ from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
-from .apps.ethereum import EthereumClient, ERR_SILENT_MODE_CHECK_FAILED, eth_amount_to_wei_hex_string
+from .apps.ethereum import EthereumClient, ERR_SILENT_MODE_CHECK_FAILED, eth_amount_to_wei_hex_string, eth_amount_to_wei
 
 from .apps.solana import SolanaClient, ErrorType
 from .apps.solana_utils import SOL_PACKED_DERIVATION_PATH
@@ -17,7 +17,7 @@ from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
 
 ETH_AMOUNT = eth_amount_to_wei_hex_string(0.09000564)
-ETH_FEES = eth_amount_to_wei_hex_string(0.000588)
+ETH_FEES = eth_amount_to_wei(0.000588)
 
 FOREIGN_ETH_ADDRESS = b"0xd692Cb1346262F584D17B4B470954501f6715a82"
 OWNED_ETH_ADDRESS = b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D"
@@ -68,14 +68,14 @@ def valid_swap(backend, exchange_navigation_helper, tx_infos, fees):
 # Validate regular ETH <-> SOL exchanges
 
 def test_solana_swap_recipient_ok(backend, exchange_navigation_helper):
-    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_ETH_TO_SOL_TX_INFOS, bytes.fromhex(ETH_FEES))
+    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_ETH_TO_SOL_TX_INFOS, ETH_FEES)
 
     eth = EthereumClient(backend, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
     eth.sign(extra_payload=bytes.fromhex("ec09850684ee180082520894d692cb1346262f584d17b4b470954501f6715a8288" + ETH_AMOUNT + "80018080"))
 
 def test_solana_swap_sender_ok(backend, exchange_navigation_helper):
-    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES_BYTES)
+    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES)
 
     instruction: SystemInstructionTransfer = SystemInstructionTransfer(SOL.OWNED_PUBLIC_KEY, SOL.FOREIGN_PUBLIC_KEY, SOL.AMOUNT)
     message: bytes = Message([instruction]).serialize()
@@ -87,7 +87,7 @@ def test_solana_swap_sender_ok(backend, exchange_navigation_helper):
     verify_signature(SOL.OWNED_PUBLIC_KEY, message, signature)
 
 def test_solana_swap_sender_double_sign(backend, exchange_navigation_helper):
-    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES_BYTES)
+    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES)
 
     instruction: SystemInstructionTransfer = SystemInstructionTransfer(SOL.OWNED_PUBLIC_KEY, SOL.FOREIGN_PUBLIC_KEY, SOL.AMOUNT)
     message: bytes = Message([instruction]).serialize()
@@ -114,7 +114,7 @@ def test_solana_swap_recipient_cancel(backend, exchange_navigation_helper):
     ex.init_transaction()
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(VALID_SWAP_ETH_TO_SOL_TX_INFOS, bytes.fromhex(ETH_FEES))
+    ex.process_transaction(VALID_SWAP_ETH_TO_SOL_TX_INFOS, ETH_FEES)
     ex.check_transaction_signature(partner)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
@@ -129,7 +129,7 @@ def test_solana_swap_sender_cancel(backend, exchange_navigation_helper):
     ex.init_transaction()
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES_BYTES)
+    ex.process_transaction(VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES)
     ex.check_transaction_signature(partner)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
@@ -150,7 +150,7 @@ def test_solana_swap_recipient_unowned_payout_address(backend):
     ex.init_transaction()
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tampered_tx_infos, bytes.fromhex(ETH_FEES))
+    ex.process_transaction(tampered_tx_infos, ETH_FEES)
     ex.check_transaction_signature(partner)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
@@ -168,7 +168,7 @@ def test_solana_swap_sender_unowned_refund_address(backend):
     ex.init_transaction()
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tampered_tx_infos, SOL.FEES_BYTES)
+    ex.process_transaction(tampered_tx_infos, SOL.FEES)
     ex.check_transaction_signature(partner)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
@@ -186,7 +186,7 @@ def test_solana_swap_recipient_payout_extra_id(backend):
     ex.init_transaction()
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tampered_tx_infos, bytes.fromhex(ETH_FEES))
+    ex.process_transaction(tampered_tx_infos, ETH_FEES)
     ex.check_transaction_signature(partner)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
@@ -204,7 +204,7 @@ def test_solana_swap_recipient_refund_extra_id(backend):
     ex.init_transaction()
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tampered_tx_infos, SOL.FEES_BYTES)
+    ex.process_transaction(tampered_tx_infos, SOL.FEES)
     ex.check_transaction_signature(partner)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
@@ -215,7 +215,7 @@ def test_solana_swap_recipient_refund_extra_id(backend):
 # Transaction validated in Exchange but Solana app receives a different message to sign
 
 def test_solana_swap_sender_wrong_amount(backend, exchange_navigation_helper):
-    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES_BYTES)
+    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES)
 
     instruction: SystemInstructionTransfer = SystemInstructionTransfer(SOL.OWNED_PUBLIC_KEY, SOL.FOREIGN_PUBLIC_KEY, SOL.AMOUNT + 1)
     message: bytes = Message([instruction]).serialize()
@@ -230,7 +230,7 @@ def test_solana_swap_sender_wrong_amount(backend, exchange_navigation_helper):
 
 
 def test_solana_swap_sender_wrong_destination(backend, exchange_navigation_helper):
-    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES_BYTES)
+    valid_swap(backend, exchange_navigation_helper, VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES)
 
     instruction: SystemInstructionTransfer = SystemInstructionTransfer(SOL.OWNED_PUBLIC_KEY, SOL.FOREIGN_PUBLIC_KEY_2, SOL.AMOUNT)
     message: bytes = Message([instruction]).serialize()
