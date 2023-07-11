@@ -36,7 +36,7 @@ def valid_fund(backend, exchange_navigation_helper, tx_infos, fees):
 
 
 def test_solana_fund_ok(backend, exchange_navigation_helper):
-    valid_fund(backend, exchange_navigation_helper, VALID_FUND_SOL_TX_INFOS, SOL.FEES_BYTES)
+    valid_fund(backend, exchange_navigation_helper, VALID_FUND_SOL_TX_INFOS, SOL.FEES)
 
     instruction: SystemInstructionTransfer = SystemInstructionTransfer(SOL.OWNED_PUBLIC_KEY, SOL.FOREIGN_PUBLIC_KEY, SOL.AMOUNT)
     message: bytes = Message([instruction]).serialize()
@@ -50,7 +50,7 @@ def test_solana_fund_ok(backend, exchange_navigation_helper):
 
 
 def test_solana_fund_wrong_amount(backend, exchange_navigation_helper):
-    valid_fund(backend, exchange_navigation_helper, VALID_FUND_SOL_TX_INFOS, SOL.FEES_BYTES)
+    valid_fund(backend, exchange_navigation_helper, VALID_FUND_SOL_TX_INFOS, SOL.FEES)
 
     instruction: SystemInstructionTransfer = SystemInstructionTransfer(SOL.OWNED_PUBLIC_KEY, SOL.FOREIGN_PUBLIC_KEY, SOL.AMOUNT + 1)
     message: bytes = Message([instruction]).serialize()
@@ -66,7 +66,7 @@ def test_solana_fund_wrong_amount(backend, exchange_navigation_helper):
 
 
 def test_solana_fund_wrong_destination(backend, exchange_navigation_helper):
-    valid_fund(backend, exchange_navigation_helper, VALID_FUND_SOL_TX_INFOS, SOL.FEES_BYTES)
+    valid_fund(backend, exchange_navigation_helper, VALID_FUND_SOL_TX_INFOS, SOL.FEES)
 
     instruction: SystemInstructionTransfer = SystemInstructionTransfer(SOL.OWNED_PUBLIC_KEY, SOL.FOREIGN_PUBLIC_KEY_2, SOL.AMOUNT)
     message: bytes = Message([instruction]).serialize()
@@ -88,7 +88,7 @@ def test_solana_fund_cancel(backend, exchange_navigation_helper):
     ex.init_transaction()
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(VALID_FUND_SOL_TX_INFOS, SOL.FEES_BYTES)
+    ex.process_transaction(VALID_FUND_SOL_TX_INFOS, SOL.FEES)
     ex.check_transaction_signature(partner)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING

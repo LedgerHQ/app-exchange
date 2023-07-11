@@ -91,6 +91,11 @@ def _craft_conf_from_ticker(ticker_id: str, signer: SigningAuthority) -> bytes:
     derivation_path = TICKER_ID_TO_PACKED_DERIVATION_PATH[ticker_id]
     return prefix_with_len(currency_conf) + signed_conf + prefix_with_len(derivation_path)
 
+def _int_to_bytes(n: int) -> bytes:
+    if n == 0:
+        return b'\0'
+    else:
+        return n.to_bytes((n.bit_length() + 7) // 8, 'big')
 
 class ExchangeClient:
     CLA = 0xE0
@@ -160,7 +165,7 @@ class ExchangeClient:
     def check_partner_key(self, signed_credentials: bytes) -> RAPDU:
         return self._exchange(Command.CHECK_PARTNER, signed_credentials)
 
-    def process_transaction(self, conf: Dict, fees: bytes) -> RAPDU:
+    def process_transaction(self, conf: Dict, fees: int) -> RAPDU:
         assert self._subcommand_specs.check_conf(conf)
 
         self._transaction = self._subcommand_specs.create_transaction(conf, self.transaction_id)
@@ -170,7 +175,8 @@ class ExchangeClient:
         if self._subcommand_specs.refund_field:
             self._refund_currency = conf[self._subcommand_specs.refund_field]
 
-        payload = prefix_with_len(self._transaction) + prefix_with_len(fees)
+        fees_bytes = _int_to_bytes(fees)
+        payload = prefix_with_len(self._transaction) + prefix_with_len(fees_bytes)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
 
     def check_transaction_signature(self, signer: SigningAuthority) -> RAPDU:

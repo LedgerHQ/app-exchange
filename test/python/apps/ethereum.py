@@ -80,8 +80,11 @@ class EthereumClient:
         return self._exchange(Command.SIGN, payload=payload)
 
 
+def eth_amount_to_wei(eth_amount: int) -> int:
+    return round(eth_amount * 10**18)
+
 def eth_amount_to_wei_hex_string(eth_amount: int) -> str:
-    hex:str = '{:x}'.format(round(eth_amount * 10**18))
+    hex:str = '{:x}'.format(eth_amount_to_wei(eth_amount))
     if (len(hex) % 2 != 0):
         hex = "0" + hex
     return hex

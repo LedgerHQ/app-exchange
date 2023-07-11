@@ -33,8 +33,7 @@ def test_ripple_wrong_refund(backend):
         "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
         "amount_to_wallet": b"\246\333t\233+\330\000",
     }
-    fees_bytes = int.to_bytes(100, length=4, byteorder='big')
-    ex.process_transaction(tx_infos, fees_bytes)
+    ex.process_transaction(tx_infos, 100)
     ex.check_transaction_signature(partner)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
@@ -63,8 +62,7 @@ def test_ripple_wrong_payout(backend):
         "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
         "amount_to_wallet": b"\246\333t\233+\330\000",
     }
-    fees_bytes = int.to_bytes(100, length=4, byteorder='big')
-    ex.process_transaction(tx_infos, fees_bytes)
+    ex.process_transaction(tx_infos, 100)
     ex.check_transaction_signature(partner)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
@@ -114,8 +112,7 @@ class RippleValidTxPerformer:
         ex.init_transaction()
         ex.set_partner_key(partner.credentials)
         ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        fees_bytes = int.to_bytes(fees, length=4, byteorder='big')
-        ex.process_transaction(tx_infos, fees_bytes)
+        ex.process_transaction(tx_infos, fees)
         ex.check_transaction_signature(partner)
         with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
             exchange_navigation_helper.simple_accept()

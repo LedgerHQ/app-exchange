@@ -27,7 +27,7 @@ def test_swap_btc_to_etc(backend, firmware, exchange_navigation_helper):
         "amount_to_provider": b"\021=\\",
         "amount_to_wallet": b"eA\372:cl@\000",
     }
-    fees = b'\t\xba'
+    fees = 2490
 
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)
