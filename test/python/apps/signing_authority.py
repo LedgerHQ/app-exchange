@@ -64,13 +64,8 @@ class SigningAuthority:
         """
         return self._private_key.sign(payload_to_sign, ec.ECDSA(hashes.SHA256()))
 
-
 # The fake Ledger private key recognized by exchange app compiled with the test flag
 # No usage outside of testing
 LEDGER_TEST_PRIVATE_KEY_HEX = "b1ed47ef58f782e2bc4d5abe70ef66d9009c2957967017054470e0f3e10f5833"
-LEDGER_TEST_PRIVATE_KEY_BYTES = bytes.fromhex(LEDGER_TEST_PRIVATE_KEY_HEX)
 LEDGER_TEST_PRIVATE_KEY_INT = int(LEDGER_TEST_PRIVATE_KEY_HEX, 16)
-
-
-# Signing authority usage example: the Ledger test signer
-LEDGER_SIGNER = SigningAuthority(curve=ec.SECP256K1(), name="ledger_signer", existing_key=LEDGER_TEST_PRIVATE_KEY_INT)
+LEDGER_SIGNER = SigningAuthority(curve=ec.SECP256K1(), name="ledger_test_signer", existing_key=LEDGER_TEST_PRIVATE_KEY_INT)

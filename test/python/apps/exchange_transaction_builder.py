@@ -7,7 +7,8 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 
 from .pb.exchange_pb2 import NewFundResponse, NewSellResponse, NewTransactionResponse
-
+from .exchange import SubCommand
+from .signing_authority import SigningAuthority
 
 class SignatureComputation(Enum):
     BINARY_ENCODED_PAYLOAD   = auto()
@@ -25,10 +26,17 @@ class PayloadEncoding(Enum):
     BYTES_ARRAY = auto()
     BASE_64_URL = auto()
 
+SUBCOMMAND_TO_CURVE = {
+    SubCommand.SWAP: ec.SECP256K1(),
+    SubCommand.SELL: ec.SECP256R1(),
+    SubCommand.FUND: ec.SECP256R1(),
+}
+
+def get_partner_curve(sub_command: SubCommand) -> ec.EllipticCurve:
+    return SUBCOMMAND_TO_CURVE[sub_command]
 
 @dataclass(frozen=True)
 class SubCommandSpecs:
-    curve: ec.EllipticCurve
     signature_computation: SignatureComputation
     signature_encoding: SignatureEncoding
     payload_encoding: PayloadEncoding
@@ -64,7 +72,6 @@ class SubCommandSpecs:
 
 
 SWAP_SPECS: SubCommandSpecs = SubCommandSpecs(
-    curve = ec.SECP256K1(),
     signature_computation = SignatureComputation.BINARY_ENCODED_PAYLOAD,
     signature_encoding = SignatureEncoding.DER,
     payload_encoding = PayloadEncoding.BYTES_ARRAY,
@@ -77,7 +84,6 @@ SWAP_SPECS: SubCommandSpecs = SubCommandSpecs(
 )
 
 SELL_SPECS: SubCommandSpecs = SubCommandSpecs(
-    curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.PLAIN_R_S,
     payload_encoding = PayloadEncoding.BASE_64_URL,
@@ -88,7 +94,6 @@ SELL_SPECS: SubCommandSpecs = SubCommandSpecs(
 )
 
 FUND_SPECS: SubCommandSpecs = SubCommandSpecs(
-    curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.DER,
     payload_encoding = PayloadEncoding.BASE_64_URL,
@@ -97,3 +102,31 @@ FUND_SPECS: SubCommandSpecs = SubCommandSpecs(
     payout_field="in_currency",
     refund_field= None
 )
+
+SUBCOMMAND_TO_SPECS = {
+    SubCommand.SWAP: SWAP_SPECS,
+    SubCommand.SELL: SELL_SPECS,
+    SubCommand.FUND: FUND_SPECS,
+}
+
+def craft_tx(subcommand: SubCommand, conf: Dict, transaction_id: bytes) -> bytes:
+    subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
+    assert subcommand_specs.check_conf(conf)
+    return subcommand_specs.create_transaction(conf, transaction_id)
+
+def encode_tx(subcommand: SubCommand, signer: SigningAuthority, tx: bytes) -> bytes:
+    subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
+    formated_transaction = subcommand_specs.format_transaction(tx)
+    signed_transaction = signer.sign(formated_transaction)
+    return subcommand_specs.encode_signature(signed_transaction)
+
+def extract_payout_ticker(subcommand: SubCommand, tx_infos: Dict) -> str:
+    subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
+    return tx_infos[subcommand_specs.payout_field]
+
+def extract_refund_ticker(subcommand: SubCommand, tx_infos: Dict) -> Optional[str]:
+    subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
+    if subcommand_specs.refund_field:
+        return tx_infos[subcommand_specs.refund_field]
+    else:
+        return None

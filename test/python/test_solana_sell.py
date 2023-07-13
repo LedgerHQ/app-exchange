@@ -8,7 +8,9 @@ from .apps.solana_utils import SOL_PACKED_DERIVATION_PATH
 from .apps.solana_cmd_builder import SystemInstructionTransfer, Message, verify_signature
 from .apps import solana_utils as SOL
 
-from .signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker
+from .apps import cal as cal
 
 
 # Sell transaction infos for valid SOL SELL. Tamper the values to generate errors
@@ -24,14 +26,18 @@ VALID_SELL_SOL_TX_INFOS = {
 # Helper to validate a SELL transaction by the Exchange app and put the Solana app in front
 def valid_sell(backend, exchange_navigation_helper, tx_infos, fees):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SELL)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.FUND), name="Partner name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tx_infos, fees)
-    ex.check_transaction_signature(partner)
-    with ex.check_address(payout_signer=LEDGER_SIGNER):
+    tx = craft_tx(SubCommand.SELL, tx_infos, transaction_id)
+    ex.process_transaction(tx, fees)
+    encoded_tx = encode_tx(SubCommand.SELL, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
+
+    payout_ticker = extract_payout_ticker(SubCommand.SELL, tx_infos)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker)):
         exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 
@@ -84,15 +90,18 @@ def test_solana_sell_wrong_destination(backend, exchange_navigation_helper):
 
 def test_solana_sell_cancel(backend, exchange_navigation_helper):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SELL)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.FUND), name="Partner name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(VALID_SELL_SOL_TX_INFOS, SOL.FEES)
-    ex.check_transaction_signature(partner)
+    tx = craft_tx(SubCommand.SELL, VALID_SELL_SOL_TX_INFOS, transaction_id)
+    ex.process_transaction(tx, SOL.FEES)
+    encoded_tx = encode_tx(SubCommand.SELL, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
+    payout_ticker = extract_payout_ticker(SubCommand.SELL, VALID_SELL_SOL_TX_INFOS)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(payout_signer=LEDGER_SIGNER):
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker)):
         exchange_navigation_helper.simple_reject()
     assert ex.get_check_address_response().status == Errors.USER_REFUSED

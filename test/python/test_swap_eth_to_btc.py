@@ -6,14 +6,16 @@ from ragger.error import ExceptionRAPDU
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient, ERR_SILENT_MODE_CHECK_FAILED, eth_amount_to_wei
 
-from .signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker
+from .apps import cal as cal
 
 
-def prepare_exchange(backend, firmware, exchange_navigation_helper, amount: str):
+def prepare_exchange(backend, exchange_navigation_helper, amount: str):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Default name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
@@ -31,17 +33,22 @@ def prepare_exchange(backend, firmware, exchange_navigation_helper, amount: str)
     }
     fees = eth_amount_to_wei(0.000588)
 
-    ex.process_transaction(tx_infos, fees)
-    ex.check_transaction_signature(partner)
-    with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
+    tx = craft_tx(SubCommand.SWAP, tx_infos, transaction_id)
+    ex.process_transaction(tx, fees)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
+
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, tx_infos)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, tx_infos)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 
 
-def test_swap_eth_to_btc_wrong_amount(backend, firmware, exchange_navigation_helper):
+def test_swap_eth_to_btc_wrong_amount(backend, exchange_navigation_helper):
     amount       = '013fc3a717fb5000'
     wrong_amount = '013fc3a6be932100'
-    prepare_exchange(backend, firmware, exchange_navigation_helper, amount)
+    prepare_exchange(backend, exchange_navigation_helper, amount)
     eth = EthereumClient(backend, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
     try:
@@ -51,9 +58,9 @@ def test_swap_eth_to_btc_wrong_amount(backend, firmware, exchange_navigation_hel
         assert rapdu.status == ERR_SILENT_MODE_CHECK_FAILED.status, f"Received APDU status {hex(rapdu.status)}, expected {hex(ERR_SILENT_MODE_CHECK_FAILED.status)}"
 
 
-def test_swap_eth_to_btc_ok(backend, firmware, exchange_navigation_helper):
+def test_swap_eth_to_btc_ok(backend, exchange_navigation_helper):
     amount = '013fc3a717fb5000'
-    prepare_exchange(backend, firmware, exchange_navigation_helper, amount)
+    prepare_exchange(backend, exchange_navigation_helper, amount)
     sleep(1)
     eth = EthereumClient(backend, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     sleep(1)

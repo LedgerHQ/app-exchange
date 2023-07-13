@@ -5,8 +5,6 @@ from ragger.utils import create_currency_config
 from ragger.bip import pack_derivation_path
 
 BSC_CONF = create_currency_config("BSC", "Binance Smart Chain", ("BSC", 12))
-BSC_CONF_ALIAS_1 = create_currency_config("BSC", "bsc", ("BSC", 12))
-BSC_CONF_ALIAS_2 = create_currency_config("BSC", "Bsc", ("BSC", 12))
 
 BSC_PACKED_DERIVATION_PATH = pack_derivation_path("m/44'/60'/0'/0/0")
 
