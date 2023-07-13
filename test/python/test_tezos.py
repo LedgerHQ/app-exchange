@@ -12,14 +12,15 @@ from ragger.bip import pack_derivation_path
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
 from .apps.tezos import TezosClient, encode_address, XTZ_PACKED_DERIVATION_PATH, StatusCode
 
-from .signing_authority import SigningAuthority, LEDGER_SIGNER
-
+from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker
+from .apps import cal as cal
 
 def test_tezos_wrong_refund(backend):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Default name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
@@ -35,20 +36,24 @@ def test_tezos_wrong_refund(backend):
         "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
         "amount_to_wallet": b"\246\333t\233+\330\000",
     }
-    ex.process_transaction(tx_infos, 100)
-    ex.check_transaction_signature(partner)
+    tx = craft_tx(SubCommand.SWAP, tx_infos, transaction_id)
+    ex.process_transaction(tx, 100)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, tx_infos)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, tx_infos)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         pass
     assert ex.get_check_address_response().status == Errors.INVALID_ADDRESS
 
 
 def test_tezos_wrong_payout(backend):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Default name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
 
@@ -64,11 +69,15 @@ def test_tezos_wrong_payout(backend):
         "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
         "amount_to_wallet": b"\246\333t\233+\330\000",
     }
-    ex.process_transaction(tx_infos, 100)
-    ex.check_transaction_signature(partner)
+    tx = craft_tx(SubCommand.SWAP, tx_infos, transaction_id)
+    ex.process_transaction(tx, 100)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, tx_infos)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, tx_infos)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         pass
     assert ex.get_check_address_response().status == Errors.INVALID_ADDRESS
 
@@ -106,13 +115,17 @@ class TezosValidTxPerformer:
 
     def perform_valid_exchange_tx(self, backend, exchange_navigation_helper, subcommand, tx_infos, fees):
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
-        partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
-        ex.init_transaction()
+        partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Default name")
+        transaction_id = ex.init_transaction().data
         ex.set_partner_key(partner.credentials)
         ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        ex.process_transaction(tx_infos, fees)
-        ex.check_transaction_signature(partner)
-        with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
+        tx = craft_tx(subcommand, tx_infos, transaction_id)
+        ex.process_transaction(tx, fees)
+        encoded_tx = encode_tx(subcommand, partner, tx)
+        ex.check_transaction_signature(encoded_tx)
+        payout_ticker = extract_payout_ticker(subcommand, tx_infos)
+        refund_ticker = extract_refund_ticker(subcommand, tx_infos)
+        with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
             exchange_navigation_helper.simple_accept()
         ex.start_signing_transaction()
 

@@ -13,7 +13,9 @@ from .apps.solana_utils import SOL_PACKED_DERIVATION_PATH
 from .apps.solana_cmd_builder import SystemInstructionTransfer, Message, verify_signature
 from .apps import solana_utils as SOL
 
-from .signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker
+from .apps import cal as cal
 
 
 ETH_AMOUNT = eth_amount_to_wei_hex_string(0.09000564)
@@ -53,14 +55,19 @@ VALID_SWAP_SOL_TO_ETH_TX_INFOS = {
 # Helper to validate a SWAP transaction by the Exchange app and put the Solana app in front
 def valid_swap(backend, exchange_navigation_helper, tx_infos, fees):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Partner name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tx_infos, fees)
-    ex.check_transaction_signature(partner)
-    with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
+    tx = craft_tx(SubCommand.SWAP, tx_infos, transaction_id)
+    ex.process_transaction(tx, fees)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
+
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, tx_infos)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, tx_infos)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 
@@ -109,31 +116,41 @@ def test_solana_swap_sender_double_sign(backend, exchange_navigation_helper):
 
 def test_solana_swap_recipient_cancel(backend, exchange_navigation_helper):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Partner name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(VALID_SWAP_ETH_TO_SOL_TX_INFOS, ETH_FEES)
-    ex.check_transaction_signature(partner)
+    tx = craft_tx(SubCommand.SWAP, VALID_SWAP_ETH_TO_SOL_TX_INFOS, transaction_id)
+    ex.process_transaction(tx, ETH_FEES)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
+
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, VALID_SWAP_ETH_TO_SOL_TX_INFOS)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, VALID_SWAP_ETH_TO_SOL_TX_INFOS)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         exchange_navigation_helper.simple_reject()
     assert ex.get_check_address_response().status == Errors.USER_REFUSED
 
 def test_solana_swap_sender_cancel(backend, exchange_navigation_helper):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Partner name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(VALID_SWAP_SOL_TO_ETH_TX_INFOS, SOL.FEES)
-    ex.check_transaction_signature(partner)
+    tx = craft_tx(SubCommand.SWAP, VALID_SWAP_SOL_TO_ETH_TX_INFOS, transaction_id)
+    ex.process_transaction(tx, SOL.FEES)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
 
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
+
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, VALID_SWAP_SOL_TO_ETH_TX_INFOS)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, VALID_SWAP_SOL_TO_ETH_TX_INFOS)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         exchange_navigation_helper.simple_reject()
     assert ex.get_check_address_response().status == Errors.USER_REFUSED
 
@@ -145,15 +162,20 @@ def test_solana_swap_recipient_unowned_payout_address(backend):
     tampered_tx_infos["payout_address"] = SOL.FOREIGN_ADDRESS
 
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Partner name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tampered_tx_infos, ETH_FEES)
-    ex.check_transaction_signature(partner)
+    tx = craft_tx(SubCommand.SWAP, tampered_tx_infos, transaction_id)
+    ex.process_transaction(tx, ETH_FEES)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
+
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, tampered_tx_infos)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, tampered_tx_infos)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         pass
     assert ex.get_check_address_response().status == Errors.INVALID_ADDRESS
 
@@ -163,15 +185,20 @@ def test_solana_swap_sender_unowned_refund_address(backend):
     tampered_tx_infos["refund_address"] = SOL.FOREIGN_ADDRESS
 
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Partner name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tampered_tx_infos, SOL.FEES)
-    ex.check_transaction_signature(partner)
+    tx = craft_tx(SubCommand.SWAP, tampered_tx_infos, transaction_id)
+    ex.process_transaction(tx, SOL.FEES)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
+
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, tampered_tx_infos)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, tampered_tx_infos)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         pass
     assert ex.get_check_address_response().status == Errors.INVALID_ADDRESS
 
@@ -181,15 +208,20 @@ def test_solana_swap_recipient_payout_extra_id(backend):
     tampered_tx_infos["payout_extra_id"] = "0xCAFE"
 
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Partner name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tampered_tx_infos, ETH_FEES)
-    ex.check_transaction_signature(partner)
+    tx = craft_tx(SubCommand.SWAP, tampered_tx_infos, transaction_id)
+    ex.process_transaction(tx, ETH_FEES)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
+
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, tampered_tx_infos)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, tampered_tx_infos)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         pass
     assert ex.get_check_address_response().status == Errors.INVALID_ADDRESS
 
@@ -199,15 +231,20 @@ def test_solana_swap_recipient_refund_extra_id(backend):
     tampered_tx_infos["refund_extra_id"] = "0xCAFE"
 
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-    partner = SigningAuthority(curve=ex.partner_curve, name="Partner name")
+    partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Partner name")
 
-    ex.init_transaction()
+    transaction_id = ex.init_transaction().data
     ex.set_partner_key(partner.credentials)
     ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-    ex.process_transaction(tampered_tx_infos, SOL.FEES)
-    ex.check_transaction_signature(partner)
+    tx = craft_tx(SubCommand.SWAP, tampered_tx_infos, transaction_id)
+    ex.process_transaction(tx, SOL.FEES)
+    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+    ex.check_transaction_signature(encoded_tx)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
-    with ex.check_address(LEDGER_SIGNER, LEDGER_SIGNER):
+
+    payout_ticker = extract_payout_ticker(SubCommand.SWAP, tampered_tx_infos)
+    refund_ticker = extract_refund_ticker(SubCommand.SWAP, tampered_tx_infos)
+    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
         pass
     assert ex.get_check_address_response().status == Errors.INVALID_ADDRESS
 
