@@ -10,10 +10,14 @@ class ExchangeNavigationHelper:
         self._backend = backend
         self._navigator = navigator
         self._test_name = test_name
+        self._test_name_suffix = ""
+
+    def set_test_name_suffix(self, suffix: str):
+        self._test_name_suffix = suffix
 
     def _navigate_and_compare(self, accept: bool):
         # Default behaviors
-        snapshots_dir_name = self._test_name
+        snapshots_dir_name = self._test_name + self._test_name_suffix
         screen_change_after_last_instruction = True
 
         if self._backend.firmware.is_nano:
