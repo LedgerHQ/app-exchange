@@ -28,7 +28,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
 
 configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
 
-configuration.OPTIONAL.BACKEND_SCOPE = "function"
+configuration.OPTIONAL.BACKEND_SCOPE = "class"
 
 #########################
 ### CONFIGURATION END ###
