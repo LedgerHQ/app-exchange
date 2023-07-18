@@ -317,3 +317,76 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
         assert e.value.status == self.signature_refusal_error_code
+
+    def test_wrong_refund(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_wrong_refund()
+
+    def test_wrong_payout(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_wrong_payout()
+
+    def test_swap_valid_1(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_swap_valid_accepted_1()
+
+    def test_swap_valid_2(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_swap_valid_accepted_2()
+
+    def test_swap_refuse_double_sign(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_swap_refuse_double_sign()
+
+    def test_swap_wrong_fees(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_swap_wrong_fees()
+
+    def test_swap_wrong_memo(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_swap_wrong_memo()
+
+    def test_swap_wrong_dest(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_swap_wrong_destination()
+
+    def test_swap_wrong_amount(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_swap_wrong_amount()
+
+    ### FUND tests ###
+
+    def test_fund_valid_1(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_fund_valid_1()
+
+    def test_fund_valid_2(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_fund_valid_2()
+
+    def test_fund_refuse_double_sign(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_fund_refuse_double_sign()
+
+    def test_fund_wrong_fees(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_fund_wrong_fees()
+
+    def test_fund_wrong_memo(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_fund_wrong_memo()
+
+    def test_fund_wrong_dest(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_fund_wrong_destination()
+
+    def test_fund_wrong_amount(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_fund_wrong_amount()
+
+    ### SELL tests ###
+
+    def test_sell_valid_1(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_sell_valid_1()
+
+    def test_sell_valid_2(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_sell_valid_2()
+
+    def test_sell_refuse_double_sign(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_sell_refuse_double_sign()
+
+    def test_sell_wrong_fees(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_sell_wrong_fees()
+
+    def test_sell_wrong_memo(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_sell_wrong_memo()
+
+    def test_sell_wrong_dest(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_sell_wrong_destination()
+
+    def test_sell_wrong_amount(self):
+        self._CLASS(self.backend, self.exchange_navigation_helper).perform_test_sell_wrong_amount()
