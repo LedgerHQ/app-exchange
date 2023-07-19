@@ -337,6 +337,7 @@ class ExchangeTestRunner:
 _all_test_methods_prefixed = [method for method in dir(ExchangeTestRunner) if method.startswith(TEST_METHOD_PREFIX)]
 # Remove prefix to have nice snapshots directories
 ALL_TESTS = [str(i).replace(TEST_METHOD_PREFIX, '') for i in _all_test_methods_prefixed]
+ALL_TESTS_EXCEPT_MEMO = [test for test in ALL_TESTS if not "memo" in test]
 SWAP_TESTS = [test for test in ALL_TESTS if "swap" in test]
 FUND_TESTS = [test for test in ALL_TESTS if "fund" in test]
 SELL_TESTS = [test for test in ALL_TESTS if "sell" in test]
