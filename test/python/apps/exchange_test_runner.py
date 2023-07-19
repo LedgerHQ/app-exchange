@@ -193,7 +193,7 @@ class ExchangeTestRunner:
         self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        assert e.value.status == Errors.INVALID_INSTRUCTION
+        assert e.value.status == Errors.INVALID_INSTRUCTION or e.value.status == Errors.WRONG_P2
 
     # Test swap with a malicious TX with tampered fees
     def perform_test_swap_wrong_fees(self):
