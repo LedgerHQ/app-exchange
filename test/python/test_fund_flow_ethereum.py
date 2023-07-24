@@ -1,5 +1,5 @@
 from .apps.exchange import ExchangeClient, Rate, SubCommand
-from .apps.ethereum import EthereumClient
+from .apps.ethereum import EthereumClient, eth_amount_to_wei
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -20,7 +20,7 @@ def test_fund_flow_ethereum_max_partner_name_length(backend, exchange_navigation
         "in_address": "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
     }
 
-    ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
+    ex.process_transaction(tx_infos, eth_amount_to_wei(0.004520765))
     ex.check_transaction_signature(partner)
     with ex.check_address(LEDGER_SIGNER):
         exchange_navigation_helper.simple_accept()
@@ -53,7 +53,7 @@ def test_fund_flow_ethereum_min_partner_name_length(backend, exchange_navigation
         "in_address": "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
     }
 
-    ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
+    ex.process_transaction(tx_infos, eth_amount_to_wei(0.004520765))
     ex.check_transaction_signature(partner)
     with ex.check_address(LEDGER_SIGNER):
         exchange_navigation_helper.simple_accept()

@@ -53,7 +53,7 @@ class TestRobustnessCHECK_ADDRESS:
         "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
         "amount_to_wallet": b"\246\333t\233+\330\000",
     }
-    fees_bytes = int.to_bytes(100, length=4, byteorder='big')
+    fees = 100
 
     payout_currency_conf = TICKER_ID_TO_CONF[tx_infos["currency_to"]]
     signed_payout_conf = LEDGER_SIGNER.sign(payout_currency_conf)
@@ -67,7 +67,7 @@ class TestRobustnessCHECK_ADDRESS:
         ex.init_transaction()
         ex.set_partner_key(partner.credentials)
         ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        ex.process_transaction(self.tx_infos, self.fees_bytes)
+        ex.process_transaction(self.tx_infos, self.fees)
         ex.check_transaction_signature(partner)
 
     def test_robustness_check_payout_address(self, backend):
@@ -211,8 +211,7 @@ def test_currency_normalization_fund(backend, exchange_navigation_helper):
         ex.init_transaction()
         ex.set_partner_key(partner.credentials)
         ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        fees_bytes = int.to_bytes(fees, length=4, byteorder='big')
-        ex.process_transaction(tx_infos, fees_bytes)
+        ex.process_transaction(tx_infos, fees)
         ex.check_transaction_signature(partner)
 
         payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(BSC_PACKED_DERIVATION_PATH)
@@ -234,7 +233,7 @@ class TestAliasAppname:
         "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
         "amount_to_wallet": b"\246\333t\233+\330\000",
     }
-    fees_bytes = int.to_bytes(100, length=4, byteorder='big')
+    fees = 100
 
     def test_currency_alias(self, backend):
         for conf in BSC_CONF, BSC_CONF_ALIAS_1, BSC_CONF_ALIAS_2:
@@ -243,7 +242,7 @@ class TestAliasAppname:
             ex.init_transaction()
             ex.set_partner_key(partner.credentials)
             ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-            ex.process_transaction(self.tx_infos, self.fees_bytes)
+            ex.process_transaction(self.tx_infos, self.fees)
             ex.check_transaction_signature(partner)
 
             # If the alias does not work, CHECK_PAYOUT_ADDRESS will crash

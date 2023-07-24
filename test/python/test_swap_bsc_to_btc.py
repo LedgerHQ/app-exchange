@@ -5,7 +5,7 @@ from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
-from .apps.ethereum import EthereumClient, ERR_SILENT_MODE_CHECK_FAILED
+from .apps.ethereum import EthereumClient, ERR_SILENT_MODE_CHECK_FAILED, eth_amount_to_wei
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -30,7 +30,7 @@ def prepare_exchange(backend, firmware, exchange_navigation_helper, amount: str)
         "amount_to_provider": bytes.fromhex(amount),
         "amount_to_wallet": b"\x0b\xeb\xc2\x00",
     }
-    fees = bytes.fromhex("0216c86b20c000") # ETH 0.000588
+    fees = eth_amount_to_wei(0.000588)
 
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)
