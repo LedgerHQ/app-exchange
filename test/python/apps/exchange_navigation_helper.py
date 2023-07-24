@@ -16,13 +16,10 @@ class ExchangeNavigationHelper:
         snapshots_dir_name = self._test_name
         screen_change_after_last_instruction = True
 
-        if self._backend.firmware.device.startswith("nano"):
+        if self._backend.firmware.is_nano:
             navigate_instruction = NavInsID.RIGHT_CLICK
             validation_instructions = [NavInsID.BOTH_CLICK]
-            if accept:
-                text = "Accept"
-            else:
-                text = "Reject"
+            text = "Accept" if accept else "Reject"
         else:
             navigate_instruction = NavInsID.USE_CASE_REVIEW_TAP
             text = "Hold to sign"

@@ -1,13 +1,12 @@
 from base64 import urlsafe_b64encode
 from typing import Optional, Dict, Callable, Iterable
-from enum import Enum, auto
+from enum import Enum, auto, IntEnum
 from dataclasses import dataclass
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 
 from .pb.exchange_pb2 import NewFundResponse, NewSellResponse, NewTransactionResponse
-from .exchange import SubCommand
 from .signing_authority import SigningAuthority
 
 class SignatureComputation(Enum):
@@ -26,11 +25,19 @@ class PayloadEncoding(Enum):
     BYTES_ARRAY = auto()
     BASE_64_URL = auto()
 
+
+class SubCommand(IntEnum):
+    SWAP = 0x00
+    SELL = 0x01
+    FUND = 0x02
+
+
 SUBCOMMAND_TO_CURVE = {
     SubCommand.SWAP: ec.SECP256K1(),
     SubCommand.SELL: ec.SECP256R1(),
     SubCommand.FUND: ec.SECP256R1(),
 }
+
 
 def get_partner_curve(sub_command: SubCommand) -> ec.EllipticCurve:
     return SUBCOMMAND_TO_CURVE[sub_command]

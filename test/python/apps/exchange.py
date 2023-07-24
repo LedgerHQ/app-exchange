@@ -5,7 +5,8 @@ from enum import IntEnum
 from ragger.backend.interface import BackendInterface, RAPDU
 from ragger.utils import prefix_with_len
 
-from ..utils import handle_lib_call_start_or_stop
+from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes
+from .exchange_transaction_builder import SubCommand
 
 
 class Command(IntEnum):
@@ -25,12 +26,6 @@ class Rate(IntEnum):
     FLOATING = 0x01
 
 
-class SubCommand(IntEnum):
-    SWAP = 0x00
-    SELL = 0x01
-    FUND = 0x02
-
-
 class Errors(IntEnum):
     INCORRECT_COMMAND_DATA  = 0x6A80
     DESERIALIZATION_FAILED  = 0x6A81
@@ -44,12 +39,6 @@ class Errors(IntEnum):
     INVALID_INSTRUCTION     = 0x6D00
     SIGN_VERIFICATION_FAIL  = 0x9D1A
 
-
-def _int_to_bytes(n: int) -> bytes:
-    if n == 0:
-        return b'\0'
-    else:
-        return n.to_bytes((n.bit_length() + 7) // 8, 'big')
 
 class ExchangeClient:
     CLA = 0xE0
@@ -100,7 +89,7 @@ class ExchangeClient:
         return self._exchange(Command.CHECK_PARTNER, signed_credentials)
 
     def process_transaction(self, transaction: bytes, fees: int) -> RAPDU:
-        fees_bytes = _int_to_bytes(fees)
+        fees_bytes = int_to_minimally_sized_bytes(fees)
         payload = prefix_with_len(transaction) + prefix_with_len(fees_bytes)
         return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
 
