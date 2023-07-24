@@ -3,17 +3,14 @@ from time import sleep
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
-from ragger.navigator import NavInsID
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient, ERR_SILENT_MODE_CHECK_FAILED
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
-from .utils import ROOT_SCREENSHOT_PATH
 
-
-def prepare_exchange(backend, firmware, navigator, test_name, amount: str):
+def prepare_exchange(backend, firmware, exchange_navigation_helper, amount: str):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
     partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
 
@@ -38,18 +35,14 @@ def prepare_exchange(backend, firmware, navigator, test_name, amount: str):
     ex.process_transaction(tx_infos, fees)
     ex.check_transaction_signature(partner)
     with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                  [NavInsID.BOTH_CLICK],
-                                                  "Accept",
-                                                  ROOT_SCREENSHOT_PATH,
-                                                  test_name)
+        exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 
 
-def test_swap_bsc_to_btc(backend, firmware, navigator, test_name):
+def test_swap_bsc_to_btc(backend, firmware, exchange_navigation_helper):
     amount       = '013fc3a717fb5000'
     wrong_amount = '013fc3a6be932100'
-    prepare_exchange(backend, firmware, navigator, test_name, amount)
+    prepare_exchange(backend, firmware, exchange_navigation_helper, amount)
     eth = EthereumClient(backend, derivation_path=bytes.fromhex("058000002c8000003c800000000000000000000000"))
     eth.get_public_key()
 

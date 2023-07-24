@@ -1,14 +1,10 @@
-from ragger.navigator import NavInsID
-
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.ethereum import EthereumClient
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
-from .utils import ROOT_SCREENSHOT_PATH
 
-
-def test_fund_flow_ethereum_max_partner_name_length(backend, firmware, navigator, test_name):
+def test_fund_flow_ethereum_max_partner_name_length(backend, exchange_navigation_helper):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.FUND)
     partner = SigningAuthority(curve=ex.partner_curve, name="PARTNER_NAME_12")
 
@@ -27,11 +23,7 @@ def test_fund_flow_ethereum_max_partner_name_length(backend, firmware, navigator
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction_signature(partner)
     with ex.check_address(LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                  [NavInsID.BOTH_CLICK],
-                                                  "Accept",
-                                                  ROOT_SCREENSHOT_PATH,
-                                                  test_name)
+        exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 
     eth = EthereumClient(backend)
@@ -45,7 +37,7 @@ def test_fund_flow_ethereum_max_partner_name_length(backend, firmware, navigator
     assert eth.sign().status == 0x9000
 
 
-def test_fund_flow_ethereum_min_partner_name_length(backend, firmware, navigator, test_name):
+def test_fund_flow_ethereum_min_partner_name_length(backend, exchange_navigation_helper):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.FUND)
     partner = SigningAuthority(curve=ex.partner_curve, name="PAR")
 
@@ -64,11 +56,7 @@ def test_fund_flow_ethereum_min_partner_name_length(backend, firmware, navigator
     ex.process_transaction(tx_infos, b'\x10\x0f\x9c\x9f\xf0"\x00')
     ex.check_transaction_signature(partner)
     with ex.check_address(LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                  [NavInsID.BOTH_CLICK],
-                                                  "Accept",
-                                                  ROOT_SCREENSHOT_PATH,
-                                                  test_name)
+        exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 
     eth = EthereumClient(backend)

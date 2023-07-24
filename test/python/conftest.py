@@ -1,4 +1,8 @@
+import pytest
+
 from ragger.conftest import configuration
+
+from .apps.exchange_navigation_helper import ExchangeNavigationHelper
 
 ###########################
 ### CONFIGURATION START ###
@@ -32,3 +36,7 @@ configuration.OPTIONAL.BACKEND_SCOPE = "function"
 
 # Pull all features from the base ragger conftest using the overridden configuration
 pytest_plugins = ("ragger.conftest.base_conftest", )
+
+@pytest.fixture(scope="function")
+def exchange_navigation_helper(backend, navigator, test_name):
+    return ExchangeNavigationHelper(backend=backend, navigator=navigator, test_name=test_name)

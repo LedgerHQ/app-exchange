@@ -58,7 +58,7 @@ class TestFakeSigner:
     # CHECK THAT A PARTNER SIGNED BY THE LEDGER KEY BUT DIFFERENT THAN THE SET IS REFUSED
 
     @pytest.mark.parametrize("operation", ["SWAP", "FUND", "SELL"])
-    def test_fake_partner_credentials_sent(self, backend, firmware, operation):
+    def test_fake_partner_credentials_sent(self, backend, operation):
         ex = ExchangeClient(backend, Rate.FIXED, SUB_COMMAND[operation])
         partner = SigningAuthority(curve=ex.partner_curve, name="partner")
         partner_fake = SigningAuthority(curve=ex.partner_curve, name="partner_fake")
@@ -74,7 +74,7 @@ class TestFakeSigner:
     # CHECK THAT A PARTNER NOT SIGNED BY THE LEDGER KEY IS REFUSED
 
     @pytest.mark.parametrize("operation", ["SWAP", "FUND", "SELL"])
-    def test_fake_partner_credentials_signed(self, backend, firmware, operation):
+    def test_fake_partner_credentials_signed(self, backend, operation):
         ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
         ex = ExchangeClient(backend, Rate.FIXED, SUB_COMMAND[operation])
         partner = SigningAuthority(curve=ex.partner_curve, name="partner")
@@ -90,7 +90,7 @@ class TestFakeSigner:
     # CHECK THAT A TRANSACTION INFORMATION NOT SIGNED BY THE PARTNER KEY IS REFUSED
 
     @pytest.mark.parametrize("operation", ["SWAP", "FUND", "SELL"])
-    def test_fake_transaction_infos(self, backend, firmware, operation):
+    def test_fake_transaction_infos(self, backend, operation):
         ex = ExchangeClient(backend, Rate.FIXED, SUB_COMMAND[operation])
         partner = SigningAuthority(curve=ex.partner_curve, name="partner")
         partner_fake = SigningAuthority(curve=ex.partner_curve, name="partner_fake")
@@ -108,7 +108,7 @@ class TestFakeSigner:
     # CHECK THAT A COIN CONFIGURATION NOT SIGNED BY THE LEDGER KEY IS REFUSED
 
     @pytest.mark.parametrize("operation", ["FUND", "SELL"])
-    def test_fake_payout_coin_configuration(self, backend, firmware, operation):
+    def test_fake_payout_coin_configuration(self, backend, operation):
         ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
         ex = ExchangeClient(backend, Rate.FIXED, SUB_COMMAND[operation])
         partner = SigningAuthority(curve=ex.partner_curve, name="partner")
@@ -124,7 +124,7 @@ class TestFakeSigner:
             pass
         assert ex.get_check_address_response().status == Errors.SIGN_VERIFICATION_FAIL
 
-    def test_fake_payout_coin_configuration_swap(self, backend, firmware):
+    def test_fake_payout_coin_configuration_swap(self, backend):
         ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
         partner = SigningAuthority(curve=ex.partner_curve, name="partner")
@@ -140,7 +140,7 @@ class TestFakeSigner:
             pass
         assert ex.get_check_address_response().status == Errors.SIGN_VERIFICATION_FAIL
 
-    def test_fake_refund_coin_configuration_swap(self, backend, firmware):
+    def test_fake_refund_coin_configuration_swap(self, backend):
         ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
         partner = SigningAuthority(curve=ex.partner_curve, name="partner")

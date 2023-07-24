@@ -4,14 +4,13 @@ from typing import Optional, Tuple
 from ragger.backend import RaisePolicy
 from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
-from ragger.navigator import NavInsID
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
 from .apps.xrp import XRPClient, DEFAULT_PATH, XRP_PACKED_DERIVATION_PATH, RippleErrors
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
-from .utils import ROOT_SCREENSHOT_PATH, handle_lib_call_start_or_stop
+from .utils import handle_lib_call_start_or_stop
 
 
 def test_ripple_wrong_refund(backend):
@@ -109,7 +108,7 @@ class RippleValidTxPerformer:
         handle_lib_call_start_or_stop(backend)
         return rapdu
 
-    def perform_valid_exchange_tx(self, backend, navigator, test_name, subcommand, tx_infos, fees):
+    def perform_valid_exchange_tx(self, backend, exchange_navigation_helper, subcommand, tx_infos, fees):
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
         ex.init_transaction()
@@ -119,11 +118,7 @@ class RippleValidTxPerformer:
         ex.process_transaction(tx_infos, fees_bytes)
         ex.check_transaction_signature(partner)
         with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
-            navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                      [NavInsID.BOTH_CLICK],
-                                                      "Accept",
-                                                      ROOT_SCREENSHOT_PATH,
-                                                      test_name)
+            exchange_navigation_helper.simple_accept()
         ex.start_signing_transaction()
 
 
@@ -135,8 +130,7 @@ class RippleValidSwapPerformer(RippleValidTxPerformer):
     # Helper to send a valid SWAP TX to the Exchange app, provide parameters to overload te default values
     def perform_valid_swap(self,
                            backend,
-                           navigator,
-                           test_name,
+                           exchange_navigation_helper,
                            fees: Optional[int]=None,
                            memo: Optional[str]=None,
                            destination: Optional[str]=None,
@@ -154,32 +148,32 @@ class RippleValidSwapPerformer(RippleValidTxPerformer):
             "amount_to_provider": int.to_bytes(send_amount, length=8, byteorder='big'),
             "amount_to_wallet": b"\246\333t\233+\330\000",
         }
-        self.perform_valid_exchange_tx(backend, navigator, test_name, SubCommand.SWAP, tx_infos, fees)
+        self.perform_valid_exchange_tx(backend, exchange_navigation_helper, SubCommand.SWAP, tx_infos, fees)
 
 
 # Valid swap test with default values
-def test_ripple_swap_valid_1(backend, navigator, test_name):
+def test_ripple_swap_valid_1(backend, exchange_navigation_helper):
     performer = RippleValidSwapPerformer()
-    performer.perform_valid_swap(backend, navigator, test_name)
+    performer.perform_valid_swap(backend, exchange_navigation_helper)
     performer.perform_ripple_tx(backend)
 
 
 # Valid swap test with non default values
-def test_ripple_swap_valid_2(backend, navigator, test_name):
+def test_ripple_swap_valid_2(backend, exchange_navigation_helper):
     fees = 10078
     memo = "123"
     destination = "rhBuYom8agWA4s7DFoM7AvsDA9XGkVCJz4"
     send_amount = 446739662
 
     performer = RippleValidSwapPerformer()
-    performer.perform_valid_swap(backend, navigator, test_name, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
+    performer.perform_valid_swap(backend, exchange_navigation_helper, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
     performer.perform_ripple_tx(backend, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
 
 
 # Make a valid swap and then ask a second signature
-def test_ripple_swap_refuse_double_sign(backend, navigator, test_name):
+def test_ripple_swap_refuse_double_sign(backend, exchange_navigation_helper):
     performer = RippleValidSwapPerformer()
-    performer.perform_valid_swap(backend, navigator, test_name)
+    performer.perform_valid_swap(backend, exchange_navigation_helper)
     performer.perform_ripple_tx(backend)
 
     with pytest.raises(ExceptionRAPDU) as e:
@@ -188,36 +182,36 @@ def test_ripple_swap_refuse_double_sign(backend, navigator, test_name):
 
 
 # Test swap with a malicious Ripple TX with tampered fees
-def test_ripple_swap_wrong_fees(backend, navigator, test_name):
+def test_ripple_swap_wrong_fees(backend, exchange_navigation_helper):
     performer = RippleValidSwapPerformer()
-    performer.perform_valid_swap(backend, navigator, test_name)
+    performer.perform_valid_swap(backend, exchange_navigation_helper)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_ripple_tx(backend, fees=performer.def_fees + 100)
     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test swap with a malicious Ripple TX with tampered memo
-def test_ripple_swap_wrong_memo(backend, navigator, test_name):
+def test_ripple_swap_wrong_memo(backend, exchange_navigation_helper):
     performer = RippleValidSwapPerformer()
-    performer.perform_valid_swap(backend, navigator, test_name)
+    performer.perform_valid_swap(backend, exchange_navigation_helper)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_ripple_tx(backend, memo=performer.def_memo + "1")
     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test swap with a malicious Ripple TX with tampered dest
-def test_ripple_swap_wrong_dest(backend, navigator, test_name):
+def test_ripple_swap_wrong_dest(backend, exchange_navigation_helper):
     performer = RippleValidSwapPerformer()
-    performer.perform_valid_swap(backend, navigator, test_name)
+    performer.perform_valid_swap(backend, exchange_navigation_helper)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_ripple_tx(backend, destination="rhBuYom8agWA4s7DFoM7AvsDA9XGkVCJz4")
     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
 
 
 # Test swap with a malicious Ripple TX with tampered amount
-def test_ripple_swap_wrong_amount(backend, navigator, test_name):
+def test_ripple_swap_wrong_amount(backend, exchange_navigation_helper):
     performer = RippleValidSwapPerformer()
-    performer.perform_valid_swap(backend, navigator, test_name)
+    performer.perform_valid_swap(backend, exchange_navigation_helper)
     backend.raise_policy = RaisePolicy.RAISE_NOTHING
     rapdu = performer.perform_ripple_tx(backend, send_amount=performer.def_send_amount + 351)
     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
@@ -245,31 +239,31 @@ def test_ripple_swap_wrong_amount(backend, navigator, test_name):
 #             "in_amount": int.to_bytes(send_amount, length=4, byteorder='big'),
 #             "in_address": destination,
 #         }
-#         self.perform_valid_exchange_tx(backend, navigator, test_name, SubCommand.FUND, tx_infos, fees)
+#         self.perform_valid_exchange_tx(backend, exchange_navigation_helper, SubCommand.FUND, tx_infos, fees)
 
 
 # # Valid fund test with default values
-# def test_ripple_fund_valid_1(backend, navigator, test_name):
+# def test_ripple_fund_valid_1(backend, exchange_navigation_helper):
 #     performer = RippleValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
+#     performer.perform_valid_fund(backend, exchange_navigation_helper)
 #     performer.perform_ripple_tx(backend)
 
 
 # # Valid fund test with non default values
-# def test_ripple_fund_valid_2(backend, navigator, test_name):
+# def test_ripple_fund_valid_2(backend, exchange_navigation_helper):
 #     fees = 10078
 #     destination="rhBuYom8agWA4s7DFoM7AvsDA9XGkVCJz4"
 #     send_amount = 446739662
 
 #     performer = RippleValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name, fees=fees, destination=destination, send_amount=send_amount)
+#     performer.perform_valid_fund(backend, exchange_navigation_helper, fees=fees, destination=destination, send_amount=send_amount)
 #     performer.perform_ripple_tx(backend, fees=fees, destination=destination, send_amount=send_amount)
 
 
 # # Make a valid fund and then ask a second signature
-# def test_ripple_fund_refuse_double_sign(backend, navigator, test_name):
+# def test_ripple_fund_refuse_double_sign(backend, exchange_navigation_helper):
 #     performer = RippleValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
+#     performer.perform_valid_fund(backend, exchange_navigation_helper)
 #     performer.perform_ripple_tx(backend)
 
 #     with pytest.raises(ExceptionRAPDU) as e:
@@ -278,36 +272,36 @@ def test_ripple_swap_wrong_amount(backend, navigator, test_name):
 
 
 # # Test fund with a malicious Ripple TX with tampered fees
-# def test_ripple_fund_wrong_fees(backend, navigator, test_name):
+# def test_ripple_fund_wrong_fees(backend, exchange_navigation_helper):
 #     performer = RippleValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
+#     performer.perform_valid_fund(backend, exchange_navigation_helper)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_ripple_tx(backend, fees=performer.def_fees + 100)
 #     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
 
 
 # # Test fund with a malicious Ripple TX with tampered memo
-# def test_ripple_fund_wrong_memo(backend, navigator, test_name):
+# def test_ripple_fund_wrong_memo(backend, exchange_navigation_helper):
 #     performer = RippleValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
+#     performer.perform_valid_fund(backend, exchange_navigation_helper)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_ripple_tx(backend, memo=performer.def_memo + "1")
 #     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
 
 
 # # Test fund with a malicious Ripple TX with tampered dest
-# def test_ripple_fund_wrong_dest(backend, navigator, test_name):
+# def test_ripple_fund_wrong_dest(backend, exchange_navigation_helper):
 #     performer = RippleValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
+#     performer.perform_valid_fund(backend, exchange_navigation_helper)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_ripple_tx(backend, destination="rhBuYom8agWA4s7DFoM7AvsDA9XGkVCJz4")
 #     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
 
 
 # # Test fund with a malicious Ripple TX with tampered amount
-# def test_ripple_fund_wrong_amount(backend, navigator, test_name):
+# def test_ripple_fund_wrong_amount(backend, exchange_navigation_helper):
 #     performer = RippleValidFundPerformer()
-#     performer.perform_valid_fund(backend, navigator, test_name)
+#     performer.perform_valid_fund(backend, exchange_navigation_helper)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_ripple_tx(backend, send_amount=performer.def_send_amount + 351)
 #     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
@@ -336,31 +330,31 @@ def test_ripple_swap_wrong_amount(backend, navigator, test_name):
 #             "in_amount": int.to_bytes(send_amount, length=4, byteorder='big'),
 #             "in_address": destination,
 #         }
-#         self.perform_valid_exchange_tx(backend, navigator, test_name, SubCommand.SELL, tx_infos, fees)
+#         self.perform_valid_exchange_tx(backend, exchange_navigation_helper, SubCommand.SELL, tx_infos, fees)
 
 
 # # Valid sell test with default values
-# def test_ripple_sell_valid_1(backend, navigator, test_name):
+# def test_ripple_sell_valid_1(backend, exchange_navigation_helper):
 #     performer = RippleValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
+#     performer.perform_valid_sell(backend, exchange_navigation_helper)
 #     performer.perform_ripple_tx(backend)
 
 
 # # Valid sell test with non default values
-# def test_ripple_sell_valid_2(backend, navigator, test_name):
+# def test_ripple_sell_valid_2(backend, exchange_navigation_helper):
 #     fees = 10078
 #     destination="rhBuYom8agWA4s7DFoM7AvsDA9XGkVCJz4"
 #     send_amount = 446739662
 
 #     performer = RippleValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name, fees=fees, destination=destination, send_amount=send_amount)
+#     performer.perform_valid_sell(backend, exchange_navigation_helper, fees=fees, destination=destination, send_amount=send_amount)
 #     performer.perform_ripple_tx(backend, fees=fees, destination=destination, send_amount=send_amount)
 
 
 # # Make a valid sell and then ask a second signature
-# def test_ripple_sell_refuse_double_sign(backend, navigator, test_name):
+# def test_ripple_sell_refuse_double_sign(backend, exchange_navigation_helper):
 #     performer = RippleValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
+#     performer.perform_valid_sell(backend, exchange_navigation_helper)
 #     performer.perform_ripple_tx(backend)
 
 #     with pytest.raises(ExceptionRAPDU) as e:
@@ -369,36 +363,36 @@ def test_ripple_swap_wrong_amount(backend, navigator, test_name):
 
 
 # # Test sell with a malicious Ripple TX with tampered fees
-# def test_ripple_sell_wrong_fees(backend, navigator, test_name):
+# def test_ripple_sell_wrong_fees(backend, exchange_navigation_helper):
 #     performer = RippleValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
+#     performer.perform_valid_sell(backend, exchange_navigation_helper)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_ripple_tx(backend, fees=performer.def_fees + 100)
 #     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
 
 
 # # Test sell with a malicious Ripple TX with tampered memo
-# def test_ripple_sell_wrong_memo(backend, navigator, test_name):
+# def test_ripple_sell_wrong_memo(backend, exchange_navigation_helper):
 #     performer = RippleValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
+#     performer.perform_valid_sell(backend, exchange_navigation_helper)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_ripple_tx(backend, memo=performer.def_memo + "1")
 #     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
 
 
 # # Test sell with a malicious Ripple TX with tampered dest
-# def test_ripple_sell_wrong_dest(backend, navigator, test_name):
+# def test_ripple_sell_wrong_dest(backend, exchange_navigation_helper):
 #     performer = RippleValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
+#     performer.perform_valid_sell(backend, exchange_navigation_helper)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_ripple_tx(backend, destination="rhBuYom8agWA4s7DFoM7AvsDA9XGkVCJz4")
 #     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL
 
 
 # # Test sell with a malicious Ripple TX with tampered amount
-# def test_ripple_sell_wrong_amount(backend, navigator, test_name):
+# def test_ripple_sell_wrong_amount(backend, exchange_navigation_helper):
 #     performer = RippleValidSellPerformer()
-#     performer.perform_valid_sell(backend, navigator, test_name)
+#     performer.perform_valid_sell(backend, exchange_navigation_helper)
 #     backend.raise_policy = RaisePolicy.RAISE_NOTHING
 #     rapdu = performer.perform_ripple_tx(backend, send_amount=performer.def_send_amount + 351)
 #     assert rapdu.status == RippleErrors.SW_SWAP_CHECKING_FAIL

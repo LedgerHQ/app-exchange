@@ -1,17 +1,13 @@
 from ledger_bitcoin import Chain
 from ledger_bitcoin.client import NewClient
 
-from ragger.navigator import NavInsID
-
 from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
-from .utils import ROOT_SCREENSHOT_PATH
 
-
-def test_swap_btc_to_etc(backend, firmware, navigator, test_name):
+def test_swap_btc_to_etc(backend, firmware, exchange_navigation_helper):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
     partner = SigningAuthority(curve=ex.partner_curve, name="Default name")
 
@@ -37,11 +33,7 @@ def test_swap_btc_to_etc(backend, firmware, navigator, test_name):
     ex.check_transaction_signature(partner)
 
     with ex.check_address(payout_signer=LEDGER_SIGNER, refund_signer=LEDGER_SIGNER):
-        navigator.navigate_until_text_and_compare(NavInsID.RIGHT_CLICK,
-                                                  [NavInsID.BOTH_CLICK],
-                                                  "Accept",
-                                                  ROOT_SCREENSHOT_PATH,
-                                                  test_name)
+        exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 
     # client._client is the Speculos backend within the Ragger client,
