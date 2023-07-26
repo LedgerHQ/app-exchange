@@ -27,6 +27,9 @@ AMOUNT_2_BYTES  = lamports_to_bytes(AMOUNT_2)
 FEES            = sol_to_lamports(0.00000564)
 FEES_BYTES      = lamports_to_bytes(FEES)
 
+FEES_2            = sol_to_lamports(0.0005543)
+FEES_2_BYTES      = lamports_to_bytes(FEES_2)
+
 
 ### Proposed foreign and owned addresses ###
 
