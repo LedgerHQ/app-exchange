@@ -10,7 +10,7 @@ from .exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx
 from . import cal as cal
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
-from ..utils import handle_lib_call_start_or_stop
+from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes
 
 # When adding a new test, have it prefixed by this string in order to have it automatically parametrized for currencies tests
 TEST_METHOD_PREFIX="perform_test_"
@@ -57,7 +57,7 @@ class ExchangeTestRunner:
         ex = ExchangeClient(self.backend, Rate.FIXED, subcommand)
 
         # The partner we will perform the exchange with
-        partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Default name")
+        partner = SigningAuthority(curve=get_partner_curve(subcommand), name=self.partner_name)
 
         # Initialize a new transaction request
         transaction_id = ex.init_transaction().data
@@ -105,7 +105,7 @@ class ExchangeTestRunner:
             "payout_extra_id": b"", # Default
             "currency_from": self.currency_ticker,
             "currency_to": "ETH", # Default
-            "amount_to_provider": int.to_bytes(send_amount, length=8, byteorder='big'),
+            "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
         self._perform_valid_exchange(SubCommand.SWAP, tx_infos, fees, ui_validation=ui_validation)
@@ -120,28 +120,28 @@ class ExchangeTestRunner:
             "payout_extra_id": memo.encode(),
             "currency_from": "ETH", # Default
             "currency_to": self.currency_ticker,
-            "amount_to_provider": int.to_bytes(send_amount, length=8, byteorder='big'),
+            "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
         self._perform_valid_exchange(SubCommand.SWAP, tx_infos, fees, ui_validation=ui_validation)
 
     def perform_valid_fund_from_custom(self, destination, send_amount, fees):
         tx_infos = {
-            "user_id": "Jon Wick", # Default
-            "account_name": "My account 00", # Default
+            "user_id": self.fund_user_id,
+            "account_name": self.fund_account_name,
             "in_currency": self.currency_ticker,
-            "in_amount": int.to_bytes(send_amount, length=4, byteorder='big'),
+            "in_amount": int_to_minimally_sized_bytes(send_amount),
             "in_address": destination,
         }
         self._perform_valid_exchange(SubCommand.FUND, tx_infos, fees, ui_validation=True)
 
     def perform_valid_sell_from_custom(self, destination, send_amount, fees):
         tx_infos = {
-            "trader_email": "john@doe.lost", # Default
-            "out_currency": "USD", # Default
-            "out_amount": {"coefficient": b"\x01", "exponent": 3}, # Default
+            "trader_email": self.sell_trader_email,
+            "out_currency": self.sell_out_currency,
+            "out_amount": self.sell_out_amount,
             "in_currency": self.currency_ticker,
-            "in_amount": int.to_bytes(send_amount, length=4, byteorder='big'),
+            "in_amount": int_to_minimally_sized_bytes(send_amount),
             "in_address": destination,
         }
         self._perform_valid_exchange(SubCommand.SELL, tx_infos, fees, ui_validation=True)
@@ -338,6 +338,7 @@ _all_test_methods_prefixed = [method for method in dir(ExchangeTestRunner) if me
 # Remove prefix to have nice snapshots directories
 ALL_TESTS = [str(i).replace(TEST_METHOD_PREFIX, '') for i in _all_test_methods_prefixed]
 ALL_TESTS_EXCEPT_MEMO = [test for test in ALL_TESTS if not "memo" in test]
+ALL_TESTS_EXCEPT_MEMO_AND_FEES = [test for test in ALL_TESTS if (not "memo" in test and not "fees" in test)]
 SWAP_TESTS = [test for test in ALL_TESTS if "swap" in test]
 FUND_TESTS = [test for test in ALL_TESTS if "fund" in test]
 SELL_TESTS = [test for test in ALL_TESTS if "sell" in test]
