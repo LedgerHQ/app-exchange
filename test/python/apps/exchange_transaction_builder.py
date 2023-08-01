@@ -30,25 +30,20 @@ class SubCommand(IntEnum):
     SWAP = 0x00
     SELL = 0x01
     FUND = 0x02
+    SWAP_NG = 0x03
+    SELL_NG = 0x04
+    FUND_NG = 0x05
 
-
-SUBCOMMAND_TO_CURVE = {
-    SubCommand.SWAP: ec.SECP256K1(),
-    SubCommand.SELL: ec.SECP256R1(),
-    SubCommand.FUND: ec.SECP256R1(),
-}
-
-
-def get_partner_curve(sub_command: SubCommand) -> ec.EllipticCurve:
-    return SUBCOMMAND_TO_CURVE[sub_command]
 
 @dataclass(frozen=True)
 class SubCommandSpecs:
+    partner_curve: ec.EllipticCurve
     signature_computation: SignatureComputation
     signature_encoding: SignatureEncoding
     payload_encoding: PayloadEncoding
     transaction_type: Callable
     required_fields: Iterable[str]
+    transaction_id_field: str
     payout_field: str
     refund_field: Optional[str]
 
@@ -74,11 +69,14 @@ class SubCommandSpecs:
         return signature_to_encode
 
     def create_transaction(self, conf: Dict, transaction_id: bytes) -> bytes:
-        raw_transaction = self.transaction_type(**conf, device_transaction_id=transaction_id).SerializeToString()
+        conf[self.transaction_id_field] = transaction_id
+        raw_transaction = self.transaction_type(**conf).SerializeToString()
+        print(f"raw transaction {raw_transaction.hex()}")
         return self.encode_payload(raw_transaction)
 
 
 SWAP_SPECS: SubCommandSpecs = SubCommandSpecs(
+    partner_curve = ec.SECP256K1(),
     signature_computation = SignatureComputation.BINARY_ENCODED_PAYLOAD,
     signature_encoding = SignatureEncoding.DER,
     payload_encoding = PayloadEncoding.BYTES_ARRAY,
@@ -86,34 +84,80 @@ SWAP_SPECS: SubCommandSpecs = SubCommandSpecs(
     required_fields = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
                       "payout_address", "payout_extra_id", "currency_from", "currency_to",
                       "amount_to_provider", "amount_to_wallet"],
-    payout_field= "currency_to",
-    refund_field= "currency_from"
+    transaction_id_field = "device_transaction_id",
+    payout_field = "currency_to",
+    refund_field = "currency_from",
+)
+
+SWAP_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
+    partner_curve = ec.SECP256R1(),
+    signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
+    signature_encoding = SignatureEncoding.PLAIN_R_S,
+    payload_encoding = PayloadEncoding.BASE_64_URL,
+    transaction_type = NewTransactionResponse,
+    required_fields = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
+                      "payout_address", "payout_extra_id", "currency_from", "currency_to",
+                      "amount_to_provider", "amount_to_wallet"],
+    transaction_id_field = "device_transaction_id_ng",
+    payout_field = "currency_to",
+    refund_field = "currency_from",
 )
 
 SELL_SPECS: SubCommandSpecs = SubCommandSpecs(
+    partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.PLAIN_R_S,
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewSellResponse,
+    transaction_id_field = "device_transaction_id",
     required_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
-    payout_field="in_currency",
-    refund_field= None
+    payout_field = "in_currency",
+    refund_field = None,
+)
+
+SELL_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
+    partner_curve = ec.SECP256R1(),
+    signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
+    signature_encoding = SignatureEncoding.PLAIN_R_S,
+    payload_encoding = PayloadEncoding.BASE_64_URL,
+    transaction_type = NewSellResponse,
+    transaction_id_field = "device_transaction_id",
+    required_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
+    payout_field = "in_currency",
+    refund_field = None,
 )
 
 FUND_SPECS: SubCommandSpecs = SubCommandSpecs(
+    partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.DER,
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewFundResponse,
     required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
-    payout_field="in_currency",
-    refund_field= None
+    transaction_id_field = "device_transaction_id",
+    payout_field = "in_currency",
+    refund_field =  None,
+)
+
+FUND_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
+    partner_curve = ec.SECP256R1(),
+    signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
+    signature_encoding = SignatureEncoding.PLAIN_R_S,
+    payload_encoding = PayloadEncoding.BASE_64_URL,
+    transaction_type = NewFundResponse,
+    required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
+    transaction_id_field = "device_transaction_id",
+    payout_field = "in_currency",
+    refund_field =  None,
 )
 
 SUBCOMMAND_TO_SPECS = {
     SubCommand.SWAP: SWAP_SPECS,
     SubCommand.SELL: SELL_SPECS,
     SubCommand.FUND: FUND_SPECS,
+    SubCommand.SWAP_NG: SWAP_NG_SPECS,
+    SubCommand.SELL_NG: SELL_NG_SPECS,
+    SubCommand.FUND_NG: FUND_NG_SPECS,
 }
 
 def craft_tx(subcommand: SubCommand, conf: Dict, transaction_id: bytes) -> bytes:
@@ -137,3 +181,6 @@ def extract_refund_ticker(subcommand: SubCommand, tx_infos: Dict) -> Optional[st
         return tx_infos[subcommand_specs.refund_field]
     else:
         return None
+
+def get_partner_curve(sub_command: SubCommand) -> ec.EllipticCurve:
+    return SUBCOMMAND_TO_SPECS[sub_command].partner_curve

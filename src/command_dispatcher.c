@@ -16,15 +16,9 @@
 
 #include "io.h"
 
-int dispatch_command(const command_t *cmd) {
-    PRINTF("command: %d, subcommand: %d, state: %d\n", cmd->ins, cmd->subcommand, G_swap_ctx.state);
 
-    if (cmd->rate != FIXED && cmd->rate != FLOATING) {
-        return reply_error(WRONG_P1);
-    }
-    if (cmd->subcommand != SWAP && cmd->subcommand != SELL && cmd->subcommand != FUND) {
-        return reply_error(WRONG_P2);
-    }
+int dispatch_command(command_t *cmd) {
+    PRINTF("command: %d, subcommand: %d, state: %d\n", cmd->ins, cmd->subcommand, G_swap_ctx.state);
 
     int ret = -1;
     bool valid_command_received = false;
@@ -71,7 +65,7 @@ int dispatch_command(const command_t *cmd) {
             break;
         case CHECK_PAYOUT_ADDRESS:
             if (G_swap_ctx.state == SIGNATURE_CHECKED && cmd->subcommand == G_swap_ctx.subcommand) {
-                if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
+                if (cmd->subcommand == SELL || cmd->subcommand == FUND || cmd->subcommand == SELL_NG || cmd->subcommand == FUND_NG) {
                     ret = check_asset_in(cmd);
                 } else {
                     ret = check_payout_address(cmd);
@@ -86,6 +80,10 @@ int dispatch_command(const command_t *cmd) {
             }
             break;
         case START_SIGNING_TRANSACTION:
+            PRINTF("START_SIGNING_TRANSACTION\n");
+            PRINTF("G_swap_ctx.state %d\n", G_swap_ctx.state);
+            PRINTF("cmd->subcommand %d\n", cmd->subcommand);
+            PRINTF("G_swap_ctx.subcommand %d\n", G_swap_ctx.subcommand);
             if (G_swap_ctx.state == WAITING_SIGNING && cmd->subcommand == G_swap_ctx.subcommand) {
                 ret = start_signing_transaction(cmd);
                 valid_command_received = true;
@@ -96,6 +94,7 @@ int dispatch_command(const command_t *cmd) {
     }
 
     if (!valid_command_received) {
+        PRINTF("Invalid command received\n");
         ret = reply_error(INVALID_INSTRUCTION);
     }
 

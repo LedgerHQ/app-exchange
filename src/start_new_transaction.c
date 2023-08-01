@@ -27,7 +27,7 @@ int start_new_transaction(const command_t *cmd) {
         }
     }
 
-    if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
+    if (cmd->subcommand == SELL || cmd->subcommand == FUND || cmd->subcommand == SWAP_NG || cmd->subcommand == SELL_NG || cmd->subcommand == FUND_NG) {
         output_buffer_size = sizeof(G_swap_ctx.device_transaction_id.sell_fund);
 
 #ifdef TESTING

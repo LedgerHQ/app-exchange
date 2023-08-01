@@ -29,9 +29,7 @@ int check_tx_signature(const command_t *cmd) {
             PRINTF("Error: Failed to verify signature of received transaction\n");
             return reply_error(SIGN_VERIFICATION_FAIL);
         }
-    }
-
-    if (cmd->subcommand == SELL) {
+    } else if (cmd->subcommand == SELL || cmd->subcommand == SWAP_NG || cmd->subcommand == FUND_NG || cmd->subcommand == SELL_NG) {
         if (cmd->data.size != 64) {
             PRINTF("Error: Input buffer length don't correspond to (R, S) length\n");
             return reply_error(INCORRECT_COMMAND_DATA);
@@ -64,6 +62,8 @@ int check_tx_signature(const command_t *cmd) {
             PRINTF("Error: Failed to verify signature of received transaction\n");
             return reply_error(SIGN_VERIFICATION_FAIL);
         }
+    } else {
+        return reply_error(INCORRECT_COMMAND_DATA);
     }
 
     if (reply_success() < 0) {

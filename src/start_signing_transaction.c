@@ -16,7 +16,7 @@ int start_signing_transaction(const command_t *cmd) {
     lib_in_out_params.coin_configuration = G_swap_ctx.payin_coin_config.bytes;
     lib_in_out_params.coin_configuration_length = G_swap_ctx.payin_coin_config.size;
 
-    if (cmd->subcommand == SWAP) {
+    if (cmd->subcommand == SWAP || cmd->subcommand == SWAP_NG) {
         lib_in_out_params.amount = G_swap_ctx.received_transaction.amount_to_provider.bytes;
         lib_in_out_params.amount_length = G_swap_ctx.received_transaction.amount_to_provider.size;
         lib_in_out_params.destination_address = G_swap_ctx.received_transaction.payin_address;
@@ -24,7 +24,7 @@ int start_signing_transaction(const command_t *cmd) {
             G_swap_ctx.received_transaction.payin_extra_id;
     }
 
-    if (cmd->subcommand == SELL) {
+    if (cmd->subcommand == SELL || cmd->subcommand == SELL_NG) {
         lib_in_out_params.amount = G_swap_ctx.sell_transaction.in_amount.bytes;
         lib_in_out_params.amount_length = G_swap_ctx.sell_transaction.in_amount.size;
         lib_in_out_params.destination_address = G_swap_ctx.sell_transaction.in_address;
@@ -32,7 +32,7 @@ int start_signing_transaction(const command_t *cmd) {
         lib_in_out_params.destination_address_extra_id = G_swap_ctx.sell_transaction_extra_id;
     }
 
-    if (cmd->subcommand == FUND) {
+    if (cmd->subcommand == FUND || cmd->subcommand == FUND_NG) {
         lib_in_out_params.amount = G_swap_ctx.fund_transaction.in_amount.bytes;
         lib_in_out_params.amount_length = G_swap_ctx.fund_transaction.in_amount.size;
         lib_in_out_params.destination_address = G_swap_ctx.fund_transaction.in_address;

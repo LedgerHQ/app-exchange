@@ -8,11 +8,6 @@
 #include "buffer.h"
 #include "swap_lib_calls.h"
 
-#define P1_CONFIRM     0x01
-#define P1_NON_CONFIRM 0x00
-#define P1_FIRST       0x00
-#define P1_MORE        0x80
-
 #define CURVE_SIZE_BYTES         32U
 #define UNCOMPRESSED_KEY_LENGTH  65U
 #define MIN_DER_SIGNATURE_LENGTH 67U
@@ -32,7 +27,7 @@ extern uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 #pragma pack(push, 1)
 typedef struct partner_data_s {
-    unsigned char name_length;
+    uint8_t name_length;
     union {
         // SELL and SWAP flows display nothing
         // FUND flow displays "To xyz"
@@ -48,12 +43,12 @@ typedef struct partner_data_s {
 
 typedef struct swap_app_context_s {
     union {
-        unsigned char sell_fund[32];  // device_transaction_id (SELL && FUND)
+        uint8_t sell_fund[32];  // device_transaction_id (SELL && FUND && NG)
         char swap[10];                // device_transaction_id (SWAP)
     } device_transaction_id;
 
-    unsigned char transaction_fee[16];
-    unsigned char transaction_fee_length;
+    uint8_t transaction_fee[16];
+    uint8_t transaction_fee_length;
 
     partner_data_t partner;
     state_e state;
@@ -75,7 +70,7 @@ typedef struct swap_app_context_s {
         };
     };
 
-    unsigned char sha256_digest[32];
+    uint8_t sha256_digest[32];
 
     cx_ecfp_256_public_key_t ledger_public_key;
 

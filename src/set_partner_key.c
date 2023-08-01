@@ -50,7 +50,7 @@ int set_partner_key(const command_t *cmd) {
         }
     }
 
-    if (cmd->subcommand == SELL || cmd->subcommand == FUND) {
+    if (cmd->subcommand == SELL || cmd->subcommand == FUND || cmd->subcommand == SWAP_NG || cmd->subcommand == SELL_NG || cmd->subcommand == FUND_NG) {
         if (cx_ecfp_init_public_key_no_throw(CX_CURVE_256R1,
                                              cmd->data.bytes + 1 + G_swap_ctx.partner.name_length,
                                              UNCOMPRESSED_KEY_LENGTH,

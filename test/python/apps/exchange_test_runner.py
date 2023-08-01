@@ -93,7 +93,7 @@ class ExchangeTestRunner:
         # Ask exchange to start the library application to sign the actual outgoing transaction
         ex.start_signing_transaction()
 
-    def perform_valid_swap_from_custom(self, destination, send_amount, fees, memo, refund_address=None, refund_memo=None, ui_validation=True):
+    def perform_valid_swap_from_custom(self, destination, send_amount, fees, memo, refund_address=None, refund_memo=None, ui_validation=True, ng=False):
         refund_address = self.valid_refund if refund_address is None else refund_address
         refund_memo = self.valid_refund_memo if refund_memo is None else refund_memo
         tx_infos = {
@@ -108,9 +108,10 @@ class ExchangeTestRunner:
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
-        self._perform_valid_exchange(SubCommand.SWAP, tx_infos, fees, ui_validation=ui_validation)
+        subcommand = SubCommand.SWAP_NG if ng else SubCommand.SWAP
+        self._perform_valid_exchange(subcommand, tx_infos, fees, ui_validation=ui_validation)
 
-    def perform_valid_swap_to_custom(self, destination, send_amount, fees, memo, ui_validation=True):
+    def perform_valid_swap_to_custom(self, destination, send_amount, fees, memo, ui_validation=True, ng=False):
         tx_infos = {
             "payin_address": "0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
             "payin_extra_id": "", # Default
@@ -123,9 +124,10 @@ class ExchangeTestRunner:
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
-        self._perform_valid_exchange(SubCommand.SWAP, tx_infos, fees, ui_validation=ui_validation)
+        subcommand = SubCommand.SWAP_NG if ng else SubCommand.SWAP
+        self._perform_valid_exchange(subcommand, tx_infos, fees, ui_validation=ui_validation)
 
-    def perform_valid_fund_from_custom(self, destination, send_amount, fees):
+    def perform_valid_fund_from_custom(self, destination, send_amount, fees, ng=False):
         tx_infos = {
             "user_id": self.fund_user_id,
             "account_name": self.fund_account_name,
@@ -133,9 +135,10 @@ class ExchangeTestRunner:
             "in_amount": int_to_minimally_sized_bytes(send_amount),
             "in_address": destination,
         }
-        self._perform_valid_exchange(SubCommand.FUND, tx_infos, fees, ui_validation=True)
+        subcommand = SubCommand.FUND_NG if ng else SubCommand.FUND
+        self._perform_valid_exchange(subcommand, tx_infos, fees, ui_validation=True)
 
-    def perform_valid_sell_from_custom(self, destination, send_amount, fees):
+    def perform_valid_sell_from_custom(self, destination, send_amount, fees, ng=False):
         tx_infos = {
             "trader_email": self.sell_trader_email,
             "out_currency": self.sell_out_currency,
@@ -144,7 +147,8 @@ class ExchangeTestRunner:
             "in_amount": int_to_minimally_sized_bytes(send_amount),
             "in_address": destination,
         }
-        self._perform_valid_exchange(SubCommand.SELL, tx_infos, fees, ui_validation=True)
+        subcommand = SubCommand.SELL_NG if ng else SubCommand.SELL
+        self._perform_valid_exchange(subcommand, tx_infos, fees, ui_validation=True)
 
     # Implement this function for each tested coin
     def perform_final_tx(self, destination, send_amount, fees, memo):
@@ -161,71 +165,81 @@ class ExchangeTestRunner:
 
     # We test that the currency app returns a fail when checking an incorrect refund address
     def perform_test_swap_wrong_refund(self):
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_valid_swap_from_custom(self.valid_destination_1,
-                                                self.valid_send_amount_1,
-                                                self.valid_fees_1,
-                                                self.valid_destination_memo_1,
-                                                refund_address=self.fake_refund,
-                                                refund_memo=self.fake_refund_memo,
-                                                ui_validation=False)
-        assert e.value.status == Errors.INVALID_ADDRESS
+        for ng in [True, False]:
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_valid_swap_from_custom(self.valid_destination_1,
+                                                    self.valid_send_amount_1,
+                                                    self.valid_fees_1,
+                                                    self.valid_destination_memo_1,
+                                                    refund_address=self.fake_refund,
+                                                    refund_memo=self.fake_refund_memo,
+                                                    ui_validation=False,
+                                                    ng=ng)
+            assert e.value.status == Errors.INVALID_ADDRESS
 
     # We test that the currency app returns a fail when checking an incorrect payout address
     def perform_test_swap_wrong_payout(self):
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_valid_swap_to_custom(self.fake_payout, self.valid_send_amount_1, self.valid_fees_1, self.fake_payout_memo, ui_validation=False)
-        assert e.value.status == Errors.INVALID_ADDRESS
+        for ng in [True, False]:
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_valid_swap_to_custom(self.fake_payout, self.valid_send_amount_1, self.valid_fees_1, self.fake_payout_memo, ui_validation=False, ng=ng)
+            assert e.value.status == Errors.INVALID_ADDRESS
 
     # The absolute standard swap, using default values, user accepts on UI
     def perform_test_swap_valid_1(self):
-        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
+        for ng in [True, False]:
+            self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, ng=ng)
+            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
 
     # The second standard swap, using alternate default values, user accepts on UI
     def perform_test_swap_valid_2(self):
-        self.perform_valid_swap_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, self.valid_destination_memo_2)
-        self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, self.valid_destination_memo_2)
+        for ng in [True, False]:
+            self.perform_valid_swap_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, self.valid_destination_memo_2, ng=ng)
+            self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, self.valid_destination_memo_2)
 
     # Make a valid swap and then ask a second signature
     def perform_test_swap_refuse_double_sign(self):
-        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        with pytest.raises(ExceptionRAPDU) as e:
+        for ng in [True, False]:
+            self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, ng=ng)
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        assert e.value.status == Errors.INVALID_INSTRUCTION or e.value.status == Errors.WRONG_P2
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
+            assert e.value.status == Errors.INVALID_INSTRUCTION or e.value.status == Errors.WRONG_P2
 
     # Test swap with a malicious TX with tampered fees
     def perform_test_swap_wrong_fees(self):
-        assert self.valid_fees_1 != self.valid_fees_2, "This test won't work if the values are the same"
-        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, self.valid_destination_memo_1)
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            assert self.valid_fees_1 != self.valid_fees_2, "This test won't work if the values are the same"
+            self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, self.valid_destination_memo_1)
+            assert e.value.status == self.signature_refusal_error_code
 
     # Test swap with a malicious TX with tampered memo
     def perform_test_swap_wrong_memo(self):
-        assert self.valid_destination_memo_1 != self.valid_destination_memo_2, "This test won't work if the values are the same"
-        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_2)
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            assert self.valid_destination_memo_1 != self.valid_destination_memo_2, "This test won't work if the values are the same"
+            self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_2)
+            assert e.value.status == self.signature_refusal_error_code
 
     # Test swap with a malicious TX with tampered destination
     def perform_test_swap_wrong_destination(self):
-        assert self.valid_destination_1 != self.valid_destination_2, "This test won't work if the values are the same"
-        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            assert self.valid_destination_1 != self.valid_destination_2, "This test won't work if the values are the same"
+            self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
+            assert e.value.status == self.signature_refusal_error_code
 
     # Test swap with a malicious TX with tampered amount
     def perform_test_swap_wrong_amount(self):
-        assert self.valid_send_amount_1 != self.valid_send_amount_2, "This test won't work if the values are the same"
-        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, self.valid_destination_memo_1)
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            assert self.valid_send_amount_1 != self.valid_send_amount_2, "This test won't work if the values are the same"
+            self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, self.valid_destination_memo_1)
+            assert e.value.status == self.signature_refusal_error_code
 
     #########################################################
     # Generic FUND tests functions, call them in your tests #
@@ -233,52 +247,59 @@ class ExchangeTestRunner:
 
     # The absolute standard fund, using default values, user accepts on UI
     def perform_test_fund_valid_1(self):
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
+        for ng in [True, False]:
+            self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
 
     # The second standard fund, using alternate default values, user accepts on UI
     def perform_test_fund_valid_2(self):
-        self.perform_valid_fund_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2)
-        self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
+        for ng in [True, False]:
+            self.perform_valid_fund_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, ng=ng)
+            self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
 
     # Make a valid fund and then ask a second signature
     def perform_test_fund_refuse_double_sign(self):
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-        with pytest.raises(ExceptionRAPDU) as e:
+        for ng in [True, False]:
+            self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-        assert e.value.status == Errors.INVALID_INSTRUCTION
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
+            assert e.value.status == Errors.INVALID_INSTRUCTION
 
     # Test fund with a malicious TX with tampered fees
     def perform_test_fund_wrong_fees(self):
         assert self.valid_fees_1 != self.valid_fees_2, "This test won't work if the values are the same"
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, "")
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, "")
+            assert e.value.status == self.signature_refusal_error_code
 
     # Test fund with a malicious TX with tampered memo
     def perform_test_fund_wrong_memo(self):
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "no memo expected")
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "no memo expected")
+            assert e.value.status == self.signature_refusal_error_code
 
     # Test fund with a malicious TX with tampered destination
     def perform_test_fund_wrong_destination(self):
         assert self.valid_destination_1 != self.valid_destination_2, "This test won't work if the values are the same"
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, "")
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, "")
+            assert e.value.status == self.signature_refusal_error_code
 
     # Test fund with a malicious TX with tampered amount
     def perform_test_fund_wrong_amount(self):
         assert self.valid_send_amount_1 != self.valid_send_amount_2, "This test won't work if the values are the same"
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
+            assert e.value.status == self.signature_refusal_error_code
 
     #########################################################
     # Generic SELL tests functions, call them in your tests #
@@ -286,52 +307,59 @@ class ExchangeTestRunner:
 
     # The absolute standard sell, using default values, user accepts on UI
     def perform_test_sell_valid_1(self):
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
+        for ng in [True, False]:
+            self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
 
     # The second standard sell, using alternate default values, user accepts on UI
     def perform_test_sell_valid_2(self):
-        self.perform_valid_sell_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2)
-        self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
+        for ng in [True, False]:
+            self.perform_valid_sell_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, ng=ng)
+            self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
 
     # Make a valid sell and then ask a second signature
     def perform_test_sell_refuse_double_sign(self):
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-        with pytest.raises(ExceptionRAPDU) as e:
+        for ng in [True, False]:
+            self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-        assert e.value.status == Errors.INVALID_INSTRUCTION
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
+            assert e.value.status == Errors.INVALID_INSTRUCTION
 
     # Test sell with a malicious TX with tampered fees
     def perform_test_sell_wrong_fees(self):
         assert self.valid_fees_1 != self.valid_fees_2, "This test won't work if the values are the same"
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, "")
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, "")
+            assert e.value.status == self.signature_refusal_error_code
 
     # Test sell with a malicious TX with tampered memo
     def perform_test_sell_wrong_memo(self):
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "no memo expected")
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "no memo expected")
+            assert e.value.status == self.signature_refusal_error_code
 
     # Test sell with a malicious TX with tampered destination
     def perform_test_sell_wrong_destination(self):
         assert self.valid_destination_1 != self.valid_destination_2, "This test won't work if the values are the same"
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, "")
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, "")
+            assert e.value.status == self.signature_refusal_error_code
 
     # Test sell with a malicious TX with tampered amount
     def perform_test_sell_wrong_amount(self):
         assert self.valid_send_amount_1 != self.valid_send_amount_2, "This test won't work if the values are the same"
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
-        assert e.value.status == self.signature_refusal_error_code
+        for ng in [True, False]:
+            self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, ng=ng)
+            with pytest.raises(ExceptionRAPDU) as e:
+                self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
+            assert e.value.status == self.signature_refusal_error_code
 
 # Automatically collect all tests functions and export their name in ready-to-be-parametrized lists
 _all_test_methods_prefixed = [method for method in dir(ExchangeTestRunner) if method.startswith(TEST_METHOD_PREFIX)]

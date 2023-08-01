@@ -1,7 +1,7 @@
-#ifndef _COMMANDS_H_
-#define _COMMANDS_H_
+#pragma once
 
 #include "buffer.h"
+
 // commands
 typedef enum {
     GET_VERSION_COMMAND = 0x02,
@@ -15,11 +15,18 @@ typedef enum {
     START_SIGNING_TRANSACTION = 0x0A,
 } command_e;
 
-// subcommands
-typedef enum { SWAP = 0x00, SELL = 0x01, FUND = 0x02 } subcommand_e;
 
 // Different rates possible
 typedef enum { FIXED = 0x00, FLOATING = 0x01 } rate_e;
+
+// subcommands
+typedef enum { SWAP = 0x00, SELL = 0x01, FUND = 0x02, SWAP_NG = 0x03, SELL_NG = 0x04, FUND_NG = 0x05 } subcommand_e;
+#define SUBCOMMAND_PART 0x0F
+
+#define P2_NONE        (0x00 << 4)
+#define P2_EXTEND      (0x01 << 4)
+#define P2_MORE        (0x02 << 4)
+#define EXTENSION_PART 0xF0
 
 /**
  * Structure with fields of APDU command.
@@ -30,5 +37,3 @@ typedef struct {
     subcommand_e subcommand;  /// P2
     buf_t data;               /// Command data
 } command_t;
-
-#endif  //_COMMANDS_H_

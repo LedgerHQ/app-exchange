@@ -83,15 +83,15 @@ void ui_validate_amounts(void) {
 
     ux_confirm_flow[step++] = &ux_confirm_flow_1_step;
 
-    if (G_swap_ctx.subcommand == SELL) {
+    if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_2_step;
-    } else if (G_swap_ctx.subcommand == FUND) {
+    } else if (G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) {
         ux_confirm_flow[step++] = &ux_confirm_flow_1_3_step;
     }
 
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
 
-    if (G_swap_ctx.subcommand == FUND) {
+    if (G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_2_step;
     } else if (G_swap_ctx.rate == FLOATING) {
         ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;

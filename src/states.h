@@ -11,5 +11,5 @@ typedef enum {
     WAITING_USER_VALIDATION = 7,
     WAITING_SIGNING = 8,
     SIGN_FINISHED = 9,
-    STATE_UPPER_BOUND
+    STATE_UPPER_BOUND,
 } state_e;

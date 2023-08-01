@@ -64,6 +64,7 @@ int check_refund_address(const command_t *cmd) {
         PRINTF("Address to check is not NULL terminated\n");
         return reply_error(INCORRECT_COMMAND_DATA);
     }
+
     // check address
     if (check_address(&G_swap_ctx.payin_coin_config,
                       &address_parameters,
@@ -86,6 +87,7 @@ int check_refund_address(const command_t *cmd) {
 
         return reply_error(INTERNAL_ERROR);
     }
+
     PRINTF("Send amount: %s\n", G_swap_ctx.printable_send_amount);
 
     if (get_printable_amount(&G_swap_ctx.payin_coin_config,

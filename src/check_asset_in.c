@@ -50,14 +50,20 @@ int check_asset_in(const command_t *cmd) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
-    // Check that given ticker match current context
-    char *in_currency = (G_swap_ctx.subcommand == SELL ? G_swap_ctx.sell_transaction.in_currency
-                                                       : G_swap_ctx.fund_transaction.in_currency);
-
-    // Check that ticker matches the current context
-    if (!check_matching_ticker(&ticker, in_currency)) {
-        PRINTF("Error: ticker doesn't match configuration ticker\n");
-        return reply_error(INCORRECT_COMMAND_DATA);
+    PRINTF("G_swap_ctx.subcommand = %d\n", G_swap_ctx.subcommand);
+    if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
+        // Check that ticker matches the current context
+        if (!check_matching_ticker(&ticker, G_swap_ctx.sell_transaction.in_currency)) {
+            PRINTF("G_swap_ctx.sell_transaction.in_currency = %s\n", G_swap_ctx.sell_transaction.in_currency);
+            PRINTF("Error: ticker doesn't match configuration ticker\n");
+            return reply_error(INCORRECT_COMMAND_DATA);
+        }
+    } else {
+        // Check that ticker matches the current context
+        if (!check_matching_ticker(&ticker, G_swap_ctx.fund_transaction.in_currency)) {
+            PRINTF("Error: ticker doesn't match configuration ticker\n");
+            return reply_error(INCORRECT_COMMAND_DATA);
+        }
     }
 
     PRINTF("Coin configuration parsed: OK\n");
@@ -69,7 +75,7 @@ int check_asset_in(const command_t *cmd) {
     PRINTF("PATH inside the SWAP = %.*H\n", address_parameters.size, address_parameters.bytes);
 
     pb_bytes_array_16_t *in_amount;
-    if (G_swap_ctx.subcommand == SELL) {
+    if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
         in_amount = (pb_bytes_array_16_t *) &G_swap_ctx.sell_transaction.in_amount;
     } else {
         in_amount = (pb_bytes_array_16_t *) &G_swap_ctx.fund_transaction.in_amount;
@@ -101,7 +107,7 @@ int check_asset_in(const command_t *cmd) {
         return reply_error(INTERNAL_ERROR);
     }
 
-    if (cmd->subcommand == SELL) {
+    if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
         size_t len = strlen(G_swap_ctx.sell_transaction.out_currency);
         if (len + 1 >= sizeof(G_swap_ctx.printable_get_amount)) {
             return reply_error(INTERNAL_ERROR);
