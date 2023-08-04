@@ -9,7 +9,7 @@ static bool parse_der_signature(uint8_t *in, uint16_t in_size, buf_t *der, uint1
     ++*offset;
 
     // Read compound object
-    if (!parse_to_sized_buffer(in, in_size, der, offset)) {
+    if (!parse_to_sized_buffer(in, in_size, 1, der, offset)) {
         return false;
     }
     // Adapt buffer to encompass the full DER signature
@@ -34,7 +34,7 @@ int parse_check_address_message(const command_t *cmd,
     uint16_t read = 0;
 
     // Read currency configuration
-    if (!parse_to_sized_buffer(cmd->data.bytes, cmd->data.size, config, &read)) {
+    if (!parse_to_sized_buffer(cmd->data.bytes, cmd->data.size, 1, config, &read)) {
         PRINTF("Cannot read the config\n");
         return 0;
     }
@@ -53,7 +53,7 @@ int parse_check_address_message(const command_t *cmd,
     }
 
     // Read address parameters
-    if (!parse_to_sized_buffer(cmd->data.bytes, cmd->data.size, address_parameters, &read)) {
+    if (!parse_to_sized_buffer(cmd->data.bytes, cmd->data.size, 1, address_parameters, &read)) {
         PRINTF("Cannot read the address_parameters\n");
         return 0;
     }

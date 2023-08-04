@@ -103,7 +103,7 @@ class ExchangeClient:
 
     def process_transaction(self, transaction: bytes, fees: int) -> RAPDU:
         fees_bytes = int_to_minimally_sized_bytes(fees)
-        prefix_length = 2 if self.subcommand == SubCommand.SWAP_NG else 1
+        prefix_length = 2 if (self.subcommand == SubCommand.SWAP_NG or self.subcommand == SubCommand.FUND_NG or self.subcommand == SubCommand.SELL_NG) else 1
         payload = prefix_with_len_custom(transaction, prefix_length) + prefix_with_len(fees_bytes)
 
         if self.subcommand == SubCommand.SWAP or self.subcommand == SubCommand.FUND or self.subcommand == SubCommand.SELL:

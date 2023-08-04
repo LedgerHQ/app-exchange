@@ -37,7 +37,7 @@ int parse_coin_config(const buf_t *const orig_buffer,
     const buf_t input = *orig_buffer;
 
     // Read ticker
-    if (!parse_to_sized_buffer(input.bytes, input.size, ticker, &total_read)) {
+    if (!parse_to_sized_buffer(input.bytes, input.size, 1, ticker, &total_read)) {
         PRINTF("Cannot read the ticker\n");
         return 0;
     }
@@ -46,7 +46,7 @@ int parse_coin_config(const buf_t *const orig_buffer,
     }
 
     // Read application_name
-    if (!parse_to_sized_buffer(input.bytes, input.size, application_name, &total_read)) {
+    if (!parse_to_sized_buffer(input.bytes, input.size, 1, application_name, &total_read)) {
         PRINTF("Cannot read the application_name\n");
         return 0;
     }
@@ -55,7 +55,7 @@ int parse_coin_config(const buf_t *const orig_buffer,
     }
 
     // Read configuration
-    if (!parse_to_sized_buffer(input.bytes, input.size, configuration, &total_read)) {
+    if (!parse_to_sized_buffer(input.bytes, input.size, 1, configuration, &total_read)) {
         PRINTF("Cannot read the configuration\n");
         return 0;
     }
