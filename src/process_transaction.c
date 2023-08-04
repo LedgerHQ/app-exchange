@@ -67,39 +67,78 @@ static void normalize_currencies(void) {
 }
 
 int process_transaction(const command_t *cmd) {
-    if (cmd->data.size < 1) {
-        PRINTF("Error: Can't parse process_transaction message, length should be more than 1\n");
+    PRINTF("cmd->data.size = %d\n", cmd->data.size);
+    for (int i = 0; i < cmd->data.size; ++i) {
+        PRINTF("%02x", cmd->data.bytes[i]);
+    }
+    PRINTF("\n");
+    if (cmd->data.size < 2) {
+        PRINTF("Error: Can't parse process_transaction message, length should be more than 2\n");
 
         return reply_error(DESERIALIZATION_FAILED);
     }
 
-    uint16_t payload_length;
     uint8_t *data;
-    if (cmd->subcommand == SWAP_NG) {
-        payload_length = U2BE(cmd->data.bytes, 0);
-        if (cmd->data.size < 2 + payload_length) {
-            PRINTF("Error: Can't parse process_transaction message, invalid payload length\n");
-            return reply_error(DESERIALIZATION_FAILED);
+    uint8_t undecoded_transaction[sizeof(G_swap_ctx.raw_transaction)];
+    if (cmd->data.bytes == G_swap_ctx.raw_transaction) {
+        PRINTF("Copying locally, the APDU has been received split\n");
+        // For memory optimization, the undecded protobuf apdu may have been stored in an union with the decoded apdus
+        // Copy locally to avoid problems during protobuf decode
+        memcpy(undecoded_transaction, G_swap_ctx.raw_transaction, cmd->data.size);
+        PRINTF("cmd->data.size = %d\n", cmd->data.size);
+        for (int i = 0; i < cmd->data.size; ++i) {
+            PRINTF("%02x", undecoded_transaction[i]);
         }
-        data = cmd->data.bytes + 2;
+        PRINTF("\n");
+        data = undecoded_transaction;
     } else {
-        payload_length = cmd->data.bytes[0];
-        if (cmd->data.size < 1 + payload_length) {
-            PRINTF("Error: Can't parse process_transaction message, invalid payload length\n");
-            return reply_error(DESERIALIZATION_FAILED);
-        }
-        data = cmd->data.bytes + 1;
+        data = cmd->data.bytes;
     }
+
+    uint16_t payload_length;
+    uint8_t data_offset;
+    if (cmd->subcommand == SWAP_NG) {
+        data_offset = 2;
+        payload_length = U2BE(data, 0);
+    } else {
+        data_offset = 1;
+        payload_length = data[0];
+    }
+    if (cmd->data.size < data_offset + payload_length) {
+        PRINTF("Error: Can't parse process_transaction message, invalid payload length\n");
+        return reply_error(DESERIALIZATION_FAILED);
+    }
+    data += data_offset;
 
     pb_istream_t stream;
     cx_sha256_t sha256;
 
     cx_sha256_init(&sha256);
 
-    PRINTF("len(payload): %d\n", payload_length);
-    PRINTF("payload (%d): %.*H\n", payload_length, payload_length, data);
+    PRINTF("len(payload) = %d\n", payload_length);
+    for (int i = 0; i < payload_length; ++i) {
+        PRINTF("%02x", data[i]);
+    }
+    PRINTF("\n");
 
     if (cmd->subcommand == SWAP) {
+        PRINTF("payload_length = %d\n", payload_length);
+        for (int i = 0; i < payload_length; ++i) {
+            PRINTF("%02x", data[i]);
+        }
+        PRINTF("\n");
+        if (cx_hash_no_throw(&sha256.header,
+                             CX_LAST,
+                             data,
+                             payload_length,
+                             G_swap_ctx.sha256_digest,
+                             sizeof(G_swap_ctx.sha256_digest)) != CX_OK) {
+            PRINTF("Error: cx_hash_no_throw\n");
+            return reply_error(INTERNAL_ERROR);
+        }
+
+        PRINTF("sha256_digest: %.*H\n", 32, G_swap_ctx.sha256_digest);
+
         stream = pb_istream_from_buffer(data, payload_length);
 
         if (!pb_decode(&stream,
@@ -133,26 +172,6 @@ int process_transaction(const command_t *cmd) {
         // arbitrary maximum payload size
         unsigned char payload[256];
 
-        int n = base64_decode(payload,
-                              sizeof(payload),
-                              (const unsigned char *) data,
-                              payload_length);
-        PRINTF("base64_decoded\n");
-        for (int i = 0; i < n; ++i)
-        {
-            PRINTF("%02x", payload[i]);
-        }
-        PRINTF("\n");
-
-        PRINTF("len(base64_decode(payload)) = %d\n", n);
-
-        if (n < 0) {
-            PRINTF("Error: Can't decode SELL/FUND/NG transaction base64\n");
-
-            return reply_error(DESERIALIZATION_FAILED);
-        }
-
-        PRINTF("decode_base64(payload): %.*H\n", n, payload);
 
         unsigned char dot = '.';
 
@@ -160,6 +179,50 @@ int process_transaction(const command_t *cmd) {
             PRINTF("Error: cx_hash_no_throw\n");
             return reply_error(INTERNAL_ERROR);
         }
+        if (cx_hash_no_throw(&sha256.header,
+                             CX_LAST,
+                             data,
+                             payload_length,
+                             G_swap_ctx.sha256_digest,
+                             sizeof(G_swap_ctx.sha256_digest)) != CX_OK) {
+            PRINTF("Error: cx_hash_no_throw\n");
+            return reply_error(INTERNAL_ERROR);
+        }
+
+        PRINTF("sha256_digest: %.*H\n", 32, G_swap_ctx.sha256_digest);
+
+        PRINTF("payload_length = %d\n", payload_length);
+        for (int i = 0; i < payload_length; ++i) {
+            PRINTF("%02x", data[i]);
+        }
+        PRINTF("\n");
+
+        int n = base64_decode(payload,
+                              sizeof(payload),
+                              (const unsigned char *) data,
+                              payload_length);
+        if (n < 0) {
+            PRINTF("Error: Can't decode SELL/FUND/NG transaction base64\n");
+
+            return reply_error(DESERIALIZATION_FAILED);
+        }
+        PRINTF("payload_length = %d\n", payload_length);
+        for (int i = 0; i < payload_length; ++i) {
+            PRINTF("%02x", data[i]);
+        }
+        PRINTF("\n");
+        PRINTF("payload length = %d\n", n);
+        for (int i = 0; i < n; ++i) {
+            PRINTF("%02x", payload[i]);
+        }
+        PRINTF("\n");
+
+        PRINTF("len(base64_decode(payload)) = %d\n", n);
+        for (int i = 0; i < n; ++i)
+        {
+            PRINTF("%02x", payload[i]);
+        }
+        PRINTF("\n");
 
         stream = pb_istream_from_buffer(payload, n);
 
@@ -230,18 +293,6 @@ int process_transaction(const command_t *cmd) {
             return reply_error(WRONG_TRANSACTION_ID);
         }
     }
-
-    if (cx_hash_no_throw(&sha256.header,
-                         CX_LAST,
-                         data,
-                         payload_length,
-                         G_swap_ctx.sha256_digest,
-                         sizeof(G_swap_ctx.sha256_digest)) != CX_OK) {
-        PRINTF("Error: cx_hash_no_throw\n");
-        return reply_error(INTERNAL_ERROR);
-    }
-
-    PRINTF("sha256_digest: %.*H\n", 32, G_swap_ctx.sha256_digest);
 
     if (cmd->data.size < 1 + payload_length + 1) {
         PRINTF("Error: Can't parse process_transaction message, should include fee\n");

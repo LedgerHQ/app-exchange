@@ -69,9 +69,10 @@ class SubCommandSpecs:
         return signature_to_encode
 
     def create_transaction(self, conf: Dict, transaction_id: bytes) -> bytes:
-        conf[self.transaction_id_field] = transaction_id
-        raw_transaction = self.transaction_type(**conf).SerializeToString()
-        print(f"raw transaction {raw_transaction.hex()}")
+        # Alter a copy of conf to not modify the actual conf
+        c = conf.copy()
+        c[self.transaction_id_field] = transaction_id
+        raw_transaction = self.transaction_type(**c).SerializeToString()
         return self.encode_payload(raw_transaction)
 
 

@@ -2,6 +2,9 @@
 
 #include "buffer.h"
 
+// CLA to use when communicating with Exchange
+#define CLA 0xE0
+
 // commands
 typedef enum {
     GET_VERSION_COMMAND = 0x02,
@@ -21,12 +24,12 @@ typedef enum { FIXED = 0x00, FLOATING = 0x01 } rate_e;
 
 // subcommands
 typedef enum { SWAP = 0x00, SELL = 0x01, FUND = 0x02, SWAP_NG = 0x03, SELL_NG = 0x04, FUND_NG = 0x05 } subcommand_e;
-#define SUBCOMMAND_PART 0x0F
+#define SUBCOMMAND_MASK 0x0F
 
 #define P2_NONE        (0x00 << 4)
 #define P2_EXTEND      (0x01 << 4)
 #define P2_MORE        (0x02 << 4)
-#define EXTENSION_PART 0xF0
+#define EXTENSION_MASK 0xF0
 
 /**
  * Structure with fields of APDU command.

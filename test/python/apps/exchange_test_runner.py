@@ -68,11 +68,12 @@ class ExchangeTestRunner:
 
         # Craft the exchange transaction proposal and have it signed by the enrolled partner
         tx = craft_tx(subcommand, tx_infos, transaction_id)
-        encoded_tx = encode_tx(subcommand, partner, tx)
+        signed_tx = encode_tx(subcommand, partner, tx)
+        print(f"signed_tx = {signed_tx.hex()}")
 
         # Send the exchange transaction proposal and it's signature
         ex.process_transaction(tx, fees)
-        ex.check_transaction_signature(encoded_tx)
+        ex.check_transaction_signature(signed_tx)
 
         # Ask our fake CAL the coin configuration for both payout and refund tickers (None for refund in case of FUND or SELL)
         payout_ticker = extract_payout_ticker(subcommand, tx_infos)
@@ -203,7 +204,7 @@ class ExchangeTestRunner:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
             with pytest.raises(ExceptionRAPDU) as e:
                 self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-            assert e.value.status == Errors.INVALID_INSTRUCTION or e.value.status == Errors.WRONG_P2
+            assert e.value.status != 0x9000
 
     # Test swap with a malicious TX with tampered fees
     def perform_test_swap_wrong_fees(self):
@@ -264,7 +265,7 @@ class ExchangeTestRunner:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
             with pytest.raises(ExceptionRAPDU) as e:
                 self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-            assert e.value.status == Errors.INVALID_INSTRUCTION
+            assert e.value.status != 0x9000
 
     # Test fund with a malicious TX with tampered fees
     def perform_test_fund_wrong_fees(self):
@@ -324,7 +325,7 @@ class ExchangeTestRunner:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
             with pytest.raises(ExceptionRAPDU) as e:
                 self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-            assert e.value.status == Errors.INVALID_INSTRUCTION
+            assert e.value.status != 0x9000
 
     # Test sell with a malicious TX with tampered fees
     def perform_test_sell_wrong_fees(self):

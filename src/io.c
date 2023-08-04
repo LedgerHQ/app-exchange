@@ -175,6 +175,5 @@ int reply_error(swap_error_e error) {
 }
 
 int reply_success(void) {
-    uint8_t output_buffer[2] = {0x90, 0x00};
-    return send_apdu(output_buffer, 2);
+    return reply_error(SUCCESS);
 }
