@@ -38,7 +38,6 @@ uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 swap_app_context_t G_swap_ctx;
 
 void app_main(void) {
-    PRINTF("app_main\n");
     int input_length = 0;
     command_t cmd;
 
