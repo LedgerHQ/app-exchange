@@ -13,11 +13,12 @@
 #include "ticker_normalization.h"
 
 int check_payout_address(const command_t *cmd) {
-    static buf_t config;
-    static buf_t der;
-    static buf_t address_parameters;
-    static buf_t ticker;
-    static buf_t application_name;
+    buf_t config;
+    buf_t der;
+    buf_t address_parameters;
+    buf_t ticker;
+    buf_t application_name;
+    buf_t sub_coin_config;
 
     if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         PRINTF("Error: Can't parse CHECK_PAYOUT_ADDRESS command\n");
@@ -42,7 +43,7 @@ int check_payout_address(const command_t *cmd) {
         return reply_error(SIGN_VERIFICATION_FAIL);
     }
 
-    if (parse_coin_config(&config, &ticker, &application_name, &config) == 0) {
+    if (parse_coin_config(config, &ticker, &application_name, &sub_coin_config) == 0) {
         PRINTF("Error: Can't parse payout coin config command\n");
         return reply_error(INCORRECT_COMMAND_DATA);
     }
@@ -68,7 +69,7 @@ int check_payout_address(const command_t *cmd) {
     }
 
     // check address
-    if (check_address(&config,
+    if (check_address(&sub_coin_config,
                       &address_parameters,
                       G_swap_ctx.payin_binary_name,
                       G_swap_ctx.received_transaction.payout_address,
@@ -80,7 +81,7 @@ int check_payout_address(const command_t *cmd) {
     PRINTF("Payout address is OK\n");
 
     // getting printable amount
-    if (get_printable_amount(&config,
+    if (get_printable_amount(&sub_coin_config,
                              G_swap_ctx.payin_binary_name,
                              (uint8_t *) G_swap_ctx.received_transaction.amount_to_wallet.bytes,
                              G_swap_ctx.received_transaction.amount_to_wallet.size,

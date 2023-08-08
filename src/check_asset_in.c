@@ -15,11 +15,12 @@
 #include "ticker_normalization.h"
 
 int check_asset_in(const command_t *cmd) {
-    static buf_t config;
-    static buf_t der;
-    static buf_t address_parameters;
-    static buf_t ticker;
-    static buf_t application_name;
+    buf_t config;
+    buf_t der;
+    buf_t address_parameters;
+    buf_t ticker;
+    buf_t application_name;
+    buf_t sub_coin_config;
 
     if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         PRINTF("Error: Can't parse CHECK_ASSET_IN command\n");
@@ -43,7 +44,7 @@ int check_asset_in(const command_t *cmd) {
         return reply_error(SIGN_VERIFICATION_FAIL);
     }
 
-    if (parse_coin_config(&config, &ticker, &application_name, &G_swap_ctx.payin_coin_config) ==
+    if (parse_coin_config(config, &ticker, &application_name, &sub_coin_config) ==
         0) {
         PRINTF("Error: Can't parse CRYPTO coin config command\n");
 
@@ -82,7 +83,7 @@ int check_asset_in(const command_t *cmd) {
     }
 
     // getting printable amount
-    if (get_printable_amount(&G_swap_ctx.payin_coin_config,
+    if (get_printable_amount(&sub_coin_config,
                              G_swap_ctx.payin_binary_name,
                              (uint8_t *) in_amount->bytes,
                              in_amount->size,
@@ -96,7 +97,7 @@ int check_asset_in(const command_t *cmd) {
 
     PRINTF("Amount = %s\n", G_swap_ctx.printable_send_amount);
 
-    if (get_printable_amount(&G_swap_ctx.payin_coin_config,
+    if (get_printable_amount(&sub_coin_config,
                              G_swap_ctx.payin_binary_name,
                              (uint8_t *) G_swap_ctx.transaction_fee,
                              G_swap_ctx.transaction_fee_length,
@@ -136,6 +137,10 @@ int check_asset_in(const command_t *cmd) {
                 sizeof(G_swap_ctx.printable_get_amount));
         G_swap_ctx.printable_get_amount[sizeof(G_swap_ctx.printable_get_amount) - 1] = '\x00';
     }
+
+    // Save the paying sub coin configuration as the lib app will need it to sign
+    G_swap_ctx.paying_sub_coin_config_size = sub_coin_config.size;
+    memcpy(G_swap_ctx.paying_sub_coin_config, sub_coin_config.bytes, sub_coin_config.size);
 
     G_swap_ctx.state = WAITING_USER_VALIDATION;
     G_swap_ctx.rate = cmd->rate;

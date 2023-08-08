@@ -17,6 +17,8 @@
 #define TICKER_MAX_SIZE_B  9
 #define APPNAME_MIN_SIZE_B 3
 
+#define MAX_COIN_SUB_CONFIG_SIZE 64
+
 extern uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 #define MIN_PARTNER_NAME_LENGHT 3
@@ -76,7 +78,8 @@ typedef struct swap_app_context_s {
 
     cx_ecfp_256_public_key_t ledger_public_key;
 
-    buf_t payin_coin_config;  // serialized coin configuration
+    uint8_t paying_sub_coin_config_size;
+    uint8_t paying_sub_coin_config[MAX_COIN_SUB_CONFIG_SIZE];
     char payin_binary_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
 
     char printable_get_amount[MAX_PRINTABLE_AMOUNT_SIZE];

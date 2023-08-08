@@ -14,11 +14,12 @@
 #include "ticker_normalization.h"
 
 int check_refund_address(const command_t *cmd) {
-    static buf_t config;
-    static buf_t der;
-    static buf_t address_parameters;
-    static buf_t ticker;
-    static buf_t application_name;
+    buf_t config;
+    buf_t der;
+    buf_t address_parameters;
+    buf_t ticker;
+    buf_t application_name;
+    buf_t sub_coin_config;
 
     if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         return reply_error(INCORRECT_COMMAND_DATA);
@@ -42,8 +43,7 @@ int check_refund_address(const command_t *cmd) {
         return reply_error(SIGN_VERIFICATION_FAIL);
     }
 
-    if (parse_coin_config(&config, &ticker, &application_name, &G_swap_ctx.payin_coin_config) ==
-        0) {
+    if (parse_coin_config(config, &ticker, &application_name, &sub_coin_config) == 0) {
         PRINTF("Error: Can't parse refund coin config command\n");
 
         return reply_error(INCORRECT_COMMAND_DATA);
@@ -66,7 +66,7 @@ int check_refund_address(const command_t *cmd) {
     }
 
     // check address
-    if (check_address(&G_swap_ctx.payin_coin_config,
+    if (check_address(&sub_coin_config,
                       &address_parameters,
                       G_swap_ctx.payin_binary_name,
                       G_swap_ctx.received_transaction.refund_address,
@@ -76,7 +76,7 @@ int check_refund_address(const command_t *cmd) {
         return reply_error(INVALID_ADDRESS);
     }
 
-    if (get_printable_amount(&G_swap_ctx.payin_coin_config,
+    if (get_printable_amount(&sub_coin_config,
                              G_swap_ctx.payin_binary_name,
                              G_swap_ctx.received_transaction.amount_to_provider.bytes,
                              G_swap_ctx.received_transaction.amount_to_provider.size,
@@ -90,7 +90,7 @@ int check_refund_address(const command_t *cmd) {
 
     PRINTF("Send amount: %s\n", G_swap_ctx.printable_send_amount);
 
-    if (get_printable_amount(&G_swap_ctx.payin_coin_config,
+    if (get_printable_amount(&sub_coin_config,
                              G_swap_ctx.payin_binary_name,
                              G_swap_ctx.transaction_fee,
                              G_swap_ctx.transaction_fee_length,
@@ -102,6 +102,10 @@ int check_refund_address(const command_t *cmd) {
         return reply_error(INTERNAL_ERROR);
     }
     PRINTF("Fees: %s\n", G_swap_ctx.printable_fees_amount);
+
+    // Save the paying sub coin configuration as the lib app will need it to sign
+    G_swap_ctx.paying_sub_coin_config_size = sub_coin_config.size;
+    memcpy(G_swap_ctx.paying_sub_coin_config, sub_coin_config.bytes, sub_coin_config.size);
 
     G_swap_ctx.state = WAITING_USER_VALIDATION;
     G_swap_ctx.rate = cmd->rate;
