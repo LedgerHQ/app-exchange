@@ -7,12 +7,10 @@
 #include "set_partner_key.h"
 #include "process_transaction.h"
 #include "check_tx_signature.h"
-#include "check_payout_address.h"
-#include "check_refund_address.h"
-#include "check_asset_in.h"
 #include "apdu_offsets.h"
 #include "check_partner.h"
 #include "start_signing_transaction.h"
+#include "check_addresses_and_amounts.h"
 
 #include "io.h"
 
@@ -41,14 +39,8 @@ int dispatch_command(const command_t *cmd) {
             ret = check_tx_signature(cmd);
             break;
         case CHECK_PAYOUT_ADDRESS:
-            if (cmd->subcommand == SELL || cmd->subcommand == FUND || cmd->subcommand == SELL_NG || cmd->subcommand == FUND_NG) {
-                ret = check_asset_in(cmd);
-            } else {
-                ret = check_payout_address(cmd);
-            }
-            break;
         case CHECK_REFUND_ADDRESS:
-            ret = check_refund_address(cmd);
+            ret = check_addresses_and_amounts(cmd);
             break;
         case START_SIGNING_TRANSACTION:
             ret = start_signing_transaction(cmd);

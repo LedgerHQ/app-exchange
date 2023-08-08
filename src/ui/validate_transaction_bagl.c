@@ -56,7 +56,7 @@ UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
 UX_STEP_NOCB(ux_confirm_flow_3_2_step, bnnn_paging,
 {
     .title = G_swap_ctx.partner.prefixed_name,
-    .text = G_swap_ctx.printable_get_amount,
+    .text = G_swap_ctx.account_name,
 });
 UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
 {

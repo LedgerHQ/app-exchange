@@ -82,7 +82,12 @@ typedef struct swap_app_context_s {
     uint8_t paying_sub_coin_config[MAX_COIN_SUB_CONFIG_SIZE];
     char payin_binary_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
 
-    char printable_get_amount[MAX_PRINTABLE_AMOUNT_SIZE];
+    union {
+        // Amount we will gain, either in crypto (SWAP) or FIAT (SELL)
+        char printable_get_amount[MAX_PRINTABLE_AMOUNT_SIZE];
+        // Amount name to fund
+        char account_name[MAX_PRINTABLE_AMOUNT_SIZE];
+    };
     char printable_send_amount[MAX_PRINTABLE_AMOUNT_SIZE];
     char printable_fees_amount[MAX_PRINTABLE_AMOUNT_SIZE];
 } swap_app_context_t;

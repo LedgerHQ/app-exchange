@@ -77,11 +77,11 @@ int parse_coin_config(buf_t input,
             PRINTF("Aliased appname, from '%.*s'\n",
                    application_name->size,
                    application_name->bytes);
-            application_name->bytes = (uint8_t *) appnames_aliases[i].app_name;
-            application_name->size = strlen((char *) PIC(appnames_aliases[i].app_name));
+            application_name->bytes = (uint8_t *) PIC(appnames_aliases[i].app_name);
+            application_name->size = strlen((char *) application_name->bytes);
             PRINTF("Aliased appname, to '%.*s'\n",
                    application_name->size,
-                   PIC(application_name->bytes));
+                   application_name->bytes);
             break;
         }
     }

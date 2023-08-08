@@ -13,8 +13,12 @@ int start_signing_transaction(const command_t *cmd) {
 
     lib_in_out_params.fee_amount = G_swap_ctx.transaction_fee;
     lib_in_out_params.fee_amount_length = G_swap_ctx.transaction_fee_length;
-    lib_in_out_params.coin_configuration = G_swap_ctx.paying_sub_coin_config;
     lib_in_out_params.coin_configuration_length = G_swap_ctx.paying_sub_coin_config_size;
+    if (G_swap_ctx.paying_sub_coin_config_size == 0) {
+        lib_in_out_params.coin_configuration = NULL;
+    } else {
+        lib_in_out_params.coin_configuration = G_swap_ctx.paying_sub_coin_config;
+    }
 
     if (cmd->subcommand == SWAP || cmd->subcommand == SWAP_NG) {
         lib_in_out_params.amount = G_swap_ctx.received_transaction.amount_to_provider.bytes;
