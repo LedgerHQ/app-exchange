@@ -5,15 +5,23 @@
 
 int start_signing_transaction(const command_t *cmd) {
     int ret = 0;
-    G_io_apdu_buffer[0] = 0x90;
-    G_io_apdu_buffer[1] = 0x00;
-    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
-    G_swap_ctx.state = INITIAL_STATE;
+
+    // Inform the caller that we will call the lib app
+    if (reply_success() < 0) {
+        PRINTF("Error: failed to send\n");
+        return -1;
+    }
+
+    // Create the variable given to the signing app. It's placed in BSS section to save RAM
+    // (heap is shared, stack is not)
     static create_transaction_parameters_t lib_in_out_params;
 
     lib_in_out_params.fee_amount = G_swap_ctx.transaction_fee;
     lib_in_out_params.fee_amount_length = G_swap_ctx.transaction_fee_length;
     lib_in_out_params.coin_configuration_length = G_swap_ctx.paying_sub_coin_config_size;
+
+    // Small patch to give the app NULL pointer if there is no sub coin conf (Solana checks it)
+    // Solana should be changed to remove this unnecessary check, in the meantime we workaround here
     if (G_swap_ctx.paying_sub_coin_config_size == 0) {
         lib_in_out_params.coin_configuration = NULL;
     } else {
@@ -24,8 +32,7 @@ int start_signing_transaction(const command_t *cmd) {
         lib_in_out_params.amount = G_swap_ctx.received_transaction.amount_to_provider.bytes;
         lib_in_out_params.amount_length = G_swap_ctx.received_transaction.amount_to_provider.size;
         lib_in_out_params.destination_address = G_swap_ctx.received_transaction.payin_address;
-        lib_in_out_params.destination_address_extra_id =
-            G_swap_ctx.received_transaction.payin_extra_id;
+        lib_in_out_params.destination_address_extra_id = G_swap_ctx.received_transaction.payin_extra_id;
     }
 
     if (cmd->subcommand == SELL || cmd->subcommand == SELL_NG) {
