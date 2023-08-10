@@ -20,6 +20,7 @@ from .tezos import XTZ_PACKED_DERIVATION_PATH, XTZ_CONF
 from .polkadot import DOT_PACKED_DERIVATION_PATH, DOT_CONF
 from .tron import TRX_PACKED_DERIVATION_PATH, TRX_CONF
 from .tron import TRX_USDT_CONF, TRX_USDC_CONF, TRX_TUSD_CONF, TRX_USDD_CONF
+from .near import NEAR_PACKED_DERIVATION_PATH, NEAR_CONF
 
 @dataclass
 class CurrencyConfiguration:
@@ -51,6 +52,7 @@ USDT_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDT", conf=TRX_USDT
 USDC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDC", conf=TRX_USDC_CONF, packed_derivation_path=TRX_PACKED_DERIVATION_PATH)
 TUSD_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="TUSD", conf=TRX_TUSD_CONF, packed_derivation_path=TRX_PACKED_DERIVATION_PATH)
 USDD_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDD", conf=TRX_USDD_CONF, packed_derivation_path=TRX_PACKED_DERIVATION_PATH)
+NEAR_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="NEAR", conf=NEAR_CONF, packed_derivation_path=NEAR_PACKED_DERIVATION_PATH)
 
 
 # Helper that can be called from outside if we want to generate errors easily
