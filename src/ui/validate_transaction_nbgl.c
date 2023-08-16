@@ -12,29 +12,71 @@
 #include "io.h"
 #include "ux.h"
 
-#define SPINNER_TEXT_PART_1 "Starting the "
-#define SPINNER_TEXT_PART_2 " app to sign the transaction"
-static char spinner_text[(sizeof(SPINNER_TEXT_PART_1) - 1)
-                         + BOLOS_APPNAME_MAX_SIZE_B
-                         + (sizeof(SPINNER_TEXT_PART_2) - 1)
-                         + 1];
-
-
 #define REFUSAL_TEXT_PART_1 "Incorrect transaction\nrejected by the\n"
 #define REFUSAL_TEXT_PART_2 " app"
-static char refusal_text[(sizeof(REFUSAL_TEXT_PART_1) - 1)
-                         + BOLOS_APPNAME_MAX_SIZE_B
-                         + (sizeof(REFUSAL_TEXT_PART_2) - 1)
-                         + 1];
+#define REFUSAL_TEXT_MAX_SIZE                                                         \
+    ((sizeof(REFUSAL_TEXT_PART_1) - 1) + (sizeof(G_swap_ctx.payin_binary_name) - 1) + \
+     (sizeof(REFUSAL_TEXT_PART_2) - 1) + 1)
+static char refusal_text[REFUSAL_TEXT_MAX_SIZE];
+
+// One of:
+#define REVIEW_P1_TITLE   "Review transaction"
+#define REVIEW_P1_CONFIRM "Sign transaction"
+
+// Delimitor ' ' or '\n'
+
+#define REVIEW_P2 "to"
+
+// Delimitor ' ' or '\n'
+
+// One of:
+#define REVIEW_P3_SWAP "swap "
+#define REVIEW_P3_SELL "sell "
+#define REVIEW_P3_FUND "fund account"
+
+// Delimitor ' ' or '\n'
+
+// One of:
+#define REVIEW_P4_SWAP "to "
+#define REVIEW_P4_SELL "for "
+#define REVIEW_P4_FUND "with "
+
+// Maybe:
+#define REVIEW_P5_CONFIRM "?"
+
+// Calculate REVIEW_TITLE_MAX_SIZE with the SELL operation as it is the longest
+#define REVIEW_TITLE_MAX_SIZE                                                          \
+    (sizeof(REVIEW_P1_TITLE)                                  /* Review transaction */ \
+     + 1                                                      /* ' ' */                \
+     + sizeof(REVIEW_P2)                                      /* to */                 \
+     + 1                                                      /* ' ' */                \
+     + sizeof(REVIEW_P3_SELL)                                 /* sell */               \
+     + (sizeof(G_swap_ctx.sell_transaction.in_currency) - 1)  /* TOKEN */              \
+     + 1                                                      /* ' ' */                \
+     + sizeof(REVIEW_P4_SELL)                                 /* for */                \
+     + (sizeof(G_swap_ctx.sell_transaction.out_currency) - 1) /* CURRENCY */           \
+     + 1)                                                     /* '\0' */
+
+// Calculate REVIEW_CONFIRM_MAX_SIZE with the SELL operation as it is the longest
+#define REVIEW_CONFIRM_MAX_SIZE                                                      \
+    (sizeof(REVIEW_P1_CONFIRM)                                /* Sign transaction */ \
+     + 1                                                      /* ' ' */              \
+     + sizeof(REVIEW_P2)                                      /* to */               \
+     + 1                                                      /* ' ' */              \
+     + sizeof(REVIEW_P3_SELL)                                 /* sell */             \
+     + (sizeof(G_swap_ctx.sell_transaction.in_currency) - 1)  /* TOKEN */            \
+     + 1                                                      /* ' ' */              \
+     + sizeof(REVIEW_P4_SELL)                                 /* for */              \
+     + (sizeof(G_swap_ctx.sell_transaction.out_currency) - 1) /* CURRENCY */         \
+     + 1                                                      /* ? */                \
+     + 1)                                                     /* '\0' */
+
+// Dynamic texts, dimensionned for worst case scenario
+static char review_title[REVIEW_TITLE_MAX_SIZE];
+static char review_confirm[REVIEW_CONFIRM_MAX_SIZE];
 
 static void accept_tx(void) {
-    snprintf(spinner_text,
-             sizeof(spinner_text),
-             "%s%s%s",
-             SPINNER_TEXT_PART_1,
-             G_swap_ctx.payin_binary_name,
-             SPINNER_TEXT_PART_2);
-    nbgl_useCaseSpinner(spinner_text);
+    nbgl_useCaseSpinner("Processing");
     reply_success();
     G_swap_ctx.state = WAITING_SIGNING;
 }
@@ -106,23 +148,88 @@ static void continue_review(void) {
     pair_list.pairs = pairs;
 
     info_long_press.icon = &C_icon_exchange_64x64;
-    info_long_press.text = "Sign transaction";
+    info_long_press.text = review_confirm;
     info_long_press.longPressText = "Hold to sign";
 
-    nbgl_useCaseStaticReview(&pair_list, &info_long_press, "Reject", review_choice);
+    nbgl_useCaseStaticReview(&pair_list, &info_long_press, "Reject transaction", review_choice);
 }
 
 void ui_validate_amounts(void) {
+    // The "to" is on the first line
+    char delimitor_1 = ' ';
+    char delimitor_2 = '\n';
+    char delimitor_3 = ' ';
+    const char *dyn_string_1;
+    const char *dyn_string_2;
+    const char *p3;
+    const char *p4;
+    switch (G_swap_ctx.subcommand) {
+        case SWAP:
+            dyn_string_1 = G_swap_ctx.received_transaction.currency_from;
+            dyn_string_2 = G_swap_ctx.received_transaction.currency_to;
+            p3 = REVIEW_P3_SWAP;
+            p4 = REVIEW_P4_SWAP;
+            break;
+        case SELL:
+            dyn_string_1 = G_swap_ctx.sell_transaction.in_currency;
+            dyn_string_2 = G_swap_ctx.sell_transaction.out_currency;
+            p3 = REVIEW_P3_SELL;
+            p4 = REVIEW_P4_SELL;
+            break;
+        case FUND:
+            dyn_string_1 = "";
+            dyn_string_2 = G_swap_ctx.fund_transaction.in_currency;
+            p3 = REVIEW_P3_FUND;
+            p4 = REVIEW_P4_FUND;
+            break;
+    }
+
+    // Detect if we shoud display on 2 or 3 lines.
+    if (G_swap_ctx.subcommand == FUND || strlen(dyn_string_1) + strlen(dyn_string_2) >= 10) {
+        PRINTF("Review title and confirm on 3 lines\n");
+        // Move the "to" to the second line with the operation
+        delimitor_1 = '\n';
+        delimitor_2 = ' ';
+        delimitor_3 = '\n';
+    }
+
+    snprintf(review_title,
+             sizeof(review_title),
+             "%s%c%s%c%s%s%c%s%s",
+             REVIEW_P1_TITLE,
+             delimitor_1,
+             REVIEW_P2,
+             delimitor_2,
+             p3,
+             dyn_string_1,
+             delimitor_3,
+             p4,
+             dyn_string_2);
+
+    snprintf(review_confirm,
+             sizeof(review_confirm),
+             "%s%c%s%c%s%s%c%s%s%s",
+             REVIEW_P1_CONFIRM,
+             delimitor_1,
+             REVIEW_P2,
+             delimitor_2,
+             p3,
+             dyn_string_1,
+             delimitor_3,
+             p4,
+             dyn_string_2,
+             REVIEW_P5_CONFIRM);
+
     nbgl_useCaseReviewStart(&C_icon_exchange_64x64,
-                            "Review transaction",
+                            review_title,
                             NULL,
-                            "Reject",
+                            "Reject transaction",
                             continue_review,
                             rejectUseCaseChoice);
 }
 
 void display_signing_success(void) {
-    nbgl_useCaseStatus("TRANSACTION\nSUCCESS", true, ui_idle);
+    nbgl_useCaseStatus("TRANSACTION\nSIGNED", true, ui_idle);
 }
 
 void display_signing_failure(const char *appname) {

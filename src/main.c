@@ -106,16 +106,16 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
     os_boot();
 
     for (;;) {
-
         // Before cleaning our BSS, remember if we tried signing and if it worked
-        if (G_swap_ctx.state == SIGN_FINISHED_SUCCESS
-            || G_swap_ctx.state == SIGN_FINISHED_FAIL) {
+        if (G_swap_ctx.state == SIGN_FINISHED_SUCCESS || G_swap_ctx.state == SIGN_FINISHED_FAIL) {
             // We save everythin in the stack to avoid erasing it with the BSS reset
             previous_cycle_data.had_previous_cycle = true;
             previous_cycle_data.was_successful = (G_swap_ctx.state == SIGN_FINISHED_SUCCESS);
-            memcpy(previous_cycle_data.appname_last_cycle, G_swap_ctx.payin_binary_name, sizeof(previous_cycle_data.appname_last_cycle));
+            memcpy(previous_cycle_data.appname_last_cycle,
+                   G_swap_ctx.payin_binary_name,
+                   sizeof(previous_cycle_data.appname_last_cycle));
 
-            // Fully reset the global space, as it is was corrupted by the signing app 
+            // Fully reset the global space, as it is was corrupted by the signing app
             PRINTF("Exchange new cycle, reset BSS\n");
             os_explicit_zero_BSS_segment();
         }
@@ -150,8 +150,8 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 } else {
                     ui_idle();
                 }
-#else // HAVE_BAGL
-                // No "Ledger Moment" modal, sad
+#else  // HAVE_BAGL
+       // No "Ledger Moment" modal, sad
                 ui_idle();
 #endif
 
