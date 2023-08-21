@@ -7,7 +7,7 @@ int start_signing_transaction(const command_t *cmd) {
     int ret = 0;
 
     // Inform the caller that we will call the lib app
-    if (reply_success() < 0) {
+    if (instant_reply_success() < 0) {
         PRINTF("Error: failed to send\n");
         return -1;
     }

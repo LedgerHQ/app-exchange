@@ -76,20 +76,6 @@ class SubCommandSpecs:
         return self.encode_payload(raw_transaction)
 
 
-SWAP_SPECS: SubCommandSpecs = SubCommandSpecs(
-    partner_curve = ec.SECP256K1(),
-    signature_computation = SignatureComputation.BINARY_ENCODED_PAYLOAD,
-    signature_encoding = SignatureEncoding.DER,
-    payload_encoding = PayloadEncoding.BYTES_ARRAY,
-    transaction_type = NewTransactionResponse,
-    required_fields = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
-                      "payout_address", "payout_extra_id", "currency_from", "currency_to",
-                      "amount_to_provider", "amount_to_wallet"],
-    transaction_id_field = "device_transaction_id",
-    payout_field = "currency_to",
-    refund_field = "currency_from",
-)
-
 SWAP_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
@@ -97,23 +83,25 @@ SWAP_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewTransactionResponse,
     required_fields = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
-                      "payout_address", "payout_extra_id", "currency_from", "currency_to",
-                      "amount_to_provider", "amount_to_wallet"],
+                       "payout_address", "payout_extra_id", "currency_from", "currency_to",
+                       "amount_to_provider", "amount_to_wallet"],
     transaction_id_field = "device_transaction_id_ng",
     payout_field = "currency_to",
     refund_field = "currency_from",
 )
 
-SELL_SPECS: SubCommandSpecs = SubCommandSpecs(
-    partner_curve = ec.SECP256R1(),
-    signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
-    signature_encoding = SignatureEncoding.PLAIN_R_S,
-    payload_encoding = PayloadEncoding.BASE_64_URL,
-    transaction_type = NewSellResponse,
+SWAP_SPECS: SubCommandSpecs = SubCommandSpecs(
+    partner_curve = ec.SECP256K1(),
+    signature_computation = SignatureComputation.BINARY_ENCODED_PAYLOAD,
+    signature_encoding = SignatureEncoding.DER,
+    payload_encoding = PayloadEncoding.BYTES_ARRAY,
+    transaction_type = NewTransactionResponse,
+    required_fields = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
+                       "payout_address", "payout_extra_id", "currency_from", "currency_to",
+                       "amount_to_provider", "amount_to_wallet"],
     transaction_id_field = "device_transaction_id",
-    required_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
-    payout_field = "in_currency",
-    refund_field = None,
+    payout_field = "currency_to",
+    refund_field = "currency_from",
 )
 
 SELL_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
@@ -128,10 +116,13 @@ SELL_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     refund_field = None,
 )
 
-FUND_SPECS: SubCommandSpecs = SubCommandSpecs(
+# Legacy SELL specs happen to be the same as the unified specs
+SELL_SPECS: SubCommandSpecs = SELL_NG_SPECS
+
+FUND_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
-    signature_encoding = SignatureEncoding.DER,
+    signature_encoding = SignatureEncoding.PLAIN_R_S,
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewFundResponse,
     required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
@@ -140,10 +131,10 @@ FUND_SPECS: SubCommandSpecs = SubCommandSpecs(
     refund_field =  None,
 )
 
-FUND_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
+FUND_SPECS: SubCommandSpecs = SubCommandSpecs(
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
-    signature_encoding = SignatureEncoding.PLAIN_R_S,
+    signature_encoding = SignatureEncoding.DER,
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewFundResponse,
     required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],

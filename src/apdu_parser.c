@@ -175,11 +175,13 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
         return WRONG_P2_EXTENSION;
     }
 
-    // P2_MORE is set to signal that this APDU buffer is not complete
-    // P2_EXTEND is set to signal that this APDU buffer extends a previous one
     bool is_first_data_chunk = !(extension & P2_EXTEND);
     bool is_last_data_chunk = !(extension & P2_MORE);
     bool is_whole_apdu = is_first_data_chunk && is_last_data_chunk;
+    if (subcommand != SWAP_NG && subcommand != SELL_NG && subcommand != FUND_NG && !is_whole_apdu) {
+        PRINTF("Extension %d refused, only allowed for unified flows\n", extension);
+        return WRONG_P2_EXTENSION;
+    }
     if (instruction != PROCESS_TRANSACTION_RESPONSE_COMMAND && !is_whole_apdu) {
         PRINTF("Extension %d refused, only allowed for PROCESS_TRANSACTION_RESPONSE_COMMAND instruction\n", extension);
         return WRONG_P2_EXTENSION;

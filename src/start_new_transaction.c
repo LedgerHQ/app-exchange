@@ -15,6 +15,7 @@ int start_new_transaction(const command_t *cmd) {
         return reply_error(INTERNAL_ERROR);
     }
 
+    // Legacy swap flow : 10 char 'string' (not '\0' terminated)
     if (cmd->subcommand == SWAP) {
         output_buffer_size = sizeof(G_swap_ctx.device_transaction_id.swap);
 
@@ -25,9 +26,8 @@ int start_new_transaction(const command_t *cmd) {
             G_swap_ctx.device_transaction_id.swap[i] = (char) ((int) 'A' + cx_rng_u8() % 26);
 #endif
         }
-    }
-
-    if (cmd->subcommand == SELL || cmd->subcommand == FUND || cmd->subcommand == SWAP_NG || cmd->subcommand == SELL_NG || cmd->subcommand == FUND_NG) {
+    } else {
+        // All other flows : 32 bytes
         output_buffer_size = sizeof(G_swap_ctx.device_transaction_id.sell_fund);
 
 #ifdef TESTING
