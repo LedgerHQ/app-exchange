@@ -26,42 +26,38 @@
 #include "command_dispatcher.h"
 #include "apdu_offsets.h"
 #include "swap_errors.h"
+#include "apdu_parser.h"
 
 #include "usbd_core.h"
-#define CLA 0xE0
 
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
 
-unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
+uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
+
 swap_app_context_t G_swap_ctx;
 
 void app_main(void) {
     int input_length = 0;
+    command_t cmd;
 
     init_io();
 
     for (;;) {
         input_length = recv_apdu();
         PRINTF("New APDU received:\n%.*H\n", input_length, G_io_apdu_buffer);
-        if (input_length == -1)  // there were an error, lets start from the beginning
+        // there was a fatal error during APDU reception, restart from the beginning
+        // Don't bother trying to send a status code, IOs are probably out
+        if (input_length == -1) {
             return;
-        if (input_length < OFFSET_CDATA || G_io_apdu_buffer[OFFSET_CLA] != CLA) {
-            PRINTF("Error: bad APDU\n");
-            reply_error(INVALID_INSTRUCTION);
-            continue;
         }
 
-        const command_t cmd = {
-            .ins = (command_e) G_io_apdu_buffer[OFFSET_INS],
-            .rate = G_io_apdu_buffer[OFFSET_P1],
-            .subcommand = G_io_apdu_buffer[OFFSET_P2],
-            .data =
-                {
-                    .bytes = G_io_apdu_buffer + OFFSET_CDATA,
-                    .size = input_length - OFFSET_CDATA,
-                },
-        };
+        uint16_t ret = apdu_parser(G_io_apdu_buffer, input_length, &cmd);
+        if (ret != 0) {
+            PRINTF("Sending early reply 0x%4x\n", ret);
+            reply_error(ret);
+            continue;
+        }
 
         if (dispatch_command(&cmd) < 0) {
             // some non recoverable error happened

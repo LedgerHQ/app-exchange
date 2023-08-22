@@ -8,11 +8,6 @@
 #include "buffer.h"
 #include "swap_lib_calls.h"
 
-#define P1_CONFIRM     0x01
-#define P1_NON_CONFIRM 0x00
-#define P1_FIRST       0x00
-#define P1_MORE        0x80
-
 #define CURVE_SIZE_BYTES         32U
 #define UNCOMPRESSED_KEY_LENGTH  65U
 #define MIN_DER_SIGNATURE_LENGTH 67U
@@ -21,6 +16,8 @@
 #define TICKER_MIN_SIZE_B  2
 #define TICKER_MAX_SIZE_B  9
 #define APPNAME_MIN_SIZE_B 3
+
+#define MAX_COIN_SUB_CONFIG_SIZE 64
 
 extern uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
@@ -32,7 +29,7 @@ extern uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 #pragma pack(push, 1)
 typedef struct partner_data_s {
-    unsigned char name_length;
+    uint8_t name_length;
     union {
         // SELL and SWAP flows display nothing
         // FUND flow displays "To xyz"
@@ -48,12 +45,12 @@ typedef struct partner_data_s {
 
 typedef struct swap_app_context_s {
     union {
-        unsigned char sell_fund[32];  // device_transaction_id (SELL && FUND)
-        char swap[10];                // device_transaction_id (SWAP)
+        uint8_t unified[32];  // device_transaction_id (SELL && FUND && NG)
+        char swap[10];        // device_transaction_id (SWAP)
     } device_transaction_id;
 
-    unsigned char transaction_fee[16];
-    unsigned char transaction_fee_length;
+    uint8_t transaction_fee[16];
+    uint8_t transaction_fee_length;
 
     partner_data_t partner;
     state_e state;
@@ -62,7 +59,9 @@ typedef struct swap_app_context_s {
 
     // SWAP, SELL, and FUND flows are unionized as they cannot be used in the same context
     union {
-        ledger_swap_NewTransactionResponse received_transaction;
+        // This is the raw received APDU
+        uint8_t raw_transaction[256 * 2];
+        ledger_swap_NewTransactionResponse swap_transaction;
         struct {
             ledger_swap_NewSellResponse sell_transaction;
             // Field not received from protobuf but needed by the application called as lib
@@ -75,14 +74,20 @@ typedef struct swap_app_context_s {
         };
     };
 
-    unsigned char sha256_digest[32];
+    uint8_t sha256_digest[32];
 
     cx_ecfp_256_public_key_t ledger_public_key;
 
-    buf_t payin_coin_config;  // serialized coin configuration
+    uint8_t paying_sub_coin_config_size;
+    uint8_t paying_sub_coin_config[MAX_COIN_SUB_CONFIG_SIZE];
     char payin_binary_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
 
-    char printable_get_amount[MAX_PRINTABLE_AMOUNT_SIZE];
+    union {
+        // Amount we will gain, either in crypto (SWAP) or FIAT (SELL)
+        char printable_get_amount[MAX_PRINTABLE_AMOUNT_SIZE];
+        // Amount name to fund
+        char account_name[MAX_PRINTABLE_AMOUNT_SIZE];
+    };
     char printable_send_amount[MAX_PRINTABLE_AMOUNT_SIZE];
     char printable_fees_amount[MAX_PRINTABLE_AMOUNT_SIZE];
 } swap_app_context_t;

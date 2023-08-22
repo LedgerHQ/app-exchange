@@ -8,6 +8,11 @@ from ragger.utils import prefix_with_len
 from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes
 from .exchange_transaction_builder import SubCommand
 
+MAX_CHUNK_SIZE = 255
+
+P2_EXTEND = 0x01 << 4
+P2_MORE   = 0x02 << 4
+
 
 class Command(IntEnum):
     GET_VERSION                  = 0x02
@@ -38,6 +43,14 @@ class Errors(IntEnum):
     CLASS_NOT_SUPPORTED     = 0x6E00
     INVALID_INSTRUCTION     = 0x6D00
     SIGN_VERIFICATION_FAIL  = 0x9D1A
+
+
+def prefix_with_len_custom(to_prefix: bytes, prefix_length: int = 1) -> bytes:
+    prefix = len(to_prefix).to_bytes(prefix_length, byteorder="big")
+    print(prefix.hex())
+    b = prefix + to_prefix
+    # b = b'\0' + b
+    return b
 
 
 class ExchangeClient:
@@ -90,8 +103,27 @@ class ExchangeClient:
 
     def process_transaction(self, transaction: bytes, fees: int) -> RAPDU:
         fees_bytes = int_to_minimally_sized_bytes(fees)
-        payload = prefix_with_len(transaction) + prefix_with_len(fees_bytes)
-        return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
+        prefix_length = 2 if (self.subcommand == SubCommand.SWAP_NG or self.subcommand == SubCommand.FUND_NG or self.subcommand == SubCommand.SELL_NG) else 1
+        payload = prefix_with_len_custom(transaction, prefix_length) + prefix_with_len(fees_bytes)
+
+        if self.subcommand == SubCommand.SWAP or self.subcommand == SubCommand.FUND or self.subcommand == SubCommand.SELL:
+            return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
+
+        else:
+            print(len(payload))
+            print(payload.hex())
+            payload_splited = [payload[x:x + MAX_CHUNK_SIZE] for x in range(0, len(payload), MAX_CHUNK_SIZE)]
+            for i, p in enumerate(payload_splited):
+                p2 = self.subcommand
+                # Send all chunks with P2_MORE except for the last chunk
+                if i != len(payload_splited) - 1:
+                    p2 |= P2_MORE
+                # Send all chunks with P2_EXTEND except for the first chunk
+                if i != 0:
+                    p2 |= P2_EXTEND
+                rapdu = self._client.exchange(self.CLA, Command.PROCESS_TRANSACTION_RESPONSE, p1=self.rate, p2=p2, data=p)
+
+        return rapdu
 
     def check_transaction_signature(self, encoded_transaction: bytes) -> RAPDU:
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
@@ -102,7 +134,7 @@ class ExchangeClient:
                       refund_configuration: Optional[bytes] = None) -> Generator[None, None, None]:
         self._premature_error=False
 
-        if self._subcommand == SubCommand.SWAP:
+        if self._subcommand == SubCommand.SWAP or self._subcommand == SubCommand.SWAP_NG:
             assert refund_configuration != None, f'A refund currency is needed but no conf as been given'
             # If refund adress has to be checked, send sync CHECk_PAYOUT_ADDRESS first
             rapdu = self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_configuration)

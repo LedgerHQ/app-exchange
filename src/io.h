@@ -30,3 +30,5 @@ int send_apdu(uint8_t *buffer, size_t buffer_length);
 int reply_error(swap_error_e error);
 
 int reply_success(void);
+
+int instant_reply_success(void);

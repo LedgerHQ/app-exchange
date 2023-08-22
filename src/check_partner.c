@@ -12,7 +12,6 @@
 int check_partner(const command_t *cmd) {
     if (cmd->data.size < MIN_DER_SIGNATURE_LENGTH || cmd->data.size > MAX_DER_SIGNATURE_LENGTH) {
         PRINTF("Error: Input buffer length don't correspond to DER length\n");
-
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
@@ -24,7 +23,6 @@ int check_partner(const command_t *cmd) {
                         cmd->data.bytes,
                         cmd->data.size) == 0) {
         PRINTF("Error: Failed to verify signature of partner data\n");
-
         return reply_error(SIGN_VERIFICATION_FAIL);
     }
 

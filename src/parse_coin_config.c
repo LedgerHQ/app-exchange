@@ -26,18 +26,16 @@ const app_name_alias_t appnames_aliases[] = {
  * With:
  *  - T the ticker symbol, Lt its size
  *  - A the application name, La its size
- *  - C the configuration, Lc its size
+ *  - C the sub configuration, Lc its size
  */
-int parse_coin_config(const buf_t *const orig_buffer,
+int parse_coin_config(buf_t input,
                       buf_t *ticker,
                       buf_t *application_name,
-                      buf_t *configuration) {
+                      buf_t *sub_configuration) {
     uint16_t total_read = 0;
-    // This function can be called with orig_buffer == configuration, so making a copy
-    const buf_t input = *orig_buffer;
 
     // Read ticker
-    if (!parse_to_sized_buffer(input.bytes, input.size, ticker, &total_read)) {
+    if (!parse_to_sized_buffer(input.bytes, input.size, 1, ticker, &total_read)) {
         PRINTF("Cannot read the ticker\n");
         return 0;
     }
@@ -46,7 +44,7 @@ int parse_coin_config(const buf_t *const orig_buffer,
     }
 
     // Read application_name
-    if (!parse_to_sized_buffer(input.bytes, input.size, application_name, &total_read)) {
+    if (!parse_to_sized_buffer(input.bytes, input.size, 1, application_name, &total_read)) {
         PRINTF("Cannot read the application_name\n");
         return 0;
     }
@@ -54,9 +52,13 @@ int parse_coin_config(const buf_t *const orig_buffer,
         return 0;
     }
 
-    // Read configuration
-    if (!parse_to_sized_buffer(input.bytes, input.size, configuration, &total_read)) {
-        PRINTF("Cannot read the configuration\n");
+    // Read sub configuration
+    if (!parse_to_sized_buffer(input.bytes, input.size, 1, sub_configuration, &total_read)) {
+        PRINTF("Cannot read the sub_configuration\n");
+        return 0;
+    }
+    if (sub_configuration->size > MAX_COIN_SUB_CONFIG_SIZE) {
+        PRINTF("Sub coin sub_configuration size %d is too big\n", sub_configuration->size);
         return 0;
     }
 
@@ -72,14 +74,10 @@ int parse_coin_config(const buf_t *const orig_buffer,
             strncmp((const char *) application_name->bytes,
                     (char *) (PIC(appnames_aliases[i].foreign_name)),
                     application_name->size) == 0) {
-            PRINTF("Aliased appname, from '%.*s'\n",
-                   application_name->size,
-                   application_name->bytes);
-            application_name->bytes = (uint8_t *) appnames_aliases[i].app_name;
-            application_name->size = strlen((char *) PIC(appnames_aliases[i].app_name));
-            PRINTF("Aliased appname, to '%.*s'\n",
-                   application_name->size,
-                   PIC(application_name->bytes));
+            PRINTF("Aliased from '%.*s'\n", application_name->size, application_name->bytes);
+            application_name->bytes = (uint8_t *) PIC(appnames_aliases[i].app_name);
+            application_name->size = strlen((char *) application_name->bytes);
+            PRINTF("to '%.*s'\n", application_name->size, application_name->bytes);
             break;
         }
     }
