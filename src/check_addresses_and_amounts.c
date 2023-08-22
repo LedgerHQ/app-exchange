@@ -31,9 +31,9 @@ static bool check_received_ticker_matches_context(buf_t ticker, const command_t 
     char *in_currency;
     if (cmd->subcommand == SWAP || cmd->subcommand == SWAP_NG) {
         if (cmd->ins == CHECK_PAYOUT_ADDRESS) {
-            in_currency = G_swap_ctx.received_transaction.currency_to;
+            in_currency = G_swap_ctx.swap_transaction.currency_to;
         } else {
-            in_currency = G_swap_ctx.received_transaction.currency_from;
+            in_currency = G_swap_ctx.swap_transaction.currency_from;
         }
     } else if (cmd->subcommand == SELL || cmd->subcommand == SELL_NG) {
         in_currency = G_swap_ctx.sell_transaction.in_currency;
@@ -53,13 +53,13 @@ static uint16_t check_payout_or_refund_address(command_e ins,
 
     // Depending on the current command, check either PAYOUT or REFUND
     if (ins == CHECK_PAYOUT_ADDRESS) {
-        address_to_check = G_swap_ctx.received_transaction.payout_address;
-        address_max_size = sizeof(G_swap_ctx.received_transaction.payout_address);
-        extra_id_to_check = G_swap_ctx.received_transaction.payout_extra_id;
+        address_to_check = G_swap_ctx.swap_transaction.payout_address;
+        address_max_size = sizeof(G_swap_ctx.swap_transaction.payout_address);
+        extra_id_to_check = G_swap_ctx.swap_transaction.payout_extra_id;
     } else {
-        address_to_check = G_swap_ctx.received_transaction.refund_address;
-        address_max_size = sizeof(G_swap_ctx.received_transaction.refund_address);
-        extra_id_to_check = G_swap_ctx.received_transaction.refund_extra_id;
+        address_to_check = G_swap_ctx.swap_transaction.refund_address;
+        address_max_size = sizeof(G_swap_ctx.swap_transaction.refund_address);
+        extra_id_to_check = G_swap_ctx.swap_transaction.refund_extra_id;
     }
     if (address_to_check[address_max_size - 1] != '\0') {
         PRINTF("Address to check is not NULL terminated\n");
@@ -83,11 +83,11 @@ static bool format_relevant_amount(command_e ins, buf_t sub_coin_config, char *a
     uint8_t dest_size;
     if (G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) {
         if (ins == CHECK_PAYOUT_ADDRESS) {
-            amount = (pb_bytes_array_16_t *) &G_swap_ctx.received_transaction.amount_to_wallet;
+            amount = (pb_bytes_array_16_t *) &G_swap_ctx.swap_transaction.amount_to_wallet;
             dest = G_swap_ctx.printable_get_amount;
             dest_size = sizeof(G_swap_ctx.printable_get_amount);
         } else {
-            amount = (pb_bytes_array_16_t *) &G_swap_ctx.received_transaction.amount_to_provider;
+            amount = (pb_bytes_array_16_t *) &G_swap_ctx.swap_transaction.amount_to_provider;
             dest = G_swap_ctx.printable_send_amount;
             dest_size = sizeof(G_swap_ctx.printable_send_amount);
         }
@@ -177,7 +177,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
     buf_t der;
     buf_t address_parameters;
     buf_t ticker;
-    buf_t application_name;
+    buf_t parsed_application_name;
     buf_t sub_coin_config;
     char application_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
 
@@ -193,14 +193,14 @@ int check_addresses_and_amounts(const command_t *cmd) {
     }
 
     // Break up the configuration into its individual elements
-    if (parse_coin_config(config, &ticker, &application_name, &sub_coin_config) == 0) {
+    if (parse_coin_config(config, &ticker, &parsed_application_name, &sub_coin_config) == 0) {
         PRINTF("Error: Can't parse coin config command\n");
         return reply_error(INCORRECT_COMMAND_DATA);
     }
     // We can't use the pointer to the parsed application name as it is not NULL terminated
     // We have to make a local copy
     memset(application_name, 0, sizeof(application_name));
-    memcpy(application_name, application_name.bytes, application_name.size);
+    memcpy(application_name, parsed_application_name.bytes, parsed_application_name.size);
 
     // Ensure we received a coin configuration that actually serves us in the current TX context
     if (!check_received_ticker_matches_context(ticker, cmd)) {

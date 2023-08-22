@@ -28,7 +28,7 @@ int start_new_transaction(const command_t *cmd) {
         }
     } else {
         // All other flows : 32 bytes
-        output_buffer_size = sizeof(G_swap_ctx.device_transaction_id.sell_fund);
+        output_buffer_size = sizeof(G_swap_ctx.device_transaction_id.unified);
 
 #ifdef TESTING
         unsigned char tx_id[32] = {
@@ -37,9 +37,9 @@ int start_new_transaction(const command_t *cmd) {
             0x23, 0x80, 0x1b, 0x1a, 0xeb, 0x7d, 0x0b, 0xcb,  //
             0xba, 0xa2, 0xa4, 0xf4, 0x6b, 0xf8, 0x18, 0x4b   //
         };
-        memcpy(G_swap_ctx.device_transaction_id.sell_fund, tx_id, sizeof(tx_id));
+        memcpy(G_swap_ctx.device_transaction_id.unified, tx_id, sizeof(tx_id));
 #else
-        cx_rng(G_swap_ctx.device_transaction_id.sell_fund, output_buffer_size);
+        cx_rng(G_swap_ctx.device_transaction_id.unified, output_buffer_size);
 #endif
     }
 

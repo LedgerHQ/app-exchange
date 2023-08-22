@@ -132,7 +132,7 @@ static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand)
 
     if (subcommand == SWAP || subcommand == SWAP_NG) {
         fields = ledger_swap_NewTransactionResponse_fields;
-        dest_struct = &G_swap_ctx.received_transaction;
+        dest_struct = &G_swap_ctx.swap_transaction;
     } else if (subcommand == SELL || subcommand == SELL_NG) {
         fields = ledger_swap_NewSellResponse_fields;
         dest_struct = &G_swap_ctx.sell_transaction;
@@ -159,13 +159,13 @@ static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand)
 static bool check_transaction_id(subcommand_e subcommand) {
     if (subcommand == SWAP) {
         if (memcmp(G_swap_ctx.device_transaction_id.swap,
-                   G_swap_ctx.received_transaction.device_transaction_id,
+                   G_swap_ctx.swap_transaction.device_transaction_id,
                    sizeof(G_swap_ctx.device_transaction_id.swap)) != 0) {
             PRINTF("Error: Device transaction IDs don't match, expected %.*H, received %.*H\n",
                    sizeof(G_swap_ctx.device_transaction_id.swap),
                    G_swap_ctx.device_transaction_id.swap,
                    sizeof(G_swap_ctx.device_transaction_id.swap),
-                   G_swap_ctx.received_transaction.device_transaction_id);
+                   G_swap_ctx.swap_transaction.device_transaction_id);
             return false;
         }
     } else {
@@ -175,22 +175,21 @@ static bool check_transaction_id(subcommand_e subcommand) {
         } else if (subcommand == FUND || subcommand == FUND_NG) {
             tx_id = (pb_bytes_array_32_t *) &G_swap_ctx.fund_transaction.device_transaction_id;
         } else {
-            tx_id =
-                (pb_bytes_array_32_t *) &G_swap_ctx.received_transaction.device_transaction_id_ng;
+            tx_id = (pb_bytes_array_32_t *) &G_swap_ctx.swap_transaction.device_transaction_id_ng;
         }
 
-        if (tx_id->size != sizeof(G_swap_ctx.device_transaction_id.sell_fund)) {
+        if (tx_id->size != sizeof(G_swap_ctx.device_transaction_id.unified)) {
             PRINTF("Error: Device transaction ID size doesn't match, exp %d bytes, recv %d bytes\n",
-                   sizeof(G_swap_ctx.device_transaction_id.sell_fund),
+                   sizeof(G_swap_ctx.device_transaction_id.unified),
                    tx_id->size);
             return false;
         }
-        if (memcmp(G_swap_ctx.device_transaction_id.sell_fund, tx_id->bytes, tx_id->size) != 0) {
+        if (memcmp(G_swap_ctx.device_transaction_id.unified, tx_id->bytes, tx_id->size) != 0) {
             PRINTF("Error: Device transaction IDs don't match, expected %.*H, received %.*H\n",
                    tx_id->size,
                    tx_id->bytes,
-                   sizeof(G_swap_ctx.device_transaction_id.sell_fund),
-                   G_swap_ctx.device_transaction_id.sell_fund);
+                   sizeof(G_swap_ctx.device_transaction_id.unified),
+                   G_swap_ctx.device_transaction_id.unified);
             return false;
         }
     }
@@ -200,24 +199,24 @@ static bool check_transaction_id(subcommand_e subcommand) {
 
 static void normalize_currencies(subcommand) {
     if (subcommand == SWAP || subcommand == SWAP_NG) {
-        to_uppercase(G_swap_ctx.received_transaction.currency_from,
-                     sizeof(G_swap_ctx.received_transaction.currency_from));
-        set_ledger_currency_name(G_swap_ctx.received_transaction.currency_from,
-                                 sizeof(G_swap_ctx.received_transaction.currency_from) /
-                                     sizeof(G_swap_ctx.received_transaction.currency_from[0]));
+        to_uppercase(G_swap_ctx.swap_transaction.currency_from,
+                     sizeof(G_swap_ctx.swap_transaction.currency_from));
+        set_ledger_currency_name(G_swap_ctx.swap_transaction.currency_from,
+                                 sizeof(G_swap_ctx.swap_transaction.currency_from) /
+                                     sizeof(G_swap_ctx.swap_transaction.currency_from[0]));
 
-        to_uppercase(G_swap_ctx.received_transaction.currency_to,
-                     sizeof(G_swap_ctx.received_transaction.currency_to));
-        set_ledger_currency_name(G_swap_ctx.received_transaction.currency_to,
-                                 sizeof(G_swap_ctx.received_transaction.currency_to) /
-                                     sizeof(G_swap_ctx.received_transaction.currency_to[0]));
+        to_uppercase(G_swap_ctx.swap_transaction.currency_to,
+                     sizeof(G_swap_ctx.swap_transaction.currency_to));
+        set_ledger_currency_name(G_swap_ctx.swap_transaction.currency_to,
+                                 sizeof(G_swap_ctx.swap_transaction.currency_to) /
+                                     sizeof(G_swap_ctx.swap_transaction.currency_to[0]));
 
         // strip bcash CashAddr header, and other bicmd->subcommand1 like headers
-        for (size_t i = 0; i < sizeof(G_swap_ctx.received_transaction.payin_address); i++) {
-            if (G_swap_ctx.received_transaction.payin_address[i] == ':') {
-                memmove(G_swap_ctx.received_transaction.payin_address,
-                        G_swap_ctx.received_transaction.payin_address + i + 1,
-                        sizeof(G_swap_ctx.received_transaction.payin_address) - i - 1);
+        for (size_t i = 0; i < sizeof(G_swap_ctx.swap_transaction.payin_address); i++) {
+            if (G_swap_ctx.swap_transaction.payin_address[i] == ':') {
+                memmove(G_swap_ctx.swap_transaction.payin_address,
+                        G_swap_ctx.swap_transaction.payin_address + i + 1,
+                        sizeof(G_swap_ctx.swap_transaction.payin_address) - i - 1);
                 break;
             }
         }
@@ -240,9 +239,8 @@ static void normalize_currencies(subcommand) {
 static void trim_amounts(subcommand) {
     if (subcommand == SWAP || subcommand == SWAP_NG) {
         trim_pb_bytes_array(
-            (pb_bytes_array_16_t *) &G_swap_ctx.received_transaction.amount_to_provider);
-        trim_pb_bytes_array(
-            (pb_bytes_array_16_t *) &G_swap_ctx.received_transaction.amount_to_wallet);
+            (pb_bytes_array_16_t *) &G_swap_ctx.swap_transaction.amount_to_provider);
+        trim_pb_bytes_array((pb_bytes_array_16_t *) &G_swap_ctx.swap_transaction.amount_to_wallet);
     } else if (subcommand == SELL || subcommand == SELL_NG) {
         trim_pb_bytes_array((pb_bytes_array_16_t *) &G_swap_ctx.sell_transaction.in_amount);
     } else if (subcommand == FUND || subcommand == FUND_NG) {

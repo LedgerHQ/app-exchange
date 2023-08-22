@@ -45,8 +45,8 @@ typedef struct partner_data_s {
 
 typedef struct swap_app_context_s {
     union {
-        uint8_t sell_fund[32];  // device_transaction_id (SELL && FUND && NG)
-        char swap[10];          // device_transaction_id (SWAP)
+        uint8_t unified[32];  // device_transaction_id (SELL && FUND && NG)
+        char swap[10];        // device_transaction_id (SWAP)
     } device_transaction_id;
 
     uint8_t transaction_fee[16];
@@ -61,7 +61,7 @@ typedef struct swap_app_context_s {
     union {
         // This is the raw received APDU
         uint8_t raw_transaction[256 * 2];
-        ledger_swap_NewTransactionResponse received_transaction;
+        ledger_swap_NewTransactionResponse swap_transaction;
         struct {
             ledger_swap_NewSellResponse sell_transaction;
             // Field not received from protobuf but needed by the application called as lib
