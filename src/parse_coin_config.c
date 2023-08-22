@@ -74,14 +74,10 @@ int parse_coin_config(buf_t input,
             strncmp((const char *) application_name->bytes,
                     (char *) (PIC(appnames_aliases[i].foreign_name)),
                     application_name->size) == 0) {
-            PRINTF("Aliased appname, from '%.*s'\n",
-                   application_name->size,
-                   application_name->bytes);
+            PRINTF("Aliased from '%.*s'\n", application_name->size, application_name->bytes);
             application_name->bytes = (uint8_t *) PIC(appnames_aliases[i].app_name);
             application_name->size = strlen((char *) application_name->bytes);
-            PRINTF("Aliased appname, to '%.*s'\n",
-                   application_name->size,
-                   application_name->bytes);
+            PRINTF("to '%.*s'\n", application_name->size, application_name->bytes);
             break;
         }
     }

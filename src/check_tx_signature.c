@@ -10,28 +10,32 @@
 // One int (r or s) in DER is (1 byte prefix + 1 byte r/s length + r/s + 1 optional ending byte)
 // Keep the legacy additional '+2' just in case, it has no side effect.
 #define MAX_DER_INT_SIZE(size) (1 + 1 + (size) + 1 + 2)
-#define R_S_INT_SIZE 32
-#define DER_HEADER_SIZE 2
-#define DER_OFFSET_LENGTH 1
+#define R_S_INT_SIZE           32
+#define DER_HEADER_SIZE        2
+#define DER_OFFSET_LENGTH      1
 
 // This function receive transaction signature
 // Input should be in the form of DER serialized signature
 // the length should be CURVE_SIZE_BYTES * 2 + 6 (DER encoding)
 int check_tx_signature(const command_t *cmd) {
-    // If we received the data in (R,S) format we will encode it here in DER before veryfing the signature
+    // If we received the data in (R,S) format we will encode it here in DER before veryfing the
+    // signature
     uint8_t der_sig[DER_HEADER_SIZE + MAX_DER_INT_SIZE(R_S_INT_SIZE) * 2];
     buf_t signature;
 
     if (cmd->subcommand == SWAP || cmd->subcommand == FUND) {
         // We received the signature in DER format, just perform some sanity checks
-        if (cmd->data.size < MIN_DER_SIGNATURE_LENGTH || cmd->data.size > MAX_DER_SIGNATURE_LENGTH) {
+        if (cmd->data.size < MIN_DER_SIGNATURE_LENGTH ||
+            cmd->data.size > MAX_DER_SIGNATURE_LENGTH) {
             PRINTF("Error: Input buffer length don't correspond to DER length\n");
             return reply_error(INCORRECT_COMMAND_DATA);
         }
 
         uint16_t payload_size = cmd->data.bytes[DER_OFFSET_LENGTH];
         if (payload_size + DER_HEADER_SIZE != cmd->data.size) {
-            PRINTF("DER signature header advertizes %d bytes, we received %d\n", payload_size, cmd->data.size);
+            PRINTF("DER signature header advertizes %d bytes, we received %d\n",
+                   payload_size,
+                   cmd->data.size);
             return reply_error(INCORRECT_COMMAND_DATA);
         }
         signature = cmd->data;

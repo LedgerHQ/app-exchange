@@ -38,7 +38,11 @@ static void trim_pb_bytes_array(pb_bytes_array_16_t *transaction) {
     memmove(transaction->bytes, transaction->bytes + i, transaction->size);
 }
 
-static bool parse_transaction(uint8_t *in, size_t in_size, subcommand_e subcommand, buf_t *payload, buf_t *fees) {
+static bool parse_transaction(uint8_t *in,
+                              size_t in_size,
+                              subcommand_e subcommand,
+                              buf_t *payload,
+                              buf_t *fees) {
     // On legacy flows the length field is 1 byte
     uint8_t payload_length_field_size = 2;
     if (subcommand == SWAP || subcommand == SELL || subcommand == FUND) {
@@ -110,7 +114,10 @@ static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand)
     buf_t to_deserialize;
 
     if (subcommand != SWAP) {
-        int n = base64_decode(decoded, sizeof(decoded), (const unsigned char *) payload.bytes, payload.size);
+        int n = base64_decode(decoded,
+                              sizeof(decoded),
+                              (const unsigned char *) payload.bytes,
+                              payload.size);
         if (n < 0) {
             PRINTF("Error: Can't decode SELL/FUND/NG transaction base64\n");
             return false;
@@ -168,11 +175,12 @@ static bool check_transaction_id(subcommand_e subcommand) {
         } else if (subcommand == FUND || subcommand == FUND_NG) {
             tx_id = (pb_bytes_array_32_t *) &G_swap_ctx.fund_transaction.device_transaction_id;
         } else {
-            tx_id = (pb_bytes_array_32_t *) &G_swap_ctx.received_transaction.device_transaction_id_ng;
+            tx_id =
+                (pb_bytes_array_32_t *) &G_swap_ctx.received_transaction.device_transaction_id_ng;
         }
 
         if (tx_id->size != sizeof(G_swap_ctx.device_transaction_id.sell_fund)) {
-            PRINTF("Error: Device transaction ID size doesn't match, expected %d bytes, received %d bytes\n",
+            PRINTF("Error: Device transaction ID size doesn't match, exp %d bytes, recv %d bytes\n",
                    sizeof(G_swap_ctx.device_transaction_id.sell_fund),
                    tx_id->size);
             return false;
@@ -231,8 +239,10 @@ static void normalize_currencies(subcommand) {
 // triming leading 0s
 static void trim_amounts(subcommand) {
     if (subcommand == SWAP || subcommand == SWAP_NG) {
-        trim_pb_bytes_array((pb_bytes_array_16_t *) &G_swap_ctx.received_transaction.amount_to_provider);
-        trim_pb_bytes_array((pb_bytes_array_16_t *) &G_swap_ctx.received_transaction.amount_to_wallet);
+        trim_pb_bytes_array(
+            (pb_bytes_array_16_t *) &G_swap_ctx.received_transaction.amount_to_provider);
+        trim_pb_bytes_array(
+            (pb_bytes_array_16_t *) &G_swap_ctx.received_transaction.amount_to_wallet);
     } else if (subcommand == SELL || subcommand == SELL_NG) {
         trim_pb_bytes_array((pb_bytes_array_16_t *) &G_swap_ctx.sell_transaction.in_amount);
     } else if (subcommand == FUND || subcommand == FUND_NG) {
@@ -253,10 +263,11 @@ static void save_fees(buf_t fees) {
 int process_transaction(const command_t *cmd) {
     uint8_t undecoded_transaction[sizeof(G_swap_ctx.raw_transaction)];
     uint8_t *data;
+    // For memory optimization, the undecoded protobuf apdu may have been stored in an union
+    // with the decoded protobuf transaction.
     if (cmd->data.bytes == G_swap_ctx.raw_transaction) {
+        // Copy locally the apdu to avoid problems during protobuf decode and fees extraction
         PRINTF("Copying locally, the APDU has been received split\n");
-        // For memory optimization, the undecoded protobuf apdu may have been stored in an union with the decoded apdus
-        // Copy locally to avoid problems during protobuf decode and fees extraction
         memcpy(undecoded_transaction, G_swap_ctx.raw_transaction, cmd->data.size);
         data = undecoded_transaction;
     } else {

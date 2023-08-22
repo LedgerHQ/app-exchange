@@ -43,7 +43,10 @@ static bool check_received_ticker_matches_context(buf_t ticker, const command_t 
     return check_matching_ticker(ticker, in_currency);
 }
 
-static uint16_t check_relevant_address(command_e ins, buf_t sub_coin_config, buf_t address_parameters, char *appname) {
+static uint16_t check_payout_or_refund_address(command_e ins,
+                                               buf_t sub_coin_config,
+                                               buf_t address_parameters,
+                                               char *appname) {
     uint8_t address_max_size;
     char *address_to_check;
     char *extra_id_to_check;
@@ -158,6 +161,17 @@ static void format_account_name(void) {
     G_swap_ctx.account_name[sizeof(G_swap_ctx.account_name) - 1] = '\x00';
 }
 
+// Three possibilities in this function:
+// - we are in CHECK_ASSET_IN (FUND or SELL flows)
+//     - we will ask the FROM app to format the FROM amount and the fees
+//     - we will format the FIAT amount TO (SELL flow)
+//     - we will format the UI account field (FUND flow)
+// - we are in CHECK_PAYOUT_ADDRESS (SWAP flow)
+//     - we will ask the TO app to format the TO amount
+//     - we will ask the TO app to check the payout address
+// - we are in CHECK_REFUND_ADDRESS (SWAP flow)
+//     - we will ask the FROM app to format the FROM amount and the fees
+//     - we will ask the FROM app to check the refund address
 int check_addresses_and_amounts(const command_t *cmd) {
     buf_t config;
     buf_t der;
@@ -165,14 +179,14 @@ int check_addresses_and_amounts(const command_t *cmd) {
     buf_t ticker;
     buf_t application_name;
     buf_t sub_coin_config;
-    char appname[BOLOS_APPNAME_MAX_SIZE_B + 1];
+    char application_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
 
     if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         PRINTF("Error: Can't parse command\n");
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
-    // We received the coin configuration from the CAL and it's signature. Ensure it's legitly signed by Ledger the key
+    // We received the coin configuration from the CAL and its signature. Check the signature
     if (!check_coin_configuration_signature(config, der)) {
         PRINTF("Error: Fail to verify signature of coin config\n");
         return reply_error(SIGN_VERIFICATION_FAIL);
@@ -180,13 +194,13 @@ int check_addresses_and_amounts(const command_t *cmd) {
 
     // Break up the configuration into its individual elements
     if (parse_coin_config(config, &ticker, &application_name, &sub_coin_config) == 0) {
-        PRINTF("Error: Can't parse refund coin config command\n");
+        PRINTF("Error: Can't parse coin config command\n");
         return reply_error(INCORRECT_COMMAND_DATA);
     }
     // We can't use the pointer to the parsed application name as it is not NULL terminated
     // We have to make a local copy
-    memset(appname, 0, sizeof(appname));
-    memcpy(appname, application_name.bytes, application_name.size);
+    memset(application_name, 0, sizeof(application_name));
+    memcpy(application_name, application_name.bytes, application_name.size);
 
     // Ensure we received a coin configuration that actually serves us in the current TX context
     if (!check_received_ticker_matches_context(ticker, cmd)) {
@@ -195,23 +209,30 @@ int check_addresses_and_amounts(const command_t *cmd) {
     }
 
     // On SWAP flows we need to check refund or payout address (depending on step)
-    // We received them as part of the TX but we can only check them now that we have the appname to call
+    // We received them as part of the TX but we couldn't check then as we did not have the
+    // application_name yet
     if (G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) {
-        uint16_t ret = check_relevant_address(cmd->ins, sub_coin_config, address_parameters, appname);
+        uint16_t ret = check_payout_or_refund_address(cmd->ins,
+                                                      sub_coin_config,
+                                                      address_parameters,
+                                                      application_name);
         if (ret != 0) {
             return reply_error(ret);
         }
     }
 
-    // Call the lib app to format the amount relevant to it's coin. It can be OUT going or IN coming (SWAP only)
-    if (!format_relevant_amount(cmd->ins, sub_coin_config, appname)) {
+    // Call the lib app to format the amount according to its coin.
+    // It can be the OUT going amount or IN coming amount for SWAP
+    if (!format_relevant_amount(cmd->ins, sub_coin_config, application_name)) {
         PRINTF("Error: Failed to format printable amount\n");
         return reply_error(INTERNAL_ERROR);
     }
 
-    // Format the fees, except during CHECK_PAYOUT_ADDRESS for SWAP, (as it's done in CHECK_REFUND_ADDRESS)
-    if (!((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) && cmd->ins == CHECK_PAYOUT_ADDRESS)) {
-        if (!format_fees(sub_coin_config, appname)) {
+    // Format the fees, except during CHECK_PAYOUT_ADDRESS for SWAP, (it's done in
+    // CHECK_REFUND_ADDRESS as the fees are in the OUT going currency)
+    if (!((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) &&
+          cmd->ins == CHECK_PAYOUT_ADDRESS)) {
+        if (!format_fees(sub_coin_config, application_name)) {
             PRINTF("Error: Failed to format fees amount\n");
             return reply_error(INTERNAL_ERROR);
         }
@@ -230,17 +251,20 @@ int check_addresses_and_amounts(const command_t *cmd) {
         format_account_name();
     }
 
-    // If we are in a SWAP flow at step CHECK_PAYOUT_ADDRESS, we are still waiting for CHECK_REFUND_ADDRESS
-    // Otherwise we can trigger user UI validation now
-    if ((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) && cmd->ins == CHECK_PAYOUT_ADDRESS) {
+    // If we are in a SWAP flow at step CHECK_PAYOUT_ADDRESS, we are still waiting for
+    // CHECK_REFUND_ADDRESS
+    // Otherwise we can trigger the UI to get user validation now
+    if ((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) &&
+        cmd->ins == CHECK_PAYOUT_ADDRESS) {
         if (reply_success() < 0) {
             PRINTF("Error: failed to send\n");
             return -1;
         }
         G_swap_ctx.state = TO_ADDR_CHECKED;
     } else {
-        // Save the paying coin appname, we'll need it to start the app during START_SIGNING step
-        memcpy(G_swap_ctx.payin_binary_name, appname, sizeof(appname));
+        // Save the paying coin application_name, we'll need it to start the app during
+        // START_SIGNING step
+        memcpy(G_swap_ctx.payin_binary_name, application_name, sizeof(application_name));
 
         // Save the paying sub coin configuration as the lib app will need it to sign
         G_swap_ctx.paying_sub_coin_config_size = sub_coin_config.size;

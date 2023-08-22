@@ -9,7 +9,9 @@
 #include "io.h"
 #include "cx.h"
 
-static uint16_t parse_set_partner_key_command(const command_t *cmd, buf_t *partner_name, uint8_t **raw_pubkey) {
+static uint16_t parse_set_partner_key_command(const command_t *cmd,
+                                              buf_t *partner_name,
+                                              uint8_t **raw_pubkey) {
     // data is serialized as
     // 1 byte - partner name length L
     // L bytes - partner name
@@ -20,7 +22,8 @@ static uint16_t parse_set_partner_key_command(const command_t *cmd, buf_t *partn
         return INCORRECT_COMMAND_DATA;
     }
 
-    if ((partner_name->size < MIN_PARTNER_NAME_LENGHT) || (partner_name->size > MAX_PARTNER_NAME_LENGHT)) {
+    if ((partner_name->size < MIN_PARTNER_NAME_LENGHT) ||
+        (partner_name->size > MAX_PARTNER_NAME_LENGHT)) {
         PRINTF("Error: Partner name length should be in [%u, %u]\n",
                MIN_PARTNER_NAME_LENGHT,
                MAX_PARTNER_NAME_LENGHT);

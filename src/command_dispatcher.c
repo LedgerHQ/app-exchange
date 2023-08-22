@@ -15,7 +15,10 @@
 #include "io.h"
 
 int dispatch_command(const command_t *cmd) {
-    PRINTF("command: %d, subcommand: %d, current state: %d\n", cmd->ins, cmd->subcommand, G_swap_ctx.state);
+    PRINTF("command: %d, subcommand: %d, current state: %d\n",
+           cmd->ins,
+           cmd->subcommand,
+           G_swap_ctx.state);
 
     int ret = -1;
 

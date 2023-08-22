@@ -6,7 +6,11 @@
 // param[in]        <in_size>   the total size of the buffer to parse
 // param[out]       <out>       the buf_t read from in_buffer at offset, can by 0 sized
 // param[in/out]    <offset>    the current offset at wich we are in <in_buffer>
-bool parse_to_sized_buffer(uint8_t *in_buffer, uint16_t in_size, uint8_t size_of_lenght_field, buf_t *out, uint16_t *offset) {
+bool parse_to_sized_buffer(uint8_t *in_buffer,
+                           uint16_t in_size,
+                           uint8_t size_of_lenght_field,
+                           buf_t *out,
+                           uint16_t *offset) {
     if (*offset + size_of_lenght_field > in_size) {
         // We can't even read the size
         PRINTF("Failed to read the header sized %d, only %d bytes available\n",
@@ -28,9 +32,8 @@ bool parse_to_sized_buffer(uint8_t *in_buffer, uint16_t in_size, uint8_t size_of
     }
     *offset += size_of_lenght_field;
 
-
     if (*offset + out->size > in_size) {
-        PRINTF("Not enough remaining bytes to read. Total bytes %d, offset %d, hedaer advertizes %d bytes\n",
+        PRINTF("Not enough remaining bytes to read. Total %d, offset %d, claims %d bytes\n",
                in_size,
                *offset,
                out->size);

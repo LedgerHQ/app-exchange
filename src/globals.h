@@ -46,7 +46,7 @@ typedef struct partner_data_s {
 typedef struct swap_app_context_s {
     union {
         uint8_t sell_fund[32];  // device_transaction_id (SELL && FUND && NG)
-        char swap[10];                // device_transaction_id (SWAP)
+        char swap[10];          // device_transaction_id (SWAP)
     } device_transaction_id;
 
     uint8_t transaction_fee[16];

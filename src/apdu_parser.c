@@ -29,15 +29,16 @@
 #include "apdu_parser.h"
 
 // Keep as global the received fields of the command
-// We need to remember them in case we receive a splitted command
+// We need to remember them in case we receive a split command
 typedef struct apdu_s {
     bool expecting_more;
     uint8_t instruction;
     uint8_t rate;
     uint8_t subcommand;
     uint16_t data_length;
-    // We could have put the recontructed apdu buffer here but it would increase the RAM usage by 512 bytes
-    // which is a lot on NANOS. Instead the recontructed apdu buffer is G_swap_ctx.raw_transaction
+    // We could have put the recontructed apdu buffer here but it would increase the RAM usage by
+    // 512 bytes which is a lot on NANOS
+    // Instead the recontructed apdu buffer is G_swap_ctx.raw_transaction
     // It is unionized with the decoded protobuf transaction requests
     // Pro: less memory usage
     // Cons: use cautiously and only during the command PROCESS_TRANSACTION_RESPONSE_COMMAND
@@ -53,7 +54,7 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
 
     switch (instruction) {
         case GET_VERSION_COMMAND:
-            // We don't care for the subcommand context for this command as it doesn't modify anything
+            // We ignore the current context for this command as it doesn't modify anything
             check_subcommand_context = false;
             // No strict dependancy on the current state as long as it is not a protected state
             // (WAITING_USER_VALIDATION and WAITING_SIGNING)
@@ -134,10 +135,10 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
 
     uint8_t data_length = apdu[OFFSET_LC];
     if (data_length != apdu_length - OFFSET_CDATA) {
-        PRINTF("Error: malformed APDU, received %d bytes APDU, including %d header bytes, claiming %d data bytes\n",
-                apdu_length,
-                OFFSET_CDATA,
-                data_length);
+        PRINTF("Error: malformed APDU, recv %d bytes, claiming %d header bytes and %d data bytes\n",
+               apdu_length,
+               OFFSET_CDATA,
+               data_length);
         return MALFORMED_APDU;
     }
 
@@ -146,31 +147,31 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
         return CLASS_NOT_SUPPORTED;
     }
 
+    // Get rate from P1
     uint8_t rate = apdu[OFFSET_P1];
     if (rate != FIXED && rate != FLOATING) {
         PRINTF("Incorrect P1 %d\n", rate);
         return WRONG_P1;
     }
 
+    // Extract subcommand from P2
     uint8_t subcommand = apdu[OFFSET_P2] & SUBCOMMAND_MASK;
-    if (subcommand != SWAP
-        && subcommand != SELL
-        && subcommand != FUND
-        && subcommand != SWAP_NG
-        && subcommand != SELL_NG
-        && subcommand != FUND_NG) {
+    if (subcommand != SWAP && subcommand != SELL && subcommand != FUND && subcommand != SWAP_NG &&
+        subcommand != SELL_NG && subcommand != FUND_NG) {
         PRINTF("Incorrect subcommand %d\n", subcommand);
         return WRONG_P2_SUBCOMMAND;
     }
 
+    // Get instruction and ensure it makes sense in the current context
     uint8_t instruction = apdu[OFFSET_INS];
     uint16_t err = check_instruction(instruction, subcommand);
     if (err != 0) {
         return err;
     }
 
+    // Extract extension from P2
     uint8_t extension = apdu[OFFSET_P2] & EXTENSION_MASK;
-    if ((extension & ~(P2_NONE|P2_MORE|P2_EXTEND)) != 0) {
+    if ((extension & ~(P2_NONE | P2_MORE | P2_EXTEND)) != 0) {
         PRINTF("Incorrect extension %d\n", extension);
         return WRONG_P2_EXTENSION;
     }
@@ -178,12 +179,15 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
     bool is_first_data_chunk = !(extension & P2_EXTEND);
     bool is_last_data_chunk = !(extension & P2_MORE);
     bool is_whole_apdu = is_first_data_chunk && is_last_data_chunk;
+    // Split reception is only for NG flows
     if (subcommand != SWAP_NG && subcommand != SELL_NG && subcommand != FUND_NG && !is_whole_apdu) {
         PRINTF("Extension %d refused, only allowed for unified flows\n", extension);
         return WRONG_P2_EXTENSION;
     }
+    // Split reception is only for PROCESS_TRANSACTION_RESPONSE_COMMAND
     if (instruction != PROCESS_TRANSACTION_RESPONSE_COMMAND && !is_whole_apdu) {
-        PRINTF("Extension %d refused, only allowed for PROCESS_TRANSACTION_RESPONSE_COMMAND instruction\n", extension);
+        PRINTF("Extension %d refused, only allowed for PROCESS_TRANSACTION_RESPONSE instruction\n",
+               extension);
         return WRONG_P2_EXTENSION;
     }
 
@@ -193,23 +197,23 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
         G_received_apdu.subcommand = subcommand;
         G_received_apdu.data_length = data_length;
         if (!is_last_data_chunk) {
-            // Use the raw_transaction buffer as temporary storage
-            // It's unionized with the decoded transaction so we only use it for PROCESS_TRANSACTION_RESPONSE_COMMAND
-            // After this command is done it will contain decoded PB data, don't use it anymore
+            // Use the raw_transaction buffer as temporary storage.
+            // It's unionized with the decoded transaction but we are currently handling
+            // PROCESS_TRANSACTION_RESPONSE_COMMAND instruction (checked previously).
+            // After this command is done it will contain the decoded PB data, don't use it anymore
             memcpy(G_swap_ctx.raw_transaction, apdu + OFFSET_CDATA, data_length);
             G_received_apdu.expecting_more = true;
         }
     } else {
-        // The command received is supposed to extend the previously received one. Check if it's expected
+        // The command received claims to extend a previously received one. Check if it's expected
         if (!G_received_apdu.expecting_more) {
             PRINTF("Previous command did not indicate a followup\n");
             return INVALID_P2_EXTENSION;
         }
         // Also ensure they are the same kind
-        if (G_received_apdu.instruction != instruction
-            || G_received_apdu.rate != rate
-            || G_received_apdu.subcommand != subcommand) {
-            PRINTF("Refusing to extend a different apdu, expected (%d, %d, %d), received (%d, %d, %d)\n",
+        if (G_received_apdu.instruction != instruction || G_received_apdu.rate != rate ||
+            G_received_apdu.subcommand != subcommand) {
+            PRINTF("Refusing to extend a different apdu, exp (%d, %d, %d), recv (%d, %d, %d)\n",
                    G_received_apdu.instruction,
                    G_received_apdu.rate,
                    G_received_apdu.subcommand,
@@ -224,16 +228,18 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
                    G_received_apdu.data_length,
                    data_length);
             return INVALID_P2_EXTENSION;
-
         }
         // Extend the already received buffer
-        memcpy(G_swap_ctx.raw_transaction + G_received_apdu.data_length, apdu + OFFSET_CDATA, data_length);
+        memcpy(G_swap_ctx.raw_transaction + G_received_apdu.data_length,
+               apdu + OFFSET_CDATA,
+               data_length);
         G_received_apdu.data_length += data_length;
     }
 
     if (!is_last_data_chunk) {
         // Reply a blank success to indicate that we await the followup part
-        // Do NOT update any kind of internal state machine, we have not validated what we have received
+        // Do NOT update any kind of internal state machine, we have not validated what we have
+        // received
         PRINTF("Split APDU successfully initiated, size %d\n", G_received_apdu.data_length);
         return SUCCESS;
     } else {
