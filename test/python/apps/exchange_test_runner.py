@@ -165,8 +165,12 @@ class ExchangeTestRunner:
 
     # Wrapper of the function above to handle the USB reset in the parent class instead of the currency class
     def perform_coin_specific_final_tx(self, destination, send_amount, fees, memo):
-        self.perform_final_tx(destination, send_amount, fees, memo)
-        handle_lib_call_start_or_stop(self.backend)
+        try:
+            self.perform_final_tx(destination, send_amount, fees, memo)
+        except Exception as e:
+            raise e
+        finally:
+            handle_lib_call_start_or_stop(self.backend)
 
     #########################################################
     # Generic SWAP tests functions, call them in your tests #
