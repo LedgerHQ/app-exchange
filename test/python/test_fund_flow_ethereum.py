@@ -26,7 +26,7 @@ def test_fund_flow_ethereum_max_partner_name_length(backend, exchange_navigation
     ex.process_transaction(tx, eth_amount_to_wei(0.004520765))
     encoded_tx = encode_tx(SubCommand.FUND, partner, tx)
     ex.check_transaction_signature(encoded_tx)
-    with ex.check_address(cal.get_conf_for_ticker(tx_infos["in_currency"])):
+    with ex.check_asset_in(cal.get_conf_for_ticker(tx_infos["in_currency"])):
         exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 
@@ -61,7 +61,7 @@ def test_fund_flow_ethereum_min_partner_name_length(backend, exchange_navigation
     ex.process_transaction(tx, eth_amount_to_wei(0.004520765))
     encoded_tx = encode_tx(SubCommand.FUND, partner, tx)
     ex.check_transaction_signature(encoded_tx)
-    with ex.check_address(cal.get_conf_for_ticker(tx_infos["in_currency"])):
+    with ex.check_asset_in(cal.get_conf_for_ticker(tx_infos["in_currency"])):
         exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 

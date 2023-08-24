@@ -38,7 +38,8 @@ def test_swap_btc_to_etc(backend, exchange_navigation_helper):
 
     payout_ticker = extract_payout_ticker(SubCommand.SWAP, tx_infos)
     refund_ticker = extract_refund_ticker(SubCommand.SWAP, tx_infos)
-    with ex.check_address(cal.get_conf_for_ticker(payout_ticker), cal.get_conf_for_ticker(refund_ticker)):
+    ex.check_payout_address(cal.get_conf_for_ticker(payout_ticker))
+    with ex.check_refund_address(cal.get_conf_for_ticker(refund_ticker)):
         exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 

@@ -22,6 +22,8 @@ class Command(IntEnum):
     PROCESS_TRANSACTION_RESPONSE = 0x06
     CHECK_TRANSACTION_SIGNATURE  = 0x07
     CHECK_PAYOUT_ADDRESS         = 0x08
+    CHECK_ASSET_IN_LEGACY        = 0x08
+    CHECK_ASSET_IN               = 0x0B
     CHECK_REFUND_ADDRESS         = 0x09
     START_SIGNING_TRANSACTION    = 0x0A
 
@@ -128,26 +130,22 @@ class ExchangeClient:
     def check_transaction_signature(self, encoded_transaction: bytes) -> RAPDU:
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
 
-    @contextmanager
-    def check_address(self,
-                      payout_configuration: bytes,
-                      refund_configuration: Optional[bytes] = None) -> Generator[None, None, None]:
-        self._premature_error=False
+    def check_payout_address(self, payout_configuration: bytes) -> RAPDU:
+        return self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_configuration)
 
-        if self._subcommand == SubCommand.SWAP or self._subcommand == SubCommand.SWAP_NG:
-            assert refund_configuration != None, f'A refund currency is needed but no conf as been given'
-            # If refund adress has to be checked, send sync CHECk_PAYOUT_ADDRESS first
-            rapdu = self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_configuration)
-            if rapdu.status != 0x9000:
-                self._premature_error = True
-                self._check_address_result = rapdu
-                yield rapdu
-            else:
-                with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=refund_configuration) as response:
-                    yield response
+    @contextmanager
+    def check_refund_address(self, refund_configuration) -> Generator[None, None, None]:
+        with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=refund_configuration) as response:
+            yield response
+
+    @contextmanager
+    def check_asset_in(self, payout_configuration: bytes) -> Generator[None, None, None]:
+        if self._subcommand == SubCommand.SELL or self._subcommand == SubCommand.FUND:
+            ins = Command.CHECK_ASSET_IN_LEGACY
         else:
-            with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payout_configuration) as response:
-                yield response
+            ins = Command.CHECK_ASSET_IN
+        with self._exchange_async(ins, payload=payout_configuration) as response:
+            yield response
 
     def get_check_address_response(self) -> RAPDU:
         if self._premature_error:

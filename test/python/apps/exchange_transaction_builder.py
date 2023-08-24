@@ -34,6 +34,12 @@ class SubCommand(IntEnum):
     SELL_NG = 0x04
     FUND_NG = 0x05
 
+SWAP_SUBCOMMANDS = [SubCommand.SWAP, SubCommand.SWAP_NG]
+SELL_SUBCOMMANDS = [SubCommand.SELL, SubCommand.SELL_NG]
+FUND_SUBCOMMANDS = [SubCommand.FUND, SubCommand.FUND_NG]
+LEGACY_SUBCOMMANDS = [SubCommand.SWAP, SubCommand.SELL, SubCommand.FUND]
+NEW_SUBCOMMANDS = [SubCommand.SWAP_NG, SubCommand.SELL_NG, SubCommand.FUND_NG]
+ALL_SUBCOMMANDS = [SubCommand.SWAP, SubCommand.SELL, SubCommand.FUND, SubCommand.SWAP_NG, SubCommand.SELL_NG, SubCommand.FUND_NG]
 
 @dataclass(frozen=True)
 class SubCommandSpecs:
