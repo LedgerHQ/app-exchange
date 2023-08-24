@@ -2,12 +2,15 @@ from base64 import urlsafe_b64encode
 from typing import Optional, Dict, Callable, Iterable
 from enum import Enum, auto, IntEnum
 from dataclasses import dataclass
-
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 
+from ragger.utils import prefix_with_len
+
 from .pb.exchange_pb2 import NewFundResponse, NewSellResponse, NewTransactionResponse
 from .signing_authority import SigningAuthority
+
+from ..utils import int_to_minimally_sized_bytes, prefix_with_len_custom
 
 class SignatureComputation(Enum):
     BINARY_ENCODED_PAYLOAD   = auto()
@@ -180,5 +183,11 @@ def extract_refund_ticker(subcommand: SubCommand, tx_infos: Dict) -> Optional[st
     else:
         return None
 
-def get_partner_curve(sub_command: SubCommand) -> ec.EllipticCurve:
-    return SUBCOMMAND_TO_SPECS[sub_command].partner_curve
+def get_partner_curve(subcommand: SubCommand) -> ec.EllipticCurve:
+    return SUBCOMMAND_TO_SPECS[subcommand].partner_curve
+
+def craft_transaction_proposal(subcommand: SubCommand, transaction: bytes, fees: int) -> bytes:
+    fees_bytes = int_to_minimally_sized_bytes(fees)
+    prefix_length = 2 if (subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.FUND_NG or subcommand == SubCommand.SELL_NG) else 1
+    payload = prefix_with_len_custom(transaction, prefix_length) + prefix_with_len(fees_bytes)
+    return payload

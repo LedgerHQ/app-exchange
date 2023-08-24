@@ -258,7 +258,7 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
         // Reply a blank success to indicate that we await the followup part
         // Do NOT update any kind of internal state machine, we have not validated what we have
         // received
-        PRINTF("Split APDU successfully initiated, size %d\n", G_received_apdu.data_length);
+        PRINTF("Split APDU reception in progress, current size %d\n", G_received_apdu.data_length);
         return SUCCESS;
     } else {
         // The APDU is valid and complete, signal caller that it can proceed
@@ -266,6 +266,8 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
         command->rate = G_received_apdu.rate;
         command->subcommand = G_received_apdu.subcommand;
         command->data.size = G_received_apdu.data_length;
+        // Reset chunks reception
+        G_received_apdu.expecting_more = false;
         if (is_whole_apdu) {
             // No split has taken place, data is still in the APDU reception buffer
             command->data.bytes = apdu + OFFSET_CDATA;

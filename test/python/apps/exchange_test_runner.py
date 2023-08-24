@@ -79,7 +79,7 @@ class ExchangeTestRunner:
         tx = craft_tx(subcommand, tx_infos, transaction_id)
         signed_tx = encode_tx(subcommand, partner, tx)
 
-        # Send the exchange transaction proposal and it's signature
+        # Send the exchange transaction proposal and its signature
         ex.process_transaction(tx, fees)
         ex.check_transaction_signature(signed_tx)
 
