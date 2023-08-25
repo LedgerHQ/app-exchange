@@ -27,7 +27,7 @@ def test_sell_flow(backend, exchange_navigation_helper):
     ex.process_transaction(tx, eth_amount_to_wei(0.004520765))
     encoded_tx = encode_tx(SubCommand.SELL, partner, tx)
     ex.check_transaction_signature(encoded_tx)
-    with ex.check_address(cal.get_conf_for_ticker(tx_infos["in_currency"])):
+    with ex.check_asset_in(cal.get_conf_for_ticker(tx_infos["in_currency"])):
         exchange_navigation_helper.simple_accept()
     ex.start_signing_transaction()
 

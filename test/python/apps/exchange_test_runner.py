@@ -79,25 +79,35 @@ class ExchangeTestRunner:
         tx = craft_tx(subcommand, tx_infos, transaction_id)
         signed_tx = encode_tx(subcommand, partner, tx)
 
-        # Send the exchange transaction proposal and it's signature
+        # Send the exchange transaction proposal and its signature
         ex.process_transaction(tx, fees)
         ex.check_transaction_signature(signed_tx)
 
         # Ask our fake CAL the coin configuration for both payout and refund tickers (None for refund in case of FUND or SELL)
         payout_ticker = extract_payout_ticker(subcommand, tx_infos)
-        refund_ticker = extract_refund_ticker(subcommand, tx_infos)
         payout_configuration = cal.get_conf_for_ticker(payout_ticker)
-        refund_configuration = cal.get_conf_for_ticker(refund_ticker)
 
-        # Request the final address check and UI approval request on the device
-        with ex.check_address(payout_configuration, refund_configuration):
-            if ui_validation:
-                self.exchange_navigation_helper.simple_accept()
-            else:
-                # Calling the navigator delays the RAPDU reception until the end of navigation
-                # Which is problematic if the RAPDU is an error as we would not raise until the navigation is done
-                # As a workaround, we avoid calling the navigation if we want the function to raise
-                pass
+        if subcommand == SubCommand.SWAP or subcommand == SubCommand.SWAP_NG:
+            ex.check_payout_address(payout_configuration)
+
+            refund_ticker = extract_refund_ticker(subcommand, tx_infos)
+            refund_configuration = cal.get_conf_for_ticker(refund_ticker)
+
+            # Request the final address check and UI approval request on the device
+            with ex.check_refund_address(refund_configuration):
+                if ui_validation:
+                    self.exchange_navigation_helper.simple_accept()
+                else:
+                    # Calling the navigator delays the RAPDU reception until the end of navigation
+                    # Which is problematic if the RAPDU is an error as we would not raise until the navigation is done
+                    # As a workaround, we avoid calling the navigation if we want the function to raise
+                    pass
+        else:
+            with ex.check_asset_in(payout_configuration):
+                if ui_validation:
+                    self.exchange_navigation_helper.simple_accept()
+                else:
+                    pass
 
         # Ask exchange to start the library application to sign the actual outgoing transaction
         ex.start_signing_transaction()
@@ -165,8 +175,12 @@ class ExchangeTestRunner:
 
     # Wrapper of the function above to handle the USB reset in the parent class instead of the currency class
     def perform_coin_specific_final_tx(self, destination, send_amount, fees, memo):
-        self.perform_final_tx(destination, send_amount, fees, memo)
-        handle_lib_call_start_or_stop(self.backend)
+        try:
+            self.perform_final_tx(destination, send_amount, fees, memo)
+        except Exception as e:
+            raise e
+        finally:
+            handle_lib_call_start_or_stop(self.backend)
 
     #########################################################
     # Generic SWAP tests functions, call them in your tests #

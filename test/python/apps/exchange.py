@@ -3,10 +3,9 @@ from typing import Generator, Optional, Dict
 from enum import IntEnum
 
 from ragger.backend.interface import BackendInterface, RAPDU
-from ragger.utils import prefix_with_len
 
-from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes
-from .exchange_transaction_builder import SubCommand
+from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom
+from .exchange_transaction_builder import SubCommand, craft_transaction_proposal
 
 MAX_CHUNK_SIZE = 255
 
@@ -22,6 +21,8 @@ class Command(IntEnum):
     PROCESS_TRANSACTION_RESPONSE = 0x06
     CHECK_TRANSACTION_SIGNATURE  = 0x07
     CHECK_PAYOUT_ADDRESS         = 0x08
+    CHECK_ASSET_IN_LEGACY        = 0x08
+    CHECK_ASSET_IN               = 0x0B
     CHECK_REFUND_ADDRESS         = 0x09
     START_SIGNING_TRANSACTION    = 0x0A
 
@@ -39,22 +40,22 @@ class Errors(IntEnum):
     USER_REFUSED            = 0x6A84
     INTERNAL_ERROR          = 0x6A85
     WRONG_P1                = 0x6A86
-    WRONG_P2                = 0x6A87
+    WRONG_P2_SUBCOMMAND     = 0x6A87
+    WRONG_P2_EXTENSION      = 0x6A88
+    INVALID_P2_EXTENSION    = 0x6A89
     CLASS_NOT_SUPPORTED     = 0x6E00
+    MALFORMED_APDU          = 0x6E01
+    INVALID_DATA_LENGTH     = 0x6E02
     INVALID_INSTRUCTION     = 0x6D00
+    UNEXPECTED_INSTRUCTION  = 0x6D01
     SIGN_VERIFICATION_FAIL  = 0x9D1A
+    SUCCESS                 = 0x9000
 
 
-def prefix_with_len_custom(to_prefix: bytes, prefix_length: int = 1) -> bytes:
-    prefix = len(to_prefix).to_bytes(prefix_length, byteorder="big")
-    print(prefix.hex())
-    b = prefix + to_prefix
-    # b = b'\0' + b
-    return b
-
+EXCHANGE_CLASS = 0xE0
 
 class ExchangeClient:
-    CLA = 0xE0
+    CLA = EXCHANGE_CLASS
     def __init__(self,
                  client: BackendInterface,
                  rate: Rate,
@@ -102,21 +103,17 @@ class ExchangeClient:
         return self._exchange(Command.CHECK_PARTNER, signed_credentials)
 
     def process_transaction(self, transaction: bytes, fees: int) -> RAPDU:
-        fees_bytes = int_to_minimally_sized_bytes(fees)
-        prefix_length = 2 if (self.subcommand == SubCommand.SWAP_NG or self.subcommand == SubCommand.FUND_NG or self.subcommand == SubCommand.SELL_NG) else 1
-        payload = prefix_with_len_custom(transaction, prefix_length) + prefix_with_len(fees_bytes)
+        payload = craft_transaction_proposal(self.subcommand, transaction, fees)
 
         if self.subcommand == SubCommand.SWAP or self.subcommand == SubCommand.FUND or self.subcommand == SubCommand.SELL:
             return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
 
         else:
-            print(len(payload))
-            print(payload.hex())
-            payload_splited = [payload[x:x + MAX_CHUNK_SIZE] for x in range(0, len(payload), MAX_CHUNK_SIZE)]
-            for i, p in enumerate(payload_splited):
+            payload_split = [payload[x:x + MAX_CHUNK_SIZE] for x in range(0, len(payload), MAX_CHUNK_SIZE)]
+            for i, p in enumerate(payload_split):
                 p2 = self.subcommand
                 # Send all chunks with P2_MORE except for the last chunk
-                if i != len(payload_splited) - 1:
+                if i != len(payload_split) - 1:
                     p2 |= P2_MORE
                 # Send all chunks with P2_EXTEND except for the first chunk
                 if i != 0:
@@ -128,26 +125,22 @@ class ExchangeClient:
     def check_transaction_signature(self, encoded_transaction: bytes) -> RAPDU:
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
 
-    @contextmanager
-    def check_address(self,
-                      payout_configuration: bytes,
-                      refund_configuration: Optional[bytes] = None) -> Generator[None, None, None]:
-        self._premature_error=False
+    def check_payout_address(self, payout_configuration: bytes) -> RAPDU:
+        return self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_configuration)
 
-        if self._subcommand == SubCommand.SWAP or self._subcommand == SubCommand.SWAP_NG:
-            assert refund_configuration != None, f'A refund currency is needed but no conf as been given'
-            # If refund adress has to be checked, send sync CHECk_PAYOUT_ADDRESS first
-            rapdu = self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_configuration)
-            if rapdu.status != 0x9000:
-                self._premature_error = True
-                self._check_address_result = rapdu
-                yield rapdu
-            else:
-                with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=refund_configuration) as response:
-                    yield response
+    @contextmanager
+    def check_refund_address(self, refund_configuration) -> Generator[None, None, None]:
+        with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=refund_configuration) as response:
+            yield response
+
+    @contextmanager
+    def check_asset_in(self, payout_configuration: bytes) -> Generator[None, None, None]:
+        if self._subcommand == SubCommand.SELL or self._subcommand == SubCommand.FUND:
+            ins = Command.CHECK_ASSET_IN_LEGACY
         else:
-            with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payout_configuration) as response:
-                yield response
+            ins = Command.CHECK_ASSET_IN
+        with self._exchange_async(ins, payload=payout_configuration) as response:
+            yield response
 
     def get_check_address_response(self) -> RAPDU:
         if self._premature_error:

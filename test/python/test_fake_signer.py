@@ -1,10 +1,10 @@
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ec
 from ragger.utils import RAPDU
-from ragger.backend import RaisePolicy
+from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
-from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker
+from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker, ALL_SUBCOMMANDS, SWAP_SUBCOMMANDS
 from .apps import cal as cal
 
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
@@ -42,8 +42,11 @@ SELL_TX_INFOS = {
 
 TX_INFOS = {
     SubCommand.SWAP: SWAP_TX_INFOS,
+    SubCommand.SWAP_NG: SWAP_TX_INFOS,
     SubCommand.FUND: FUND_TX_INFOS,
+    SubCommand.FUND_NG: FUND_TX_INFOS,
     SubCommand.SELL: SELL_TX_INFOS,
+    SubCommand.SELL_NG: SELL_TX_INFOS,
 }
 
 FEES = 100
@@ -54,7 +57,7 @@ class TestFakeSigner:
 
     # CHECK THAT A PARTNER SIGNED BY THE LEDGER KEY BUT DIFFERENT THAN THE SET IS REFUSED
 
-    @pytest.mark.parametrize("operation", [SubCommand.SWAP, SubCommand.FUND, SubCommand.SELL])
+    @pytest.mark.parametrize("operation", ALL_SUBCOMMANDS)
     def test_fake_partner_credentials_sent(self, backend, operation):
         ex = ExchangeClient(backend, Rate.FIXED, operation)
         partner = SigningAuthority(curve=get_partner_curve(operation), name="partner")
@@ -63,14 +66,14 @@ class TestFakeSigner:
         ex.init_transaction()
         ex.set_partner_key(partner_fake.credentials)
 
-        backend.raise_policy = RaisePolicy.RAISE_NOTHING
-        rapdu: RAPDU = ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        assert rapdu.status == Errors.SIGN_VERIFICATION_FAIL
+        with pytest.raises(ExceptionRAPDU) as e:
+            ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+        assert e.value.status == Errors.SIGN_VERIFICATION_FAIL
 
 
     # CHECK THAT A PARTNER NOT SIGNED BY THE LEDGER KEY IS REFUSED
 
-    @pytest.mark.parametrize("operation", [SubCommand.SWAP, SubCommand.FUND, SubCommand.SELL])
+    @pytest.mark.parametrize("operation", ALL_SUBCOMMANDS)
     def test_fake_partner_credentials_signed(self, backend, operation):
         ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
         ex = ExchangeClient(backend, Rate.FIXED, operation)
@@ -79,14 +82,14 @@ class TestFakeSigner:
         ex.init_transaction()
         ex.set_partner_key(partner.credentials)
 
-        backend.raise_policy = RaisePolicy.RAISE_NOTHING
-        rapdu: RAPDU = ex.check_partner_key(ledger_fake_signer.sign(partner.credentials))
-        assert rapdu.status == Errors.SIGN_VERIFICATION_FAIL
+        with pytest.raises(ExceptionRAPDU) as e:
+            ex.check_partner_key(ledger_fake_signer.sign(partner.credentials))
+        assert e.value.status == Errors.SIGN_VERIFICATION_FAIL
 
 
     # CHECK THAT A TRANSACTION INFORMATION NOT SIGNED BY THE PARTNER KEY IS REFUSED
 
-    @pytest.mark.parametrize("operation", [SubCommand.SWAP, SubCommand.FUND, SubCommand.SELL])
+    @pytest.mark.parametrize("operation", ALL_SUBCOMMANDS)
     def test_fake_transaction_infos(self, backend, operation):
         ex = ExchangeClient(backend, Rate.FIXED, operation)
         partner = SigningAuthority(curve=get_partner_curve(operation), name="partner")
@@ -99,14 +102,14 @@ class TestFakeSigner:
         ex.process_transaction(tx, FEES)
 
         encoded_tx = encode_tx(operation, partner_fake, tx)
-        backend.raise_policy = RaisePolicy.RAISE_NOTHING
-        rapdu: RAPDU = ex.check_transaction_signature(encoded_tx)
-        assert rapdu.status == Errors.SIGN_VERIFICATION_FAIL
+        with pytest.raises(ExceptionRAPDU) as e:
+            ex.check_transaction_signature(encoded_tx)
+        assert e.value.status == Errors.SIGN_VERIFICATION_FAIL
 
 
     # CHECK THAT A COIN CONFIGURATION NOT SIGNED BY THE LEDGER KEY IS REFUSED
 
-    @pytest.mark.parametrize("operation", [SubCommand.SWAP, SubCommand.FUND, SubCommand.SELL])
+    @pytest.mark.parametrize("operation", ALL_SUBCOMMANDS)
     def test_fake_payout_coin_configuration(self, backend, operation):
         ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
         ex = ExchangeClient(backend, Rate.FIXED, operation)
@@ -122,30 +125,34 @@ class TestFakeSigner:
 
         payout_ticker = extract_payout_ticker(operation, TX_INFOS[operation])
         payout_conf = cal.get_conf_for_ticker(payout_ticker, overload_signer=ledger_fake_signer)
-        refund_ticker = extract_refund_ticker(operation, TX_INFOS[operation])
-        refund_conf = cal.get_conf_for_ticker(refund_ticker)
-        backend.raise_policy = RaisePolicy.RAISE_NOTHING
-        with ex.check_address(payout_conf, refund_conf):
-            pass
-        assert ex.get_check_address_response().status == Errors.SIGN_VERIFICATION_FAIL
 
-    def test_fake_refund_coin_configuration_swap(self, backend):
+        with pytest.raises(ExceptionRAPDU) as e:
+            if operation == SubCommand.SWAP or operation == SubCommand.SWAP_NG:
+                ex.check_payout_address(payout_conf)
+            else:
+                with ex.check_asset_in(payout_conf):
+                    pass
+        assert e.value.status == Errors.SIGN_VERIFICATION_FAIL
+
+    @pytest.mark.parametrize("operation", SWAP_SUBCOMMANDS)
+    def test_fake_refund_coin_configuration_swap(self, backend, operation):
         ledger_fake_signer = SigningAuthority(curve=ec.SECP256K1(), name="fake_signer")
-        ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
-        partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="partner")
+        ex = ExchangeClient(backend, Rate.FIXED, operation)
+        partner = SigningAuthority(curve=get_partner_curve(operation), name="partner")
 
         transaction_id = ex.init_transaction().data
         ex.set_partner_key(partner.credentials)
         ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        tx = craft_tx(SubCommand.SWAP, SWAP_TX_INFOS, transaction_id)
+        tx = craft_tx(operation, SWAP_TX_INFOS, transaction_id)
         ex.process_transaction(tx, FEES)
-        encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
+        encoded_tx = encode_tx(operation, partner, tx)
         ex.check_transaction_signature(encoded_tx)
 
         payout_conf = cal.get_conf_for_ticker(SWAP_TX_INFOS["currency_to"])
         refund_conf = cal.get_conf_for_ticker(SWAP_TX_INFOS["currency_from"], overload_signer=ledger_fake_signer)
-        backend.raise_policy = RaisePolicy.RAISE_NOTHING
-        with ex.check_address(payout_conf, refund_conf):
-            pass
-        assert ex.get_check_address_response().status == Errors.SIGN_VERIFICATION_FAIL
+        ex.check_payout_address(payout_conf)
+        with pytest.raises(ExceptionRAPDU) as e:
+            with ex.check_refund_address(refund_conf):
+                pass
+        assert e.value.status == Errors.SIGN_VERIFICATION_FAIL
 

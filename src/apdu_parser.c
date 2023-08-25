@@ -52,6 +52,16 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
     bool allowed_during_waiting_for_signing = false;
     int check_current_state = -1;
 
+    if (instruction == CHECK_ASSET_IN && (subcommand == SWAP || subcommand == SWAP_NG)) {
+        PRINTF("Instruction CHECK_ASSET_IN is only for SELL and FUND based flows\n");
+        return INVALID_INSTRUCTION;
+    }
+
+    if (instruction == CHECK_PAYOUT_ADDRESS && subcommand != SWAP && subcommand != SWAP_NG) {
+        PRINTF("Instruction CHECK_PAYOUT_ADDRESS is only for SWAP based flows\n");
+        return INVALID_INSTRUCTION;
+    }
+
     switch (instruction) {
         case GET_VERSION_COMMAND:
             // We ignore the current context for this command as it doesn't modify anything
@@ -83,6 +93,7 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
             check_subcommand_context = true;
             break;
         case CHECK_PAYOUT_ADDRESS:
+        case CHECK_ASSET_IN:
             check_current_state = SIGNATURE_CHECKED;
             check_subcommand_context = true;
             break;
@@ -96,7 +107,7 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
             check_subcommand_context = true;
             break;
         default:
-            PRINTF("Received unknown subcommand %d\n", subcommand);
+            PRINTF("Received unknown instruction %d\n", instruction);
             return INVALID_INSTRUCTION;
     }
 
@@ -106,18 +117,18 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
     }
 
     if (!allowed_during_waiting_for_signing && G_swap_ctx.state == WAITING_SIGNING) {
-        PRINTF("Received subcommand %d, not allowed during WAITING_SIGNING state\n", subcommand);
+        PRINTF("Received instruction %d, not allowed during WAITING_SIGNING state\n", instruction);
         return UNEXPECTED_INSTRUCTION;
     }
 
     if (check_subcommand_context && subcommand != G_swap_ctx.subcommand) {
-        PRINTF("Received subcommand %d, current flow is %d\n", subcommand, G_swap_ctx.subcommand);
+        PRINTF("Received subcommand %d, current flow uses %d\n", subcommand, G_swap_ctx.subcommand);
         return UNEXPECTED_INSTRUCTION;
     }
 
     if (check_current_state != -1 && G_swap_ctx.state != check_current_state) {
-        PRINTF("Received subcommand %d requiring state %d, but current state is %d\n",
-               subcommand,
+        PRINTF("Received instruction %d requiring state %d, but current state is %d\n",
+               instruction,
                check_current_state,
                G_swap_ctx.state);
         return UNEXPECTED_INSTRUCTION;
@@ -164,6 +175,13 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
 
     // Get instruction and ensure it makes sense in the current context
     uint8_t instruction = apdu[OFFSET_INS];
+    // CHECK_ASSET_IN_LEGACY shares the same value as CHECK_PAYOUT_ADDRESS which is inconvenient
+    // Replace this with the new CHECK_ASSET_IN for legacy flows.
+    // New flows must use CHECK_ASSET_IN directly.
+    if (instruction == CHECK_ASSET_IN_LEGACY && (subcommand == SELL || subcommand == FUND)) {
+        PRINTF("Replacing legacy value for CHECK_ASSET_IN instruction\n");
+        instruction = CHECK_ASSET_IN;
+    }
     uint16_t err = check_instruction(instruction, subcommand);
     if (err != 0) {
         return err;
@@ -240,7 +258,7 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
         // Reply a blank success to indicate that we await the followup part
         // Do NOT update any kind of internal state machine, we have not validated what we have
         // received
-        PRINTF("Split APDU successfully initiated, size %d\n", G_received_apdu.data_length);
+        PRINTF("Split APDU reception in progress, current size %d\n", G_received_apdu.data_length);
         return SUCCESS;
     } else {
         // The APDU is valid and complete, signal caller that it can proceed
@@ -248,6 +266,8 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
         command->rate = G_received_apdu.rate;
         command->subcommand = G_received_apdu.subcommand;
         command->data.size = G_received_apdu.data_length;
+        // Reset chunks reception
+        G_received_apdu.expecting_more = false;
         if (is_whole_apdu) {
             // No split has taken place, data is still in the APDU reception buffer
             command->data.bytes = apdu + OFFSET_CDATA;
