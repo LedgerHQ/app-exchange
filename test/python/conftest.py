@@ -26,6 +26,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "bsc": "Binance Smart Chain",
     "DOT": "Polkadot",
     "tron": "Tron",
+    "near": "NEAR",
 }
 
 configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"

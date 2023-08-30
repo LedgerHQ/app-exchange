@@ -6,5 +6,6 @@ xrpl-py
 scalecodec
 bip32
 embit
+py-near
 --extra-index-url https://test.pypi.org/simple/
 ledger_app_clients.ethereum
