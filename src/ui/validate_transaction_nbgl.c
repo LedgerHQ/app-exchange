@@ -111,11 +111,11 @@ static nbgl_pageInfoLongPress_t info_long_press;
 static void continue_review(void) {
     uint8_t index = 0;
 
-    if (G_swap_ctx.subcommand == SELL) {
+    if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
         pairs[index].item = "Email";
         pairs[index].value = G_swap_ctx.sell_transaction.trader_email;
         index++;
-    } else if (G_swap_ctx.subcommand == FUND) {
+    } else if (G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) {
         pairs[index].item = "User";
         pairs[index].value = G_swap_ctx.fund_transaction.user_id;
         index++;
@@ -125,7 +125,7 @@ static void continue_review(void) {
     pairs[index].value = G_swap_ctx.printable_send_amount;
     index++;
 
-    if (G_swap_ctx.subcommand == FUND) {
+    if (G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) {
         pairs[index].item = G_swap_ctx.partner.prefixed_name;
         pairs[index].value = G_swap_ctx.printable_get_amount;
         index++;
@@ -165,18 +165,21 @@ void ui_validate_amounts(void) {
     const char *p4;
     switch (G_swap_ctx.subcommand) {
         case SWAP:
-            dyn_string_1 = G_swap_ctx.received_transaction.currency_from;
-            dyn_string_2 = G_swap_ctx.received_transaction.currency_to;
+        case SWAP_NG:
+            dyn_string_1 = G_swap_ctx.swap_transaction.currency_from;
+            dyn_string_2 = G_swap_ctx.swap_transaction.currency_to;
             p3 = REVIEW_P3_SWAP;
             p4 = REVIEW_P4_SWAP;
             break;
         case SELL:
+        case SELL_NG:
             dyn_string_1 = G_swap_ctx.sell_transaction.in_currency;
             dyn_string_2 = G_swap_ctx.sell_transaction.out_currency;
             p3 = REVIEW_P3_SELL;
             p4 = REVIEW_P4_SELL;
             break;
         case FUND:
+        case FUND_NG:
             dyn_string_1 = "";
             dyn_string_2 = G_swap_ctx.fund_transaction.in_currency;
             p3 = REVIEW_P3_FUND;
@@ -185,7 +188,8 @@ void ui_validate_amounts(void) {
     }
 
     // Detect if we shoud display on 2 or 3 lines.
-    if (G_swap_ctx.subcommand == FUND || strlen(dyn_string_1) + strlen(dyn_string_2) >= 10) {
+    if ((G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) ||
+        (strlen(dyn_string_1) + strlen(dyn_string_2) >= 10)) {
         PRINTF("Review title and confirm on 3 lines\n");
         // Move the "to" to the second line with the operation
         delimitor_1 = '\n';
