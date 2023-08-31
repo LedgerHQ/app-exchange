@@ -97,7 +97,6 @@ jobs:
       flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} DEBUG=1"
       upload_app_binaries_artifact: libraries_binaries
       upload_as_lib_artifact: ${{ matrix.coin.name }}
-      run_for_devices: '["nanos", "nanox", "nanosp"]'
 
   build_exchange_application:
     name: Build application using the reusable workflow
@@ -107,7 +106,6 @@ jobs:
       app_branch_name: ${{ inputs.branch_for_exchange }}
       flags: "TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1"
       upload_app_binaries_artifact: exchange_binaries
-      run_for_devices: '["nanos", "nanox", "nanosp"]'
 
   ragger_tests:
     name: Run ragger tests using the reusable workflow
@@ -122,7 +120,6 @@ jobs:
       lib_binaries_artifact: libraries_binaries
       test_dir: test/python
       test_filter: ${{ inputs.test_filter }}
-      run_for_devices: '["nanos", "nanox", "nanosp"]'
 
   # Legacy
   zemu_tests:
