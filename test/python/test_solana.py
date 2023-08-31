@@ -47,6 +47,8 @@ class SolanaTests(ExchangeTestRunner):
 
 
 # Use a class to reuse the same Speculos instance
-@pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_FEES)
-def test_solana(backend, exchange_navigation_helper, test_to_run):
-    SolanaTests(backend, exchange_navigation_helper).run_test(test_to_run)
+class TestsSolana:
+
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_FEES)
+    def test_solana(self, backend, exchange_navigation_helper, test_to_run):
+        SolanaTests(backend, exchange_navigation_helper).run_test(test_to_run)
