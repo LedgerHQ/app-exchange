@@ -218,6 +218,7 @@ def test_currency_normalization_fund(backend, exchange_navigation_helper):
     for conf in currency_conf_to_test:
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.FUND)
         transaction_id = ex.init_transaction().data
+        backend.wait_for_home_screen()
         ex.set_partner_key(partner.credentials)
         ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
         tx = craft_tx(SubCommand.FUND, tx_infos, transaction_id)
@@ -255,6 +256,7 @@ class TestAliasAppname:
         for conf in bsc_conf, bsc_conf_alias_1, bsc_conf_alias_2:
             ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
             transaction_id = ex.init_transaction().data
+            backend.wait_for_home_screen()
             ex.set_partner_key(partner.credentials)
             ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
             tx = craft_tx(SubCommand.SWAP, tx_infos, transaction_id)

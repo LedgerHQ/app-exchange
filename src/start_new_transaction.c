@@ -4,11 +4,18 @@
 #include "init.h"
 #include "io.h"
 #include "globals.h"
+#include "menu.h"
 
 int start_new_transaction(const command_t *cmd) {
     // prepare size for device_transaction_id + 0x9000
     uint8_t output_buffer[sizeof(G_swap_ctx.device_transaction_id) + 2];
     size_t output_buffer_size = 0;
+
+    // Force a UI reset if we are currently displaying a modal
+    if (G_swap_ctx.state == WAITING_SIGNING) {
+        PRINTF("Dismissing the modal and forcing the main menu\n");
+        ui_idle();
+    }
 
     if (init_application_context() != 0) {
         PRINTF("Error: init_application_context failed\n");
