@@ -27,6 +27,7 @@
 #include "apdu_offsets.h"
 #include "swap_errors.h"
 #include "apdu_parser.h"
+#include "validate_transaction.h"
 
 #include "usbd_core.h"
 
@@ -87,18 +88,41 @@ void app_exit(void) {
     END_TRY_L(exit);
 }
 
+// On Stax, remember some data from the previous cycle if applicable to display a status screen
+#ifdef HAVE_NBGL
+previous_cycle_data_t G_previous_cycle_data;
+#endif
+
 __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
     // exit critical section
     __asm volatile("cpsie i");
+
+#ifdef HAVE_NBGL
+    G_previous_cycle_data.had_previous_cycle = false;
+#endif
 
     // ensure exception will work as planned
     os_boot();
 
     for (;;) {
-        // Fully reset the global space, as it may be corrupted if we come back from an app started
-        // for signing
-        PRINTF("Exchange new cycle, reset BSS\n");
-        os_explicit_zero_BSS_segment();
+        // If we are back from a lib app in signing mode, clean our BSS
+        if (G_swap_ctx.state == SIGN_FINISHED) {
+#ifdef HAVE_NBGL
+            G_previous_cycle_data.had_previous_cycle = true;
+            // We have saved some data for the status screen in the BSS
+            // Let's avoid them being erased by doing a stack save
+            previous_cycle_data_t tmp_previous_cycle_data;
+            memcpy(&tmp_previous_cycle_data, &G_previous_cycle_data, sizeof(G_previous_cycle_data));
+#endif
+
+            // Fully reset the global space, as it is was corrupted by the signing app
+            PRINTF("Exchange new cycle, reset BSS\n");
+            os_explicit_zero_BSS_segment();
+
+#ifdef HAVE_NBGL
+            memcpy(&G_previous_cycle_data, &tmp_previous_cycle_data, sizeof(G_previous_cycle_data));
+#endif
+        }
 
         UX_INIT();
 
@@ -114,11 +138,30 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 USB_power(0);
                 USB_power(1);
 
+#ifdef HAVE_NBGL
+                // If last cycle had signing related activities,
+                // display it before displaying the main menu.
+                // We can't do it earlier because :
+                //  - we need to shadow the ui_idle() call
+                //  - we need a BSS reset + UX_INIT
+                if (G_previous_cycle_data.had_previous_cycle) {
+                    G_previous_cycle_data.had_previous_cycle = false;
+                    if (G_previous_cycle_data.was_successful) {
+                        display_signing_success();
+                    } else {
+                        display_signing_failure(G_previous_cycle_data.appname_last_cycle);
+                    }
+                } else {
+                    ui_idle();
+                }
+#else  // HAVE_BAGL
+       // No "Ledger Moment" modal, sad
                 ui_idle();
+#endif
 
 #ifdef HAVE_BLE
                 BLE_power(0, NULL);
-                BLE_power(1, "Nano X");
+                BLE_power(1, NULL);
 #endif
 
                 app_main();

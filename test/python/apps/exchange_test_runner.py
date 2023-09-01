@@ -10,7 +10,7 @@ from .exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx
 from . import cal as cal
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
-from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes
+from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, get_version_from_makefile
 
 # When adding a new test, have it prefixed by this string in order to have it automatically parametrized for currencies tests
 TEST_METHOD_PREFIX="perform_test_"
@@ -109,8 +109,12 @@ class ExchangeTestRunner:
                 else:
                     pass
 
+        self.exchange_navigation_helper.wait_for_exchange_spinner()
+
         # Ask exchange to start the library application to sign the actual outgoing transaction
         ex.start_signing_transaction()
+
+        self.exchange_navigation_helper.wait_for_library_spinner()
 
     def perform_valid_swap_from_custom(self, destination, send_amount, fees, memo, refund_address=None, refund_memo=None, ui_validation=True, legacy=False):
         refund_address = self.valid_refund if refund_address is None else refund_address
@@ -180,7 +184,16 @@ class ExchangeTestRunner:
         except Exception as e:
             raise e
         finally:
+            self.exchange_navigation_helper.check_post_sign_display()
             handle_lib_call_start_or_stop(self.backend)
+
+    def assert_exchange_is_started(self):
+        # We don't care at all for the subcommand / rate
+        version = ExchangeClient(self.backend, Rate.FIXED, SubCommand.SWAP_NG).get_version().data
+        major, minor, patch = get_version_from_makefile()
+        assert version[0] == major
+        assert version[1] == minor
+        assert version[2] == patch
 
     #########################################################
     # Generic SWAP tests functions, call them in your tests #
@@ -209,19 +222,13 @@ class ExchangeTestRunner:
     def perform_test_swap_valid_1(self, legacy):
         self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, legacy=legacy)
         self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
+        self.assert_exchange_is_started()
 
     # The second standard swap, using alternate default values, user accepts on UI
     def perform_test_swap_valid_2(self, legacy):
         self.perform_valid_swap_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, self.valid_destination_memo_2, legacy=legacy)
         self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, self.valid_destination_memo_2)
-
-    # Make a valid swap and then ask a second signature
-    def perform_test_swap_refuse_double_sign(self, legacy):
-        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, legacy=legacy)
-        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
-        assert e.value.status != 0x9000
+        self.assert_exchange_is_started()
 
     # Test swap with a malicious TX with tampered fees
     def perform_test_swap_wrong_fees(self, legacy):
@@ -230,6 +237,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, self.valid_destination_memo_1)
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     # Test swap with a malicious TX with tampered memo
     def perform_test_swap_wrong_memo(self, legacy):
@@ -238,6 +246,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_2)
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     # Test swap with a malicious TX with tampered destination
     def perform_test_swap_wrong_destination(self, legacy):
@@ -246,6 +255,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     # Test swap with a malicious TX with tampered amount
     def perform_test_swap_wrong_amount(self, legacy):
@@ -254,6 +264,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, self.valid_destination_memo_1)
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     #########################################################
     # Generic FUND tests functions, call them in your tests #
@@ -263,19 +274,13 @@ class ExchangeTestRunner:
     def perform_test_fund_valid_1(self, legacy):
         self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, legacy=legacy)
         self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
+        self.assert_exchange_is_started()
 
     # The second standard fund, using alternate default values, user accepts on UI
     def perform_test_fund_valid_2(self, legacy):
         self.perform_valid_fund_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, legacy=legacy)
         self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
-
-    # Make a valid fund and then ask a second signature
-    def perform_test_fund_refuse_double_sign(self, legacy):
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, legacy=legacy)
-        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-        assert e.value.status != 0x9000
+        self.assert_exchange_is_started()
 
     # Test fund with a malicious TX with tampered fees
     def perform_test_fund_wrong_fees(self, legacy):
@@ -284,6 +289,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, "")
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     # Test fund with a malicious TX with tampered memo
     def perform_test_fund_wrong_memo(self, legacy):
@@ -291,6 +297,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "no memo expected")
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     # Test fund with a malicious TX with tampered destination
     def perform_test_fund_wrong_destination(self, legacy):
@@ -299,6 +306,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, "")
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     # Test fund with a malicious TX with tampered amount
     def perform_test_fund_wrong_amount(self, legacy):
@@ -307,6 +315,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     #########################################################
     # Generic SELL tests functions, call them in your tests #
@@ -316,19 +325,13 @@ class ExchangeTestRunner:
     def perform_test_sell_valid_1(self, legacy):
         self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, legacy=legacy)
         self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
+        self.assert_exchange_is_started()
 
     # The second standard sell, using alternate default values, user accepts on UI
     def perform_test_sell_valid_2(self, legacy):
         self.perform_valid_sell_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, legacy=legacy)
         self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
-
-    # Make a valid sell and then ask a second signature
-    def perform_test_sell_refuse_double_sign(self, legacy):
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, legacy=legacy)
-        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-        assert e.value.status != 0x9000
+        self.assert_exchange_is_started()
 
     # Test sell with a malicious TX with tampered fees
     def perform_test_sell_wrong_fees(self, legacy):
@@ -337,6 +340,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, "")
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     # Test sell with a malicious TX with tampered memo
     def perform_test_sell_wrong_memo(self, legacy):
@@ -344,6 +348,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "no memo expected")
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     # Test sell with a malicious TX with tampered destination
     def perform_test_sell_wrong_destination(self, legacy):
@@ -352,6 +357,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, "")
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
     # Test sell with a malicious TX with tampered amount
     def perform_test_sell_wrong_amount(self, legacy):
@@ -360,6 +366,7 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
         assert e.value.status == self.signature_refusal_error_code
+        self.assert_exchange_is_started()
 
 # Automatically collect all tests functions and export their name in ready-to-be-parametrized lists
 _all_test_methods_prefixed = [method for method in dir(ExchangeTestRunner) if method.startswith(TEST_METHOD_PREFIX)]

@@ -40,3 +40,13 @@ pytest_plugins = ("ragger.conftest.base_conftest", )
 @pytest.fixture(scope="function")
 def exchange_navigation_helper(backend, navigator, test_name):
     return ExchangeNavigationHelper(backend=backend, navigator=navigator, test_name=test_name)
+
+# Pytest is trying to do "smart" stuff and reorders tests using parametrize by alphabetical order of parameter
+# This breaks the backend scope optim. We disable this
+def pytest_collection_modifyitems(config, items):
+    def param_part(item):
+        # Sort by node id as usual
+        return item.nodeid
+
+    # re-order the items using the param_part function as key
+    items[:] = sorted(items, key=param_part)

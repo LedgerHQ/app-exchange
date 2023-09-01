@@ -4,8 +4,6 @@
 #include "io.h"
 
 int start_signing_transaction(const command_t *cmd) {
-    int ret = 0;
-
     // Inform the caller that we will call the lib app
     if (instant_reply_success() < 0) {
         PRINTF("Error: failed to send\n");
@@ -51,9 +49,9 @@ int start_signing_transaction(const command_t *cmd) {
         lib_in_out_params.destination_address_extra_id = G_swap_ctx.fund_transaction_extra_id;
     }
 
-    ret = create_payin_transaction(G_swap_ctx.payin_binary_name, &lib_in_out_params);
-    // Write G_swap_ctx.state AFTER coming back to exchange to avoid erasure by the app
+    create_payin_transaction(&lib_in_out_params);
     G_swap_ctx.state = SIGN_FINISHED;
 
-    return ret;
+    // The called app refusing to sign is NOT an handler error, we report a success
+    return 0;
 }

@@ -44,15 +44,8 @@ class TezosTests(ExchangeTestRunner):
 
 
 # Use a class to reuse the same Speculos instance
-# class TestsTezos:
-# TODO: Restore the class after the return in exchange in Tezos is merged
+class TestsTezos:
 
-@pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
-def test_tezos(backend, exchange_navigation_helper, test_to_run):
-    if "double_sign" in test_to_run:
-        # The double_sign protection in Tezos quits after the first send which breaks the generic TestRunner
-        # TODO: Remove this special handling after the return in exchange in Tezos is merged
-        with pytest.raises((ChunkedEncodingError, ConnectionError, ProtocolError, IncompleteRead)):
-            TezosTests(backend, exchange_navigation_helper).run_test(test_to_run)
-    else:
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+    def test_tezos(self, backend, exchange_navigation_helper, test_to_run):
         TezosTests(backend, exchange_navigation_helper).run_test(test_to_run)
