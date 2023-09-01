@@ -153,7 +153,11 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
 
 #ifdef HAVE_NBGL
     // Retrieve the appname from the stack and put it back in the BSS
-    strlcpy(G_swap_ctx.payin_binary_name, appanme, sizeof(G_swap_ctx.payin_binary_name));
+    strlcpy(G_previous_cycle_data.appname_last_cycle,
+            appanme,
+            sizeof(G_previous_cycle_data.appname_last_cycle));
+    // Remember if this sign was successful
+    G_previous_cycle_data.was_successful = (lib_in_out_params->result == 1);
 #endif
 
     return lib_in_out_params->result;
