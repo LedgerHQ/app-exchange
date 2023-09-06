@@ -5,70 +5,70 @@ on:
     inputs:
       branch_for_exchange:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
 
       branch_for_stellar:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_stellar:
         required: false
-        default: 'LedgerHQ/app-stellar'
+        default: "LedgerHQ/app-stellar"
         type: string
 
       branch_for_tezos:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_tezos:
         required: false
-        default: 'LedgerHQ/app-tezos'
+        default: "LedgerHQ/app-tezos"
         type: string
 
       branch_for_xrp:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_xrp:
         required: false
-        default: 'LedgerHQ/app-xrp'
+        default: "LedgerHQ/app-xrp"
         type: string
 
       branch_for_ethereum:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_ethereum:
         required: false
-        default: 'LedgerHQ/app-ethereum'
+        default: "LedgerHQ/app-ethereum"
         type: string
 
       branch_for_bitcoin_legacy:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_bitcoin_legacy:
         required: false
-        default: 'LedgerHQ/app-bitcoin'
+        default: "LedgerHQ/app-bitcoin"
         type: string
 
       branch_for_bitcoin:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       branch_for_bitcoin_nanos:
         required: false
-        default: 'nanos'
+        default: "nanos"
         type: string
       repo_for_bitcoin:
         required: false
-        default: 'LedgerHQ/app-bitcoin-new'
+        default: "LedgerHQ/app-bitcoin-new"
         type: string
 
       branch_for_solana:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       branch_for_solana_nanos:
         required: false
@@ -76,7 +76,7 @@ on:
         type: string
       repo_for_solana:
         required: false
-        default: 'LedgerHQ/app-solana'
+        default: "LedgerHQ/app-solana"
         type: string
 
       branch_for_polkadot:
@@ -85,16 +85,21 @@ on:
         type: string
       repo_for_polkadot:
         required: false
-        default: 'LedgerHQ/app-polkadot'
+        default: "LedgerHQ/app-polkadot"
         type: string
 
       branch_for_tron:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_tron:
         required: false
-        default: 'LedgerHQ/app-tron'
+        default: "LedgerHQ/app-tron"
+        type: string
+
+      branch_for_near:
+        required: false
+        default: "develop"
         type: string
 
       branch_for_ton:
@@ -120,7 +125,7 @@ on:
         default: '""'
         type: string
       regenerate_snapshots:
-        description: 'Clean snapshots, regenerate them, commit the changes in a branch, and open a PR'
+        description: "Clean snapshots, regenerate them, commit the changes in a branch, and open a PR"
         required: false
         default: false
         type: boolean
@@ -177,6 +182,9 @@ jobs:
         - name: cardano
           repo: ${{ inputs.repo_for_cardano }}
           branch: ${{ inputs.branch_for_cardano }}
+        - name: near
+          repo: app-near
+          branch: ${{ inputs.branch_for_near }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
