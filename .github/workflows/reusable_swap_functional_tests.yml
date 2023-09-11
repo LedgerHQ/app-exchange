@@ -19,6 +19,10 @@ on:
         required: false
         default: 'develop'
         type: string
+      branch_for_tezos:
+        required: false
+        default: 'main'
+        type: string
       branch_for_xrp:
         required: false
         default: 'develop'
@@ -76,6 +80,10 @@ jobs:
           repo: LedgerHQ/app-tezos
           branch: ${{ inputs.branch_for_tezos_legacy }}
           relative_app_directory: '.'
+        - name: tezos_new
+          repo: trilitech/ledger-app-tezos-wallet
+          branch: ${{ inputs.branch_for_tezos }}
+          relative_app_directory: 'app'
         - name: xrp
           repo: LedgerHQ/app-xrp
           branch: ${{ inputs.branch_for_xrp }}
