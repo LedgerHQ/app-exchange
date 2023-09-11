@@ -60,49 +60,49 @@ jobs:
       matrix:
         coin:
         - name: stellar
-          repo: app-stellar
+          repo: LedgerHQ/app-stellar
           branch: ${{ inputs.branch_for_stellar }}
           relative_app_directory: '.'
         - name: tezos_legacy
-          repo: app-tezos
+          repo: LedgerHQ/app-tezos
           branch: ${{ inputs.branch_for_tezos_legacy }}
           relative_app_directory: '.'
         - name: xrp
-          repo: app-xrp
+          repo: LedgerHQ/app-xrp
           branch: ${{ inputs.branch_for_xrp }}
           relative_app_directory: '.'
         - name: ethereum
-          repo: app-ethereum
+          repo: LedgerHQ/app-ethereum
           branch: ${{ inputs.branch_for_ethereum }}
           relative_app_directory: '.'
         - name: ethereum_classic
-          repo: app-ethereum
+          repo: LedgerHQ/app-ethereum
           branch: ${{ inputs.branch_for_ethereum_classic }}
           relative_app_directory: '.'
         - name: litecoin
-          repo: app-bitcoin
+          repo: LedgerHQ/app-bitcoin
           branch: ${{ inputs.branch_for_litecoin }}
           relative_app_directory: '.'
         - name: bitcoin_legacy
-          repo: app-bitcoin
+          repo: LedgerHQ/app-bitcoin
           branch: ${{ inputs.branch_for_bitcoin_legacy }}
           relative_app_directory: '.'
         - name: bitcoin
-          repo: app-bitcoin-new
+          repo: LedgerHQ/app-bitcoin-new
           branch: ${{ inputs.branch_for_bitcoin }}
           relative_app_directory: '.'
         - name: solana
-          repo: app-solana
+          repo: LedgerHQ/app-solana
           branch: ${{ inputs.branch_for_solana }}
           relative_app_directory: '.'
         - name: bsc
-          repo: app-ethereum
+          repo: LedgerHQ/app-ethereum
           branch: ${{ inputs.branch_for_bsc }}
           relative_app_directory: '.'
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
-      app_repository: LedgerHQ/${{ matrix.coin.repo }}
+      app_repository: ${{ matrix.coin.repo }}
       app_branch_name: ${{ matrix.coin.branch }}
       relative_app_directory: ${{ matrix.coin.relative_app_directory }}
       flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} DEBUG=1"
