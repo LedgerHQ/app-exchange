@@ -62,38 +62,49 @@ jobs:
         - name: stellar
           repo: app-stellar
           branch: ${{ inputs.branch_for_stellar }}
+          relative_app_directory: '.'
         - name: tezos_legacy
           repo: app-tezos
           branch: ${{ inputs.branch_for_tezos_legacy }}
+          relative_app_directory: '.'
         - name: xrp
           repo: app-xrp
           branch: ${{ inputs.branch_for_xrp }}
+          relative_app_directory: '.'
         - name: ethereum
           repo: app-ethereum
           branch: ${{ inputs.branch_for_ethereum }}
+          relative_app_directory: '.'
         - name: ethereum_classic
           repo: app-ethereum
           branch: ${{ inputs.branch_for_ethereum_classic }}
+          relative_app_directory: '.'
         - name: litecoin
           repo: app-bitcoin
           branch: ${{ inputs.branch_for_litecoin }}
+          relative_app_directory: '.'
         - name: bitcoin_legacy
           repo: app-bitcoin
           branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          relative_app_directory: '.'
         - name: bitcoin
           repo: app-bitcoin-new
           branch: ${{ inputs.branch_for_bitcoin }}
+          relative_app_directory: '.'
         - name: solana
           repo: app-solana
           branch: ${{ inputs.branch_for_solana }}
+          relative_app_directory: '.'
         - name: bsc
           repo: app-ethereum
           branch: ${{ inputs.branch_for_bsc }}
+          relative_app_directory: '.'
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
       app_repository: LedgerHQ/${{ matrix.coin.repo }}
-      app_branch_name: ${{  matrix.coin.branch }}
+      app_branch_name: ${{ matrix.coin.branch }}
+      relative_app_directory: ${{ matrix.coin.relative_app_directory }}
       flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} DEBUG=1"
       upload_app_binaries_artifact: libraries_binaries
       upload_as_lib_artifact: ${{ matrix.coin.name }}
