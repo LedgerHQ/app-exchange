@@ -57,9 +57,9 @@ litecoin_nanox.elf
 stellar_nanos.elf
 stellar_nanosp.elf
 stellar_nanox.elf
-tezos_nanos.elf
-tezos_nanosp.elf
-tezos_nanox.elf
+tezos_legacy_nanos.elf
+tezos_legacy_nanosp.elf
+tezos_legacy_nanox.elf
 xrp_nanos.elf
 xrp_nanosp.elf
 xrp_nanox.elf

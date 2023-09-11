@@ -18,7 +18,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "bitcoin_legacy": "Bitcoin Legacy",
     "ethereum": "Ethereum",
     "ethereum_classic": "Ethereum Classic",
-    "tezos": "Tezos Wallet",
+    "tezos_legacy": "Tezos Wallet",
     "xrp": "XRP",
     "litecoin": "Litecoin",
     "stellar": "Stellar",

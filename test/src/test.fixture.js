@@ -39,7 +39,7 @@ const SIDELOADED_APPLICATIONS = {
     'litecoin': 'Litecoin',
     'stellar': 'Stellar',
     'xrp': 'XRP',
-    'tezos': '"Tezos Wallet"'
+    'tezos_legacy': '"Tezos Wallet"'
 };
 
 function get_applications(nano_variant: string) {

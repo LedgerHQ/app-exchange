@@ -1,7 +1,7 @@
 import pytest
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
-from .apps.tezos import TezosClient, encode_address, XTZ_PACKED_DERIVATION_PATH, StatusCode
+from .apps.tezos_legacy import TezosClient, encode_address, XTZ_PACKED_DERIVATION_PATH, StatusCode
 
 from requests.exceptions import ChunkedEncodingError, ConnectionError
 from urllib3.exceptions import ProtocolError
@@ -14,7 +14,7 @@ TEZOS_ADDRESS_DECODER = {
 }
 
 # ExchangeTestRunner implementation for Stellar
-class TezosTests(ExchangeTestRunner):
+class TezosLegacyTests(ExchangeTestRunner):
     currency_ticker = "XTZ"
     valid_destination_1 = encode_address("e6330795ffe18f873b83cb13662442b87bd98c22")
     valid_destination_memo_1 = ""
@@ -44,8 +44,8 @@ class TezosTests(ExchangeTestRunner):
 
 
 # Use a class to reuse the same Speculos instance
-class TestsTezos:
+class TestsTezosLegacy:
 
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
-    def test_tezos(self, backend, exchange_navigation_helper, test_to_run):
-        TezosTests(backend, exchange_navigation_helper).run_test(test_to_run)
+    def test_tezos_legacy(self, backend, exchange_navigation_helper, test_to_run):
+        TezosLegacyTests(backend, exchange_navigation_helper).run_test(test_to_run)
