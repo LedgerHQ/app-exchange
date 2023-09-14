@@ -51,6 +51,11 @@ on:
         required: false
         default: 'develop'
         type: string
+      run_for_devices:
+        description: 'The list of device(s) on which the test will run (defaults to ["nanos", "nanox", "nanosp", "stax"])'
+        required: false
+        default: '["nanos", "nanox", "nanosp", "stax"]'
+        type: string
       test_filter:
         required: false
         default: '""'
@@ -134,6 +139,7 @@ jobs:
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
       test_dir: test/python
+      run_for_devices: ${{ inputs.run_for_devices }}
       test_filter: ${{ inputs.test_filter }}
 
   # Legacy
