@@ -21,6 +21,9 @@ cp test/python/lib_binaries/stellar_nanox.elf test/elfs/stellar_nanox.elf
 cp test/python/lib_binaries/tezos_legacy_nanos.elf test/elfs/tezos_legacy_nanos.elf
 cp test/python/lib_binaries/tezos_legacy_nanos2.elf test/elfs/tezos_legacy_nanosp.elf
 cp test/python/lib_binaries/tezos_legacy_nanox.elf test/elfs/tezos_legacy_nanox.elf
+cp test/python/lib_binaries/tezos_new_nanos.elf test/elfs/tezos_new_nanos.elf
+cp test/python/lib_binaries/tezos_new_nanos2.elf test/elfs/tezos_new_nanosp.elf
+cp test/python/lib_binaries/tezos_new_nanox.elf test/elfs/tezos_new_nanox.elf
 cp test/python/lib_binaries/xrp_nanos.elf test/elfs/xrp_nanos.elf
 cp test/python/lib_binaries/xrp_nanos2.elf test/elfs/xrp_nanosp.elf
 cp test/python/lib_binaries/xrp_nanox.elf test/elfs/xrp_nanox.elf

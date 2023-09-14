@@ -96,6 +96,63 @@ class CONTRACT_TYPE(IntEnum):
     IMPLICIT = 0x00
     ORIGINATED = 0x01
 
+def zeros_bytes(size: int) -> bytes:
+    zero = bytes.fromhex("00")
+    result = b""
+    for i in range(size):
+        result += zero
+    return result
+
+def encode_address(blake2_hashed_pubkey: str) -> bytes:
+    P2HASH_MAGIC = bytes.fromhex('06a19f')
+    blake2bhash = bytes.fromhex(blake2_hashed_pubkey)
+    shabytes = sha256(sha256(P2HASH_MAGIC + blake2bhash).digest()).digest()[:4]
+    pkhash = b58encode(P2HASH_MAGIC + blake2bhash + shabytes).decode()
+    return pkhash
+
+def blake2_hash_pubkey(pubkey: bytes) -> bytes:
+    return blake2b(pubkey, digest_size=HASH_SIZE).digest()
+
+def pkh_to_bytes(pkh: bytes, signature_type: SIGNATURE_TYPE) -> bytes:
+
+    result = b""
+
+    result += signature_type.to_bytes(1, byteorder='big')
+    result += pkh
+
+    return result
+
+def contract_to_bytes(contract: str, contract_type: CONTRACT_TYPE) -> bytes:
+
+    result = b""
+
+    result += contract_type.to_bytes(1, byteorder='big')
+    if contract_type == CONTRACT_TYPE.IMPLICIT:
+        result += zeros_bytes(1) # need one padding
+    result += bytes.fromhex(contract)
+
+    return result
+
+# Weird Tezos formating used for values:
+# Values are packed on the 7 week bits of each byte
+# The strongest bit is set to true if the value is over
+# Example with format(300):
+# First byte is  ((300 >> 0) & 0x7F) | 0x80
+# Second byte is ((300 >> 7) & 0x7F)
+def tezos_format_z_pack(value: int) -> bytes:
+    if value == 0:
+        return int.to_bytes(0, length=1, byteorder='big')
+
+    ret = b""
+    current_offset = 0
+    while (value >> current_offset) != 0:
+        current_value = ((value >> current_offset) & 0x7F)
+        current_offset += 7
+        if (value >> current_offset) != 0:
+            current_value |= 0x80
+        ret += int.to_bytes(current_value, length=1, byteorder='big')
+    return ret
+
 
 class TezosClient:
 
@@ -150,4 +207,42 @@ class TezosClient:
 
         rapdu = self._backend.last_async_response
         assert rapdu is not None
+        return rapdu
+
+    # Simple TX used for Exchange tests
+    def _craft_simple_tx(self,
+                         source: bytes,
+                         source_signature_type: SIGNATURE_TYPE,
+                         fee: int,
+                         destination: str,
+                         amount: int) -> bytes:
+
+        payload = b""
+
+        payload += MAGIC_BYTE.OPERATION.to_bytes(1, byteorder='big')
+        payload += zeros_bytes(32) # block hash, ignored
+        payload += OPERATION_TAG.TRANSACTION.to_bytes(1, byteorder='big')
+        payload += pkh_to_bytes(blake2_hash_pubkey(source), source_signature_type)
+        payload += tezos_format_z_pack(fee)
+        payload += zeros_bytes(1) # counter = 0
+        payload += zeros_bytes(1) # gas limit = 0
+        payload += zeros_bytes(1) # storage limit = 0
+        payload += tezos_format_z_pack(amount)
+        payload += contract_to_bytes(destination, CONTRACT_TYPE.IMPLICIT)
+        payload += zeros_bytes(1) # parameters = none
+
+        return payload
+
+    def send_simple_sign_tx(self, fee: int, destination: str, amount: int) -> RAPDU:
+
+        rapdu = self.get_public_key()
+        if rapdu.status != StatusCode.STATUS_OK:
+                return rapdu
+
+        response_len, _, source = struct.unpack('<BB32s', rapdu.data)
+        assert response_len == len(rapdu.data) - 1
+
+        # Perform the actual signing
+        tx = self._craft_simple_tx(source, self.signature_type, fee, destination, amount)
+        rapdu = self.sign_message(message=tx)
         return rapdu
