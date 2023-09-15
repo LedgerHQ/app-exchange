@@ -5,7 +5,8 @@ from typing import List, Generator
 from contextlib import contextmanager
 from hashlib import blake2b, sha256
 from base58 import b58encode
-from .exchange_navigation_helper import ExchangeNavigationHelper
+from pathlib import Path
+from .exchange_navigation_helper import ExchangeNavigationHelper, ROOT_SCREENSHOT_PATH
 
 from ragger.navigator import Navigator, NavIns, NavInsID
 from ragger.backend.interface import BackendInterface, RAPDU
@@ -190,6 +191,7 @@ class TezosClient:
             return first_rapdu
 
         with self._exchange_async(ins, index=INDEX.LAST, payload=message):
+            snapshots_dir_name = self._exchange_navigation_helper.snapshots_dir_name + "/signing"
             validation_instructions : list[NavIns | NavInsID] = []
             if self._backend.firmware.is_nano:
                 navigate_instruction = NavInsID.RIGHT_CLICK
@@ -200,10 +202,12 @@ class TezosClient:
             text="Accept"
             self._exchange_navigation_helper.\
                 _navigator.\
-                navigate_until_text(navigate_instruction,
-                                    validation_instructions,
-                                    text,
-                                    screen_change_before_first_instruction=False)
+                navigate_until_text_and_compare(navigate_instruction,
+                                                validation_instructions,
+                                                text,
+                                                path=ROOT_SCREENSHOT_PATH,
+                                                test_case_name=Path(snapshots_dir_name),
+                                                screen_change_before_first_instruction=False)
 
         rapdu = self._backend.last_async_response
         assert rapdu is not None
