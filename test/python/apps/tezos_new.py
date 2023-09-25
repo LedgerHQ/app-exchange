@@ -14,7 +14,7 @@ from ragger.bip import pack_derivation_path
 from ragger.utils import create_currency_config, RAPDU
 
 
-NTZ_CONF = create_currency_config("NTZ", "New Tezos Wallet", ("TZ", 6))
+NTZ_CONF = create_currency_config("NTZ", "Tezos Wallet", ("TZ", 6))
 
 NTZ_PACKED_DERIVATION_PATH = pack_derivation_path("m/44'/1729'/0'")
 
