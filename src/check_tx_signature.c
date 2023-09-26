@@ -68,13 +68,11 @@ int check_tx_signature(const command_t *cmd) {
     PRINTF("SHA256(payload): %.*H\n", sizeof(G_swap_ctx.sha256_digest), G_swap_ctx.sha256_digest);
 
     // Check the signature of the sha256_digest we computed from the tx payload
-    if (cx_ecdsa_verify(&G_swap_ctx.partner.public_key,
-                        CX_LAST,
-                        CX_SHA256,
-                        G_swap_ctx.sha256_digest,
-                        CURVE_SIZE_BYTES,
-                        signature.bytes,
-                        signature.size) == 0) {
+    if (cx_ecdsa_verify_no_throw(&G_swap_ctx.partner.public_key,
+                                 G_swap_ctx.sha256_digest,
+                                 CURVE_SIZE_BYTES,
+                                 signature.bytes,
+                                 signature.size) == 0) {
         PRINTF("Error: Failed to verify signature of received transaction\n");
         return reply_error(SIGN_VERIFICATION_FAIL);
     }

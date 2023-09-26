@@ -78,7 +78,10 @@ int get_printable_amount(buf_t *coin_config,
         PRINTF("Error: Printable amount should be null-terminated\n");
         return -1;
     }
-    strlcpy(printable_amount, lib_in_out_params.printable_amount, printable_amount_size);
+    if (strlcpy(printable_amount, lib_in_out_params.printable_amount, printable_amount_size) >= printable_amount_size) {
+        PRINTF("strlcpy failed, destination too short for printable_amount\n");
+
+    }
     PRINTF("Returned printable_amount '%s'\n", printable_amount);
 
     return 0;

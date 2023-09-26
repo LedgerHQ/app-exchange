@@ -118,7 +118,7 @@ static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand)
                               sizeof(decoded),
                               (const unsigned char *) payload.bytes,
                               payload.size);
-        if (n < 0) {
+        if (n <= 0) {
             PRINTF("Error: Can't decode SELL/FUND/NG transaction base64\n");
             return false;
         }
@@ -158,10 +158,16 @@ static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand)
 
 static bool check_transaction_id(subcommand_e subcommand) {
     if (subcommand == SWAP) {
+        if (G_swap_ctx.swap_transaction.device_transaction_id[10] != '\0') {
+            PRINTF("Received transaction id string '%.*H' is not 0 terminated\n",
+                   sizeof(G_swap_ctx.swap_transaction.device_transaction_id),
+                   G_swap_ctx.swap_transaction.device_transaction_id);
+            return false;
+        }
         if (memcmp(G_swap_ctx.device_transaction_id.swap,
                    G_swap_ctx.swap_transaction.device_transaction_id,
                    sizeof(G_swap_ctx.device_transaction_id.swap)) != 0) {
-            PRINTF("Error: Device transaction IDs don't match, expected %.*H, received %.*H\n",
+            PRINTF("Error: Device transaction IDs don't match, expected '%.*H', received '%.*H'\n",
                    sizeof(G_swap_ctx.device_transaction_id.swap),
                    G_swap_ctx.device_transaction_id.swap,
                    sizeof(G_swap_ctx.device_transaction_id.swap),
