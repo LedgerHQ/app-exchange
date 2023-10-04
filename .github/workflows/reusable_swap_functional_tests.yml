@@ -47,6 +47,10 @@ on:
         required: false
         default: 'develop'
         type: string
+      branch_for_polkadot:
+        required: false
+        default: 'develop'
+        type: string
       test_filter:
         required: false
         default: '""'
@@ -89,6 +93,9 @@ jobs:
         - name: bsc
           repo: app-ethereum
           branch: ${{ inputs.branch_for_bsc }}
+        - name: polkadot
+          repo: app-polkadot
+          branch: ${{ inputs.branch_for_polkadot }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
