@@ -5,6 +5,11 @@
 // Small wrapper around parse_to_sized_buffer as the DER signature encompasses the
 // first special byte and the size byte
 static bool parse_der_signature(uint8_t *in, uint16_t in_size, buf_t *der, uint16_t *offset) {
+    if (in_size < 3) {
+        PRINTF("DER signature too small, can't even read header\n");
+        return false;
+    }
+
     // Ignore first bytes 0x30
     ++*offset;
 
@@ -12,7 +17,8 @@ static bool parse_der_signature(uint8_t *in, uint16_t in_size, buf_t *der, uint1
     if (!parse_to_sized_buffer(in, in_size, 1, der, offset)) {
         return false;
     }
-    // Adapt buffer to encompass the full DER signature
+
+    // Adapt buffer to encompass the full DER signature (first 0x30 byte + length byte)
     der->size += 2;
     der->bytes = &der->bytes[-2];
     return true;

@@ -48,8 +48,11 @@ apdu_t G_received_apdu;
 
 // Dedicated function for instruction checking as it's self contained
 static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
+    // True if the instruction is part of a flow and the context must be checked
     bool check_subcommand_context = false;
+    // True if the instruction can be received between user approval and child lib start
     bool allowed_during_waiting_for_signing = false;
+    // {STATE} if this command is only accepted at a specific state, -1 otherwise
     int check_current_state = -1;
 
     if (instruction == CHECK_ASSET_IN && (subcommand == SWAP || subcommand == SWAP_NG)) {
@@ -59,6 +62,11 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
 
     if (instruction == CHECK_PAYOUT_ADDRESS && subcommand != SWAP && subcommand != SWAP_NG) {
         PRINTF("Instruction CHECK_PAYOUT_ADDRESS is only for SWAP based flows\n");
+        return INVALID_INSTRUCTION;
+    }
+
+    if (instruction == CHECK_REFUND_ADDRESS && subcommand != SWAP && subcommand != SWAP_NG) {
+        PRINTF("Instruction CHECK_REFUND_ADDRESS is only for SWAP based flows\n");
         return INVALID_INSTRUCTION;
     }
 

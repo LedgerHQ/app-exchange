@@ -133,7 +133,7 @@ static bool format_fiat_amount(void) {
         return false;
     }
 
-    strncpy(G_swap_ctx.printable_get_amount,
+    strlcpy(G_swap_ctx.printable_get_amount,
             G_swap_ctx.sell_transaction.out_currency,
             sizeof(G_swap_ctx.printable_get_amount));
     G_swap_ctx.printable_get_amount[len] = ' ';
@@ -153,7 +153,7 @@ static bool format_fiat_amount(void) {
 }
 
 static void format_account_name(void) {
-    strncpy(G_swap_ctx.account_name,
+    strlcpy(G_swap_ctx.account_name,
             G_swap_ctx.fund_transaction.account_name,
             sizeof(G_swap_ctx.account_name));
     G_swap_ctx.account_name[sizeof(G_swap_ctx.account_name) - 1] = '\x00';
@@ -191,10 +191,11 @@ int check_addresses_and_amounts(const command_t *cmd) {
     }
 
     // Break up the configuration into its individual elements
-    if (parse_coin_config(config, &ticker, &parsed_application_name, &sub_coin_config) == 0) {
+    if (!parse_coin_config(config, &ticker, &parsed_application_name, &sub_coin_config)) {
         PRINTF("Error: Can't parse coin config command\n");
         return reply_error(INCORRECT_COMMAND_DATA);
     }
+
     // We can't use the pointer to the parsed application name as it is not NULL terminated
     // We have to make a local copy
     memset(application_name, 0, sizeof(application_name));

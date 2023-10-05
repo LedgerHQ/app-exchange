@@ -38,7 +38,8 @@ int check_tx_signature(const command_t *cmd) {
                    cmd->data.size);
             return reply_error(INCORRECT_COMMAND_DATA);
         }
-        signature = cmd->data;
+        signature.size = cmd->data.size;
+        signature.bytes = cmd->data.bytes;
     } else {
         // We received the signature in (R,S) format, perform some sanity checks then encode in DER
         if (cmd->data.size != R_S_INT_SIZE * 2) {
@@ -58,7 +59,10 @@ int check_tx_signature(const command_t *cmd) {
             return reply_error(SIGN_VERIFICATION_FAIL);
         }
 
-        encode_sig_der(der_sig, size, r, R_S_INT_SIZE, s, R_S_INT_SIZE);
+        if (encode_sig_der(der_sig, size, r, R_S_INT_SIZE, s, R_S_INT_SIZE) == 0) {
+            PRINTF("Error: Failed to encode DER signature\n");
+            return reply_error(SIGN_VERIFICATION_FAIL);
+        }
 
         signature.size = size;
         signature.bytes = der_sig;
@@ -68,11 +72,11 @@ int check_tx_signature(const command_t *cmd) {
     PRINTF("SHA256(payload): %.*H\n", sizeof(G_swap_ctx.sha256_digest), G_swap_ctx.sha256_digest);
 
     // Check the signature of the sha256_digest we computed from the tx payload
-    if (cx_ecdsa_verify_no_throw(&G_swap_ctx.partner.public_key,
-                                 G_swap_ctx.sha256_digest,
-                                 CURVE_SIZE_BYTES,
-                                 signature.bytes,
-                                 signature.size) == 0) {
+    if (!cx_ecdsa_verify_no_throw(&G_swap_ctx.partner.public_key,
+                                  G_swap_ctx.sha256_digest,
+                                  CURVE_SIZE_BYTES,
+                                  signature.bytes,
+                                  signature.size)) {
         PRINTF("Error: Failed to verify signature of received transaction\n");
         return reply_error(SIGN_VERIFICATION_FAIL);
     }

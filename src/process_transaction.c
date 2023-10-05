@@ -208,14 +208,12 @@ static void normalize_currencies(subcommand) {
         to_uppercase(G_swap_ctx.swap_transaction.currency_from,
                      sizeof(G_swap_ctx.swap_transaction.currency_from));
         set_ledger_currency_name(G_swap_ctx.swap_transaction.currency_from,
-                                 sizeof(G_swap_ctx.swap_transaction.currency_from) /
-                                     sizeof(G_swap_ctx.swap_transaction.currency_from[0]));
+                                 sizeof(G_swap_ctx.swap_transaction.currency_from));
 
         to_uppercase(G_swap_ctx.swap_transaction.currency_to,
                      sizeof(G_swap_ctx.swap_transaction.currency_to));
         set_ledger_currency_name(G_swap_ctx.swap_transaction.currency_to,
-                                 sizeof(G_swap_ctx.swap_transaction.currency_to) /
-                                     sizeof(G_swap_ctx.swap_transaction.currency_to[0]));
+                                 sizeof(G_swap_ctx.swap_transaction.currency_to));
 
         // strip bcash CashAddr header, and other bicmd->subcommand1 like headers
         for (size_t i = 0; i < sizeof(G_swap_ctx.swap_transaction.payin_address); i++) {
@@ -230,14 +228,12 @@ static void normalize_currencies(subcommand) {
         to_uppercase(G_swap_ctx.sell_transaction.in_currency,
                      sizeof(G_swap_ctx.sell_transaction.in_currency));
         set_ledger_currency_name(G_swap_ctx.sell_transaction.in_currency,
-                                 sizeof(G_swap_ctx.sell_transaction.in_currency) /
-                                     sizeof(G_swap_ctx.sell_transaction.in_currency[0]));
+                                 sizeof(G_swap_ctx.sell_transaction.in_currency));
     } else if (subcommand == FUND || subcommand == FUND_NG) {
         to_uppercase(G_swap_ctx.fund_transaction.in_currency,
                      sizeof(G_swap_ctx.fund_transaction.in_currency));
         set_ledger_currency_name(G_swap_ctx.fund_transaction.in_currency,
-                                 sizeof(G_swap_ctx.fund_transaction.in_currency) /
-                                     sizeof(G_swap_ctx.fund_transaction.in_currency[0]));
+                                 sizeof(G_swap_ctx.fund_transaction.in_currency));
     }
 }
 

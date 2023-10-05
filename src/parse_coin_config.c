@@ -27,45 +27,47 @@ const app_name_alias_t appnames_aliases[] = {
  *  - T the ticker symbol, Lt its size
  *  - A the application name, La its size
  *  - C the sub configuration, Lc its size
+ *
+ * As the sub configuration is optionnal, we accept Lc == 0
  */
-int parse_coin_config(buf_t input,
-                      buf_t *ticker,
-                      buf_t *application_name,
-                      buf_t *sub_configuration) {
+bool parse_coin_config(buf_t input,
+                       buf_t *ticker,
+                       buf_t *application_name,
+                       buf_t *sub_configuration) {
     uint16_t total_read = 0;
 
     // Read ticker
     if (!parse_to_sized_buffer(input.bytes, input.size, 1, ticker, &total_read)) {
         PRINTF("Cannot read the ticker\n");
-        return 0;
+        return false;
     }
     if (!check_ticker_length(ticker)) {
-        return 0;
+        return false;
     }
 
     // Read application_name
     if (!parse_to_sized_buffer(input.bytes, input.size, 1, application_name, &total_read)) {
         PRINTF("Cannot read the application_name\n");
-        return 0;
+        return false;
     }
     if (!check_app_name_length(application_name)) {
-        return 0;
+        return false;
     }
 
     // Read sub configuration
     if (!parse_to_sized_buffer(input.bytes, input.size, 1, sub_configuration, &total_read)) {
         PRINTF("Cannot read the sub_configuration\n");
-        return 0;
+        return false;
     }
     if (sub_configuration->size > MAX_COIN_SUB_CONFIG_SIZE) {
         PRINTF("Sub coin sub_configuration size %d is too big\n", sub_configuration->size);
-        return 0;
+        return false;
     }
 
     // Check that there is nothing else to read
     if (input.size != total_read) {
         PRINTF("Bytes to read: %d, bytes read: %d\n", input.size, total_read);
-        return 0;
+        return false;
     }
 
     // Update the application name to match Ledger's naming.
@@ -82,5 +84,5 @@ int parse_coin_config(buf_t input,
         }
     }
 
-    return 1;
+    return true;
 }
