@@ -111,11 +111,24 @@ No data expected.
 
 #### SET_PARTNER_KEY
 
+##### For all LEGACY TYPES, the data for this command is:
+
 | Bytes              | Description                          |
 | ------------------ | ------------------------------------ |
 | 1 byte             | Length N of the encoded partner name |
 | N bytes            | Partner name encoded with utf-8      |
 | LC - (1 + N) bytes | Partner public key                   |
+
+##### For all UNFIED TYPES, the data for this command is:
+
+| Bytes              | Description                          |
+| ------------------ | ------------------------------------ |
+| 1 byte             | Length N of the encoded partner name |
+| N bytes            | Partner name encoded with utf-8      |
+| 1 byte             | Curve used by the partner            |
+| LC - (2 + N) bytes | Partner public key                   |
+
+With the possible values for the curve being 0x00 for SECP256K1, and 0x01 for SECP256R1.
 
 #### CHECK_PARTNER
 
@@ -125,31 +138,56 @@ No data expected.
 
 #### PROCESS_TRANSACTION_RESPONSE
 
-| Bytes        | Description                                                                                     |
-| ------------ | ----------------------------------------------------------------------------------------------- |
-| 1 or 2 bytes | Length N of the encoded transaction proposal. 1 bytes on Legacy TYPES, 2 bytes on new TYPES     |
-| N bytes      | Transaction proposal. No encoding for SWAP_LEGACY, URLsafe base 64 encoding for all other TYPES |
-| 1 byte       | Length M of the transaction fees                                                                |
-| M bytes      | Transaction fees                                                                                |
-
 Please refer to the src/protobuf files for the actual transaction proposal content.
+
+##### For all LEGACY TYPES, the data for this command is:
+
+| Bytes   | Description                                                                                                 |
+| ------- | ----------------------------------------------------------------------------------------------------------- |
+| 1 byte  | Length N of the encoded transaction proposal                                                                |
+| N bytes | Transaction proposal. Bytes array for SWAP_LEGACY, URLsafe base 64 encoding for SELL_LEGACY and FUND_LEGACY |
+| 1 byte  | Length M of the transaction fees                                                                            |
+| M bytes | Transaction fees                                                                                            |
+
+##### For all UNFIED TYPES, the data for this command is:
+
+| Bytes   | Description                                  |
+| ------- | -------------------------------------------- |
+| 1 byte  | Format used for the transaction encoding     |
+| 2 bytes | Length N of the encoded transaction proposal |
+| N bytes | Encoded transaction proposal                 |
+| 1 byte  | Length M of the transaction fees             |
+| M bytes | Transaction fees                             |
+
+With the possible values for the format being 0x00 for Bytes Array (no encoding), and 0x01 for Base 64 Url encoding.
 
 The DATA of this command may exceed the capacity of a single APDU (255 bytes), in this case use the EXTENSION feature.
 
 #### CHECK_TRANSACTION_SIGNATURE
 
-| Bytes    | Description                                                                                                |
-| -------- | ---------------------------------------------------------------------------------------------------------- |
-| LC bytes | Signature of the proposed transaction by the partner.                                                      |
+##### For all LEGACY TYPES, the data for this command is:
 
-For SWAP_LEGACY TYPE, the signature is computed on the sha256 hash of the transaction. \
-For all other TYPES the signature is computed on the sha256 hash of the transaction prefixed with a DOT ('.').
+| Bytes    | Description                                                   |
+| -------- | ------------------------------------------------------------- |
+| LC bytes | Signature of the computed transaction proposed by the partner |
 
-For SWAP_LEGACY and FUND_LEGACY TYPES, the signature is in DER format. \
-For all other TYPES the signature is in (R,S) format.
+For SWAP_LEGACY TYPE, the signature is computed on the transaction proposal. \
+For SELL_LEGACY and FUND_LEGACY the signature is computed on the transaction proposal prefixed with a DOT ('.').
 
-For SWAP_LEGACY TYPE, the signature is computed on the secp256k1 curve. \
-For all other TYPES the signature is computed on the secp256r1 curve.
+For SWAP_LEGACY and FUND_LEGACY, the signature is in DER format. \
+For SELL_LEGACY the signature is in (R,S) format.
+
+##### For all UNFIED TYPES, the data for this command is:
+
+| Bytes        | Description                                                   |
+| ------------ | ------------------------------------------------------------- |
+| 1 byte       | If the signature is computed on a prefixed transaction        |
+| 1 byte       | Format of the signature itself                                |
+| LC - 2 bytes | Signature of the computed transaction proposed by the partner |
+
+With the possible values for the format of the transaction used for signing being 0x01 if it was DOT ('.') prefixed, 0x00 otherwise.
+
+With the possible values for the format of the signature itself being 0x00 for DER format, and 0x01 for (R,S) format.
 
 #### CHECK_ASSET_IN_LEGACY
 
