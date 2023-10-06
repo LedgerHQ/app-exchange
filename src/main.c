@@ -50,6 +50,7 @@ void app_main(void) {
         // there was a fatal error during APDU reception, restart from the beginning
         // Don't bother trying to send a status code, IOs are probably out
         if (input_length == -1) {
+            explicit_bzero(&G_swap_ctx, sizeof(G_swap_ctx));
             return;
         }
 
@@ -62,6 +63,7 @@ void app_main(void) {
 
         if (dispatch_command(&cmd) < 0) {
             // some non recoverable error happened
+            explicit_bzero(&G_swap_ctx, sizeof(G_swap_ctx));
             return;
         }
 

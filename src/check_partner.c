@@ -15,13 +15,11 @@ int check_partner(const command_t *cmd) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
-    if (cx_ecdsa_verify(&(G_swap_ctx.ledger_public_key),
-                        CX_LAST,
-                        CX_SHA256,
-                        G_swap_ctx.sha256_digest,
-                        CURVE_SIZE_BYTES,
-                        cmd->data.bytes,
-                        cmd->data.size) == 0) {
+    if (!cx_ecdsa_verify_no_throw(&(G_swap_ctx.ledger_public_key),
+                                  G_swap_ctx.sha256_digest,
+                                  CURVE_SIZE_BYTES,
+                                  cmd->data.bytes,
+                                  cmd->data.size)) {
         PRINTF("Error: Failed to verify signature of partner data\n");
         return reply_error(SIGN_VERIFICATION_FAIL);
     }

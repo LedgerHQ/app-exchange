@@ -6,7 +6,7 @@
 #include "commands.h"
 #include "protocol.pb.h"
 #include "buffer.h"
-#include "swap_lib_calls.h"
+#include "lib_standard_app/swap_lib_calls.h"
 
 #define CURVE_SIZE_BYTES         32U
 #define UNCOMPRESSED_KEY_LENGTH  65U

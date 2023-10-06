@@ -78,7 +78,10 @@ int get_printable_amount(buf_t *coin_config,
         PRINTF("Error: Printable amount should be null-terminated\n");
         return -1;
     }
-    strlcpy(printable_amount, lib_in_out_params.printable_amount, printable_amount_size);
+    if (strlcpy(printable_amount, lib_in_out_params.printable_amount, printable_amount_size) >=
+        printable_amount_size) {
+        PRINTF("strlcpy failed, destination too short for printable_amount\n");
+    }
     PRINTF("Returned printable_amount '%s'\n", printable_amount);
 
     return 0;
@@ -141,8 +144,8 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
 #ifdef HAVE_NBGL
     // Save appname in stack to keep it from being erased
     // We'll need it later for the failure modale on Stax
-    char appanme[BOLOS_APPNAME_MAX_SIZE_B];
-    strlcpy(appanme, G_swap_ctx.payin_binary_name, sizeof(appanme));
+    char appname[BOLOS_APPNAME_MAX_SIZE_B];
+    strlcpy(appname, G_swap_ctx.payin_binary_name, sizeof(appname));
 #endif
 
     os_lib_call(libcall_params);
@@ -154,7 +157,7 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
 #ifdef HAVE_NBGL
     // Retrieve the appname from the stack and put it back in the BSS
     strlcpy(G_previous_cycle_data.appname_last_cycle,
-            appanme,
+            appname,
             sizeof(G_previous_cycle_data.appname_last_cycle));
     // Remember if this sign was successful
     G_previous_cycle_data.was_successful = (lib_in_out_params->result == 1);
