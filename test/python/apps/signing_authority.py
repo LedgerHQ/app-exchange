@@ -13,6 +13,7 @@ class SigningAuthority:
     _public_key: dh.DHPublicKey
     _name: str
     _credentials: bytes
+    _credentials_ng: bytes
 
     def __init__(self, curve: ec.EllipticCurve, name: str, existing_key: Optional[int] = None):
         """
@@ -44,13 +45,29 @@ class SigningAuthority:
         )
         self._credentials = prefixed_encoded_name + public_bytes
 
+        if isinstance(curve, ec.SECP256K1):
+            curve_id = int.to_bytes(0x00, length=1, byteorder='big')
+        elif isinstance(curve, ec.SECP256R1):
+            curve_id = int.to_bytes(0x01, length=1, byteorder='big')
+        else:
+            raise ValueError
+        self._credentials_ng = prefixed_encoded_name + curve_id + public_bytes
+
     @property
     def credentials(self) -> bytes:
         """
-        :return: The partner credentials correctly formated.
+        :return: The partner credentials correctly formated for legacy flows
         :rtype: bytes
         """
         return self._credentials
+
+    @property
+    def credentials_ng(self) -> bytes:
+        """
+        :return: The partner credentials correctly formated for ng flows
+        :rtype: bytes
+        """
+        return self._credentials_ng
 
     def sign(self, payload_to_sign: bytes) -> bytes:
         """

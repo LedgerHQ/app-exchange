@@ -5,7 +5,7 @@ from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command, P2_EXTEND, P2_MORE, EXCHANGE_CLASS
-from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, craft_transaction_proposal
+from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, craft_transaction_proposal, get_credentials
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps import cal as cal
 
@@ -87,10 +87,11 @@ def test_wrong_flow_order(backend, subcommand, exchange_navigation_helper):
     transaction_id = ex.init_transaction().data
 
     try_all_commands_for_subcommand_except(ex, subcommand, Command.SET_PARTNER_KEY)
-    ex.set_partner_key(partner.credentials)
+    credentials = get_credentials(subcommand, partner)
+    ex.set_partner_key(credentials)
 
     try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_PARTNER)
-    ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+    ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
 
     try_all_commands_for_subcommand_except(ex, subcommand, Command.PROCESS_TRANSACTION_RESPONSE)
     tx_infos = TX_INFOS[subcommand]

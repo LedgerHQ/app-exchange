@@ -4,7 +4,7 @@ from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command, P2_EXTEND, P2_MORE, EXCHANGE_CLASS
-from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, craft_transaction_proposal
+from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, craft_transaction_proposal, get_credentials
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps import cal as cal
 
@@ -54,8 +54,9 @@ class TestExtension:
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
         transaction_id = ex.init_transaction().data
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+        credentials = get_credentials(subcommand, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
         tx = craft_tx(subcommand, TX_INFOS[subcommand], transaction_id)
         # Send the exchange transaction proposal and its signature
 
@@ -78,8 +79,9 @@ class TestExtension:
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
         transaction_id = ex.init_transaction().data
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+        credentials = get_credentials(subcommand, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
         tx = craft_tx(subcommand, TX_INFOS[subcommand], transaction_id)
         signed_tx = encode_tx(subcommand, partner, tx)
 
@@ -101,8 +103,9 @@ class TestExtension:
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
         transaction_id = ex.init_transaction().data
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+        credentials = get_credentials(subcommand, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
         tx = craft_tx(subcommand, TX_INFOS[subcommand], transaction_id)
         signed_tx = encode_tx(subcommand, partner, tx)
 

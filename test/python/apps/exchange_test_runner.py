@@ -6,7 +6,7 @@ from ragger.utils import RAPDU
 from ragger.error import ExceptionRAPDU
 
 from .exchange import ExchangeClient, Rate, SubCommand, Errors
-from .exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker
+from .exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker, get_credentials
 from . import cal as cal
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -72,8 +72,9 @@ class ExchangeTestRunner:
         transaction_id = ex.init_transaction().data
 
         # Enroll the partner
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+        credentials = get_credentials(subcommand, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
 
         # Craft the exchange transaction proposal and have it signed by the enrolled partner
         tx = craft_tx(subcommand, tx_infos, transaction_id)

@@ -50,3 +50,22 @@ bool parse_to_sized_buffer(uint8_t *in_buffer,
 
     return true;
 }
+
+// Parse a buffer at a given offset to read a buf_t, the offset is incremented accordingly
+// param[in]        <in_buffer>  the total buffer to parse
+// param[in]        <in_size>   the total size of the buffer to parse
+// param[out]       <out>       the int read from in_buffer at offset
+// param[in/out]    <offset>    the current offset at wich we are in <in_buffer>
+bool pop_uint8_from_buffer(uint8_t *in_buffer,
+                           uint16_t in_size,
+                           uint8_t *out,
+                           uint16_t *offset) {
+    if (*offset + 1 > in_size) {
+        PRINTF("Failed to read the uint, only %d bytes available\n", in_size);
+        return false;
+    }
+    *out = in_buffer[*offset];
+    *offset += 1;
+
+    return true;
+}

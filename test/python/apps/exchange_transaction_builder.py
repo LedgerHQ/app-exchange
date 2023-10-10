@@ -191,3 +191,9 @@ def craft_transaction_proposal(subcommand: SubCommand, transaction: bytes, fees:
     prefix_length = 2 if (subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.FUND_NG or subcommand == SubCommand.SELL_NG) else 1
     payload = prefix_with_len_custom(transaction, prefix_length) + prefix_with_len(fees_bytes)
     return payload
+
+def get_credentials(subcommand: SubCommand, partner: SigningAuthority) -> bytes:
+    if subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.SELL_NG or subcommand == SubCommand.FUND_NG:
+        return partner.credentials_ng
+    else:
+        return partner.credentials

@@ -4,7 +4,7 @@ from ragger.utils import RAPDU
 from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
-from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker, ALL_SUBCOMMANDS, SWAP_SUBCOMMANDS
+from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker, ALL_SUBCOMMANDS, SWAP_SUBCOMMANDS, get_credentials
 from .apps import cal as cal
 
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
@@ -64,10 +64,12 @@ class TestFakeSigner:
         partner_fake = SigningAuthority(curve=get_partner_curve(operation), name="partner_fake")
 
         ex.init_transaction()
-        ex.set_partner_key(partner_fake.credentials)
+        credentials_fake = get_credentials(operation, partner_fake)
+        credentials = get_credentials(operation, partner)
+        ex.set_partner_key(credentials_fake)
 
         with pytest.raises(ExceptionRAPDU) as e:
-            ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+            ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
         assert e.value.status == Errors.SIGN_VERIFICATION_FAIL
 
 
@@ -80,10 +82,11 @@ class TestFakeSigner:
         partner = SigningAuthority(curve=get_partner_curve(operation), name="partner")
 
         ex.init_transaction()
-        ex.set_partner_key(partner.credentials)
+        credentials = get_credentials(operation, partner)
+        ex.set_partner_key(credentials)
 
         with pytest.raises(ExceptionRAPDU) as e:
-            ex.check_partner_key(ledger_fake_signer.sign(partner.credentials))
+            ex.check_partner_key(ledger_fake_signer.sign(credentials))
         assert e.value.status == Errors.SIGN_VERIFICATION_FAIL
 
 
@@ -96,8 +99,9 @@ class TestFakeSigner:
         partner_fake = SigningAuthority(curve=get_partner_curve(operation), name="partner_fake")
 
         transaction_id = ex.init_transaction().data
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+        credentials = get_credentials(operation, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
         tx = craft_tx(operation, TX_INFOS[operation], transaction_id)
         ex.process_transaction(tx, FEES)
 
@@ -116,8 +120,9 @@ class TestFakeSigner:
         partner = SigningAuthority(curve=get_partner_curve(operation), name="partner")
 
         transaction_id = ex.init_transaction().data
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+        credentials = get_credentials(operation, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
         tx = craft_tx(operation, TX_INFOS[operation], transaction_id)
         ex.process_transaction(tx, FEES)
         encoded_tx = encode_tx(operation, partner, tx)
@@ -141,8 +146,9 @@ class TestFakeSigner:
         partner = SigningAuthority(curve=get_partner_curve(operation), name="partner")
 
         transaction_id = ex.init_transaction().data
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
+        credentials = get_credentials(operation, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
         tx = craft_tx(operation, SWAP_TX_INFOS, transaction_id)
         ex.process_transaction(tx, FEES)
         encoded_tx = encode_tx(operation, partner, tx)
