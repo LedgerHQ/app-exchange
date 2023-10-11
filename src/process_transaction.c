@@ -42,7 +42,8 @@ static bool parse_transaction(uint8_t *in,
                               size_t in_size,
                               subcommand_e subcommand,
                               buf_t *payload,
-                              buf_t *fees) {
+                              buf_t *fees,
+                              bool *needs_base64_decoding) {
     // On legacy flows the length field is 1 byte
     uint8_t payload_length_field_size = 2;
     if (subcommand == SWAP || subcommand == SELL || subcommand == FUND) {
@@ -50,6 +51,27 @@ static bool parse_transaction(uint8_t *in,
     }
 
     uint16_t offset = 0;
+
+    if (subcommand == SWAP) {
+        *needs_base64_decoding = false;
+    } else if (subcommand == SELL || subcommand == FUND) {
+        *needs_base64_decoding = true;
+    } else {
+        uint8_t encoding_selector;
+        if (!pop_uint8_from_buffer(in, in_size, &encoding_selector, &offset)) {
+            PRINTF("Failed to read encoding\n");
+            return false;
+        }
+        if (encoding_selector == ENCODING_BYTES_ARRAY) {
+            *needs_base64_decoding = false;
+        } else if (encoding_selector == ENCODING_BASE_64_URL) {
+            *needs_base64_decoding = true;
+        } else {
+            PRINTF("Invalid encoding specified\n");
+            return false;
+        }
+    }
+
     if (!parse_to_sized_buffer(in, in_size, payload_length_field_size, payload, &offset)) {
         PRINTF("Failed to parse payload\n");
         return false;
@@ -103,7 +125,7 @@ static bool calculate_sha256_digest(buf_t payload, subcommand_e subcommand) {
     return true;
 }
 
-static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand) {
+static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand, bool needs_base64_decoding) {
     pb_istream_t stream;
     const pb_field_t *fields;
     void *dest_struct;
@@ -113,7 +135,8 @@ static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand)
 
     buf_t to_deserialize;
 
-    if (subcommand != SWAP) {
+    if (needs_base64_decoding) {
+        PRINTF("Calling base64_decode before deserializing\n");
         int n = base64_decode(decoded,
                               sizeof(decoded),
                               (const unsigned char *) payload.bytes,
@@ -125,6 +148,7 @@ static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand)
         to_deserialize.bytes = decoded;
         to_deserialize.size = n;
     } else {
+        PRINTF("No need to decode, transaction is bytes array\n");
         to_deserialize = payload;
     }
 
@@ -276,7 +300,8 @@ int process_transaction(const command_t *cmd) {
 
     buf_t fees;
     buf_t payload;
-    if (!parse_transaction(data, cmd->data.size, cmd->subcommand, &payload, &fees)) {
+    bool needs_base64_decoding;
+    if (!parse_transaction(data, cmd->data.size, cmd->subcommand, &payload, &fees, &needs_base64_decoding)) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
@@ -284,7 +309,7 @@ int process_transaction(const command_t *cmd) {
         return reply_error(INTERNAL_ERROR);
     }
 
-    if (!deserialize_protobuf_payload(payload, cmd->subcommand)) {
+    if (!deserialize_protobuf_payload(payload, cmd->subcommand, needs_base64_decoding)) {
         return reply_error(DESERIALIZATION_FAILED);
     }
 

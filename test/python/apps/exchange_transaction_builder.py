@@ -177,6 +177,8 @@ def craft_transaction(subcommand: SubCommand, transaction: bytes, fees: int) -> 
     fees_bytes = int_to_minimally_sized_bytes(fees)
     prefix_length = 2 if (subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.FUND_NG or subcommand == SubCommand.SELL_NG) else 1
     payload = prefix_with_len_custom(transaction, prefix_length) + prefix_with_len(fees_bytes)
+    if subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.FUND_NG or subcommand == SubCommand.SELL_NG:
+        payload = int.to_bytes(1, 1, byteorder='big') + payload
     return payload
 
 def craft_and_sign_tx(subcommand: SubCommand, tx_infos: Dict, transaction_id: bytes, fees: int, signer: SigningAuthority):
