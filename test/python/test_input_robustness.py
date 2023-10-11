@@ -2,7 +2,7 @@ from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.backend import RaisePolicy
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command
-from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx
+from .apps.exchange_transaction_builder import get_partner_curve, craft_and_sign_tx
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps import cal as cal
 
@@ -60,10 +60,9 @@ class TestRobustnessCHECK_ADDRESS:
         transaction_id = ex.init_transaction().data
         ex.set_partner_key(partner.credentials)
         ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        tx = craft_tx(SubCommand.SWAP, self.tx_infos, transaction_id)
-        ex.process_transaction(tx, self.fees)
-        encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
-        ex.check_transaction_signature(encoded_tx)
+        tx, tx_signature = craft_and_sign_tx(SubCommand.SWAP, self.tx_infos, transaction_id, self.fees, partner)
+        ex.process_transaction(tx)
+        ex.check_transaction_signature(tx_signature)
 
     def test_robustness_check_payout_address(self, backend):
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
@@ -221,10 +220,9 @@ def test_currency_normalization_fund(backend, exchange_navigation_helper):
         backend.wait_for_home_screen()
         ex.set_partner_key(partner.credentials)
         ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        tx = craft_tx(SubCommand.FUND, tx_infos, transaction_id)
-        ex.process_transaction(tx, fees)
-        encoded_tx = encode_tx(SubCommand.FUND, partner, tx)
-        ex.check_transaction_signature(encoded_tx)
+        tx, tx_signature = craft_and_sign_tx(SubCommand.FUND, tx_infos, transaction_id, fees, partner)
+        ex.process_transaction(tx)
+        ex.check_transaction_signature(tx_signature)
 
         payload = prefix_with_len(conf) + cal.sign_currency_conf(conf) + prefix_with_len(cal.get_derivation_path(tx_infos["in_currency"]))
         backend.raise_policy = RaisePolicy.RAISE_NOTHING
@@ -259,10 +257,9 @@ class TestAliasAppname:
             backend.wait_for_home_screen()
             ex.set_partner_key(partner.credentials)
             ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-            tx = craft_tx(SubCommand.SWAP, tx_infos, transaction_id)
-            ex.process_transaction(tx, fees)
-            encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
-            ex.check_transaction_signature(encoded_tx)
+            tx, tx_signature = craft_and_sign_tx(SubCommand.SWAP, tx_infos, transaction_id, fees, partner)
+            ex.process_transaction(tx)
+            ex.check_transaction_signature(tx_signature)
 
             # If the alias does not work, CHECK_PAYOUT_ADDRESS will crash
             payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(cal.get_derivation_path(tx_infos["currency_to"]))

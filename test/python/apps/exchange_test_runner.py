@@ -6,7 +6,7 @@ from ragger.utils import RAPDU
 from ragger.error import ExceptionRAPDU
 
 from .exchange import ExchangeClient, Rate, SubCommand, Errors
-from .exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker, get_credentials
+from .exchange_transaction_builder import get_partner_curve, extract_payout_ticker, extract_refund_ticker, get_credentials, craft_and_sign_tx
 from . import cal as cal
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -77,12 +77,11 @@ class ExchangeTestRunner:
         ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
 
         # Craft the exchange transaction proposal and have it signed by the enrolled partner
-        tx = craft_tx(subcommand, tx_infos, transaction_id)
-        signed_tx = encode_tx(subcommand, partner, tx)
+        tx, tx_signature = craft_and_sign_tx(subcommand, tx_infos, transaction_id, fees, partner)
 
         # Send the exchange transaction proposal and its signature
-        ex.process_transaction(tx, fees)
-        ex.check_transaction_signature(signed_tx)
+        ex.process_transaction(tx)
+        ex.check_transaction_signature(tx_signature)
 
         # Ask our fake CAL the coin configuration for both payout and refund tickers (None for refund in case of FUND or SELL)
         payout_ticker = extract_payout_ticker(subcommand, tx_infos)

@@ -5,7 +5,7 @@ from ragger.utils import pack_APDU, RAPDU
 from ragger.error import ExceptionRAPDU
 
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
-from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker
+from .apps.exchange_transaction_builder import get_partner_curve, extract_payout_ticker, extract_refund_ticker, craft_and_sign_tx
 from .apps import cal as cal
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand
@@ -33,10 +33,10 @@ def prepare_exchange(backend, exchange_navigation_helper, amount: str):
         "amount_to_wallet": b"\x0b\xeb\xc2\x00",
     }
     fees = eth_amount_to_wei(0.000588)
-    tx = craft_tx(SubCommand.SWAP, tx_infos, transaction_id)
-    ex.process_transaction(tx, fees)
-    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
-    ex.check_transaction_signature(encoded_tx)
+
+    tx, tx_signature = craft_and_sign_tx(SubCommand.SWAP, tx_infos, transaction_id, fees, partner)
+    ex.process_transaction(tx)
+    ex.check_transaction_signature(tx_signature)
 
     payout_ticker = extract_payout_ticker(SubCommand.SWAP, tx_infos)
     refund_ticker = extract_refund_ticker(SubCommand.SWAP, tx_infos)

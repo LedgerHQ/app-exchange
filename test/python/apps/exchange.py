@@ -5,7 +5,7 @@ from enum import IntEnum
 from ragger.backend.interface import BackendInterface, RAPDU
 
 from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom
-from .exchange_transaction_builder import SubCommand, craft_transaction_proposal
+from .exchange_transaction_builder import SubCommand
 
 MAX_CHUNK_SIZE = 255
 
@@ -102,14 +102,12 @@ class ExchangeClient:
     def check_partner_key(self, signed_credentials: bytes) -> RAPDU:
         return self._exchange(Command.CHECK_PARTNER, signed_credentials)
 
-    def process_transaction(self, transaction: bytes, fees: int) -> RAPDU:
-        payload = craft_transaction_proposal(self.subcommand, transaction, fees)
-
+    def process_transaction(self, transaction: bytes) -> RAPDU:
         if self.subcommand == SubCommand.SWAP or self.subcommand == SubCommand.FUND or self.subcommand == SubCommand.SELL:
-            return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
+            return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=transaction)
 
         else:
-            payload_split = [payload[x:x + MAX_CHUNK_SIZE] for x in range(0, len(payload), MAX_CHUNK_SIZE)]
+            payload_split = [transaction[x:x + MAX_CHUNK_SIZE] for x in range(0, len(transaction), MAX_CHUNK_SIZE)]
             for i, p in enumerate(payload_split):
                 p2 = self.subcommand
                 # Send all chunks with P2_MORE except for the last chunk

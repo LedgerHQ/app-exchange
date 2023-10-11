@@ -49,7 +49,7 @@ class SubCommandSpecs:
     partner_curve: ec.EllipticCurve
     signature_computation: SignatureComputation
     signature_encoding: SignatureEncoding
-    payload_encoding: PayloadEncoding
+    default_payload_encoding: PayloadEncoding
     transaction_type: Callable
     required_fields: Iterable[str]
     transaction_id_field: str
@@ -65,8 +65,8 @@ class SubCommandSpecs:
         else:
             return transaction
 
-    def encode_payload(self, raw_transaction: bytes) -> bytes:
-        if self.payload_encoding == PayloadEncoding.BASE_64_URL:
+    def encode_payload(self, raw_transaction: bytes, url_encode: bool) -> bytes:
+        if url_encode == True:
             return urlsafe_b64encode(raw_transaction)
         else:
             return raw_transaction
@@ -77,19 +77,19 @@ class SubCommandSpecs:
             signature_to_encode = r.to_bytes(32, "big") + s.to_bytes(32, "big")
         return signature_to_encode
 
-    def create_transaction(self, conf: Dict, transaction_id: bytes) -> bytes:
+    def _create_transaction(self, conf: Dict, transaction_id: bytes) -> bytes:
         # Alter a copy of conf to not modify the actual conf
         c = conf.copy()
         c[self.transaction_id_field] = transaction_id
         raw_transaction = self.transaction_type(**c).SerializeToString()
-        return self.encode_payload(raw_transaction)
+        return self.encode_payload(raw_transaction, (self.default_payload_encoding == PayloadEncoding.BASE_64_URL))
 
 
 SWAP_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.PLAIN_R_S,
-    payload_encoding = PayloadEncoding.BASE_64_URL,
+    default_payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewTransactionResponse,
     required_fields = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
                        "payout_address", "payout_extra_id", "currency_from", "currency_to",
@@ -103,7 +103,7 @@ SWAP_SPECS: SubCommandSpecs = SubCommandSpecs(
     partner_curve = ec.SECP256K1(),
     signature_computation = SignatureComputation.BINARY_ENCODED_PAYLOAD,
     signature_encoding = SignatureEncoding.DER,
-    payload_encoding = PayloadEncoding.BYTES_ARRAY,
+    default_payload_encoding = PayloadEncoding.BYTES_ARRAY,
     transaction_type = NewTransactionResponse,
     required_fields = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
                        "payout_address", "payout_extra_id", "currency_from", "currency_to",
@@ -117,7 +117,7 @@ SELL_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.PLAIN_R_S,
-    payload_encoding = PayloadEncoding.BASE_64_URL,
+    default_payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewSellResponse,
     transaction_id_field = "device_transaction_id",
     required_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
@@ -132,7 +132,7 @@ FUND_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.PLAIN_R_S,
-    payload_encoding = PayloadEncoding.BASE_64_URL,
+    default_payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewFundResponse,
     required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
     transaction_id_field = "device_transaction_id",
@@ -144,7 +144,7 @@ FUND_SPECS: SubCommandSpecs = SubCommandSpecs(
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.DER,
-    payload_encoding = PayloadEncoding.BASE_64_URL,
+    default_payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewFundResponse,
     required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
     transaction_id_field = "device_transaction_id",
@@ -161,16 +161,29 @@ SUBCOMMAND_TO_SPECS = {
     SubCommand.FUND_NG: FUND_NG_SPECS,
 }
 
-def craft_tx(subcommand: SubCommand, conf: Dict, transaction_id: bytes) -> bytes:
+def craft_pb(subcommand: SubCommand, tx_infos: Dict, transaction_id: bytes) -> bytes:
     subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
-    assert subcommand_specs.check_conf(conf)
-    return subcommand_specs.create_transaction(conf, transaction_id)
+    assert subcommand_specs.check_conf(tx_infos)
+    return subcommand_specs._create_transaction(tx_infos, transaction_id)
 
-def encode_tx(subcommand: SubCommand, signer: SigningAuthority, tx: bytes) -> bytes:
+def encode_transaction_signature(subcommand: SubCommand, signer: SigningAuthority, tx: bytes) -> bytes:
     subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
     formated_transaction = subcommand_specs.format_transaction(tx)
     signed_transaction = signer.sign(formated_transaction)
     return subcommand_specs.encode_signature(signed_transaction)
+
+def craft_transaction(subcommand: SubCommand, transaction: bytes, fees: int) -> bytes:
+    subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
+    fees_bytes = int_to_minimally_sized_bytes(fees)
+    prefix_length = 2 if (subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.FUND_NG or subcommand == SubCommand.SELL_NG) else 1
+    payload = prefix_with_len_custom(transaction, prefix_length) + prefix_with_len(fees_bytes)
+    return payload
+
+def craft_and_sign_tx(subcommand: SubCommand, tx_infos: Dict, transaction_id: bytes, fees: int, signer: SigningAuthority):
+    pb = craft_pb(subcommand, tx_infos, transaction_id)
+    tx = craft_transaction(subcommand, pb, fees)
+    signed_tx = encode_transaction_signature(subcommand, signer, pb)
+    return tx, signed_tx
 
 def extract_payout_ticker(subcommand: SubCommand, tx_infos: Dict) -> str:
     subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
@@ -185,12 +198,6 @@ def extract_refund_ticker(subcommand: SubCommand, tx_infos: Dict) -> Optional[st
 
 def get_partner_curve(subcommand: SubCommand) -> ec.EllipticCurve:
     return SUBCOMMAND_TO_SPECS[subcommand].partner_curve
-
-def craft_transaction_proposal(subcommand: SubCommand, transaction: bytes, fees: int) -> bytes:
-    fees_bytes = int_to_minimally_sized_bytes(fees)
-    prefix_length = 2 if (subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.FUND_NG or subcommand == SubCommand.SELL_NG) else 1
-    payload = prefix_with_len_custom(transaction, prefix_length) + prefix_with_len(fees_bytes)
-    return payload
 
 def get_credentials(subcommand: SubCommand, partner: SigningAuthority) -> bytes:
     if subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.SELL_NG or subcommand == SubCommand.FUND_NG:

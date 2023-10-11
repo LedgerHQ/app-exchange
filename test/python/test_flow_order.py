@@ -5,7 +5,7 @@ from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command, P2_EXTEND, P2_MORE, EXCHANGE_CLASS
-from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, craft_transaction_proposal, get_credentials
+from .apps.exchange_transaction_builder import get_partner_curve, extract_payout_ticker, extract_refund_ticker, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, get_credentials, craft_and_sign_tx
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps import cal as cal
 
@@ -95,12 +95,11 @@ def test_wrong_flow_order(backend, subcommand, exchange_navigation_helper):
 
     try_all_commands_for_subcommand_except(ex, subcommand, Command.PROCESS_TRANSACTION_RESPONSE)
     tx_infos = TX_INFOS[subcommand]
-    tx = craft_tx(subcommand, tx_infos, transaction_id)
-    ex.process_transaction(tx, FEES)
+    tx, tx_signature = craft_and_sign_tx(subcommand, TX_INFOS[subcommand], transaction_id, FEES, partner)
+    ex.process_transaction(tx)
 
     try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_TRANSACTION_SIGNATURE)
-    signed_tx = encode_tx(subcommand, partner, tx)
-    ex.check_transaction_signature(signed_tx)
+    ex.check_transaction_signature(tx_signature)
 
     payout_ticker = extract_payout_ticker(subcommand, tx_infos)
     payout_configuration = cal.get_conf_for_ticker(payout_ticker)
