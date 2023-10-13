@@ -22,33 +22,60 @@ int check_tx_signature(const command_t *cmd) {
     // signature
     uint8_t der_sig[DER_HEADER_SIZE + MAX_DER_INT_SIZE(R_S_INT_SIZE) * 2];
     buf_t signature;
+    bool signature_is_in_R_S_format;
+    uint16_t offset = 0;
 
-    if (cmd->subcommand == SWAP || cmd->subcommand == FUND) {
+    if (cmd->subcommand == SWAP) {
+        signature_is_in_R_S_format = false;
+    } else if (cmd->subcommand == FUND) {
+        signature_is_in_R_S_format = false;
+    } else if (cmd->subcommand == SELL) {
+        signature_is_in_R_S_format = true;
+    } else {
+        uint8_t sig_format;
+        if (!pop_uint8_from_buffer(cmd->data.bytes, cmd->data.size, &sig_format, &offset)) {
+            PRINTF("Failed to read signature format selector\n");
+            return reply_error(INCORRECT_COMMAND_DATA);
+        }
+        if (sig_format == DER_FORMAT_SIGNATURE) {
+            signature_is_in_R_S_format = false;
+        } else if (sig_format == R_S_FORMAT_SIGNATURE) {
+            signature_is_in_R_S_format = true;
+        } else {
+            PRINTF("Error: Incorrect signature format selector %d\n", sig_format);
+            return reply_error(INCORRECT_COMMAND_DATA);
+        }
+    }
+
+    buf_t remaining_input;
+    remaining_input.size = cmd->data.size - offset;
+    remaining_input.bytes = cmd->data.bytes + offset;
+    if (!signature_is_in_R_S_format) {
         // We received the signature in DER format, just perform some sanity checks
-        if (cmd->data.size < MIN_DER_SIGNATURE_LENGTH ||
-            cmd->data.size > MAX_DER_SIGNATURE_LENGTH) {
+        if (remaining_input.size < MIN_DER_SIGNATURE_LENGTH ||
+            remaining_input.size > MAX_DER_SIGNATURE_LENGTH) {
             PRINTF("Error: Input buffer length don't correspond to DER length\n");
             return reply_error(INCORRECT_COMMAND_DATA);
         }
 
-        uint16_t payload_size = cmd->data.bytes[DER_OFFSET_LENGTH];
-        if (payload_size + DER_HEADER_SIZE != cmd->data.size) {
+        uint16_t payload_size = remaining_input.bytes[DER_OFFSET_LENGTH];
+        if (payload_size + DER_HEADER_SIZE != remaining_input.size) {
             PRINTF("DER signature header advertizes %d bytes, we received %d\n",
                    payload_size,
-                   cmd->data.size);
+                   remaining_input.size);
             return reply_error(INCORRECT_COMMAND_DATA);
         }
-        signature.size = cmd->data.size;
-        signature.bytes = cmd->data.bytes;
+        signature.size = remaining_input.size;
+        signature.bytes = remaining_input.bytes;
     } else {
         // We received the signature in (R,S) format, perform some sanity checks then encode in DER
-        if (cmd->data.size != R_S_INT_SIZE * 2) {
+        if (remaining_input.size != R_S_INT_SIZE * 2) {
             PRINTF("Error: Input buffer length don't correspond to (R, S) length\n");
             return reply_error(INCORRECT_COMMAND_DATA);
         }
 
-        uint8_t *r = cmd->data.bytes;
-        uint8_t *s = cmd->data.bytes + R_S_INT_SIZE;
+        uint8_t *r = remaining_input.bytes;
+        uint8_t *s = remaining_input.bytes + R_S_INT_SIZE;
         size_t der_r_len = asn1_get_encoded_integer_size(r, R_S_INT_SIZE);
         size_t der_s_len = asn1_get_encoded_integer_size(s, R_S_INT_SIZE);
         size_t size = der_r_len + der_s_len + DER_HEADER_SIZE;

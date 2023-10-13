@@ -71,8 +71,8 @@ class SubCommandSpecs:
         else:
             return raw_transaction
 
-    def encode_signature(self, signature_to_encode: bytes) -> bytes:
-        if self.signature_encoding == SignatureEncoding.PLAIN_R_S:
+    def encode_signature(self, signature_to_encode: bytes, r_s_encode: bool) -> bytes:
+        if r_s_encode == True:
             r, s = decode_dss_signature(signature_to_encode)
             signature_to_encode = r.to_bytes(32, "big") + s.to_bytes(32, "big")
         return signature_to_encode
@@ -170,7 +170,13 @@ def encode_transaction_signature(subcommand: SubCommand, signer: SigningAuthorit
     subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
     formated_transaction = subcommand_specs.format_transaction(tx)
     signed_transaction = signer.sign(formated_transaction)
-    return subcommand_specs.encode_signature(signed_transaction)
+    r_s_encode = True if (subcommand_specs.signature_encoding == SignatureEncoding.PLAIN_R_S) else False
+    encoded_signature = subcommand_specs.encode_signature(signed_transaction, r_s_encode)
+
+    if subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.SELL_NG or subcommand == SubCommand.FUND_NG:
+        rs_encode = int.to_bytes(1 if r_s_encode == True else False, 1, byteorder='big')
+        encoded_signature = rs_encode + encoded_signature
+    return encoded_signature
 
 def craft_transaction(subcommand: SubCommand, transaction: bytes, fees: int) -> bytes:
     subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
