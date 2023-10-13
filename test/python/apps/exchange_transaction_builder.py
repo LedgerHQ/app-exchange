@@ -59,8 +59,8 @@ class SubCommandSpecs:
     def check_conf(self, conf: Dict) -> bool:
         return (all(i in conf for i in self.required_fields) and (len(conf) == len(self.required_fields)))
 
-    def format_transaction(self, transaction: bytes) -> bytes:
-        if self.signature_computation == SignatureComputation.DOT_PREFIXED_BASE_64_URL:
+    def format_transaction(self, transaction: bytes, prefix_transaction: bool) -> bytes:
+        if prefix_transaction == True:
             return b"." + transaction
         else:
             return transaction
@@ -168,14 +168,16 @@ def craft_pb(subcommand: SubCommand, tx_infos: Dict, transaction_id: bytes) -> b
 
 def encode_transaction_signature(subcommand: SubCommand, signer: SigningAuthority, tx: bytes) -> bytes:
     subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
-    formated_transaction = subcommand_specs.format_transaction(tx)
+    prefix_transaction = True if (subcommand_specs.signature_computation == SignatureComputation.DOT_PREFIXED_BASE_64_URL) else False
+    formated_transaction = subcommand_specs.format_transaction(tx, prefix_transaction)
     signed_transaction = signer.sign(formated_transaction)
     r_s_encode = True if (subcommand_specs.signature_encoding == SignatureEncoding.PLAIN_R_S) else False
     encoded_signature = subcommand_specs.encode_signature(signed_transaction, r_s_encode)
 
     if subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.SELL_NG or subcommand == SubCommand.FUND_NG:
+        dot_prefix = int.to_bytes(1 if prefix_transaction == True else False, 1, byteorder='big')
         rs_encode = int.to_bytes(1 if r_s_encode == True else False, 1, byteorder='big')
-        encoded_signature = rs_encode + encoded_signature
+        encoded_signature = dot_prefix + rs_encode + encoded_signature
     return encoded_signature
 
 def craft_transaction(subcommand: SubCommand, transaction: bytes, fees: int) -> bytes:

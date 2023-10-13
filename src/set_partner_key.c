@@ -91,8 +91,8 @@ int set_partner_key(const command_t *cmd) {
     // Save the hash of the entire credentials to check that the Ledger key signed it later
     if (cx_hash_sha256(cmd->data.bytes,
                        cmd->data.size,
-                       G_swap_ctx.sha256_digest,
-                       sizeof(G_swap_ctx.sha256_digest)) == 0) {
+                       G_swap_ctx.sha256_digest_no_prefix,
+                       sizeof(G_swap_ctx.sha256_digest_no_prefix)) == 0) {
         PRINTF("cx_hash_sha256 internal error\n");
         return reply_error(INTERNAL_ERROR);
     }

@@ -23,15 +23,33 @@ int check_tx_signature(const command_t *cmd) {
     uint8_t der_sig[DER_HEADER_SIZE + MAX_DER_INT_SIZE(R_S_INT_SIZE) * 2];
     buf_t signature;
     bool signature_is_in_R_S_format;
+    bool signature_is_computed_on_dot_prefixed_tx;
     uint16_t offset = 0;
 
     if (cmd->subcommand == SWAP) {
         signature_is_in_R_S_format = false;
+        signature_is_computed_on_dot_prefixed_tx = false;
     } else if (cmd->subcommand == FUND) {
         signature_is_in_R_S_format = false;
+        signature_is_computed_on_dot_prefixed_tx = true;
     } else if (cmd->subcommand == SELL) {
         signature_is_in_R_S_format = true;
+        signature_is_computed_on_dot_prefixed_tx = true;
     } else {
+        uint8_t dot_prefixed_tx;
+        if (!pop_uint8_from_buffer(cmd->data.bytes, cmd->data.size, &dot_prefixed_tx, &offset)) {
+            PRINTF("Failed to read prefix selector\n");
+            return reply_error(INCORRECT_COMMAND_DATA);
+        }
+        if (dot_prefixed_tx == SIGNATURE_COMPUTED_ON_TX) {
+            signature_is_computed_on_dot_prefixed_tx = false;
+        } else if (dot_prefixed_tx == SIGNATURE_COMPUTED_ON_DOT_PREFIXED_TX) {
+            signature_is_computed_on_dot_prefixed_tx = true;
+        } else {
+            PRINTF("Error: Incorrect prefix selector %d\n", dot_prefixed_tx);
+            return reply_error(INCORRECT_COMMAND_DATA);
+        }
+
         uint8_t sig_format;
         if (!pop_uint8_from_buffer(cmd->data.bytes, cmd->data.size, &sig_format, &offset)) {
             PRINTF("Failed to read signature format selector\n");
@@ -96,11 +114,22 @@ int check_tx_signature(const command_t *cmd) {
     }
 
     PRINTF("DER sig: %.*H\n", signature.size, signature.bytes);
-    PRINTF("SHA256(payload): %.*H\n", sizeof(G_swap_ctx.sha256_digest), G_swap_ctx.sha256_digest);
+    const uint8_t *hash;
+    if (signature_is_computed_on_dot_prefixed_tx) {
+        hash = G_swap_ctx.sha256_digest_prefixed;
+        PRINTF("SHA256 %.*H\n",
+               sizeof(G_swap_ctx.sha256_digest_prefixed),
+               G_swap_ctx.sha256_digest_prefixed);
+    } else {
+        hash = G_swap_ctx.sha256_digest_no_prefix;
+        PRINTF("SHA256 %.*H\n",
+               sizeof(G_swap_ctx.sha256_digest_no_prefix),
+               G_swap_ctx.sha256_digest_no_prefix);
+    }
 
     // Check the signature of the sha256_digest we computed from the tx payload
     if (!cx_ecdsa_verify_no_throw(&G_swap_ctx.partner.public_key,
-                                  G_swap_ctx.sha256_digest,
+                                  hash,
                                   CURVE_SIZE_BYTES,
                                   signature.bytes,
                                   signature.size)) {

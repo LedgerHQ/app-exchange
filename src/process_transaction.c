@@ -97,30 +97,41 @@ static bool parse_transaction(uint8_t *in,
     return true;
 }
 
-static bool calculate_sha256_digest(buf_t payload, subcommand_e subcommand) {
-    cx_sha256_t sha256;
+static bool calculate_sha256_digest(buf_t payload) {
+    cx_sha256_t sha256_prefix;
+    cx_sha256_t sha256_no_prefix;
+    cx_sha256_init(&sha256_prefix);
+    cx_sha256_init(&sha256_no_prefix);
 
-    cx_sha256_init(&sha256);
-
-    if (subcommand != SWAP) {
-        unsigned char dot = '.';
-        if (cx_hash_no_throw(&sha256.header, 0, &dot, 1, NULL, 0) != CX_OK) {
-            PRINTF("Error: cx_hash_no_throw\n");
-            return false;
-        }
-    }
-
-    if (cx_hash_no_throw(&sha256.header,
-                         CX_LAST,
-                         payload.bytes,
-                         payload.size,
-                         G_swap_ctx.sha256_digest,
-                         sizeof(G_swap_ctx.sha256_digest)) != CX_OK) {
+    // Calculate both WITH and WITHOUT the dot prefix.
+    // We don't know which one we'll need yet
+    unsigned char dot = '.';
+    if (cx_hash_no_throw(&sha256_prefix.header, 0, &dot, 1, NULL, 0) != CX_OK) {
         PRINTF("Error: cx_hash_no_throw\n");
         return false;
     }
 
-    PRINTF("sha256_digest: %.*H\n", 32, G_swap_ctx.sha256_digest);
+    if (cx_hash_no_throw(&sha256_prefix.header,
+                         CX_LAST,
+                         payload.bytes,
+                         payload.size,
+                         G_swap_ctx.sha256_digest_prefixed,
+                         sizeof(G_swap_ctx.sha256_digest_prefixed)) != CX_OK) {
+        PRINTF("Error: cx_hash_no_throw\n");
+        return false;
+    }
+    if (cx_hash_no_throw(&sha256_no_prefix.header,
+                         CX_LAST,
+                         payload.bytes,
+                         payload.size,
+                         G_swap_ctx.sha256_digest_no_prefix,
+                         sizeof(G_swap_ctx.sha256_digest_no_prefix)) != CX_OK) {
+        PRINTF("Error: cx_hash_no_throw\n");
+        return false;
+    }
+
+    PRINTF("sha256_digest_prefixed: %.*H\n", 32, G_swap_ctx.sha256_digest_prefixed);
+    PRINTF("sha256_digest_no_prefix: %.*H\n", 32, G_swap_ctx.sha256_digest_no_prefix);
 
     return true;
 }
@@ -305,7 +316,7 @@ int process_transaction(const command_t *cmd) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
-    if (!calculate_sha256_digest(payload, cmd->subcommand)) {
+    if (!calculate_sha256_digest(payload)) {
         return reply_error(INTERNAL_ERROR);
     }
 
