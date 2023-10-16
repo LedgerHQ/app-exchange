@@ -24,7 +24,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "stellar": "Stellar",
     "solana": "Solana",
     "bsc": "Binance Smart Chain",
-    "polkadot": "Polkadot",
+    "DOT": "Polkadot",
 }
 
 configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
