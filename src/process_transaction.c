@@ -136,7 +136,9 @@ static bool calculate_sha256_digest(buf_t payload) {
     return true;
 }
 
-static bool deserialize_protobuf_payload(buf_t payload, subcommand_e subcommand, bool needs_base64_decoding) {
+static bool deserialize_protobuf_payload(buf_t payload,
+                                         subcommand_e subcommand,
+                                         bool needs_base64_decoding) {
     pb_istream_t stream;
     const pb_field_t *fields;
     void *dest_struct;
@@ -312,7 +314,12 @@ int process_transaction(const command_t *cmd) {
     buf_t fees;
     buf_t payload;
     bool needs_base64_decoding;
-    if (!parse_transaction(data, cmd->data.size, cmd->subcommand, &payload, &fees, &needs_base64_decoding)) {
+    if (!parse_transaction(data,
+                           cmd->data.size,
+                           cmd->subcommand,
+                           &payload,
+                           &fees,
+                           &needs_base64_decoding)) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
