@@ -28,7 +28,7 @@ const app_name_alias_t appnames_aliases[] = {
  *  - A the application name, La its size
  *  - C the sub configuration, Lc its size
  *
- * As the sub configuration is optionnal, we accept Lc == 0
+ * As the sub configuration is optional, we accept Lc == 0
  */
 bool parse_coin_config(buf_t input,
                        buf_t *ticker,

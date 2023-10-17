@@ -38,7 +38,7 @@ class ExchangeTestRunner:
     # fake_payout_memo: str
     # signature_refusal_error_code: int
 
-    # You can optionnaly overwrite the following default values if you want
+    # You can optionally overwrite the following default values if you want
     partner_name = "Default name"
     fund_user_id = "Jon Wick"
     fund_account_name = "My account 00"

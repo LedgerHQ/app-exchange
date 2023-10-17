@@ -78,7 +78,7 @@ int check_tx_signature(const command_t *cmd) {
 
         uint16_t payload_size = remaining_input.bytes[DER_OFFSET_LENGTH];
         if (payload_size + DER_HEADER_SIZE != remaining_input.size) {
-            PRINTF("DER signature header advertizes %d bytes, we received %d\n",
+            PRINTF("DER signature header advertises %d bytes, we received %d\n",
                    payload_size,
                    remaining_input.size);
             return reply_error(INCORRECT_COMMAND_DATA);

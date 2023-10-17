@@ -274,7 +274,7 @@ static void normalize_currencies(subcommand) {
     }
 }
 
-// triming leading 0s
+// trim leading 0s
 static void trim_amounts(subcommand) {
     if (subcommand == SWAP || subcommand == SWAP_NG) {
         trim_pb_bytes_array(

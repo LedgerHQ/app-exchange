@@ -31,7 +31,7 @@ static bool parse_der_signature(uint8_t *in, uint16_t in_size, buf_t *der, uint1
 //    1 byte 0x30                                       1 + X
 //    1 byte length C of compound object                2 + X
 //    C bytes
-// 1 byte length Y of address paramaters                1 + X + D
+// 1 byte length Y of address parameters                1 + X + D
 // Y bytes of address parameters                        2 + X + D
 int parse_check_address_message(const command_t *cmd,
                                 buf_t *config,

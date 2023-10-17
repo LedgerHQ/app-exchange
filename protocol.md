@@ -1,6 +1,6 @@
 # Protocol to speak with EXCHANGE application
 
-Communication is done through a serie of request-response exchanges (APDU / RAPDU).
+Communication is done through a series of request-response exchanges (APDU / RAPDU).
 
 
 ## Request:
@@ -19,7 +19,7 @@ Communication is done through a serie of request-response exchanges (APDU / RAPD
 
 | Name                         | Value | Description                                                                           |
 | ---------------------------- | ----- | ------------------------------------------------------------------------------------- |
-| GET_VERSION                  | 0x02  | Get application version. This APDU can be sent independantly of the current app state |
+| GET_VERSION                  | 0x02  | Get application version. This APDU can be sent independently of the current app state |
 | START_NEW_TRANSACTION        | 0x03  | Start new EXCHANGE transaction. This APDU resets the app state                        |
 | SET_PARTNER_KEY              | 0x04  | Set the credentials of the exchange partner                                           |
 | CHECK_PARTNER                | 0x05  | Check that the credentials of the exchange partner are signed by the Ledger key       |
@@ -119,7 +119,7 @@ No data expected.
 | N bytes            | Partner name encoded with utf-8      |
 | LC - (1 + N) bytes | Partner public key                   |
 
-##### For all UNFIED TYPES, the data for this command is:
+##### For all UNIFIED TYPES, the data for this command is:
 
 | Bytes              | Description                          |
 | ------------------ | ------------------------------------ |
@@ -149,7 +149,7 @@ Please refer to the src/protobuf files for the actual transaction proposal conte
 | 1 byte  | Length M of the transaction fees                                                                            |
 | M bytes | Transaction fees                                                                                            |
 
-##### For all UNFIED TYPES, the data for this command is:
+##### For all UNIFIED TYPES, the data for this command is:
 
 | Bytes   | Description                                  |
 | ------- | -------------------------------------------- |
@@ -177,7 +177,7 @@ For SELL_LEGACY and FUND_LEGACY the signature is computed on the transaction pro
 For SWAP_LEGACY and FUND_LEGACY, the signature is in DER format. \
 For SELL_LEGACY the signature is in (R,S) format.
 
-##### For all UNFIED TYPES, the data for this command is:
+##### For all UNIFIED TYPES, the data for this command is:
 
 | Bytes        | Description                                                   |
 | ------------ | ------------------------------------------------------------- |

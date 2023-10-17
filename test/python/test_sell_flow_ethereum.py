@@ -34,7 +34,7 @@ def test_sell_flow(backend, exchange_navigation_helper):
     eth = EthereumClient(backend)
     assert eth.get_public_key().status == 0x9000
     # The original bug was that the Ethereum app was returning just after
-    # launch, and the first Ethereum:get_public_key call was in fact catched
+    # launch, and the first Ethereum:get_public_key call was in fact caught
     # by the Exchange app and interpreted as an Exchange::get_version call.
     # Exchange version are on 3 bytes, so we check the call does not return
     # 3 bytes of data

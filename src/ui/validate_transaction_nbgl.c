@@ -23,18 +23,18 @@ static char refusal_text[REFUSAL_TEXT_MAX_SIZE];
 #define REVIEW_P1_TITLE   "Review transaction"
 #define REVIEW_P1_CONFIRM "Sign transaction"
 
-// Delimitor ' ' or '\n'
+// Delimiter ' ' or '\n'
 
 #define REVIEW_P2 "to"
 
-// Delimitor ' ' or '\n'
+// Delimiter ' ' or '\n'
 
 // One of:
 #define REVIEW_P3_SWAP "swap "
 #define REVIEW_P3_SELL "sell "
 #define REVIEW_P3_FUND "fund account"
 
-// Delimitor ' ' or '\n'
+// Delimiter ' ' or '\n'
 
 // One of:
 #define REVIEW_P4_SWAP "to "
@@ -187,7 +187,7 @@ void ui_validate_amounts(void) {
             break;
     }
 
-    // Detect if we shoud display on 2 or 3 lines.
+    // Detect if we should display on 2 or 3 lines.
     if ((G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) ||
         (strlen(dyn_string_1) + strlen(dyn_string_2) >= 10)) {
         PRINTF("Review title and confirm on 3 lines\n");

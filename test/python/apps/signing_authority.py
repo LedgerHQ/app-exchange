@@ -56,7 +56,7 @@ class SigningAuthority:
     @property
     def credentials(self) -> bytes:
         """
-        :return: The partner credentials correctly formated for legacy flows
+        :return: The partner credentials correctly formatted for legacy flows
         :rtype: bytes
         """
         return self._credentials
@@ -64,7 +64,7 @@ class SigningAuthority:
     @property
     def credentials_ng(self) -> bytes:
         """
-        :return: The partner credentials correctly formated for ng flows
+        :return: The partner credentials correctly formatted for ng flows
         :rtype: bytes
         """
         return self._credentials_ng
@@ -73,7 +73,7 @@ class SigningAuthority:
         """
         Sign the requested data
 
-        :param payload_to_sign: The payload the parnter needs to sign
+        :param payload_to_sign: The payload the partner needs to sign
         :type payload_to_sign: bytes
 
         :return: The payload signed

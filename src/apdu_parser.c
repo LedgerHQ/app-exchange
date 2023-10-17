@@ -36,9 +36,9 @@ typedef struct apdu_s {
     uint8_t rate;
     uint8_t subcommand;
     uint16_t data_length;
-    // We could have put the recontructed apdu buffer here but it would increase the RAM usage by
+    // We could have put the reconstructed apdu buffer here but it would increase the RAM usage by
     // 512 bytes which is a lot on NANOS
-    // Instead the recontructed apdu buffer is G_swap_ctx.raw_transaction
+    // Instead the reconstructed apdu buffer is G_swap_ctx.raw_transaction
     // It is unionized with the decoded protobuf transaction requests
     // Pro: less memory usage
     // Cons: use cautiously and only during the command PROCESS_TRANSACTION_RESPONSE_COMMAND
@@ -74,7 +74,7 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
         case GET_VERSION_COMMAND:
             // We ignore the current context for this command as it doesn't modify anything
             check_subcommand_context = false;
-            // No strict dependancy on the current state as long as it is not a protected state
+            // No strict dependency on the current state as long as it is not a protected state
             // (WAITING_USER_VALIDATION and WAITING_SIGNING)
             check_current_state = -1;
             break;
