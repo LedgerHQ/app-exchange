@@ -203,15 +203,28 @@ class ExchangeTestRunner:
     def perform_final_tx(self, destination, send_amount, fees, memo):
         raise NotImplementedError
 
-    # Wrapper of the function above to handle the USB reset in the parent class instead of the currency class
-    def perform_coin_specific_final_tx(self, destination, send_amount, fees, memo):
+    # Implement this function for each tested coin
+    def perform_final_tx_wrong_method(self, destination, send_amount, fees, memo):
+        raise NotImplementedError
+
+    # Wrapper of the functions above to handle the USB reset in the parent class instead of the currency class
+    def _safe_wrapper(self, wrong_method: bool, destination: str, send_amount: int, fees: int, memo: str):
         try:
-            self.perform_final_tx(destination, send_amount, fees, memo)
+            if wrong_method:
+                self.perform_final_tx_wrong_method(destination, send_amount, fees, memo)
+            else:
+                self.perform_final_tx(destination, send_amount, fees, memo)
         except Exception as e:
             raise e
         finally:
             self.exchange_navigation_helper.check_post_sign_display()
             handle_lib_call_start_or_stop(self.backend)
+
+    def perform_coin_specific_final_tx(self, destination, send_amount, fees, memo):
+        self._safe_wrapper(False, destination, send_amount, fees, memo)
+
+    def perform_coin_specific_final_tx_wrong_method(self, destination, send_amount, fees, memo):
+        self._safe_wrapper(True, destination, send_amount, fees, memo)
 
     def assert_exchange_is_started(self):
         # We don't care at all for the subcommand / rate
@@ -292,6 +305,14 @@ class ExchangeTestRunner:
         assert e.value.status == self.wrong_amount_error_code
         self.assert_exchange_is_started()
 
+    # Test swap with a malicious TX trying a wrong method
+    def perform_test_swap_wrong_method(self, legacy):
+        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, legacy=legacy)
+        with pytest.raises(ExceptionRAPDU) as e:
+            self.perform_coin_specific_final_tx_wrong_method(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
+        assert e.value.status == self.wrong_method_error_code
+        self.assert_exchange_is_started()
+
     #########################################################
     # Generic FUND tests functions, call them in your tests #
     #########################################################
@@ -343,6 +364,14 @@ class ExchangeTestRunner:
         assert e.value.status == self.wrong_amount_error_code
         self.assert_exchange_is_started()
 
+    # Test fund with a malicious TX trying a wrong method
+    def perform_test_fund_wrong_method(self, legacy):
+        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, legacy=legacy)
+        with pytest.raises(ExceptionRAPDU) as e:
+            self.perform_coin_specific_final_tx_wrong_method(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
+        assert e.value.status == self.wrong_method_error_code
+        self.assert_exchange_is_started()
+
     #########################################################
     # Generic SELL tests functions, call them in your tests #
     #########################################################
@@ -392,6 +421,14 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
         assert e.value.status == self.wrong_amount_error_code
+        self.assert_exchange_is_started()
+
+    # Test sell with a malicious TX trying a wrong method
+    def perform_test_sell_wrong_method(self, legacy):
+        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, legacy=legacy)
+        with pytest.raises(ExceptionRAPDU) as e:
+            self.perform_coin_specific_final_tx_wrong_method(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
+        assert e.value.status == self.wrong_method_error_code
         self.assert_exchange_is_started()
 
 # Automatically collect all tests functions and export their name in ready-to-be-parametrized lists
