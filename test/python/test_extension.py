@@ -4,7 +4,7 @@ from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command, P2_EXTEND, P2_MORE, EXCHANGE_CLASS
-from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, craft_transaction_proposal
+from .apps.exchange_transaction_builder import get_partner_curve, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, get_credentials, craft_and_sign_tx
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps import cal as cal
 
@@ -54,9 +54,10 @@ class TestExtension:
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
         transaction_id = ex.init_transaction().data
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        tx = craft_tx(subcommand, TX_INFOS[subcommand], transaction_id)
+        credentials = get_credentials(subcommand, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
+        tx, _ = craft_and_sign_tx(subcommand, TX_INFOS[subcommand], transaction_id, FEES, partner)
         # Send the exchange transaction proposal and its signature
 
         for ext in [P2_MORE, P2_EXTEND, (P2_EXTEND | P2_MORE)]:
@@ -78,22 +79,21 @@ class TestExtension:
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
         transaction_id = ex.init_transaction().data
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        tx = craft_tx(subcommand, TX_INFOS[subcommand], transaction_id)
-        signed_tx = encode_tx(subcommand, partner, tx)
+        credentials = get_credentials(subcommand, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
+        tx, tx_signature = craft_and_sign_tx(subcommand, TX_INFOS[subcommand], transaction_id, FEES, partner)
 
         # Artificially create many chunks to test the TX concatenation
-        payload = craft_transaction_proposal(subcommand, tx, FEES)
-        payload_split = [payload[x:x + 70] for x in range(0, len(payload), 70)]
-        for i, p in enumerate(payload_split):
+        tx_split = [tx[x:x + 70] for x in range(0, len(tx), 70)]
+        for i, p in enumerate(tx_split):
             p2 = subcommand
-            if i != len(payload_split) - 1:
+            if i != len(tx_split) - 1:
                 p2 |= P2_MORE
             if i != 0:
                 p2 |= P2_EXTEND
             backend.exchange(EXCHANGE_CLASS, Command.PROCESS_TRANSACTION_RESPONSE, p1=Rate.FIXED, p2=p2, data=p)
-        ex.check_transaction_signature(signed_tx)
+        ex.check_transaction_signature(tx_signature)
 
 
     @pytest.mark.parametrize("subcommand", NEW_SUBCOMMANDS)
@@ -101,10 +101,10 @@ class TestExtension:
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
         transaction_id = ex.init_transaction().data
-        ex.set_partner_key(partner.credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(partner.credentials))
-        tx = craft_tx(subcommand, TX_INFOS[subcommand], transaction_id)
-        signed_tx = encode_tx(subcommand, partner, tx)
+        credentials = get_credentials(subcommand, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
+        tx, tx_signature = craft_and_sign_tx(subcommand, TX_INFOS[subcommand], transaction_id, FEES, partner)
 
         # Start with an EXTEND flag
         with pytest.raises(ExceptionRAPDU) as e:
@@ -120,15 +120,14 @@ class TestExtension:
         backend.exchange(EXCHANGE_CLASS, Command.PROCESS_TRANSACTION_RESPONSE, p1=Rate.FIXED, p2=(subcommand | P2_MORE), data=b"0011233445566778899")
 
         # Restart a chunk send with correct data, artificially create many chunks to test the TX concatenation
-        payload = craft_transaction_proposal(subcommand, tx, FEES)
-        payload_split = [payload[x:x + 70] for x in range(0, len(payload), 70)]
-        for i, p in enumerate(payload_split):
+        tx_split = [tx[x:x + 70] for x in range(0, len(tx), 70)]
+        for i, p in enumerate(tx_split):
             p2 = subcommand
-            if i != len(payload_split) - 1:
+            if i != len(tx_split) - 1:
                 p2 |= P2_MORE
             if i != 0:
                 p2 |= P2_EXTEND
             backend.exchange(EXCHANGE_CLASS, Command.PROCESS_TRANSACTION_RESPONSE, p1=Rate.FIXED, p2=p2, data=p)
 
         # Check the signature to ensure the data received has not been corrupted
-        ex.check_transaction_signature(signed_tx)
+        ex.check_transaction_signature(tx_signature)

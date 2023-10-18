@@ -99,7 +99,7 @@ def blake2_hash_pubkey(pubkey: bytes) -> bytes:
     return blake2b(pubkey, digest_size=HASH_SIZE).digest()
 
 
-# Weird Tezos formating used for values:
+# Weird Tezos formatting used for values:
 # Values are packed on the 7 week bits of each byte
 # The strongest bit is set to true if the value is over
 # Example with format(300):

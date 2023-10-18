@@ -1,5 +1,5 @@
 from base64 import urlsafe_b64encode
-from typing import Optional, Dict, Callable, Iterable
+from typing import Optional, Dict, Callable, Iterable, Union
 from enum import Enum, auto, IntEnum
 from dataclasses import dataclass
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -44,8 +44,9 @@ LEGACY_SUBCOMMANDS = [SubCommand.SWAP, SubCommand.SELL, SubCommand.FUND]
 NEW_SUBCOMMANDS = [SubCommand.SWAP_NG, SubCommand.SELL_NG, SubCommand.FUND_NG]
 ALL_SUBCOMMANDS = [SubCommand.SWAP, SubCommand.SELL, SubCommand.FUND, SubCommand.SWAP_NG, SubCommand.SELL_NG, SubCommand.FUND_NG]
 
-@dataclass(frozen=True)
+@dataclass()
 class SubCommandSpecs:
+    subcommand_id: SubCommand
     partner_curve: ec.EllipticCurve
     signature_computation: SignatureComputation
     signature_encoding: SignatureEncoding
@@ -55,6 +56,22 @@ class SubCommandSpecs:
     transaction_id_field: str
     payout_field: str
     refund_field: Optional[str]
+
+    @property
+    def dot_prefix(self):
+        return int.to_bytes(1 if (self.signature_computation == SignatureComputation.DOT_PREFIXED_BASE_64_URL) else 0, 1, byteorder='big')
+    @property
+    def signature_encoding_prefix(self):
+        return int.to_bytes(1 if (self.signature_encoding == SignatureEncoding.PLAIN_R_S) else 0, 1, byteorder='big')
+    @property
+    def payload_encoding_prefix(self):
+        return int.to_bytes(1 if (self.payload_encoding == PayloadEncoding.BASE_64_URL) else 0, 1, byteorder='big')
+    @property
+    def is_ng(self):
+        return (self.subcommand_id == SubCommand.SWAP_NG or self.subcommand_id == SubCommand.SELL_NG or self.subcommand_id == SubCommand.FUND_NG)
+    @property
+    def size_of_transaction_length(self):
+        return (2 if self.is_ng else 1)
 
     def check_conf(self, conf: Dict) -> bool:
         return (all(i in conf for i in self.required_fields) and (len(conf) == len(self.required_fields)))
@@ -75,6 +92,10 @@ class SubCommandSpecs:
         if self.signature_encoding == SignatureEncoding.PLAIN_R_S:
             r, s = decode_dss_signature(signature_to_encode)
             signature_to_encode = r.to_bytes(32, "big") + s.to_bytes(32, "big")
+
+        if self.is_ng:
+            signature_to_encode = self.dot_prefix + self.signature_encoding_prefix + signature_to_encode
+
         return signature_to_encode
 
     def create_transaction(self, conf: Dict, transaction_id: bytes) -> bytes:
@@ -84,8 +105,25 @@ class SubCommandSpecs:
         raw_transaction = self.transaction_type(**c).SerializeToString()
         return self.encode_payload(raw_transaction)
 
+    def craft_pb(self, tx_infos: Dict, transaction_id: bytes) -> bytes:
+        assert self.check_conf(tx_infos)
+        return self.create_transaction(tx_infos, transaction_id)
 
-SWAP_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
+    def craft_transaction(self, transaction: bytes, fees: int) -> bytes:
+        fees_bytes = int_to_minimally_sized_bytes(fees)
+        payload = prefix_with_len_custom(transaction, self.size_of_transaction_length) + prefix_with_len(fees_bytes)
+        if self.is_ng:
+            payload = self.payload_encoding_prefix + payload
+        return payload
+
+    def encode_transaction_signature(self, signer: SigningAuthority, tx: bytes) -> bytes:
+        formated_transaction = self.format_transaction(tx)
+        signed_transaction = signer.sign(formated_transaction)
+        encoded_signature = self.encode_signature(signed_transaction)
+        return encoded_signature
+
+SWAP_NG_SPECS = SubCommandSpecs(
+    subcommand_id = SubCommand.SWAP_NG,
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.PLAIN_R_S,
@@ -99,7 +137,8 @@ SWAP_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     refund_field = "currency_from",
 )
 
-SWAP_SPECS: SubCommandSpecs = SubCommandSpecs(
+SWAP_SPECS = SubCommandSpecs(
+    subcommand_id = SubCommand.SWAP,
     partner_curve = ec.SECP256K1(),
     signature_computation = SignatureComputation.BINARY_ENCODED_PAYLOAD,
     signature_encoding = SignatureEncoding.DER,
@@ -113,7 +152,8 @@ SWAP_SPECS: SubCommandSpecs = SubCommandSpecs(
     refund_field = "currency_from",
 )
 
-SELL_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
+SELL_NG_SPECS = SubCommandSpecs(
+    subcommand_id = SubCommand.SELL_NG,
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.PLAIN_R_S,
@@ -125,10 +165,21 @@ SELL_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     refund_field = None,
 )
 
-# Legacy SELL specs happen to be the same as the unified specs
-SELL_SPECS: SubCommandSpecs = SELL_NG_SPECS
+SELL_SPECS = SubCommandSpecs(
+    subcommand_id = SubCommand.SELL,
+    partner_curve = ec.SECP256R1(),
+    signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
+    signature_encoding = SignatureEncoding.PLAIN_R_S,
+    payload_encoding = PayloadEncoding.BASE_64_URL,
+    transaction_type = NewSellResponse,
+    transaction_id_field = "device_transaction_id",
+    required_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
+    payout_field = "in_currency",
+    refund_field = None,
+)
 
-FUND_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
+FUND_NG_SPECS = SubCommandSpecs(
+    subcommand_id = SubCommand.FUND_NG,
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.PLAIN_R_S,
@@ -140,7 +191,8 @@ FUND_NG_SPECS: SubCommandSpecs = SubCommandSpecs(
     refund_field =  None,
 )
 
-FUND_SPECS: SubCommandSpecs = SubCommandSpecs(
+FUND_SPECS = SubCommandSpecs(
+    subcommand_id = SubCommand.FUND,
     partner_curve = ec.SECP256R1(),
     signature_computation = SignatureComputation.DOT_PREFIXED_BASE_64_URL,
     signature_encoding = SignatureEncoding.DER,
@@ -161,16 +213,15 @@ SUBCOMMAND_TO_SPECS = {
     SubCommand.FUND_NG: FUND_NG_SPECS,
 }
 
-def craft_tx(subcommand: SubCommand, conf: Dict, transaction_id: bytes) -> bytes:
-    subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
-    assert subcommand_specs.check_conf(conf)
-    return subcommand_specs.create_transaction(conf, transaction_id)
-
-def encode_tx(subcommand: SubCommand, signer: SigningAuthority, tx: bytes) -> bytes:
-    subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
-    formated_transaction = subcommand_specs.format_transaction(tx)
-    signed_transaction = signer.sign(formated_transaction)
-    return subcommand_specs.encode_signature(signed_transaction)
+def craft_and_sign_tx(subcommand: Union[SubCommand, SubCommandSpecs], tx_infos: Dict, transaction_id: bytes, fees: int, signer: SigningAuthority):
+    if isinstance(subcommand, SubCommand):
+        subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
+    else:
+        subcommand_specs = subcommand
+    pb = subcommand_specs.craft_pb(tx_infos, transaction_id)
+    tx = subcommand_specs.craft_transaction(pb, fees)
+    signed_tx = subcommand_specs.encode_transaction_signature(signer, pb)
+    return tx, signed_tx
 
 def extract_payout_ticker(subcommand: SubCommand, tx_infos: Dict) -> str:
     subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
@@ -186,8 +237,8 @@ def extract_refund_ticker(subcommand: SubCommand, tx_infos: Dict) -> Optional[st
 def get_partner_curve(subcommand: SubCommand) -> ec.EllipticCurve:
     return SUBCOMMAND_TO_SPECS[subcommand].partner_curve
 
-def craft_transaction_proposal(subcommand: SubCommand, transaction: bytes, fees: int) -> bytes:
-    fees_bytes = int_to_minimally_sized_bytes(fees)
-    prefix_length = 2 if (subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.FUND_NG or subcommand == SubCommand.SELL_NG) else 1
-    payload = prefix_with_len_custom(transaction, prefix_length) + prefix_with_len(fees_bytes)
-    return payload
+def get_credentials(subcommand: SubCommand, partner: SigningAuthority) -> bytes:
+    if subcommand == SubCommand.SWAP_NG or subcommand == SubCommand.SELL_NG or subcommand == SubCommand.FUND_NG:
+        return partner.credentials_ng
+    else:
+        return partner.credentials

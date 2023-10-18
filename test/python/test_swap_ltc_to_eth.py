@@ -4,7 +4,7 @@ from .apps.exchange import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
 
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
-from .apps.exchange_transaction_builder import get_partner_curve, craft_tx, encode_tx, extract_payout_ticker, extract_refund_ticker
+from .apps.exchange_transaction_builder import get_partner_curve, extract_payout_ticker, extract_refund_ticker, craft_and_sign_tx
 from .apps import cal as cal
 
 
@@ -30,10 +30,9 @@ def test_swap_ltc_to_eth(backend, exchange_navigation_helper):
     }
     fees = 339
 
-    tx = craft_tx(SubCommand.SWAP, tx_infos, transaction_id)
-    ex.process_transaction(tx, fees)
-    encoded_tx = encode_tx(SubCommand.SWAP, partner, tx)
-    ex.check_transaction_signature(encoded_tx)
+    tx, tx_signature = craft_and_sign_tx(SubCommand.SWAP, tx_infos, transaction_id, fees, partner)
+    ex.process_transaction(tx)
+    ex.check_transaction_signature(tx_signature)
 
     payout_ticker = extract_payout_ticker(SubCommand.SWAP, tx_infos)
     refund_ticker = extract_refund_ticker(SubCommand.SWAP, tx_infos)

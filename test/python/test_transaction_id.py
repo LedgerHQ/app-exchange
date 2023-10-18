@@ -18,6 +18,5 @@ def test_transaction_id(backend):
 
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.FUND)
     transaction_id = ex.init_transaction().data
-    print(transaction_id)
     # Assert length
     assert len(transaction_id) == 32

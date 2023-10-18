@@ -13,6 +13,18 @@
 #define MIN_DER_SIGNATURE_LENGTH 67U
 #define MAX_DER_SIGNATURE_LENGTH 72U
 
+#define CURVE_SECP256K1 0x00
+#define CURVE_SECP256R1 0x01
+
+#define ENCODING_BYTES_ARRAY 0x00
+#define ENCODING_BASE_64_URL 0x01
+
+#define DER_FORMAT_SIGNATURE 0x00
+#define R_S_FORMAT_SIGNATURE 0x01
+
+#define SIGNATURE_COMPUTED_ON_TX              0x00
+#define SIGNATURE_COMPUTED_ON_DOT_PREFIXED_TX 0x01
+
 #define TICKER_MIN_SIZE_B  2
 #define TICKER_MAX_SIZE_B  9
 #define APPNAME_MIN_SIZE_B 3
@@ -74,7 +86,12 @@ typedef struct swap_app_context_s {
         };
     };
 
-    uint8_t sha256_digest[32];
+    // During TX reception, we don't know if we'll receive the signature of the (TX), or the
+    // signature of the ('.' + TX).
+    // Storing the whole TX to calculate the hash during signature checking would use too much
+    // stack, so we calculate the two hashes and we'll decide later which one to use.
+    uint8_t sha256_digest_prefixed[32];
+    uint8_t sha256_digest_no_prefix[32];
 
     cx_ecfp_256_public_key_t ledger_public_key;
 
