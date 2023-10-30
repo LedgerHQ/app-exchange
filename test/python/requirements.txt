@@ -1,4 +1,3 @@
-ledger-bitcoin>=0.0.3
 ragger[tests,speculos] >= 1.9.2
 protobuf==3.20.0
 stellar_sdk
