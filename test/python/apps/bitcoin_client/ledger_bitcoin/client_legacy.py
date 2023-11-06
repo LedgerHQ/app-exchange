@@ -11,7 +11,7 @@ import re
 import base64
 
 from .client_base import PartialSignature
-from .client import Client, TransportClient
+from .client import Client
 
 from typing import List, Tuple, Optional, Union
 
@@ -25,6 +25,7 @@ from ._script import is_p2sh, is_witness, is_p2wpkh, is_p2wsh
 from .btchip.btchip import btchip
 from .btchip.btchipUtils import compress_public_key
 from .btchip.bitcoinTransaction import bitcoinTransaction
+from ragger.backend import BackendInterface
 
 
 def get_address_type_for_policy(policy: WalletPolicy) -> AddressType:
@@ -72,7 +73,7 @@ class DongleAdaptor:
 class LegacyClient(Client):
     """Wrapper for Ledger Bitcoin app before version 2.0.0."""
 
-    def __init__(self, comm_client: TransportClient, chain: Chain = Chain.MAIN, debug: bool = False):
+    def __init__(self, comm_client: BackendInterface, chain: Chain = Chain.MAIN, debug: bool = False):
         super().__init__(comm_client, chain, debug)
 
         self.app = btchip(DongleAdaptor(comm_client))

@@ -1,10 +1,6 @@
 from dataclasses import dataclass
-from typing import List, Tuple, Optional, Union, Literal
+from typing import List, Tuple, Optional, Union
 from io import BytesIO
-
-from ledgercomm.interfaces.hid_device import HID
-
-from .transport import Transport
 
 from .common import Chain
 
@@ -15,6 +11,8 @@ from .wallet import WalletPolicy
 from .psbt import PSBT
 from ._serialize import deser_string
 
+from ragger.backend.interface import BackendInterface
+
 try:
     from speculos.client import ApduException
 except ImportError:
@@ -24,29 +22,6 @@ except ImportError:
             super().__init__(f"Exception: invalid status 0x{sw:x}")
             self.sw = sw
             self.data = data
-
-
-class TransportClient:
-    def __init__(self, interface: Literal['hid', 'tcp'] = "tcp", *, server: str = "127.0.0.1", port: int = 9999, path: Optional[str] = None, hid: Optional[HID] = None, debug: bool = False):
-        self.transport = Transport('hid', path=path, hid=hid, debug=debug) if interface == 'hid' else Transport(interface, server=server, port=port, debug=debug)
-
-    def apdu_exchange(
-        self, cla: int, ins: int, data: bytes = b"", p1: int = 0, p2: int = 0
-    ) -> bytes:
-        sw, data = self.transport.exchange(cla, ins, p1, p2, None, data)
-
-        if sw != 0x9000:
-            raise ApduException(sw, data)
-
-        return data
-
-    def apdu_exchange_nowait(
-        self, cla: int, ins: int, data: bytes = b"", p1: int = 0, p2: int = 0
-    ):
-        raise NotImplementedError()
-
-    def stop(self) -> None:
-        self.transport.close()
 
 
 def print_apdu(apdu_dict: dict) -> None:
@@ -62,7 +37,7 @@ def print_apdu(apdu_dict: dict) -> None:
 
 
 def print_response(sw: int, data: bytes) -> None:
-    print(f"<= {data.hex()}{sw.to_bytes(2, byteorder='big').hex()}")
+    print(f"<= {data}{sw.to_bytes(2, byteorder='big')}")
 
 
 @dataclass(frozen=True)
@@ -80,7 +55,7 @@ class PartialSignature:
 
 
 class Client:
-    def __init__(self, transport_client: TransportClient, chain: Chain = Chain.MAIN, debug: bool = False) -> None:
+    def __init__(self, transport_client: BackendInterface , chain: Chain = Chain.MAIN, debug: bool = False) -> None:
         self.transport_client = transport_client
         self.chain = chain
         self.debug = debug
@@ -90,11 +65,11 @@ class Client:
             if self.debug:
                 print_apdu(apdu)
 
-            response = self.transport_client.apdu_exchange(**apdu)
+            response = self.transport_client.exchange(**apdu)
             if self.debug:
                 print_response(0x9000, response)
 
-            return 0x9000, response
+            return response.status, response.data
         except ApduException as e:
             if self.debug:
                 print_response(e.sw, e.data)
@@ -108,7 +83,7 @@ class Client:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.transport_client.stop()
+        yield()
 
     def stop(self) -> None:
         """Stops the transport_client."""

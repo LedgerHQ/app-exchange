@@ -8,15 +8,16 @@ from .bip380.descriptors import Descriptor
 from .command_builder import BitcoinCommandBuilder, BitcoinInsType
 from .common import Chain, read_uint, read_varint
 from .client_command import ClientCommandInterpreter
-from .client_base import Client, TransportClient, PartialSignature
+from .client_base import Client, PartialSignature
 from .client_legacy import LegacyClient
-from .exception import DeviceException
 from .errors import UnknownDeviceError
 from .merkle import get_merkleized_map_commitment
 from .wallet import WalletPolicy, WalletType
 from .psbt import PSBT, normalize_psbt
 from . import segwit_addr
 from ._serialize import deser_string
+from ragger.backend import BackendInterface
+from ragger.error import ExceptionRAPDU
 
 
 def parse_stream_to_map(f: BufferedReader) -> Mapping[bytes, bytes]:
@@ -58,7 +59,7 @@ class NewClient(Client):
     # internal use for testing: if set to True, sign_psbt will not clone the psbt before converting to psbt version 2
     _no_clone_psbt: bool = False
 
-    def __init__(self, comm_client: TransportClient, chain: Chain = Chain.MAIN, debug: bool = False) -> None:
+    def __init__(self, comm_client: BackendInterface, chain: Chain = Chain.MAIN, debug: bool = False) -> None:
         super().__init__(comm_client, chain, debug)
         self.builder = BitcoinCommandBuilder()
 
@@ -83,7 +84,7 @@ class NewClient(Client):
         sw, response = self._make_request(self.builder.get_extended_pubkey(path, display))
 
         if sw != 0x9000:
-            raise DeviceException(error_code=sw, ins=BitcoinInsType.GET_EXTENDED_PUBKEY)
+            raise ExceptionRAPDU(sw, BitcoinInsType.GET_EXTENDED_PUBKEY)
 
         return response.decode()
 
@@ -103,7 +104,7 @@ class NewClient(Client):
         )
 
         if sw != 0x9000:
-            raise DeviceException(error_code=sw, ins=BitcoinInsType.REGISTER_WALLET)
+            raise ExceptionRAPDU(sw, BitcoinInsType.REGISTER_WALLET)
 
         if len(response) != 64:
             raise RuntimeError(f"Invalid response length: {len(response)}")
@@ -150,7 +151,7 @@ class NewClient(Client):
         )
 
         if sw != 0x9000:
-            raise DeviceException(error_code=sw, ins=BitcoinInsType.GET_WALLET_ADDRESS)
+            raise ExceptionRAPDU(sw, BitcoinInsType.GET_WALLET_ADDRESS)
 
         result = response.decode()
 
@@ -223,7 +224,7 @@ class NewClient(Client):
         )
 
         if sw != 0x9000:
-            raise DeviceException(error_code=sw, ins=BitcoinInsType.SIGN_PSBT)
+            raise ExceptionRAPDU(sw, BitcoinInsType.SIGN_PSBT)
 
         # parse results and return a structured version instead
         results = client_intepreter.yielded
@@ -249,7 +250,7 @@ class NewClient(Client):
         sw, response = self._make_request(self.builder.get_master_fingerprint())
 
         if sw != 0x9000:
-            raise DeviceException(error_code=sw, ins=BitcoinInsType.GET_EXTENDED_PUBKEY)
+            raise ExceptionRAPDU(sw, BitcoinInsType.GET_EXTENDED_PUBKEY)
 
         return response
 
@@ -267,7 +268,7 @@ class NewClient(Client):
         sw, response = self._make_request(self.builder.sign_message(message_bytes, bip32_path), client_intepreter)
 
         if sw != 0x9000:
-            raise DeviceException(error_code=sw, ins=BitcoinInsType.SIGN_MESSAGE)
+            raise ExceptionRAPDU(sw, BitcoinInsType.SIGN_MESSAGE)
 
         return base64.b64encode(response).decode('utf-8')
 
@@ -285,9 +286,7 @@ class NewClient(Client):
         return segwit_addr.encode(hrp, 0, spk[2:])
 
 
-def createClient(comm_client: Optional[TransportClient] = None, chain: Chain = Chain.MAIN, debug: bool = False) -> Union[LegacyClient, NewClient]:
-    if comm_client is None:
-        comm_client = TransportClient("hid")
+def createClient(comm_client: BackendInterface, chain: Chain = Chain.MAIN, debug: bool = False) -> Union[LegacyClient, NewClient]:
 
     base_client = Client(comm_client, chain, debug)
     app_name, app_version, _ = base_client.get_version()

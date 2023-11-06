@@ -1,7 +1,7 @@
 
 """Ledger Nano Bitcoin app client"""
 
-from .client_base import Client, TransportClient, PartialSignature
+from .client_base import Client, PartialSignature
 from .client import createClient
 from .common import Chain
 
@@ -11,7 +11,6 @@ __version__ = '0.2.1'
 
 __all__ = [
     "Client",
-    "TransportClient",
     "PartialSignature",
     "createClient",
     "Chain",

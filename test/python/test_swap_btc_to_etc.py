@@ -44,5 +44,5 @@ def test_swap_btc_to_etc(backend, exchange_navigation_helper):
 
     # client._client is the Speculos backend within the Ragger client,
     # because BitcoinClient is not Ragger-compatible (yet?)
-    with NewClient(backend._client, Chain.MAIN) as btc:
+    with NewClient(backend, Chain.MAIN) as btc:
         assert btc.get_master_fingerprint() == bytes.fromhex("f5acc2fd")
