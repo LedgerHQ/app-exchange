@@ -4,3 +4,5 @@ stellar_sdk
 base58
 xrpl-py
 scalecodec
+bip32 
+embit
