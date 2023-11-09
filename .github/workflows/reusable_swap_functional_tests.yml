@@ -133,7 +133,6 @@ jobs:
       app_branch_name: ${{ inputs.branch_for_exchange }}
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
-      test_dir: test/python
       test_filter: ${{ inputs.test_filter }}
 
   # Legacy
