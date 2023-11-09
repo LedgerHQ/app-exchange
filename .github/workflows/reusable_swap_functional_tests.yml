@@ -23,14 +23,6 @@ on:
         required: false
         default: 'develop'
         type: string
-      branch_for_ethereum_classic:
-        required: false
-        default: 'develop'
-        type: string
-      branch_for_litecoin:
-        required: false
-        default: 'master'
-        type: string
       branch_for_bitcoin_legacy:
         required: false
         default: 'master'
@@ -40,10 +32,6 @@ on:
         default: 'develop'
         type: string
       branch_for_solana:
-        required: false
-        default: 'develop'
-        type: string
-      branch_for_bsc:
         required: false
         default: 'develop'
         type: string
@@ -85,11 +73,11 @@ jobs:
           dir: .
         - name: ethereum_classic
           repo: app-ethereum
-          branch: ${{ inputs.branch_for_ethereum_classic }}
+          branch: ${{ inputs.branch_for_ethereum }}
           dir: .
         - name: litecoin
           repo: app-bitcoin
-          branch: ${{ inputs.branch_for_litecoin }}
+          branch: ${{ inputs.branch_for_bitcoin_legacy }}
           dir: .
         - name: bitcoin_legacy
           repo: app-bitcoin
@@ -105,7 +93,7 @@ jobs:
           dir: .
         - name: bsc
           repo: app-ethereum
-          branch: ${{ inputs.branch_for_bsc }}
+          branch: ${{ inputs.branch_for_ethereum }}
           dir: .
         - name: DOT
           repo: app-polkadot
