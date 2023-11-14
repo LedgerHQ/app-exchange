@@ -144,7 +144,7 @@ static bool deserialize_protobuf_payload(buf_t payload,
     void *dest_struct;
 
     // Temporary buffer if the received payload is encoded. Size is arbitrary
-    unsigned char decoded[256];
+    unsigned char decoded[512];
 
     buf_t to_deserialize;
 
