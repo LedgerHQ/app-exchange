@@ -19,7 +19,7 @@ def test_swap_btc_to_etc(backend, exchange_navigation_helper):
 
     tx_infos = {
         "payin_address": "bc1q4uj6h8qmdq5699azdagacptw66p202kn0fte56",
-        "refund_address": "bc1qer57ma0fzhqys2cmydhuj9cprf9eg0nw922a8j",
+        "refund_address": "bc1qqtl9jlrwcr3fsfcjj2du7pu6fcgaxl5dsw2vyg",
         "payout_address": "0x97E22bAc30AAbC10fBEf472B3513812fc717B2fD",
         "payin_extra_id": "",
         "refund_extra_id": "",
@@ -44,5 +44,5 @@ def test_swap_btc_to_etc(backend, exchange_navigation_helper):
 
     # client._client is the Speculos backend within the Ragger client,
     # because BitcoinClient is not Ragger-compatible (yet?)
-    with NewClient(backend._client, Chain.MAIN) as btc:
+    with NewClient(backend, Chain.MAIN) as btc:
         assert btc.get_master_fingerprint() == bytes.fromhex("f5acc2fd")
