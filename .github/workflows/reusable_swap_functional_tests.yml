@@ -1,4 +1,5 @@
-name: Reusable swap functional tests
+---
+name: Exchange functional tests
 
 on:
   workflow_call:
@@ -93,10 +94,18 @@ on:
         required: false
         default: '""'
         type: string
+      run_for_devices:
+        required: false
+        default: '["nanos", "nanox", "nanosp", "stax"]'
+        type: string
+      artefact_suffix:
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build_sideloaded_applications:
-    name: Build sideloaded applications using the reusable workflow
+    name: Build libraries
     strategy:
       fail-fast: false
       matrix:
@@ -143,20 +152,20 @@ jobs:
       app_repository: ${{ matrix.coin.repo }}
       app_branch_name: ${{  matrix.coin.branch }}
       flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }}"
-      upload_app_binaries_artifact: libraries_binaries
+      upload_app_binaries_artifact: 'libraries_binaries${{ inputs.artefact_suffix }}'
       upload_as_lib_artifact: ${{ matrix.coin.name }}
 
   build_exchange_application:
-    name: Build application using the reusable workflow
+    name: Build Exchange
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
       app_repository: LedgerHQ/app-exchange
       app_branch_name: ${{ inputs.branch_for_exchange }}
       flags: "TESTING=1 TEST_PUBLIC_KEY=1"
-      upload_app_binaries_artifact: exchange_binaries
+      upload_app_binaries_artifact: 'exchange_binaries${{ inputs.artefact_suffix }}'
 
   ragger_tests:
-    name: Run ragger tests using the reusable workflow
+    name: Run tests
     needs:
       - build_exchange_application
       - build_sideloaded_applications
@@ -164,8 +173,8 @@ jobs:
     with:
       app_repository: LedgerHQ/app-exchange
       app_branch_name: ${{ inputs.branch_for_exchange }}
-      download_app_binaries_artifact: exchange_binaries
-      lib_binaries_artifact: libraries_binaries
+      download_app_binaries_artifact: 'exchange_binaries${{ inputs.artefact_suffix }}'
+      lib_binaries_artifact: 'libraries_binaries${{ inputs.artefact_suffix }}'
       test_filter: ${{ inputs.test_filter }}
 
   # Legacy
@@ -207,13 +216,13 @@ jobs:
       - name: Download exchange binaries
         uses: actions/download-artifact@v3
         with:
-          name: exchange_binaries
+          name: exchange_binaries${{ inputs.artefact_suffix }}
           path: ./build/
 
       - name: Download lib binaries
         uses: actions/download-artifact@v3
         with:
-          name: libraries_binaries
+          name: libraries_binaries${{ inputs.artefact_suffix }}
           path: ./test/python/lib_binaries/
 
       - name: Dispatch to the tests/elfs
