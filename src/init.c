@@ -43,11 +43,7 @@ int init_application_context(void) {
 
 #endif
     memset(&G_swap_ctx, 0, sizeof(G_swap_ctx));
-    // Prepare the prefixed name for FUND display, don't copy the trailing '\0' on purpose
-    // as we want the second part of the string to be concatenated automatically
-    memcpy(&G_swap_ctx.partner.prefix,
-           PARTNER_NAME_PREFIX_FOR_FUND,
-           sizeof(G_swap_ctx.partner.prefix));
+
     if (cx_ecfp_init_public_key_no_throw(CX_CURVE_SECP256K1,
                                          LedgerPubKey,
                                          sizeof(LedgerPubKey),

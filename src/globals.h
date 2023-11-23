@@ -37,23 +37,11 @@ extern uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 #define MAX_PARTNER_NAME_LENGHT 15
 
 #define PARTNER_NAME_PREFIX_FOR_FUND "To "
-#define PARTNER_NAME_PREFIX_SIZE     (sizeof(PARTNER_NAME_PREFIX_FOR_FUND) - 1)  // Remove trailing '\0'
 
-#pragma pack(push, 1)
 typedef struct partner_data_s {
-    uint8_t name_length;
-    union {
-        // SELL and SWAP flows display nothing
-        // FUND flow displays "To xyz"
-        struct {
-            char prefix[PARTNER_NAME_PREFIX_SIZE];
-            char name[MAX_PARTNER_NAME_LENGHT + 1];
-        };
-        char prefixed_name[PARTNER_NAME_PREFIX_SIZE + MAX_PARTNER_NAME_LENGHT + 1];
-    };
+    char prefixed_name[sizeof(PARTNER_NAME_PREFIX_FOR_FUND) - 1 + MAX_PARTNER_NAME_LENGHT + 1];
     cx_ecfp_256_public_key_t public_key;
 } partner_data_t;
-#pragma pack(pop)
 
 typedef struct swap_app_context_s {
     union {
