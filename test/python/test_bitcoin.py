@@ -46,7 +46,8 @@ class BitcoinTests(ExchangeTestRunner):
     fake_refund_memo = ""
     fake_payout = "abcdabcd"
     fake_payout_memo = ""
-    signature_refusal_error_code = BitcoinErrors.SW_SWAP_CHECKING_FAIL
+    signature_refusal_error_code = 0x6A80
+    # signature_refusal_error_code = BitcoinErrors.SW_INCORRECT_DATA
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         if destination == BitcoinClient.get_address_from_wallet(out_wallet):
@@ -65,9 +66,12 @@ class BitcoinTests(ExchangeTestRunner):
 
 
 # Use a class to reuse the same Speculos instance
-class TestsBitcoin:
+# class TestsBitcoin:
 
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
-    def test_bitcoin(self, backend, exchange_navigation_helper, test_to_run):
-        BitcoinTests(backend, exchange_navigation_helper).run_test(test_to_run)
+    # @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+    # def test_bitcoin(self, backend, exchange_navigation_helper, test_to_run):
+    #     BitcoinTests(backend, exchange_navigation_helper).run_test(test_to_run)
+@pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+def test_bitcoin(backend, exchange_navigation_helper, test_to_run):
+    BitcoinTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
