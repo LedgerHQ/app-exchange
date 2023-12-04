@@ -1,8 +1,10 @@
 ragger[tests,speculos] >= 1.9.2
-protobuf==3.20.0
+protobuf
 stellar_sdk
 base58
 xrpl-py
 scalecodec
-bip32 
+bip32
 embit
+--extra-index-url https://test.pypi.org/simple/
+ledger_app_clients.ethereum

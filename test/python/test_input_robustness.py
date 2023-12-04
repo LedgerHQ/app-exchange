@@ -242,15 +242,15 @@ class TestAliasAppname:
             "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
             "payout_extra_id": b"",
             "currency_from": "ETH",
-            "currency_to": "BSC",
+            "currency_to": "BNB",
             "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
             "amount_to_wallet": b"\246\333t\233+\330\000",
         }
         fees = 100
 
         bsc_conf = cal.get_currency_conf(tx_infos["currency_to"]) # "Binance Smart Chain"
-        bsc_conf_alias_1 = create_currency_config("BSC", "bsc", ("BSC", 12))
-        bsc_conf_alias_2 = create_currency_config("BSC", "Bsc", ("BSC", 12))
+        bsc_conf_alias_1 = create_currency_config("BNB", "bsc", ("BNB", 18))
+        bsc_conf_alias_2 = create_currency_config("BNB", "Bsc", ("BNB", 18))
         for conf in bsc_conf, bsc_conf_alias_1, bsc_conf_alias_2:
             ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
             transaction_id = ex.init_transaction().data
