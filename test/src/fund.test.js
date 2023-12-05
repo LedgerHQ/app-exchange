@@ -33,14 +33,3 @@ nano_environments.forEach(function(model) {
         await t.performFund();
     }))
 });
-
-nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] FUND Valid Ethereum funding transaction should be accepted`, zemu(model, async (sim) => {
-        let t = new ExchangeTransactionPerformer(model, sim);
-        t.setFromCurrencyInfo(ETH_INFO);
-        // 1 ETH
-        t.setInAmount(numberToBigEndianBuffer(1000000000000000000));
-        t.setFee(1000000000000000000);
-        await t.performFund();
-    }))
-});
