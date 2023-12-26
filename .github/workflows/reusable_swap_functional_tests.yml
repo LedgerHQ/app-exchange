@@ -45,7 +45,7 @@ on:
         type: string
       branch_for_near:
         required: false
-        default: 'develop'
+        default: 'add-swap'
         type: string
       test_filter:
         required: false
