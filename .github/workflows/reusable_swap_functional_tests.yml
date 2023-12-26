@@ -43,6 +43,10 @@ on:
         required: false
         default: 'develop'
         type: string
+      branch_for_near:
+        required: false
+        default: 'add-swap'
+        type: string
       test_filter:
         required: false
         default: '""'
@@ -91,6 +95,9 @@ jobs:
         - name: tron
           repo: app-tron
           branch: ${{ inputs.branch_for_tron }}
+        - name: near
+          repo: app-near
+          branch: ${{ inputs.branch_for_near }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
