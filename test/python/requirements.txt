@@ -6,5 +6,4 @@ xrpl-py
 scalecodec
 bip32
 embit
---extra-index-url https://test.pypi.org/simple/
-ledger_app_clients.ethereum
+ledger_app_clients.ethereum @ https://github.com/LedgerHQ/app-ethereum/archive/develop.zip#subdirectory=client
