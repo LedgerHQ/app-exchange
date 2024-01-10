@@ -1,8 +1,9 @@
+#include "globals.h"
 #include "init.h"
 #include "cx.h"
 
 // Init public keys
-void init_application_context(swap_app_context_t *ctx) {
+int init_application_context(void) {
 #if defined(TEST_PUBLIC_KEY)
     // this key is the ERC20signer test key
     unsigned char LedgerPubKey[] = {0x4,                                             //
@@ -41,10 +42,16 @@ void init_application_context(swap_app_context_t *ctx) {
                                     0x06, 0x0c, 0x53, 0x86, 0x2c, 0x5c, 0xe3, 0x8c};
 
 #endif
-    memset(ctx, 0, sizeof(*ctx));
-    cx_ecfp_init_public_key(CX_CURVE_SECP256K1,
-                            LedgerPubKey,
-                            sizeof(LedgerPubKey),
-                            &(ctx->ledger_public_key));
-    ctx->state = INITIAL_STATE;
+    memset(&G_swap_ctx, 0, sizeof(G_swap_ctx));
+
+    if (cx_ecfp_init_public_key_no_throw(CX_CURVE_SECP256K1,
+                                         LedgerPubKey,
+                                         sizeof(LedgerPubKey),
+                                         &(G_swap_ctx.ledger_public_key)) != CX_OK) {
+        PRINTF("Error: cx_ecfp_init_public_key_no_throw\n");
+        return -1;
+    }
+
+    G_swap_ctx.state = INITIAL_STATE;
+    return 0;
 }

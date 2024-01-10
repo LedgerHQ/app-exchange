@@ -1,6 +1,6 @@
+#include "io.h"
 #include "buffer.h"
 #include "globals.h"
-#include "string.h"
 #include "ticker_normalization.h"
 
 typedef struct currency_alias_s {
@@ -34,24 +34,24 @@ void set_ledger_currency_name(char *currency, size_t currency_size) {
 }
 
 // Check if a given ticker matches the current swap context
-bool check_matching_ticker(const buf_t *ticker, const char *reference_ticker) {
-    char normalized_ticker_name[9];
+bool check_matching_ticker(buf_t ticker, const char *reference_ticker) {
+    char normalized_ticker_name[TICKER_MAX_SIZE_B + 1];
     uint8_t normalized_ticker_len;
 
     // Normalize the ticker name first
-    memcpy(normalized_ticker_name, ticker->bytes, sizeof(normalized_ticker_name));
-    normalized_ticker_name[ticker->size] = '\0';
-    to_uppercase(normalized_ticker_name, ticker->size);
+    memcpy(normalized_ticker_name, ticker.bytes, ticker.size);
+    normalized_ticker_name[ticker.size] = '\0';
+    to_uppercase(normalized_ticker_name, ticker.size);
     set_ledger_currency_name(normalized_ticker_name, sizeof(normalized_ticker_name));
     // Recalculate length in case it changed
     normalized_ticker_len = strlen(normalized_ticker_name);
 
     if (strncmp(normalized_ticker_name,
-                (const char *) ticker->bytes,
-                MAX(normalized_ticker_len, ticker->size)) != 0) {
+                (const char *) ticker.bytes,
+                MAX(normalized_ticker_len, ticker.size)) != 0) {
         PRINTF("Normalized ticker, from '%.*s' to '%s'\n",
-               ticker->size,
-               ticker->bytes,
+               ticker.size,
+               ticker.bytes,
                normalized_ticker_name);
     }
 

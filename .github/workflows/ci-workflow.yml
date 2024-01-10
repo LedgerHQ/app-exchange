@@ -13,22 +13,3 @@ jobs:
     uses: ./.github/workflows/reusable_swap_functional_tests.yml
     with:
       branch_for_exchange: ${{ github.ref }}
-
-  job_scan_build:
-    name: Clang Static Analyzer
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Build with Clang Static Analyzer
-        run: |
-          git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          scan-build --use-cc=clang -analyze-headers -enable-checker security -enable-checker unix -enable-checker valist -o scan-build --status-bugs make default
-      - uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: scan-build
-          path: scan-build

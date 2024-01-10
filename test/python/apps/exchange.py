@@ -1,27 +1,16 @@
 from contextlib import contextmanager
 from typing import Generator, Optional, Dict
 from enum import IntEnum
-from time import sleep
 
 from ragger.backend.interface import BackendInterface, RAPDU
-from ragger.error import ExceptionRAPDU
-from ragger.utils import prefix_with_len
 
-from ..signing_authority import SigningAuthority
+from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom
+from .exchange_transaction_builder import SubCommand
 
-from cryptography.hazmat.primitives.asymmetric import ec
+MAX_CHUNK_SIZE = 255
 
-from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
-from .ethereum_classic import ETC_PACKED_DERIVATION_PATH, ETC_CONF
-from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
-from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
-from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
-from .solana_utils import SOL_PACKED_DERIVATION_PATH, SOL_CONF
-from .xrp import XRP_PACKED_DERIVATION_PATH, XRP_CONF
-from .tezos import XTZ_PACKED_DERIVATION_PATH, XTZ_CONF
-from .bsc import BSC_PACKED_DERIVATION_PATH, BSC_CONF
-
-from .exchange_subcommands import SWAP_SPECS, SELL_SPECS, FUND_SPECS
+P2_EXTEND = 0x01 << 4
+P2_MORE   = 0x02 << 4
 
 
 class Command(IntEnum):
@@ -32,6 +21,8 @@ class Command(IntEnum):
     PROCESS_TRANSACTION_RESPONSE = 0x06
     CHECK_TRANSACTION_SIGNATURE  = 0x07
     CHECK_PAYOUT_ADDRESS         = 0x08
+    CHECK_ASSET_IN_LEGACY        = 0x08
+    CHECK_ASSET_IN               = 0x0B
     CHECK_REFUND_ADDRESS         = 0x09
     START_SIGNING_TRANSACTION    = 0x0A
 
@@ -39,37 +30,6 @@ class Command(IntEnum):
 class Rate(IntEnum):
     FIXED    = 0x00
     FLOATING = 0x01
-
-
-class SubCommand(IntEnum):
-    SWAP = 0x00
-    SELL = 0x01
-    FUND = 0x02
-
-
-TICKER_TO_CONF = {
-    "ETC": ETC_CONF,
-    "ETH": ETH_CONF,
-    "BTC": BTC_CONF,
-    "LTC": LTC_CONF,
-    "XLM": XLM_CONF,
-    "SOL": SOL_CONF,
-    "XRP": XRP_CONF,
-    "XTZ": XTZ_CONF,
-    "BSC": BSC_CONF,
-}
-
-TICKER_TO_PACKED_DERIVATION_PATH = {
-    "ETC": ETC_PACKED_DERIVATION_PATH,
-    "ETH": ETH_PACKED_DERIVATION_PATH,
-    "BTC": BTC_PACKED_DERIVATION_PATH,
-    "LTC": LTC_PACKED_DERIVATION_PATH,
-    "XLM": XLM_PACKED_DERIVATION_PATH,
-    "SOL": SOL_PACKED_DERIVATION_PATH,
-    "XRP": XRP_PACKED_DERIVATION_PATH,
-    "XTZ": XTZ_PACKED_DERIVATION_PATH,
-    "BSC": BSC_PACKED_DERIVATION_PATH,
-}
 
 
 class Errors(IntEnum):
@@ -80,14 +40,22 @@ class Errors(IntEnum):
     USER_REFUSED            = 0x6A84
     INTERNAL_ERROR          = 0x6A85
     WRONG_P1                = 0x6A86
-    WRONG_P2                = 0x6A87
+    WRONG_P2_SUBCOMMAND     = 0x6A87
+    WRONG_P2_EXTENSION      = 0x6A88
+    INVALID_P2_EXTENSION    = 0x6A89
     CLASS_NOT_SUPPORTED     = 0x6E00
+    MALFORMED_APDU          = 0x6E01
+    INVALID_DATA_LENGTH     = 0x6E02
     INVALID_INSTRUCTION     = 0x6D00
+    UNEXPECTED_INSTRUCTION  = 0x6D01
     SIGN_VERIFICATION_FAIL  = 0x9D1A
+    SUCCESS                 = 0x9000
 
+
+EXCHANGE_CLASS = 0xE0
 
 class ExchangeClient:
-    CLA = 0xE0
+    CLA = EXCHANGE_CLASS
     def __init__(self,
                  client: BackendInterface,
                  rate: Rate,
@@ -102,21 +70,6 @@ class ExchangeClient:
         self._client = client
         self._rate = rate
         self._subcommand = subcommand
-        self._transaction_id: Optional[bytes] = None
-        self._transaction: bytes = b""
-        self._payout_currency: str = ""
-        self._refund_currency: Optional[str] = None
-
-        if self._subcommand == SubCommand.SWAP:
-            self._subcommand_specs = SWAP_SPECS
-        elif self._subcommand == SubCommand.SELL:
-            self._subcommand_specs = SELL_SPECS
-        elif self._subcommand == SubCommand.FUND:
-            self._subcommand_specs = FUND_SPECS
-
-    @property
-    def partner_curve(self) -> ec.EllipticCurve:
-        return self._subcommand_specs.curve
 
     @property
     def rate(self) -> Rate:
@@ -125,10 +78,6 @@ class ExchangeClient:
     @property
     def subcommand(self) -> SubCommand:
         return self._subcommand
-
-    @property
-    def transaction_id(self) -> bytes:
-        return self._transaction_id or b""
 
     def _exchange(self, ins: int, payload: bytes = b"") -> RAPDU:
         return self._client.exchange(self.CLA, ins, p1=self.rate,
@@ -145,7 +94,6 @@ class ExchangeClient:
 
     def init_transaction(self) -> RAPDU:
         response = self._exchange(Command.START_NEW_TRANSACTION)
-        self._transaction_id = response.data
         return response
 
     def set_partner_key(self, credentials: bytes) -> RAPDU:
@@ -154,55 +102,43 @@ class ExchangeClient:
     def check_partner_key(self, signed_credentials: bytes) -> RAPDU:
         return self._exchange(Command.CHECK_PARTNER, signed_credentials)
 
-    def process_transaction(self, conf: Dict, fees: bytes) -> RAPDU:
-        assert self._subcommand_specs.check_conf(conf)
+    def process_transaction(self, transaction: bytes) -> RAPDU:
+        if self.subcommand == SubCommand.SWAP or self.subcommand == SubCommand.FUND or self.subcommand == SubCommand.SELL:
+            return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=transaction)
 
-        self._transaction = self._subcommand_specs.create_transaction(conf, self.transaction_id)
+        else:
+            payload_split = [transaction[x:x + MAX_CHUNK_SIZE] for x in range(0, len(transaction), MAX_CHUNK_SIZE)]
+            for i, p in enumerate(payload_split):
+                p2 = self.subcommand
+                # Send all chunks with P2_MORE except for the last chunk
+                if i != len(payload_split) - 1:
+                    p2 |= P2_MORE
+                # Send all chunks with P2_EXTEND except for the first chunk
+                if i != 0:
+                    p2 |= P2_EXTEND
+                rapdu = self._client.exchange(self.CLA, Command.PROCESS_TRANSACTION_RESPONSE, p1=self.rate, p2=p2, data=p)
 
-        self._payout_currency = conf[self._subcommand_specs.payout_field]
-        assert self._payout_currency.upper() in TICKER_TO_CONF, f'No conf found for payout ticker {self._payout_currency.upper()}'
-        assert self._payout_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH, f'No conf found for payout ticker {self._payout_currency.upper()}'
-        if self._subcommand_specs.refund_field:
-            self._refund_currency = conf[self._subcommand_specs.refund_field]
-            assert self._refund_currency.upper() in TICKER_TO_CONF, f'No conf found for refund ticker {self._refund_currency.upper()}'
-            assert self._refund_currency.upper() in TICKER_TO_PACKED_DERIVATION_PATH, f'No conf found for refund ticker {self._refund_currency.upper()}'
+        return rapdu
 
-        payload = prefix_with_len(self._transaction) + prefix_with_len(fees)
-        return self._exchange(Command.PROCESS_TRANSACTION_RESPONSE, payload=payload)
-
-    def check_transaction_signature(self, signer: SigningAuthority) -> RAPDU:
-        formated_transaction = self._subcommand_specs.format_transaction(self._transaction)
-        signed_transaction = signer.sign(formated_transaction)
-        encoded_transaction = self._subcommand_specs.encode_signature(signed_transaction)
+    def check_transaction_signature(self, encoded_transaction: bytes) -> RAPDU:
         return self._exchange(Command.CHECK_TRANSACTION_SIGNATURE, payload=encoded_transaction)
 
+    def check_payout_address(self, payout_configuration: bytes) -> RAPDU:
+        return self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_configuration)
+
     @contextmanager
-    def check_address(self, payout_signer: SigningAuthority, refund_signer: Optional[SigningAuthority] = None) -> Generator[None, None, None]:
-        payout_currency_conf = TICKER_TO_CONF[self._payout_currency.upper()]
-        signed_payout_conf = payout_signer.sign(payout_currency_conf)
-        payout_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._payout_currency.upper()]
-        payload = prefix_with_len(payout_currency_conf) + signed_payout_conf + prefix_with_len(payout_currency_derivation_path)
-        self._premature_error=False
+    def check_refund_address(self, refund_configuration) -> Generator[None, None, None]:
+        with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=refund_configuration) as response:
+            yield response
 
-        if self._refund_currency:
-            assert refund_signer != None, f'A refund currency is specified but no SigningAuthority as been given to sign it'
-            # If refund adress has to be checked, send sync CHECk_PAYOUT_ADDRESS first
-            rapdu = self._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
-            if rapdu.status != 0x9000:
-                self._premature_error = True
-                self._check_address_result = rapdu
-                yield rapdu
-            else:
-                refund_currency_conf = TICKER_TO_CONF[self._refund_currency.upper()]
-                signed_refund_conf = refund_signer.sign(refund_currency_conf)
-                refund_currency_derivation_path = TICKER_TO_PACKED_DERIVATION_PATH[self._refund_currency.upper()]
-                payload = prefix_with_len(refund_currency_conf) + signed_refund_conf + prefix_with_len(refund_currency_derivation_path)
-
-                with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=payload) as response:
-                    yield response
+    @contextmanager
+    def check_asset_in(self, payout_configuration: bytes) -> Generator[None, None, None]:
+        if self._subcommand == SubCommand.SELL or self._subcommand == SubCommand.FUND:
+            ins = Command.CHECK_ASSET_IN_LEGACY
         else:
-            with self._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload) as response:
-                yield response
+            ins = Command.CHECK_ASSET_IN
+        with self._exchange_async(ins, payload=payout_configuration) as response:
+            yield response
 
     def get_check_address_response(self) -> RAPDU:
         if self._premature_error:
@@ -217,9 +153,5 @@ class ExchangeClient:
         # and will start os_lib_call.
         # We give some time to the OS to actually process the os_lib_call
         if rapdu.status == 0x9000:
-            # If the exchange app accepts starting the library app, give it time to actually start
-            sleep(0.5)
-
-            # The USB stack will be reset by the called app
-            self._client.handle_usb_reset()
+            handle_lib_call_start_or_stop(self._client)
         return rapdu

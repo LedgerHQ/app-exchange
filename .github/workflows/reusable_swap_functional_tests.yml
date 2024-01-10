@@ -7,46 +7,88 @@ on:
         required: false
         default: 'develop'
         type: string
+
       branch_for_stellar:
         required: false
         default: 'develop'
         type: string
+      repo_for_stellar:
+        required: false
+        default: 'LedgerHQ/app-stellar'
+        type: string
+
       branch_for_tezos:
         required: false
         default: 'develop'
         type: string
+      repo_for_tezos:
+        required: false
+        default: 'LedgerHQ/app-tezos'
+        type: string
+
       branch_for_xrp:
         required: false
         default: 'develop'
         type: string
+      repo_for_xrp:
+        required: false
+        default: 'LedgerHQ/app-xrp'
+        type: string
+
       branch_for_ethereum:
         required: false
         default: 'develop'
         type: string
-      branch_for_ethereum_classic:
+      repo_for_ethereum:
+        required: false
+        default: 'LedgerHQ/app-ethereum'
+        type: string
+
+      branch_for_bitcoin_legacy:
         required: false
         default: 'develop'
         type: string
-      branch_for_litecoin:
+      repo_for_bitcoin_legacy:
         required: false
-        default: 'master'
+        default: 'LedgerHQ/app-bitcoin'
         type: string
-      branch_for_bitcoin_legacy:
-        required: false
-        default: 'master'
-        type: string
+
       branch_for_bitcoin:
         required: false
         default: 'develop'
         type: string
+      repo_for_bitcoin:
+        required: false
+        default: 'LedgerHQ/app-bitcoin-new'
+        type: string
+
       branch_for_solana:
         required: false
         default: 'develop'
         type: string
-      branch_for_bsc:
+      repo_for_solana:
+        required: false
+        default: 'LedgerHQ/app-solana'
+        type: string
+
+      branch_for_polkadot:
         required: false
         default: 'develop'
         type: string
+      repo_for_polkadot:
+        required: false
+        default: 'LedgerHQ/app-polkadot'
+        type: string
+
+      branch_for_tron:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_tron:
+        required: false
+        default: 'LedgerHQ/app-tron'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -60,44 +102,49 @@ jobs:
       matrix:
         coin:
         - name: stellar
-          repo: app-stellar
+          repo: ${{ inputs.repo_for_stellar }}
           branch: ${{ inputs.branch_for_stellar }}
         - name: tezos
-          repo: app-tezos
+          repo: ${{ inputs.repo_for_tezos }}
           branch: ${{ inputs.branch_for_tezos }}
         - name: xrp
-          repo: app-xrp
+          repo: ${{ inputs.repo_for_xrp }}
           branch: ${{ inputs.branch_for_xrp }}
         - name: ethereum
-          repo: app-ethereum
+          repo: ${{ inputs.repo_for_ethereum }}
           branch: ${{ inputs.branch_for_ethereum }}
         - name: ethereum_classic
-          repo: app-ethereum
-          branch: ${{ inputs.branch_for_ethereum_classic }}
+          repo: ${{ inputs.repo_for_ethereum }}
+          branch: ${{ inputs.branch_for_ethereum }}
         - name: litecoin
-          repo: app-bitcoin
-          branch: ${{ inputs.branch_for_litecoin }}
+          repo: ${{ inputs.repo_for_bitcoin_legacy }}
+          branch: ${{ inputs.branch_for_bitcoin_legacy }}
         - name: bitcoin_legacy
-          repo: app-bitcoin
+          repo: ${{ inputs.repo_for_bitcoin_legacy }}
           branch: ${{ inputs.branch_for_bitcoin_legacy }}
         - name: bitcoin
-          repo: app-bitcoin-new
+          repo: ${{ inputs.repo_for_bitcoin }}
           branch: ${{ inputs.branch_for_bitcoin }}
         - name: solana
-          repo: app-solana
+          repo: ${{ inputs.repo_for_solana }}
           branch: ${{ inputs.branch_for_solana }}
         - name: bsc
-          repo: app-ethereum
-          branch: ${{ inputs.branch_for_bsc }}
+          repo: ${{ inputs.repo_for_ethereum }}
+          branch: ${{ inputs.branch_for_ethereum }}
+        - name: DOT
+          repo: ${{ inputs.repo_for_polkadot }}
+          branch: ${{ inputs.branch_for_polkadot }}
+        - name: tron
+          repo: ${{ inputs.repo_for_tron }}
+          branch: ${{ inputs.branch_for_tron }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
-      app_repository: LedgerHQ/${{ matrix.coin.repo }}
+      app_repository: ${{ matrix.coin.repo }}
       app_branch_name: ${{  matrix.coin.branch }}
-      flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} DEBUG=1"
+      flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }}"
       upload_app_binaries_artifact: libraries_binaries
       upload_as_lib_artifact: ${{ matrix.coin.name }}
-      run_for_devices: '["nanos", "nanox", "nanosp"]'
 
   build_exchange_application:
     name: Build application using the reusable workflow
@@ -105,9 +152,8 @@ jobs:
     with:
       app_repository: LedgerHQ/app-exchange
       app_branch_name: ${{ inputs.branch_for_exchange }}
-      flags: "TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1"
+      flags: "TESTING=1 TEST_PUBLIC_KEY=1"
       upload_app_binaries_artifact: exchange_binaries
-      run_for_devices: '["nanos", "nanox", "nanosp"]'
 
   ragger_tests:
     name: Run ragger tests using the reusable workflow
@@ -120,9 +166,7 @@ jobs:
       app_branch_name: ${{ inputs.branch_for_exchange }}
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
-      test_dir: test/python
       test_filter: ${{ inputs.test_filter }}
-      run_for_devices: '["nanos", "nanox", "nanosp"]'
 
   # Legacy
   zemu_tests:

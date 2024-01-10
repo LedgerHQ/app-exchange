@@ -2,6 +2,7 @@
 #include <os.h>
 
 #include "parse_coin_config.h"
+#include "checks.h"
 
 typedef struct app_name_alias_s {
     const char *const foreign_name;
@@ -25,41 +26,48 @@ const app_name_alias_t appnames_aliases[] = {
  * With:
  *  - T the ticker symbol, Lt its size
  *  - A the application name, La its size
- *  - C the configuration, Lc its size
+ *  - C the sub configuration, Lc its size
+ *
+ * As the sub configuration is optional, we accept Lc == 0
  */
-int parse_coin_config(const buf_t *const buffer,
-                      buf_t *ticker,
-                      buf_t *application_name,
-                      buf_t *configuration) {
-    // This function can be called with buffer == configuration, so making a copy
-    const buf_t buffer_copy = *buffer;
+bool parse_coin_config(buf_t input,
+                       buf_t *ticker,
+                       buf_t *application_name,
+                       buf_t *sub_configuration) {
+    uint16_t total_read = 0;
 
-    ticker->bytes = 0;
-    ticker->size = 0;
-    application_name->bytes = 0;
-    application_name->size = 0;
-    configuration->bytes = 0;
-    configuration->size = 0;
-    // ticker
-    if (buffer_copy.size < 3) return 0;
-    ticker->size = buffer_copy.bytes[0];
-    if (buffer_copy.size < 3 + ticker->size) return 0;
-    if (ticker->size > 0) ticker->bytes = buffer_copy.bytes + 1;
-    // application_name
-    application_name->size = buffer_copy.bytes[1 + ticker->size];
-    if (buffer_copy.size < 3 + ticker->size + application_name->size ||
-        application_name->size == 0) {
-        return 0;
+    // Read ticker
+    if (!parse_to_sized_buffer(input.bytes, input.size, 1, ticker, &total_read)) {
+        PRINTF("Cannot read the ticker\n");
+        return false;
     }
-    application_name->bytes = buffer_copy.bytes + 1 + ticker->size + 1;
-    // configuration
-    configuration->size = buffer_copy.bytes[1 + ticker->size + 1 + application_name->size];
-    if (buffer_copy.size != 3 + ticker->size + application_name->size + configuration->size) {
-        return 0;
+    if (!check_ticker_length(ticker)) {
+        return false;
     }
-    if (configuration->size > 0) {
-        configuration->bytes =
-            buffer_copy.bytes + 1 + ticker->size + 1 + application_name->size + 1;
+
+    // Read application_name
+    if (!parse_to_sized_buffer(input.bytes, input.size, 1, application_name, &total_read)) {
+        PRINTF("Cannot read the application_name\n");
+        return false;
+    }
+    if (!check_app_name_length(application_name)) {
+        return false;
+    }
+
+    // Read sub configuration
+    if (!parse_to_sized_buffer(input.bytes, input.size, 1, sub_configuration, &total_read)) {
+        PRINTF("Cannot read the sub_configuration\n");
+        return false;
+    }
+    if (sub_configuration->size > MAX_COIN_SUB_CONFIG_SIZE) {
+        PRINTF("Sub coin sub_configuration size %d is too big\n", sub_configuration->size);
+        return false;
+    }
+
+    // Check that there is nothing else to read
+    if (input.size != total_read) {
+        PRINTF("Bytes to read: %d, bytes read: %d\n", input.size, total_read);
+        return false;
     }
 
     // Update the application name to match Ledger's naming.
@@ -68,17 +76,13 @@ int parse_coin_config(const buf_t *const buffer,
             strncmp((const char *) application_name->bytes,
                     (char *) (PIC(appnames_aliases[i].foreign_name)),
                     application_name->size) == 0) {
-            PRINTF("Aliased appname, from '%.*s'\n",
-                   application_name->size,
-                   application_name->bytes);
-            application_name->bytes = (uint8_t *) appnames_aliases[i].app_name;
-            application_name->size = strlen((char *) PIC(appnames_aliases[i].app_name));
-            PRINTF("Aliased appname, to '%.*s'\n",
-                   application_name->size,
-                   PIC(application_name->bytes));
+            PRINTF("Aliased from '%.*s'\n", application_name->size, application_name->bytes);
+            application_name->bytes = (uint8_t *) PIC(appnames_aliases[i].app_name);
+            application_name->size = strlen((char *) application_name->bytes);
+            PRINTF("to '%.*s'\n", application_name->size, application_name->bytes);
             break;
         }
     }
 
-    return 1;
+    return true;
 }

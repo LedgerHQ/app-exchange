@@ -1,5 +1,4 @@
-#ifndef _STATES_H_
-#define _STATES_H_
+#pragma once
 
 typedef enum {
     INITIAL_STATE = 0,
@@ -11,7 +10,6 @@ typedef enum {
     TO_ADDR_CHECKED = 6,
     WAITING_USER_VALIDATION = 7,
     WAITING_SIGNING = 8,
-    STATE_UPPER_BOUND
+    SIGN_FINISHED = 9,
+    STATE_UPPER_BOUND,
 } state_e;
-
-#endif  //_STATES_H_

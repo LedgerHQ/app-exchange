@@ -1,51 +1,57 @@
 #include "start_signing_transaction.h"
 #include "currency_lib_calls.h"
-#include "reply_error.h"
+#include "globals.h"
+#include "io.h"
 
-char not_applicable;
+int start_signing_transaction(const command_t *cmd) {
+    // Inform the caller that we will call the lib app
+    if (instant_reply_success() < 0) {
+        PRINTF("Error: failed to send\n");
+        return -1;
+    }
 
-int start_signing_transaction(swap_app_context_t *ctx,
-                              const command_t *cmd,
-                              __attribute__((unused)) SendFunction send) {
-    G_io_apdu_buffer[0] = 0x90;
-    G_io_apdu_buffer[1] = 0x00;
-    io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
-    ctx->state = INITIAL_STATE;
+    // Create the variable given to the signing app. It's placed in BSS section to save RAM
+    // (heap is shared, stack is not)
     static create_transaction_parameters_t lib_in_out_params;
 
-    lib_in_out_params.fee_amount = ctx->transaction_fee;
-    lib_in_out_params.fee_amount_length = ctx->transaction_fee_length;
-    lib_in_out_params.coin_configuration = ctx->payin_coin_config.bytes;
-    lib_in_out_params.coin_configuration_length = ctx->payin_coin_config.size;
+    lib_in_out_params.fee_amount = G_swap_ctx.transaction_fee;
+    lib_in_out_params.fee_amount_length = G_swap_ctx.transaction_fee_length;
+    lib_in_out_params.coin_configuration_length = G_swap_ctx.paying_sub_coin_config_size;
 
-    if (cmd->subcommand == SWAP) {
-        lib_in_out_params.amount = ctx->received_transaction.amount_to_provider.bytes;
-        lib_in_out_params.amount_length = ctx->received_transaction.amount_to_provider.size;
-        lib_in_out_params.destination_address = ctx->received_transaction.payin_address;
-        lib_in_out_params.destination_address_extra_id = ctx->received_transaction.payin_extra_id;
+    // Small patch to give the app NULL pointer if there is no sub coin conf (Solana checks it)
+    // Solana should be changed to remove this unnecessary check, in the meantime we workaround here
+    if (G_swap_ctx.paying_sub_coin_config_size == 0) {
+        lib_in_out_params.coin_configuration = NULL;
+    } else {
+        lib_in_out_params.coin_configuration = G_swap_ctx.paying_sub_coin_config;
     }
 
-    if (cmd->subcommand == SELL) {
-        lib_in_out_params.amount = ctx->sell_transaction.in_amount.bytes;
-        lib_in_out_params.amount_length = ctx->sell_transaction.in_amount.size;
-        lib_in_out_params.destination_address = ctx->sell_transaction.in_address;
-
-        // Not applicable
-        not_applicable = '\0';
-        lib_in_out_params.destination_address_extra_id = &not_applicable;
+    if (cmd->subcommand == SWAP || cmd->subcommand == SWAP_NG) {
+        lib_in_out_params.amount = G_swap_ctx.swap_transaction.amount_to_provider.bytes;
+        lib_in_out_params.amount_length = G_swap_ctx.swap_transaction.amount_to_provider.size;
+        lib_in_out_params.destination_address = G_swap_ctx.swap_transaction.payin_address;
+        lib_in_out_params.destination_address_extra_id = G_swap_ctx.swap_transaction.payin_extra_id;
     }
 
-    if (cmd->subcommand == FUND) {
-        lib_in_out_params.amount = ctx->fund_transaction.in_amount.bytes;
-        lib_in_out_params.amount_length = ctx->fund_transaction.in_amount.size;
-        lib_in_out_params.destination_address = ctx->fund_transaction.in_address;
-
-        // Not applicable
-        not_applicable = '\0';
-        lib_in_out_params.destination_address_extra_id = &not_applicable;
+    if (cmd->subcommand == SELL || cmd->subcommand == SELL_NG) {
+        lib_in_out_params.amount = G_swap_ctx.sell_transaction.in_amount.bytes;
+        lib_in_out_params.amount_length = G_swap_ctx.sell_transaction.in_amount.size;
+        lib_in_out_params.destination_address = G_swap_ctx.sell_transaction.in_address;
+        // Empty string, needed by application library API but does not have sense in SELL context
+        lib_in_out_params.destination_address_extra_id = G_swap_ctx.sell_transaction_extra_id;
     }
 
-    create_payin_transaction(ctx->payin_binary_name, &lib_in_out_params);
+    if (cmd->subcommand == FUND || cmd->subcommand == FUND_NG) {
+        lib_in_out_params.amount = G_swap_ctx.fund_transaction.in_amount.bytes;
+        lib_in_out_params.amount_length = G_swap_ctx.fund_transaction.in_amount.size;
+        lib_in_out_params.destination_address = G_swap_ctx.fund_transaction.in_address;
+        // Empty string, needed by application library API but does not have sense in FUND context
+        lib_in_out_params.destination_address_extra_id = G_swap_ctx.fund_transaction_extra_id;
+    }
 
+    create_payin_transaction(&lib_in_out_params);
+    G_swap_ctx.state = SIGN_FINISHED;
+
+    // The called app refusing to sign is NOT an handler error, we report a success
     return 0;
 }

@@ -29,18 +29,20 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 .vs/
 #Nuget packages folder
-test/elfs
 packages/
-bin
-debug
-dep
-src/glyphs.c
-src/glyphs.h
+build/
+bin/
+debug/
+
+# Legacy zemu tests
 node_modules
-test/lib
+test/elfs
 test/snapshots-tmp
 
-# Python
+# Functional tests
+test/python/snapshots-tmp/
+test/python/lib_binaries/*.elf
+test/python/lib_binaries/*.zip
 __pycache__
 .egg
 .pyc

@@ -1,7 +1,10 @@
-#ifndef _COMMANDS_H_
-#define _COMMANDS_H_
+#pragma once
 
 #include "buffer.h"
+
+// CLA to use when communicating with Exchange
+#define CLA 0xE0
+
 // commands
 typedef enum {
     GET_VERSION_COMMAND = 0x02,
@@ -10,25 +13,48 @@ typedef enum {
     CHECK_PARTNER_COMMAND = 0x05,
     PROCESS_TRANSACTION_RESPONSE_COMMAND = 0x06,
     CHECK_TRANSACTION_SIGNATURE_COMMAND = 0x07,
-    CHECK_PAYOUT_ADDRESS = 0x08,  // CHECK_ASSET_IN for SELL
+    CHECK_PAYOUT_ADDRESS = 0x08,
+    CHECK_ASSET_IN_LEGACY = 0x08,  // Same ID as CHECK_PAYOUT_ADDRESS
+    CHECK_ASSET_IN = 0x0B,         // Do note the 0x0B
     CHECK_REFUND_ADDRESS = 0x09,
     START_SIGNING_TRANSACTION = 0x0A,
 } command_e;
 
-// subcommands
-typedef enum { SWAP = 0x00, SELL = 0x01, FUND = 0x02 } subcommand_e;
+// Different rates possible for the transaction. They are given to the app as P1 of an APDU
+typedef enum {
+    FIXED = 0x00,
+    FLOATING = 0x01,
+} rate_e;
 
-// Different rates possible
-typedef enum { FIXED = 0x00, FLOATING = 0x01 } rate_e;
+// Different flows possible. They are given to the app as the P2 of an APDU
+typedef enum {
+    SWAP = 0x00,
+    SELL = 0x01,
+    FUND = 0x02,
+    SWAP_NG = 0x03,
+    SELL_NG = 0x04,
+    FUND_NG = 0x05,
+} subcommand_e;
+// As P2 can hold more information, we use a mask to access the subcommand part of P2
+#define SUBCOMMAND_MASK 0x0F
+
+// Extension values to signal that an APDU is split
+// Only supported for new unified flows during PROCESS_TRANSACTION_RESPONSE_COMMAND
+#define P2_NONE (0x00 << 4)
+// P2_EXTEND is set to signal that this APDU buffer extends a previous one
+#define P2_EXTEND (0x01 << 4)
+// P2_MORE is set to signal that this APDU buffer is not complete
+#define P2_MORE (0x02 << 4)
+// As P2 can hold more information, we use a mask to access the extension part of P2
+#define EXTENSION_MASK 0xF0
 
 /**
  * Structure with fields of APDU command.
  */
 typedef struct {
-    command_e ins;            /// Instruction code
-    rate_e rate;              /// P1
-    subcommand_e subcommand;  /// P2
-    buf_t data;               /// Command data
+    command_e ins;            // Instruction code
+    rate_e rate;              // P1
+    subcommand_e subcommand;  // P2, we don't care for the extension here as this structure is for
+                              //     command handling, not apdu reception
+    buf_t data;               // Command data
 } command_t;
-
-#endif  //_COMMANDS_H_

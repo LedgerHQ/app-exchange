@@ -152,30 +152,6 @@ nano_environments.forEach(function(model) {
 
 
 nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] ETH swap to BTC`, zemu(model, async (sim) => {
-        let transaction = new ExchangeTransactionPerformer(model, sim);
-        transaction.setFromCurrencyInfo(ETH_INFO);
-        transaction.setToCurrencyInfo(BTC_INFO);
-        transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-        transaction.setAmountToWallet(100000000);
-        transaction.setFee(840000000000000);
-        await transaction.performSuccessfulTransaction();
-
-        let transport = await sim.getTransport();
-
-        const eth = new Eth(transport);
-        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
-            .resolves.toEqual({
-                "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
-                "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
-                "v": "25"
-            });
-    }))
-});
-
-
-
-nano_environments.forEach(function(model) {
     test(`[Nano ${model.letter}] Aeternity ERC20 swap to BTC`, zemu(model, async (sim) => {
         let transaction = new ExchangeTransactionPerformer(model, sim);
         transaction.setFromCurrencyInfo(AE_INFO);
@@ -240,79 +216,6 @@ nano_environments.forEach(function(model) {
         transaction.setFee(1477845000000000);
         const right_clicks = (model.letter ==  'S' ? 6 : 4);
         await transaction.performSuccessfulTransaction(right_clicks);
-    }))
-});
-
-
-
-nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] ETH swap to XRP`, zemu(model, async (sim) => {
-        let transaction = new ExchangeTransactionPerformer(model, sim);
-        transaction.setFromCurrencyInfo(ETH_INFO);
-        transaction.setToCurrencyInfo(XRP_INFO);
-        // 1.1234 ETH to 21 XRP
-        transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-        transaction.setAmountToWallet(21000000); // 1 xrp == 10^6 drops
-        transaction.setFee(840000000000000);
-        await transaction.performSuccessfulTransaction();
-
-        let transport = await sim.getTransport();
-
-        const eth = new Eth(transport);
-        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
-            .resolves.toEqual({
-                "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
-                "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
-                "v": "25"}
-            );
-    }))
-});
-
-
-nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] ETH swap to XLM`, zemu(model, async (sim) => {
-        let transaction = new ExchangeTransactionPerformer(model, sim);
-        transaction.setFromCurrencyInfo(ETH_INFO);
-        transaction.setToCurrencyInfo(XLM_INFO);
-        // 1.1234567 XLM to 1.1234 ETH
-        transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-        transaction.setAmountToWallet(21000000); // 1 xlm == 10^7 drops
-        transaction.setFee(840000000000000);
-        await transaction.performSuccessfulTransaction();
-
-        let transport = await sim.getTransport();
-
-        const eth = new Eth(transport);
-        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
-            .resolves.toEqual({
-                "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
-                "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
-                "v": "25"
-            });
-    }))
-});
-
-
-nano_environments.forEach(function(model) {
-    test(`[Nano ${model.letter}] ETH swap to XTZ`, zemu(model, async (sim) => {
-        let transaction = new ExchangeTransactionPerformer(model, sim);
-        transaction.setFromCurrencyInfo(ETH_INFO);
-        transaction.setToCurrencyInfo(XTZ_INFO);
-        // 1.1234 ETH to 2.1 XTZ
-        transaction.setAmountToProvider(1000000 * 1000000 * 1000000 * 1.1234); // 10^18 wei == 1 ETH
-        transaction.setAmountToWallet(21000000); // 1 xtz == 10^6 microtez
-        transaction.setFee(840000000000000);
-        await transaction.performSuccessfulTransaction();
-
-        let transport = await sim.getTransport();
-
-        const eth = new Eth(transport);
-        await expect(eth.signTransaction("44'/60'/0'/0/0", 'ec808509502f900082520894d692cb1346262f584d17b4b470954501f6715a82880f971e5914ac800080018080'))
-            .resolves.toEqual({
-                "r": "53bdfee62597cb9522d4a6b3b8a54e8b3d899c8694108959e845fb90e4a817ab",
-                "s": "7c4a9bae5033c94effa9e46f76742909a96d2c886ec528a26efea9e60cdad38b",
-                "v": "25"
-            });
     }))
 });
 

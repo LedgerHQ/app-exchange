@@ -1,10 +1,5 @@
-#ifndef _CHECK_TX_SIGNATURE_H_
-#define _CHECK_TX_SIGNATURE_H_
+#pragma once
 
-#include "swap_app_context.h"
-#include "send_function.h"
 #include "commands.h"
 
-int check_tx_signature(swap_app_context_t *ctx, const command_t *cmd, SendFunction send);
-
-#endif  // _CHECK_TX_SIGNATURE_H_
+int check_tx_signature(const command_t *cmd);

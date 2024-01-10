@@ -16,117 +16,64 @@
  *****************************************************************************/
 
 #include "os.h"
+#include "ux.h"
 #include "os_io_seproxyhal.h"
 #include "init.h"
+#include "io.h"
 #include "menu.h"
-#include "swap_app_context.h"
+#include "globals.h"
 #include "commands.h"
 #include "command_dispatcher.h"
 #include "apdu_offsets.h"
 #include "swap_errors.h"
-#include "reply_error.h"
+#include "apdu_parser.h"
+#include "validate_transaction.h"
 
 #include "usbd_core.h"
-#define CLA 0xE0
 
-unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-swap_app_context_t swap_ctx;
+ux_state_t G_ux;
+bolos_ux_params_t G_ux_params;
 
-// recv()
-// send()
-// recv()
-// UI
-// recv(ASYNC)
-//   send()->io_exchange(RETURN)
-// recv()
-//
-//             READY         RECEIVED          WAITING_USER
-// recv()   to Received  ASYNC+to waiting          ERROR
-// send()      ERROR         to ready      RETURN_AFTER_RX + to ready
+uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
-typedef enum io_state { READY, RECEIVED, WAITING_USER } io_state_e;
-
-int output_length = 0;
-io_state_e io_state = READY;
-
-int recv_apdu() {
-    PRINTF("Im inside recv_apdu\n");
-    switch (io_state) {
-        case READY:
-            PRINTF("In state READY\n");
-            io_state = RECEIVED;
-            return io_exchange(CHANNEL_APDU, output_length);
-        case RECEIVED:
-            PRINTF("In state RECEIVED\n");
-            io_state = WAITING_USER;
-            int ret = io_exchange(CHANNEL_APDU | IO_ASYNCH_REPLY, output_length);
-            io_state = RECEIVED;
-            return ret;
-        case WAITING_USER:
-            PRINTF("Error: Unexpected recv call in WAITING_USER state\n");
-            io_state = READY;
-            return -1;
-    };
-    PRINTF("ERROR unknown state\n");
-    return -1;
-}
-
-// return -1 in case of error
-int send_apdu(unsigned char *buffer, unsigned int buffer_length) {
-    memmove(G_io_apdu_buffer, buffer, buffer_length);
-    output_length = buffer_length;
-    PRINTF("Sending apdu\n");
-    switch (io_state) {
-        case READY:
-            PRINTF("Error: Unexpected send call in READY state\n");
-            return -1;
-        case RECEIVED:
-            io_state = READY;
-            return 0;
-        case WAITING_USER:
-            PRINTF("Sending reply with IO_RETURN_AFTER_TX\n");
-            io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, output_length);
-            output_length = 0;
-            io_state = READY;
-            return 0;
-    }
-    PRINTF("Error: Unknown io_state\n");
-    return -1;
-}
+swap_app_context_t G_swap_ctx;
 
 void app_main(void) {
     int input_length = 0;
+    command_t cmd;
 
-    output_length = 0;
-    io_state = READY;
+    init_io();
+
     for (;;) {
         input_length = recv_apdu();
         PRINTF("New APDU received:\n%.*H\n", input_length, G_io_apdu_buffer);
-        if (input_length == -1)  // there were an error, lets start from the beginning
+        // there was a fatal error during APDU reception, restart from the beginning
+        // Don't bother trying to send a status code, IOs are probably out
+        if (input_length == -1) {
+            explicit_bzero(&G_swap_ctx, sizeof(G_swap_ctx));
             return;
-        if (input_length < OFFSET_CDATA || G_io_apdu_buffer[OFFSET_CLA] != CLA) {
-            PRINTF("Error: bad APDU\n");
-            reply_error(&swap_ctx, INVALID_INSTRUCTION, send_apdu);
+        }
+
+        uint16_t ret = apdu_parser(G_io_apdu_buffer, input_length, &cmd);
+        if (ret != 0) {
+            PRINTF("Sending early reply 0x%4x\n", ret);
+            reply_error(ret);
             continue;
         }
 
-        const command_t cmd = {
-            .ins = (command_e) G_io_apdu_buffer[OFFSET_INS],
-            .rate = G_io_apdu_buffer[OFFSET_P1],
-            .subcommand = G_io_apdu_buffer[OFFSET_P2],
-            .data =
-                {
-                    .bytes = G_io_apdu_buffer + OFFSET_CDATA,
-                    .size = input_length - OFFSET_CDATA,
-                },
-        };
+        if (dispatch_command(&cmd) < 0) {
+            // some non recoverable error happened
+            explicit_bzero(&G_swap_ctx, sizeof(G_swap_ctx));
+            return;
+        }
 
-        if (dispatch_command(&swap_ctx,  //
-                             &cmd,       //
-                             send_apdu) < 0)
-            return;  // some non recoverable error happened
+        if (G_swap_ctx.state == SIGN_FINISHED) {
+            // We are back from an app started in signing mode, our globals are corrupted
+            // Force a return to the main function in order to trigger a full clean restart
+            return;
+        }
 
-        if (swap_ctx.state == INITIAL_STATE) {
+        if (G_swap_ctx.state == INITIAL_STATE) {
             ui_idle();
         }
     }
@@ -143,15 +90,43 @@ void app_exit(void) {
     END_TRY_L(exit);
 }
 
+// On Stax, remember some data from the previous cycle if applicable to display a status screen
+#ifdef HAVE_NBGL
+previous_cycle_data_t G_previous_cycle_data;
+#endif
+
 __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
     // exit critical section
     __asm volatile("cpsie i");
+
+#ifdef HAVE_NBGL
+    G_previous_cycle_data.had_previous_cycle = false;
+#endif
 
     // ensure exception will work as planned
     os_boot();
 
     for (;;) {
-        ux_init();
+        // If we are back from a lib app in signing mode, clean our BSS
+        if (G_swap_ctx.state == SIGN_FINISHED) {
+#ifdef HAVE_NBGL
+            G_previous_cycle_data.had_previous_cycle = true;
+            // We have saved some data for the status screen in the BSS
+            // Let's avoid them being erased by doing a stack save
+            previous_cycle_data_t tmp_previous_cycle_data;
+            memcpy(&tmp_previous_cycle_data, &G_previous_cycle_data, sizeof(G_previous_cycle_data));
+#endif
+
+            // Fully reset the global space, as it is was corrupted by the signing app
+            PRINTF("Exchange new cycle, reset BSS\n");
+            os_explicit_zero_BSS_segment();
+
+#ifdef HAVE_NBGL
+            memcpy(&G_previous_cycle_data, &tmp_previous_cycle_data, sizeof(G_previous_cycle_data));
+#endif
+        }
+
+        UX_INIT();
 
         BEGIN_TRY {
             TRY {
@@ -162,16 +137,33 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 G_io_app.plane_mode = os_setting_get(OS_SETTING_PLANEMODE, NULL, 0);
 #endif  // TARGET_NANOX
 
-                init_application_context(&swap_ctx);
-
                 USB_power(0);
                 USB_power(1);
 
+#ifdef HAVE_NBGL
+                // If last cycle had signing related activities,
+                // display it before displaying the main menu.
+                // We can't do it earlier because :
+                //  - we need to shadow the ui_idle() call
+                //  - we need a BSS reset + UX_INIT
+                if (G_previous_cycle_data.had_previous_cycle) {
+                    G_previous_cycle_data.had_previous_cycle = false;
+                    if (G_previous_cycle_data.was_successful) {
+                        display_signing_success();
+                    } else {
+                        display_signing_failure(G_previous_cycle_data.appname_last_cycle);
+                    }
+                } else {
+                    ui_idle();
+                }
+#else  // HAVE_BAGL
+       // No "Ledger Moment" modal, sad
                 ui_idle();
+#endif
 
 #ifdef HAVE_BLE
                 BLE_power(0, NULL);
-                BLE_power(1, "Nano X");
+                BLE_power(1, NULL);
 #endif
 
                 app_main();

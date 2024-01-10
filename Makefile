@@ -18,21 +18,23 @@
 ifeq ($(BOLOS_SDK),)
 $(error Environment variable BOLOS_SDK is not set)
 endif
+
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS = --curve ed25519 --curve secp256k1 --curve secp256r1 --path "" $(COMMON_LOAD_PARAMS)
+APP_LOAD_PARAMS = --curve ed25519 --curve secp256k1 --curve secp256r1
 
 # Permissions: DERIVE_MASTER, GLOBAL_PIN, APPLICATION_FLAG_BOLOS_SETTINGS
 # DERIVE_MASTER is needed to compute the master key fingerprint in app-bitcoin-new
 APP_LOAD_PARAMS += --appFlags 0x250
 
-APPVERSION_M=2
-APPVERSION_N=0
-APPVERSION_P=13
-APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
-APPNAME = "Exchange"
+APP_LOAD_PARAMS += --path ""
+APP_LOAD_PARAMS += $(COMMON_LOAD_PARAMS)
 
-DEFINES += $(DEFINES_LIB)
+APPNAME      = "Exchange"
+APPVERSION_M = 3
+APPVERSION_N = 3
+APPVERSION_P = 3
+APPVERSION   = $(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 
 ifdef TESTING
     $(info [INFO] TESTING enabled)
@@ -45,58 +47,59 @@ ifdef TEST_PUBLIC_KEY
 endif
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
-	ICONNAME=icons/nanos_app_exchange.gif
+    ICONNAME=icons/nanos_app_exchange.gif
+else ifeq ($(TARGET_NAME),TARGET_STAX)
+    ICONNAME=icons/stax_app_exchange.gif
 else
-	ICONNAME=icons/nanox_app_exchange.gif
+    ICONNAME=icons/nanox_app_exchange.gif
 endif
-
-PROTO_C_FILE = src/proto/protocol.pb.c
 
 ################
 # Default rule #
 ################
-all: $(PROTO_C_FILE) default
+all: default
 
 ############
 # Platform #
 ############
 
-DEFINES   += OS_IO_SEPROXYHAL
-DEFINES   += HAVE_BAGL HAVE_SPRINTF
-DEFINES   += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=4 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
+DEFINES   += $(DEFINES_LIB)
+DEFINES   += APPNAME=\"$(APPNAME)\"
+DEFINES   += APPVERSION=\"$(APPVERSION)\"
 DEFINES   += LEDGER_MAJOR_VERSION=$(APPVERSION_M) LEDGER_MINOR_VERSION=$(APPVERSION_N) LEDGER_PATCH_VERSION=$(APPVERSION_P)
+DEFINES   += OS_IO_SEPROXYHAL
+DEFINES   += HAVE_SPRINTF
+DEFINES   += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=4 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
+DEFINES   += HAVE_WEBUSB WEBUSB_URL_SIZE_B=0 WEBUSB_URL=""
 
 DEFINES   += USB_SEGMENT_SIZE=64
 DEFINES   += BLE_SEGMENT_SIZE=32 #max MTU, min 20
 
-DEFINES   += UNUSED\(x\)=\(void\)x
-DEFINES   += APPVERSION=\"$(APPVERSION)\"
-
-ifeq ($(TARGET_NAME),TARGET_NANOX)
-DEFINES       += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000
-DEFINES       += HAVE_BLE_APDU # basic ledger apdu transport over BLE
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX))
+    DEFINES += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000 HAVE_BLE_APDU
 endif
 
 ifeq ($(TARGET_NAME),TARGET_NANOS)
-DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=128
+    DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
 else
-DEFINES       += IO_SEPROXYHAL_BUFFER_SIZE_B=300
-DEFINES       += HAVE_GLO096
-DEFINES       += HAVE_BAGL BAGL_WIDTH=128 BAGL_HEIGHT=64
-DEFINES       += HAVE_BAGL_ELLIPSIS # long label truncation feature
-DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
-DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
-DEFINES       += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
+    DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
 endif
 
-DEFINES       += HAVE_UX_FLOW
-DEFINES       += HAVE_STACK_OVERFLOW_CHECK
+ifneq ($(TARGET_NAME),TARGET_STAX)
+    DEFINES += HAVE_BAGL HAVE_UX_FLOW
+    ifneq ($(TARGET_NAME),TARGET_NANOS)
+        DEFINES += HAVE_GLO096
+        DEFINES += BAGL_WIDTH=128 BAGL_HEIGHT=64
+        DEFINES += HAVE_BAGL_ELLIPSIS # long label truncation feature
+        DEFINES += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
+        DEFINES += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
+        DEFINES += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
+    endif
+endif
+
+
 # Enabling debug PRINTF
-
-ifndef DEBUG
-        DEBUG = 0
-endif
-
+DEBUG ?= 0
 ifneq ($(DEBUG),0)
         DEFINES   += HAVE_STACK_OVERFLOW_CHECK
         ifeq ($(TARGET_NAME),TARGET_NANOS)
@@ -111,30 +114,10 @@ endif
 ##############
 #  Compiler  #
 ##############
-ifneq ($(BOLOS_ENV),)
-$(info BOLOS_ENV=$(BOLOS_ENV))
-CLANGPATH := $(BOLOS_ENV)/clang-arm-fropi/bin/
-GCCPATH := $(BOLOS_ENV)/gcc-arm-none-eabi-5_3-2016q1/bin/
-else
-$(info BOLOS_ENV is not set: falling back to CLANGPATH and GCCPATH)
-endif
-ifeq ($(CLANGPATH),)
-$(info CLANGPATH is not set: clang will be used from PATH)
-endif
-ifeq ($(GCCPATH),)
-$(info GCCPATH is not set: arm-none-eabi-* will be used from PATH)
-endif
 
 CC       := $(CLANGPATH)clang
-
-#CFLAGS   += -O0
-CFLAGS   += -O3 -Os
-
-AS     := $(GCCPATH)arm-none-eabi-gcc
-
+AS       := $(GCCPATH)arm-none-eabi-gcc
 LD       := $(GCCPATH)arm-none-eabi-gcc
-LDFLAGS  += -O3 -Os
-#LDFLAGS  += -O0
 LDLIBS   += -lm -lgcc -lc
 
 # import rules to compile glyphs(/pone)
@@ -143,18 +126,21 @@ include $(BOLOS_SDK)/Makefile.glyphs
 ### variables processed by the common makefile.rules of the SDK to grab source files and include dirs
 APP_SOURCE_PATH  += src
 SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl
-SDK_SOURCE_PATH  += lib_ux
 
-ifeq ($(TARGET_NAME),TARGET_NANOX)
-SDK_SOURCE_PATH  += lib_blewbxx lib_blewbxx_impl
+ifneq ($(TARGET_NAME),TARGET_STAX)
+SDK_SOURCE_PATH += lib_ux
 endif
 
-PROTO_FILE = src/proto/protocol.proto
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX))
+    SDK_SOURCE_PATH += lib_blewbxx lib_blewbxx_impl
+endif
 
-# This will generate both the .pb.c and the .pb.h files
-$(PROTO_C_FILE): $(PROTO_FILE)
-	protoc --nanopb_out=. $(PROTO_FILE) --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
-
+.PHONY: proto
+proto:
+	make -C ledger-nanopb/generator/proto
+	protoc --nanopb_out=. src/proto/protocol.proto --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
+	protoc --python_out=. src/proto/protocol.proto
+	mv src/proto/protocol_pb2.py test/python/apps/pb/exchange_pb2.py
 
 load: all
 	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
@@ -174,10 +160,6 @@ release: all
 
 # import generic rules from the sdk
 include $(BOLOS_SDK)/Makefile.rules
-
-#add dependency on custom makefile filename
-dep/%.d: %.c Makefile
-
 
 
 listvariants:
