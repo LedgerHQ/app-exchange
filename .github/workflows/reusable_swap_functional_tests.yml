@@ -23,7 +23,7 @@ on:
         type: string
       repo_for_tezos:
         required: false
-        default: 'LedgerHQ/app-tezos'
+        default: 'trilitech/ledger-app-tezos-wallet'
         type: string
 
       branch_for_xrp:
