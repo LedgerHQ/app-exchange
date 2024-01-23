@@ -39,7 +39,10 @@ extern uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 #define PARTNER_NAME_PREFIX_FOR_FUND "To "
 
 typedef struct partner_data_s {
-    char prefixed_name[sizeof(PARTNER_NAME_PREFIX_FOR_FUND) - 1 + MAX_PARTNER_NAME_LENGHT + 1];
+    union {
+        char unprefixed_name[MAX_PARTNER_NAME_LENGHT + 1];
+        char prefixed_name[sizeof(PARTNER_NAME_PREFIX_FOR_FUND) - 1 + MAX_PARTNER_NAME_LENGHT + 1];
+    };
     cx_ecfp_256_public_key_t public_key;
 } partner_data_t;
 
