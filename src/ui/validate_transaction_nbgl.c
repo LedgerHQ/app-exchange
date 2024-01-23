@@ -104,12 +104,18 @@ static void review_choice(bool confirm) {
     }
 }
 
-static nbgl_layoutTagValue_t pairs[4];
+static nbgl_layoutTagValue_t pairs[5];
 static nbgl_layoutTagValueList_t pair_list;
 static nbgl_pageInfoLongPress_t info_long_press;
 
 static void continue_review(void) {
     uint8_t index = 0;
+
+    if (G_swap_ctx.subcommand != FUND && G_swap_ctx.subcommand != FUND_NG) {
+        pairs[index].item = "Exchange partner";
+        pairs[index].value = G_swap_ctx.partner.unprefixed_name;
+        index++;
+    }
 
     if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
         pairs[index].item = "Email";
