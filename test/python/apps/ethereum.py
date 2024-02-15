@@ -30,7 +30,10 @@ ETC_PATH = "m/44'/61'/0'/0/0"
 ETH_CONF = create_currency_config("ETH", "Ethereum", get_sub_config("ETH", 18))
 ETH_PACKED_DERIVATION_PATH = pack_derivation_path(ETH_PATH)
 
-BSC_CONF = create_currency_config("BNB", "Binance Smart Chain", get_sub_config("BNB", 18))
+# Use dedicated app (clone)
+BSC_CONF_LEGACY = create_currency_config("BNB", "Binance Smart Chain", get_sub_config("BNB", 18))
+# Use Ethereum app
+BSC_CONF = create_currency_config("BNB", "Ethereum", get_sub_config("BNB", 18, 56))
 BSC_PACKED_DERIVATION_PATH = pack_derivation_path(ETH_PATH)
 
 ETC_CONF = create_currency_config("ETC", "Ethereum Classic", get_sub_config("ETC", 18))
