@@ -1,9 +1,9 @@
 import pytest
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
-from .apps.ethereum import ETH_PATH
+from .apps.ethereum import ETH_PATH, BSC_CONF_LEGACY
 from ledger_app_clients.ethereum.client import EthAppClient
-from web3 import Web3
+from .apps.cal import TICKER_ID_TO_CONF
 
 
 # ExchangeTestRunner implementation for BSC
@@ -41,9 +41,17 @@ class BSCTests(ExchangeTestRunner):
             pass
         # TODO : assert signature validity
 
+
 # Use a class to reuse the same Speculos instance
 class TestsBSC:
-
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
     def test_bsc(self, backend, exchange_navigation_helper, test_to_run):
+        BSCTests(backend, exchange_navigation_helper).run_test(test_to_run)
+
+
+class TestsBSCLegacy:
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+    def test_bsc(self, backend, exchange_navigation_helper, test_to_run):
+        # Override CAL to emulate legacy behaviour (use clone instead of Ethereum app)
+        TICKER_ID_TO_CONF["BNB"] = BSC_CONF_LEGACY
         BSCTests(backend, exchange_navigation_helper).run_test(test_to_run)
