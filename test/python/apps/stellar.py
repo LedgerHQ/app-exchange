@@ -138,6 +138,8 @@ class StellarClient:
         tx += StrKey.decode_ed25519_public_key(destination)
         tx += int.to_bytes(AssetType.ASSET_TYPE_NATIVE, length=4, byteorder='big')
         tx += int.to_bytes(send_amount, length=8, byteorder='big')
+        tx += int.to_bytes(0, length=4, byteorder="big")  # tx.ext.v = 0
+        tx += int.to_bytes(0, length=4, byteorder="big")  # sig.len = 0
         return tx
 
     def send_simple_sign_tx(self, path: str, network: Network, fees: int, memo: str, destination: str, send_amount: int) -> RAPDU:
