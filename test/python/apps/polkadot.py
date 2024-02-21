@@ -13,7 +13,7 @@ from scalecodec.type_registry import load_type_registry_preset
 from scalecodec.utils.ss58 import ss58_decode
 
 class Method(IntEnum):
-    BALANCE_TRANSFER = 0x0500
+    BALANCE_TRANSFER_ALLOW_DEATH = 0x0500
     BALANCE_FORCE_TRANSFER = 0x0502
 
 class AccountIdLookupType(IntEnum):
@@ -35,8 +35,8 @@ def _format_amount(amount: int) -> bytes:
 # Not sure what this exactly is but we don't actually care
 UNKNOWN = bytes([0x85, 0x02, 0x00, 0x00])
 
-SPEC_VERSION = 9360
-TX_VERSION = 24
+SPEC_VERSION = 1001000
+TX_VERSION = 25
 
 # We don't care about the block hash content
 BLOCK_HASH = bytes([0x00] * 32)
@@ -123,7 +123,7 @@ class PolkadotClient:
             return True
 
     def craft_valid_polkadot_transaction(address, send_amount, fees, memo) -> bytes:
-        return Method.BALANCE_TRANSFER.to_bytes(2, "big") \
+        return Method.BALANCE_TRANSFER_ALLOW_DEATH.to_bytes(2, "big") \
                + AccountIdLookupType.ID.to_bytes(1, "big") \
                + _polkadot_address_to_pk(address) \
                + _format_amount(send_amount) \
