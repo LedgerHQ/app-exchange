@@ -104,7 +104,7 @@ static void review_choice(bool confirm) {
     }
 }
 
-static nbgl_layoutTagValue_t pairs[4];
+static nbgl_layoutTagValue_t pairs[5];
 static nbgl_layoutTagValueList_t pair_list;
 static nbgl_pageInfoLongPress_t info_long_press;
 
@@ -130,6 +130,12 @@ static void continue_review(void) {
         pairs[index].value = G_swap_ctx.printable_get_amount;
         index++;
     } else {
+        pairs[index].item = "Exchange partner";
+        pairs[index].value = G_swap_ctx.partner.unprefixed_name;
+        index++;
+    }
+
+    if (G_swap_ctx.subcommand != FUND && G_swap_ctx.subcommand != FUND_NG) {
         if (G_swap_ctx.rate == FLOATING) {
             pairs[index].item = "Get estimated";
         } else {

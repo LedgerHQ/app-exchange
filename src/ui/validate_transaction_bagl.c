@@ -43,40 +43,45 @@ UX_STEP_NOCB(ux_confirm_flow_2_step, bnnn_paging,
     .title = "Send",
     .text = G_swap_ctx.printable_send_amount,
 });
-UX_STEP_NOCB(ux_confirm_flow_3_step, bnnn_paging,
-{
-    .title = "Get",
-    .text = G_swap_ctx.printable_get_amount,
-});
-UX_STEP_NOCB(ux_confirm_flow_3_floating_step, bnnn_paging,
-{
-    .title = "Get estimated",
-    .text = G_swap_ctx.printable_get_amount,
-});
-UX_STEP_NOCB(ux_confirm_flow_3_2_step, bnnn_paging,
+UX_STEP_NOCB(ux_confirm_flow_3_fund_step, bnnn_paging,
 {
     .title = G_swap_ctx.partner.prefixed_name,
     .text = G_swap_ctx.account_name,
 });
-UX_STEP_NOCB(ux_confirm_flow_4_step, bnnn_paging,
+UX_STEP_NOCB(ux_confirm_flow_3_not_fund_step, bnnn_paging,
+{
+    .title = "Exchange partner",
+    .text = G_swap_ctx.partner.unprefixed_name,
+});
+UX_STEP_NOCB(ux_confirm_flow_4_fixed_step, bnnn_paging,
+{
+    .title = "Get",
+    .text = G_swap_ctx.printable_get_amount,
+});
+UX_STEP_NOCB(ux_confirm_flow_4_floating_step, bnnn_paging,
+{
+    .title = "Get estimated",
+    .text = G_swap_ctx.printable_get_amount,
+});
+UX_STEP_NOCB(ux_confirm_flow_5_step, bnnn_paging,
 {
     .title = "Fees",
     .text = G_swap_ctx.printable_fees_amount,
 });
-UX_STEP_CB(ux_confirm_flow_5_step, pbb, on_accept(NULL),
+UX_STEP_CB(ux_confirm_flow_6_step, pbb, on_accept(NULL),
 {
     &C_icon_validate_14,
     "Accept",
     "and send",
 });
-UX_STEP_CB(ux_confirm_flow_6_step, pb, on_reject(NULL),
+UX_STEP_CB(ux_confirm_flow_7_step, pb, on_reject(NULL),
 {
     &C_icon_crossmark,
     "Reject",
 });
 
 // clang-format on
-const ux_flow_step_t *ux_confirm_flow[8];
+const ux_flow_step_t *ux_confirm_flow[9];
 
 void ui_validate_amounts(void) {
     int step = 0;
@@ -92,16 +97,22 @@ void ui_validate_amounts(void) {
     ux_confirm_flow[step++] = &ux_confirm_flow_2_step;
 
     if (G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) {
-        ux_confirm_flow[step++] = &ux_confirm_flow_3_2_step;
-    } else if (G_swap_ctx.rate == FLOATING) {
-        ux_confirm_flow[step++] = &ux_confirm_flow_3_floating_step;
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_fund_step;
     } else {
-        ux_confirm_flow[step++] = &ux_confirm_flow_3_step;
+        ux_confirm_flow[step++] = &ux_confirm_flow_3_not_fund_step;
     }
 
-    ux_confirm_flow[step++] = &ux_confirm_flow_4_step;
+    if (G_swap_ctx.subcommand != FUND && G_swap_ctx.subcommand != FUND_NG) {
+        if (G_swap_ctx.rate == FLOATING) {
+            ux_confirm_flow[step++] = &ux_confirm_flow_4_floating_step;
+        } else {
+            ux_confirm_flow[step++] = &ux_confirm_flow_4_fixed_step;
+        }
+    }
+
     ux_confirm_flow[step++] = &ux_confirm_flow_5_step;
     ux_confirm_flow[step++] = &ux_confirm_flow_6_step;
+    ux_confirm_flow[step++] = &ux_confirm_flow_7_step;
     ux_confirm_flow[step++] = FLOW_END_STEP;
 
     ux_flow_init(0, ux_confirm_flow, NULL);
