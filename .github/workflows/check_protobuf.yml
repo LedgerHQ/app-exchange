@@ -10,7 +10,7 @@ on:
 
 jobs:
   check_protobuf_files:
-    name: Check that the protobuffiles for C and Python are up to date
+    name: Check that the protobuf files for C and Python are up to date
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder-lite:latest

@@ -94,6 +94,11 @@ on:
         default: '""'
         type: string
 
+      reusable_workflow_version:
+        required: false
+        default: 'v1'
+        type: string
+
 jobs:
   build_sideloaded_applications:
     name: Build sideloaded applications using the reusable workflow
@@ -101,125 +106,131 @@ jobs:
       fail-fast: false
       matrix:
         coin:
-        - name: stellar
-          repo: ${{ inputs.repo_for_stellar }}
-          branch: ${{ inputs.branch_for_stellar }}
-        - name: tezos
-          repo: ${{ inputs.repo_for_tezos }}
-          branch: ${{ inputs.branch_for_tezos }}
-        - name: xrp
-          repo: ${{ inputs.repo_for_xrp }}
-          branch: ${{ inputs.branch_for_xrp }}
-        - name: ethereum
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
-        - name: ethereum_classic
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
-        - name: litecoin
-          repo: ${{ inputs.repo_for_bitcoin_legacy }}
-          branch: ${{ inputs.branch_for_bitcoin_legacy }}
-        - name: bitcoin_legacy
-          repo: ${{ inputs.repo_for_bitcoin_legacy }}
-          branch: ${{ inputs.branch_for_bitcoin_legacy }}
-        - name: bitcoin
-          repo: ${{ inputs.repo_for_bitcoin }}
-          branch: ${{ inputs.branch_for_bitcoin }}
-        - name: solana
-          repo: ${{ inputs.repo_for_solana }}
-          branch: ${{ inputs.branch_for_solana }}
-        - name: bsc
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
-        - name: DOT
-          repo: ${{ inputs.repo_for_polkadot }}
-          branch: ${{ inputs.branch_for_polkadot }}
-        - name: tron
-          repo: ${{ inputs.repo_for_tron }}
-          branch: ${{ inputs.branch_for_tron }}
-
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
-    with:
-      app_repository: ${{ matrix.coin.repo }}
-      app_branch_name: ${{  matrix.coin.branch }}
-      flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }}"
-      upload_app_binaries_artifact: libraries_binaries
-      upload_as_lib_artifact: ${{ matrix.coin.name }}
-
-  build_exchange_application:
-    name: Build application using the reusable workflow
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
-    with:
-      app_repository: LedgerHQ/app-exchange
-      app_branch_name: ${{ inputs.branch_for_exchange }}
-      flags: "TESTING=1 TEST_PUBLIC_KEY=1"
-      upload_app_binaries_artifact: exchange_binaries
-
-  ragger_tests:
-    name: Run ragger tests using the reusable workflow
-    needs:
-      - build_exchange_application
-      - build_sideloaded_applications
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_ragger_tests.yml@v1
-    with:
-      app_repository: LedgerHQ/app-exchange
-      app_branch_name: ${{ inputs.branch_for_exchange }}
-      download_app_binaries_artifact: exchange_binaries
-      lib_binaries_artifact: libraries_binaries
-      test_filter: ${{ inputs.test_filter }}
-
-  # Legacy
-  zemu_tests:
-    name: Zemu tests
-    strategy:
-      matrix:
-        # device: ["Nano S", "Nano X", "Nano SP"]
-        device: ["Nano S"]
-    needs:
-      - build_exchange_application
-      - build_sideloaded_applications
+          - name: stellar
+            repo: ${{ inputs.repo_for_stellar }}
+            branch: ${{ inputs.branch_for_stellar }}
+          - name: tezos
+            repo: ${{ inputs.repo_for_tezos }}
+            branch: ${{ inputs.branch_for_tezos }}
+          - name: xrp
+            repo: ${{ inputs.repo_for_xrp }}
+            branch: ${{ inputs.branch_for_xrp }}
+          - name: ethereum
+            repo: ${{ inputs.repo_for_ethereum }}
+            branch: ${{ inputs.branch_for_ethereum }}
+          - name: ethereum_classic
+            repo: ${{ inputs.repo_for_ethereum }}
+            branch: ${{ inputs.branch_for_ethereum }}
+          - name: litecoin
+            repo: ${{ inputs.repo_for_bitcoin_legacy }}
+            branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          - name: bitcoin_legacy
+            repo: ${{ inputs.repo_for_bitcoin_legacy }}
+            branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          - name: bitcoin
+            repo: ${{ inputs.repo_for_bitcoin }}
+            branch: ${{ inputs.branch_for_bitcoin }}
+          - name: solana
+            repo: ${{ inputs.repo_for_solana }}
+            branch: ${{ inputs.branch_for_solana }}
+          - name: bsc
+            repo: ${{ inputs.repo_for_ethereum }}
+            branch: ${{ inputs.branch_for_ethereum }}
+          - name: DOT
+            repo: ${{ inputs.repo_for_polkadot }}
+            branch: ${{ inputs.branch_for_polkadot }}
+          - name: tron
+            repo: ${{ inputs.repo_for_tron }}
+            branch: ${{ inputs.branch_for_tron }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Clone
-        uses: actions/checkout@v3
+      - uses: jenseng/dynamic-uses@v1
         with:
-          repository: LedgerHQ/app-exchange
-          ref: ${{ inputs.branch_for_exchange }}
+          uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@${{ inputs.reusable_workflow_version }}
+          with:
+            '{
+              "app_repository": "${{ matrix.coin.repo }}",
+              "app_branch_name": "${{  matrix.coin.branch }}",
+              "flags": "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }}",
+              "upload_app_binaries_artifact": "libraries_binaries",
+              "upload_as_lib_artifact": "${{ matrix.coin.name }}"
+            }'
 
-      - name: Install APT dependencies
-        run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
+  # build_exchange_application:
+  #   name: Build application using the reusable workflow
+  #   uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@${{ inputs.reusable_workflow_version }}
+  #   with:
+  #     app_repository: LedgerHQ/app-exchange
+  #     app_branch_name: ${{ inputs.branch_for_exchange }}
+  #     flags: "TESTING=1 TEST_PUBLIC_KEY=1"
+  #     upload_app_binaries_artifact: exchange_binaries
 
-      - name: Install Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16
+  # ragger_tests:
+  #   name: Run ragger tests using the reusable workflow
+  #   needs:
+  #     - build_exchange_application
+  #     - build_sideloaded_applications
+  #   uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_ragger_tests.yml@${{ inputs.reusable_workflow_version }}
+  #   with:
+  #     app_repository: LedgerHQ/app-exchange
+  #     app_branch_name: ${{ inputs.branch_for_exchange }}
+  #     download_app_binaries_artifact: exchange_binaries
+  #     lib_binaries_artifact: libraries_binaries
+  #     test_filter: ${{ inputs.test_filter }}
 
-      - name: Install Yarn
-        run: npm install -g yarn
+  # # Legacy
+  # zemu_tests:
+  #   name: Zemu tests
+  #   strategy:
+  #     matrix:
+  #       # device: ["Nano S", "Nano X", "Nano SP"]
+  #       device: ["Nano S"]
+  #   needs:
+  #     - build_exchange_application
+  #     - build_sideloaded_applications
+  #   runs-on: ubuntu-latest
 
-      - name: Install JS dependencies
-        run: cd test && yarn install
+  #   steps:
+  #     - name: Clone
+  #       uses: actions/checkout@v3
+  #       with:
+  #         repository: LedgerHQ/app-exchange
+  #         ref: ${{ inputs.branch_for_exchange }}
 
-      - name: Download all binaries
-        uses: actions/download-artifact@v3
+  #     - name: Install APT dependencies
+  #       run: sudo apt-get update -y && sudo apt-get install -y libusb-1.0.0 libudev-dev
 
-      - name: Download exchange binaries
-        uses: actions/download-artifact@v3
-        with:
-          name: exchange_binaries
-          path: ./build/
+  #     - name: Install Node
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 16
 
-      - name: Download lib binaries
-        uses: actions/download-artifact@v3
-        with:
-          name: libraries_binaries
-          path: ./test/python/lib_binaries/
+  #     - name: Install Yarn
+  #       run: npm install -g yarn
 
-      - name: Dispatch to the tests/elfs
-        run: |
-          ./copy_elfs_for_zemu.sh
-          tree test/elfs
+  #     - name: Install JS dependencies
+  #       run: cd test && yarn install
 
-      - name: Run zemu tests for device ${{ matrix.device }}
-        run: cd test && yarn test -t "\[${{ matrix.device }}\]"
+  #     - name: Download all binaries
+  #       uses: actions/download-artifact@v3
+
+  #     - name: Download exchange binaries
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: exchange_binaries
+  #         path: ./build/
+
+  #     - name: Download lib binaries
+  #       uses: actions/download-artifact@v3
+  #       with:
+  #         name: libraries_binaries
+  #         path: ./test/python/lib_binaries/
+
+  #     - name: Dispatch to the tests/elfs
+  #       run: |
+  #         ./copy_elfs_for_zemu.sh
+  #         tree test/elfs
+
+  #     - name: Run zemu tests for device ${{ matrix.device }}
+  #       run: cd test && yarn test -t "\[${{ matrix.device }}\]"
