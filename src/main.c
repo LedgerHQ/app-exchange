@@ -72,10 +72,6 @@ void app_main(void) {
             // Force a return to the main function in order to trigger a full clean restart
             return;
         }
-
-        if (G_swap_ctx.state == INITIAL_STATE) {
-            ui_idle();
-        }
     }
 }
 
@@ -149,8 +145,10 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 if (G_previous_cycle_data.had_previous_cycle) {
                     G_previous_cycle_data.had_previous_cycle = false;
                     if (G_previous_cycle_data.was_successful) {
+                        PRINTF("Displaying modal for successful last cycle\n");
                         display_signing_success();
                     } else {
+                        PRINTF("Displaying modal for failed last cycle\n");
                         display_signing_failure(G_previous_cycle_data.appname_last_cycle);
                     }
                 } else {

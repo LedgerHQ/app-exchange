@@ -51,7 +51,7 @@ class TestsBSC:
 
 class TestsBSCLegacy:
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
-    def test_bsc(self, backend, exchange_navigation_helper, test_to_run):
+    def test_bsc_legacy(self, backend, exchange_navigation_helper, test_to_run):
         # Override CAL to emulate legacy behaviour (use clone instead of Ethereum app)
         TICKER_ID_TO_CONF["BNB"] = BSC_CONF_LEGACY
         BSCTests(backend, exchange_navigation_helper).run_test(test_to_run)
