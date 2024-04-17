@@ -1,3 +1,4 @@
+---
 name: Compilation & tests
 
 on:
@@ -9,7 +10,25 @@ on:
   pull_request:
 
 jobs:
-  job_swap_functional_tests:
+  test_p4:
+    name: Against P4
     uses: ./.github/workflows/reusable_swap_functional_tests.yml
     with:
       branch_for_exchange: ${{ github.ref }}
+      artefact_suffix: '_p4'
+
+  test_p1:
+    name: Against P1
+    uses: ./.github/workflows/reusable_swap_functional_tests.yml
+    with:
+      branch_for_exchange: ${{ github.ref }}
+      branch_for_stellar: 'master'
+      branch_for_tezos: 'master'
+      branch_for_xrp: 'master'
+      branch_for_ethereum: 'master'
+      branch_for_bitcoin_legacy: 'master'
+      branch_for_bitcoin: 'master'
+      branch_for_solana: 'master'
+      branch_for_polkadot: 'main'
+      branch_for_tron: 'master'
+      artefact_suffix: '_p1'

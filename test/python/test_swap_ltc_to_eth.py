@@ -7,7 +7,6 @@ from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps.exchange_transaction_builder import get_partner_curve, extract_payout_ticker, extract_refund_ticker, craft_and_sign_tx
 from .apps import cal as cal
 
-
 def test_swap_ltc_to_eth(backend, exchange_navigation_helper):
     ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
     partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP), name="Default name")
