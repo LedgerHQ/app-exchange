@@ -3,12 +3,12 @@ import pytest
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
 from .apps.ethereum import ETH_PATH
 from ledger_app_clients.ethereum.client import EthAppClient
-from web3 import Web3
+from .apps import cal as cal
 
 
 # ExchangeTestRunner implementation for Ethereum
 class EthereumTests(ExchangeTestRunner):
-    currency_ticker = "ETH"
+    currency_configuration = cal.ETH_CURRENCY_CONFIGURATION
     valid_destination_1 = "0xd692Cb1346262F584D17B4B470954501f6715a82"
     valid_destination_memo_1 = ""
     valid_destination_2 = "0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E"

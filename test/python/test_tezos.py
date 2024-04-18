@@ -2,6 +2,7 @@ import pytest
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
 from .apps.tezos import TezosClient, encode_address, XTZ_PACKED_DERIVATION_PATH, StatusCode
+from .apps import cal as cal
 
 from requests.exceptions import ChunkedEncodingError, ConnectionError
 from urllib3.exceptions import ProtocolError
@@ -15,7 +16,7 @@ TEZOS_ADDRESS_DECODER = {
 
 # ExchangeTestRunner implementation for Stellar
 class TezosTests(ExchangeTestRunner):
-    currency_ticker = "XTZ"
+    currency_configuration = cal.XTZ_CURRENCY_CONFIGURATION
     valid_destination_1 = encode_address("e6330795ffe18f873b83cb13662442b87bd98c22")
     valid_destination_memo_1 = ""
     valid_destination_2 = encode_address("e6330795ffe18f873b83cb13662442b87bd98c40")

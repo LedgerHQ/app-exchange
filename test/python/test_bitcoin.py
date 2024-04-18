@@ -2,6 +2,7 @@ import pytest
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
 from .apps.bitcoin import BitcoinClient, BitcoinErrors
+from .apps import cal as cal
 from ledger_bitcoin import WalletPolicy
 
 in_wallet = WalletPolicy(
@@ -31,7 +32,7 @@ out_wallet_2 = WalletPolicy(
 # ExchangeTestRunner implementation for Bitcoin
 class BitcoinTests(ExchangeTestRunner):
 
-    currency_ticker = "BTC"
+    currency_configuration = cal.BTC_CURRENCY_CONFIGURATION
     valid_destination_1 = BitcoinClient.get_address_from_wallet(out_wallet)
     valid_destination_memo_1 = ""
     valid_destination_2 = BitcoinClient.get_address_from_wallet(out_wallet_2)

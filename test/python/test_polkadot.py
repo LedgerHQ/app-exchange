@@ -2,10 +2,11 @@ import pytest
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_FEES
 from .apps.polkadot import PolkadotClient, ERR_SWAP_CHECK_WRONG_METHOD, ERR_SWAP_CHECK_WRONG_DEST_ADDR, ERR_SWAP_CHECK_WRONG_AMOUNT
+from .apps import cal as cal
 
 # ExchangeTestRunner implementation for Polkadot
 class PolkadotTests(ExchangeTestRunner):
-    currency_ticker = "DOT"
+    currency_configuration = cal.DOT_CURRENCY_CONFIGURATION
     valid_destination_1 = "14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
     valid_destination_memo_1 = ""
     valid_destination_2 = "13zAiMiN2HdJfEXn4NkVCWxuemScdaXGYKJrbJr1Nt6kjBRD"
