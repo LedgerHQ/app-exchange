@@ -6,7 +6,7 @@ from ragger.utils import RAPDU
 from ragger.error import ExceptionRAPDU
 
 from .exchange import ExchangeClient, Rate, SubCommand, Errors
-from .exchange_transaction_builder import get_partner_curve, extract_payout_ticker, extract_refund_ticker, get_credentials, craft_and_sign_tx
+from .exchange_transaction_builder import get_partner_curve, get_credentials, craft_and_sign_tx
 from . import cal as cal
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -21,7 +21,7 @@ TEST_UNIFIED_SUFFIX="_ng_flow"
 class ExchangeTestRunner:
 
     # You will need to define the following elements in the child application:
-    # currency_ticker: str
+    # currency_configuration: CurrencyConfiguration
     # valid_destination_1: str
     # valid_destination_memo_1: str
     # valid_destination_2: str
@@ -87,7 +87,7 @@ class ExchangeTestRunner:
         self.exchange_navigation_helper.set_test_name_suffix("_" + function_to_test)
         getattr(self, TEST_METHOD_PREFIX + function_to_test)(use_legacy_flow)
 
-    def _perform_valid_exchange(self, subcommand, tx_infos, fees, ui_validation):
+    def _perform_valid_exchange(self, subcommand, tx_infos, from_currency_configuration, to_currency_configuration, fees, ui_validation):
         # Initialize the exchange client plugin that will format and send the APDUs to the device
         ex = ExchangeClient(self.backend, Rate.FIXED, subcommand)
 
@@ -109,18 +109,15 @@ class ExchangeTestRunner:
         ex.process_transaction(tx)
         ex.check_transaction_signature(tx_signature)
 
-        # Ask our fake CAL the coin configuration for both payout and refund tickers (None for refund in case of FUND or SELL)
-        payout_ticker = extract_payout_ticker(subcommand, tx_infos)
-        payout_configuration = cal.get_conf_for_ticker(payout_ticker)
+        # Ask our fake CAL the coin configuration for both FROM and TO currencies (None for TO in case of FUND or SELL)
+        from_configuration = from_currency_configuration.get_conf_for_ticker()
 
         if subcommand == SubCommand.SWAP or subcommand == SubCommand.SWAP_NG:
-            ex.check_payout_address(payout_configuration)
-
-            refund_ticker = extract_refund_ticker(subcommand, tx_infos)
-            refund_configuration = cal.get_conf_for_ticker(refund_ticker)
+            to_configuration = to_currency_configuration.get_conf_for_ticker()
+            ex.check_payout_address(to_configuration)
 
             # Request the final address check and UI approval request on the device
-            with ex.check_refund_address(refund_configuration):
+            with ex.check_refund_address(from_configuration):
                 if ui_validation:
                     self.exchange_navigation_helper.simple_accept()
                 else:
@@ -129,7 +126,7 @@ class ExchangeTestRunner:
                     # As a workaround, we avoid calling the navigation if we want the function to raise
                     pass
         else:
-            with ex.check_asset_in(payout_configuration):
+            with ex.check_asset_in(from_configuration):
                 if ui_validation:
                     self.exchange_navigation_helper.simple_accept()
                 else:
@@ -152,13 +149,13 @@ class ExchangeTestRunner:
             "refund_extra_id": refund_memo.encode(),
             "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
             "payout_extra_id": b"", # Default
-            "currency_from": self.currency_ticker,
-            "currency_to": "ETH", # Default
+            "currency_from": self.currency_configuration.ticker,
+            "currency_to": cal.ETH_CURRENCY_CONFIGURATION.ticker,
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
         subcommand = SubCommand.SWAP if legacy else SubCommand.SWAP_NG
-        self._perform_valid_exchange(subcommand, tx_infos, fees, ui_validation=ui_validation)
+        self._perform_valid_exchange(subcommand, tx_infos, self.currency_configuration, cal.ETH_CURRENCY_CONFIGURATION, fees, ui_validation=ui_validation)
 
     def perform_valid_swap_to_custom(self, destination, send_amount, fees, memo, ui_validation=True, legacy=False):
         tx_infos = {
@@ -168,36 +165,36 @@ class ExchangeTestRunner:
             "refund_extra_id": "", # Default
             "payout_address": destination,
             "payout_extra_id": memo.encode(),
-            "currency_from": "ETH", # Default
-            "currency_to": self.currency_ticker,
+            "currency_from": cal.ETH_CURRENCY_CONFIGURATION.ticker,
+            "currency_to": self.currency_configuration.ticker,
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
         subcommand = SubCommand.SWAP if legacy else SubCommand.SWAP_NG
-        self._perform_valid_exchange(subcommand, tx_infos, fees, ui_validation=ui_validation)
+        self._perform_valid_exchange(subcommand, tx_infos, cal.ETH_CURRENCY_CONFIGURATION, self.currency_configuration, fees, ui_validation=ui_validation)
 
     def perform_valid_fund_from_custom(self, destination, send_amount, fees, legacy=False):
         tx_infos = {
             "user_id": self.fund_user_id,
             "account_name": self.fund_account_name,
-            "in_currency": self.currency_ticker,
+            "in_currency": self.currency_configuration.ticker,
             "in_amount": int_to_minimally_sized_bytes(send_amount),
             "in_address": destination,
         }
         subcommand = SubCommand.FUND if legacy else SubCommand.FUND_NG
-        self._perform_valid_exchange(subcommand, tx_infos, fees, ui_validation=True)
+        self._perform_valid_exchange(subcommand, tx_infos, self.currency_configuration, None, fees, ui_validation=True)
 
     def perform_valid_sell_from_custom(self, destination, send_amount, fees, legacy=False):
         tx_infos = {
             "trader_email": self.sell_trader_email,
             "out_currency": self.sell_out_currency,
             "out_amount": self.sell_out_amount,
-            "in_currency": self.currency_ticker,
+            "in_currency": self.currency_configuration.ticker,
             "in_amount": int_to_minimally_sized_bytes(send_amount),
             "in_address": destination,
         }
         subcommand = SubCommand.SELL if legacy else SubCommand.SELL_NG
-        self._perform_valid_exchange(subcommand, tx_infos, fees, ui_validation=True)
+        self._perform_valid_exchange(subcommand, tx_infos, self.currency_configuration, None, fees, ui_validation=True)
 
     # Implement this function for each tested coin
     def perform_final_tx(self, destination, send_amount, fees, memo):

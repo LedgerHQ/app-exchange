@@ -2,10 +2,11 @@ import pytest
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS
 from .apps.stellar import Network, StellarClient, StellarErrors
+from .apps import cal as cal
 
 # ExchangeTestRunner implementation for Stellar
 class StellarTests(ExchangeTestRunner):
-    currency_ticker = "XLM"
+    currency_configuration = cal.XLM_CURRENCY_CONFIGURATION
     valid_destination_1 = "GCKUD4BHIYSAYHU7HBB5FDSW6CSYH3GSOUBPWD2KE7KNBERP4BSKEJDV"
     valid_destination_memo_1 = ""
     valid_destination_2 = "GB5ZQJYKSZP3JOMOCWCBI7SPQUBW6ZL3642FUB7IYNAOC2EQMAFXI3P2"

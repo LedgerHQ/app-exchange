@@ -54,8 +54,6 @@ class SubCommandSpecs:
     transaction_type: Callable
     required_fields: Iterable[str]
     transaction_id_field: str
-    payout_field: str
-    refund_field: Optional[str]
 
     @property
     def dot_prefix(self):
@@ -133,8 +131,6 @@ SWAP_NG_SPECS = SubCommandSpecs(
                        "payout_address", "payout_extra_id", "currency_from", "currency_to",
                        "amount_to_provider", "amount_to_wallet"],
     transaction_id_field = "device_transaction_id_ng",
-    payout_field = "currency_to",
-    refund_field = "currency_from",
 )
 
 SWAP_SPECS = SubCommandSpecs(
@@ -148,8 +144,6 @@ SWAP_SPECS = SubCommandSpecs(
                        "payout_address", "payout_extra_id", "currency_from", "currency_to",
                        "amount_to_provider", "amount_to_wallet"],
     transaction_id_field = "device_transaction_id",
-    payout_field = "currency_to",
-    refund_field = "currency_from",
 )
 
 SELL_NG_SPECS = SubCommandSpecs(
@@ -161,8 +155,6 @@ SELL_NG_SPECS = SubCommandSpecs(
     transaction_type = NewSellResponse,
     transaction_id_field = "device_transaction_id",
     required_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
-    payout_field = "in_currency",
-    refund_field = None,
 )
 
 SELL_SPECS = SubCommandSpecs(
@@ -174,8 +166,6 @@ SELL_SPECS = SubCommandSpecs(
     transaction_type = NewSellResponse,
     transaction_id_field = "device_transaction_id",
     required_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
-    payout_field = "in_currency",
-    refund_field = None,
 )
 
 FUND_NG_SPECS = SubCommandSpecs(
@@ -187,8 +177,6 @@ FUND_NG_SPECS = SubCommandSpecs(
     transaction_type = NewFundResponse,
     required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
     transaction_id_field = "device_transaction_id",
-    payout_field = "in_currency",
-    refund_field =  None,
 )
 
 FUND_SPECS = SubCommandSpecs(
@@ -200,8 +188,6 @@ FUND_SPECS = SubCommandSpecs(
     transaction_type = NewFundResponse,
     required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
     transaction_id_field = "device_transaction_id",
-    payout_field = "in_currency",
-    refund_field =  None,
 )
 
 SUBCOMMAND_TO_SPECS = {
@@ -222,17 +208,6 @@ def craft_and_sign_tx(subcommand: Union[SubCommand, SubCommandSpecs], tx_infos: 
     tx = subcommand_specs.craft_transaction(pb, fees)
     signed_tx = subcommand_specs.encode_transaction_signature(signer, pb)
     return tx, signed_tx
-
-def extract_payout_ticker(subcommand: SubCommand, tx_infos: Dict) -> str:
-    subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
-    return tx_infos[subcommand_specs.payout_field]
-
-def extract_refund_ticker(subcommand: SubCommand, tx_infos: Dict) -> Optional[str]:
-    subcommand_specs = SUBCOMMAND_TO_SPECS[subcommand]
-    if subcommand_specs.refund_field:
-        return tx_infos[subcommand_specs.refund_field]
-    else:
-        return None
 
 def get_partner_curve(subcommand: SubCommand) -> ec.EllipticCurve:
     return SUBCOMMAND_TO_SPECS[subcommand].partner_curve

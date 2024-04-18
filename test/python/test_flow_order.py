@@ -5,9 +5,12 @@ from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.error import ExceptionRAPDU
 
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command, P2_EXTEND, P2_MORE, EXCHANGE_CLASS
-from .apps.exchange_transaction_builder import get_partner_curve, extract_payout_ticker, extract_refund_ticker, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, get_credentials, craft_and_sign_tx
+from .apps.exchange_transaction_builder import get_partner_curve, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, get_credentials, craft_and_sign_tx
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps import cal as cal
+
+CURRENCY_FROM = cal.ETH_CURRENCY_CONFIGURATION
+CURRENCY_TO = cal.BTC_CURRENCY_CONFIGURATION
 
 # Some valid infos for TX. Content is irrelevant for the test
 
@@ -18,15 +21,15 @@ SWAP_TX_INFOS = {
      "refund_extra_id": b"",
      "payout_address": b"bc1qqtl9jlrwcr3fsfcjj2du7pu6fcgaxl5dsw2vyg",
      "payout_extra_id": b"",
-     "currency_from": "ETH",
-     "currency_to": "BTC",
+     "currency_from": CURRENCY_FROM.ticker,
+     "currency_to": CURRENCY_TO.ticker,
      "amount_to_provider": bytes.fromhex("013fc3a717fb5000"),
      "amount_to_wallet": b"\x0b\xeb\xc2\x00",
 }
 FUND_TX_INFOS = {
     "user_id": "John Wick",
     "account_name": "Remember Daisy",
-    "in_currency": "ETH",
+    "in_currency": CURRENCY_FROM.ticker,
     "in_amount": b"\032\200\250]$T\000",
     "in_address": "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
 }
@@ -34,7 +37,7 @@ SELL_TX_INFOS = {
     "trader_email": "john@doe.lost",
     "out_currency": "USD",
     "out_amount": {"coefficient": b"\x01", "exponent": 3},
-    "in_currency": "ETH",
+    "in_currency": CURRENCY_FROM.ticker,
     "in_amount": b"\032\200\250]$T\000",
     "in_address": "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
 }
@@ -101,24 +104,19 @@ def test_wrong_flow_order(backend, subcommand, exchange_navigation_helper):
     try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_TRANSACTION_SIGNATURE)
     ex.check_transaction_signature(tx_signature)
 
-    payout_ticker = extract_payout_ticker(subcommand, tx_infos)
-    payout_configuration = cal.get_conf_for_ticker(payout_ticker)
-
     if subcommand == SubCommand.SWAP or subcommand == SubCommand.SWAP_NG:
         try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_PAYOUT_ADDRESS)
-        ex.check_payout_address(payout_configuration)
+        ex.check_payout_address(CURRENCY_TO.get_conf_for_ticker())
 
         try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_REFUND_ADDRESS)
-        refund_ticker = extract_refund_ticker(subcommand, tx_infos)
-        refund_configuration = cal.get_conf_for_ticker(refund_ticker)
-        with ex.check_refund_address(refund_configuration):
+        with ex.check_refund_address(CURRENCY_FROM.get_conf_for_ticker()):
             exchange_navigation_helper.simple_accept()
     else:
         if subcommand == SubCommand.FUND or subcommand == SubCommand.SELL:
             try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_ASSET_IN_LEGACY)
         else:
             try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_ASSET_IN)
-        with ex.check_asset_in(payout_configuration):
+        with ex.check_asset_in(CURRENCY_FROM.get_conf_for_ticker()):
             exchange_navigation_helper.simple_accept()
 
     try_all_commands_for_subcommand_except(ex, subcommand, Command.START_SIGNING_TRANSACTION)

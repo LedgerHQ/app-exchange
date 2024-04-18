@@ -5,6 +5,7 @@ from ragger.error import ExceptionRAPDU
 from .apps.exchange_test_runner import ExchangeTestRunner
 from .apps.exchange_test_runner import VALID_TESTS, ALL_TESTS_EXCEPT_FEES
 from .apps.tron import TronClient, TronErrors
+from .apps import cal as cal
 
 
 # ExchangeTestRunner implementation for Tron
@@ -30,7 +31,7 @@ class TronTests(ExchangeTestRunner):
 # ExchangeTestRunner implementation for Tron TRX #
 ##################################################
 class TronTrxTests(TronTests):
-    currency_ticker = "TRX"
+    currency_configuration = cal.TRX_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         TronClient(self.backend).send_tx(path="m/44'/148'/0'",
@@ -51,7 +52,7 @@ class TestsTrx:
 # ExchangeTestRunner implementation for Tron USDT #
 ###################################################
 class TronUsdtTests(TronTests):
-    currency_ticker = "USDT"
+    currency_configuration = cal.USDT_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         TronClient(self.backend).send_tx(path="m/44'/148'/0'",
@@ -72,7 +73,7 @@ class TestsUsdt:
 # ExchangeTestRunner implementation for Tron USDC #
 ###################################################
 class TronUsdcTests(TronTests):
-    currency_ticker = "USDC"
+    currency_configuration = cal.USDC_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         TronClient(self.backend).send_tx(path="m/44'/148'/0'",
@@ -93,7 +94,7 @@ class TestsUsdc:
 # ExchangeTestRunner implementation for Tron TRX but wrong tx token #
 #####################################################################
 class TronTrxToUsdtTests(TronTests):
-    currency_ticker = "TRX"
+    currency_configuration = cal.TRX_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         with pytest.raises(ExceptionRAPDU) as e:
@@ -115,7 +116,7 @@ class TestsTRXToUsdt:
 # ExchangeTestRunner implementation for Tron USDT but wrong tx token (TRX) #
 ############################################################################
 class TronUsdttoTrxTests(TronTests):
-    currency_ticker = "USDT"
+    currency_configuration = cal.USDT_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         with pytest.raises(ExceptionRAPDU) as e:
@@ -137,7 +138,7 @@ class TestsUsdtToTrx:
 # ExchangeTestRunner implementation for Tron USDT but wrong tx token (USDC) #
 #############################################################################
 class TronUsdtoUsdcTests(TronTests):
-    currency_ticker = "USDT"
+    currency_configuration = cal.USDT_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         with pytest.raises(ExceptionRAPDU) as e:

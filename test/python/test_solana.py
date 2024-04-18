@@ -5,6 +5,7 @@ from .apps.solana import SolanaClient, ErrorType
 from .apps.solana_utils import SOL_PACKED_DERIVATION_PATH
 from .apps.solana_cmd_builder import SystemInstructionTransfer, Message, verify_signature
 from .apps import solana_utils as SOL
+from .apps import cal as cal
 
 # A bit hacky but way less hassle than actually writing an actual address decoder
 SOLANA_ADDRESS_DECODER = {
@@ -14,7 +15,7 @@ SOLANA_ADDRESS_DECODER = {
 
 # ExchangeTestRunner implementation for Stellar
 class SolanaTests(ExchangeTestRunner):
-    currency_ticker = "SOL"
+    currency_configuration = cal.SOL_CURRENCY_CONFIGURATION
     valid_destination_1 = SOL.FOREIGN_ADDRESS
     valid_destination_memo_1 = ""
     valid_destination_2 = SOL.FOREIGN_ADDRESS_2
