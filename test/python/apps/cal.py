@@ -9,6 +9,7 @@ from .signing_authority import SigningAuthority, LEDGER_SIGNER
 from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
 from .ethereum import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .ethereum import BSC_PACKED_DERIVATION_PATH, BSC_CONF, BSC_CONF_LEGACY
+from .ethereum import DAI_PACKED_DERIVATION_PATH, DAI_CONF
 
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
@@ -43,6 +44,7 @@ XRP_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XRP", conf=XRP_CONF, 
 XTZ_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XTZ", conf=XTZ_CONF, packed_derivation_path=XTZ_PACKED_DERIVATION_PATH)
 BNB_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BNB", conf=BSC_CONF, packed_derivation_path=BSC_PACKED_DERIVATION_PATH)
 BNB_LEGACY_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BNB", conf=BSC_CONF_LEGACY, packed_derivation_path=BSC_PACKED_DERIVATION_PATH)
+DAI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="DAI", conf=DAI_CONF, packed_derivation_path=DAI_PACKED_DERIVATION_PATH)
 DOT_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="DOT", conf=DOT_CONF, packed_derivation_path=DOT_PACKED_DERIVATION_PATH)
 TRX_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="TRX", conf=TRX_CONF, packed_derivation_path=TRX_PACKED_DERIVATION_PATH)
 USDT_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDT", conf=TRX_USDT_CONF, packed_derivation_path=TRX_PACKED_DERIVATION_PATH)

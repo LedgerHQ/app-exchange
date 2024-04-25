@@ -1,4 +1,7 @@
 import pytest
+import os
+import json
+from web3 import Web3
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
 from .apps.ethereum import ETH_PATH
@@ -25,8 +28,6 @@ class GenericEthereumNetworkTests(ExchangeTestRunner):
     signature_refusal_error_code = 0x6001
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        print("perform_final_tx")
-        print(f"{destination}")
         app_client = EthAppClient(self.backend)
         with app_client.sign(bip32_path=ETH_PATH,
                              tx_params={
@@ -41,6 +42,7 @@ class GenericEthereumNetworkTests(ExchangeTestRunner):
         # TODO : assert signature validity
 
 
+
 # ExchangeTestRunner implementation for native ETH
 class EthereumTests(GenericEthereumNetworkTests):
     chain_id = 1
@@ -50,6 +52,7 @@ class TestsEthereum:
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
     def test_ethereum(self, backend, exchange_navigation_helper, test_to_run):
         EthereumTests(backend, exchange_navigation_helper).run_test(test_to_run)
+
 
 
 # ExchangeTestRunner implementation for BSC on ETH application
@@ -63,6 +66,7 @@ class TestsBSC:
         BSCTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
 
+
 # ExchangeTestRunner implementation for BSC on BNB application
 class BSCLegacyTests(GenericEthereumNetworkTests):
     chain_id = 56
@@ -72,3 +76,35 @@ class TestsBSCLegacy:
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
     def test_bsc_legacy(self, backend, exchange_navigation_helper, test_to_run):
         BSCLegacyTests(backend, exchange_navigation_helper).run_test(test_to_run)
+
+
+
+# ExchangeTestRunner implementation for Eth token DAI
+class DAITests(GenericEthereumNetworkTests):
+    currency_configuration = cal.DAI_CURRENCY_CONFIGURATION
+    DAI_ADDRESS = bytes.fromhex("5d3a536e4d6dbd6114cc1ead35777bab948e3643")
+
+    with open(f"{os.path.dirname(__file__)}/apps/erc20.json", encoding="utf-8") as file:
+        contract = Web3().eth.contract(
+            abi=json.load(file),
+            address=DAI_ADDRESS
+        )
+
+    def perform_final_tx(self, destination, send_amount, fees, memo):
+        app_client = EthAppClient(self.backend)
+        app_client.provide_token_metadata("DAI", self.DAI_ADDRESS, 18, 1)
+        with app_client.sign(bip32_path=ETH_PATH,
+                             tx_params={
+                                "nonce": 0,
+                                "gasPrice": 1,
+                                "gas": fees,
+                                "to": self.contract.address,
+                                "data": self.contract.encodeABI("transfer", [destination, send_amount]),
+                                "chainId": 1
+                             }):
+            pass
+
+class TestsDAI:
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+    def test_dai(self, backend, exchange_navigation_helper, test_to_run):
+        DAITests(backend, exchange_navigation_helper).run_test(test_to_run)
