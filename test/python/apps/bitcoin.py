@@ -15,6 +15,8 @@ from ledger_bitcoin.bip380.descriptors import Descriptor
 BTC_CONF = create_currency_config("BTC", "Bitcoin")
 
 BTC_PACKED_DERIVATION_PATH = bitcoin_pack_derivation_path(BtcDerivationPathFormat.BECH32, "m/84'/0'/0'/0/0")
+BTC_SEGWIT_PACKED_DERIVATION_PATH = bitcoin_pack_derivation_path(BtcDerivationPathFormat.BECH32, "m/84'/0'/0'/0/10")
+BTC_TAPROOT_PACKED_DERIVATION_PATH = bitcoin_pack_derivation_path(BtcDerivationPathFormat.BECH32M, "m/86'/0'/0'/0/6")
 
 CHAIN = Chain.MAIN
 

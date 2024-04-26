@@ -12,7 +12,7 @@ from .ethereum import BSC_PACKED_DERIVATION_PATH, BSC_CONF, BSC_CONF_LEGACY
 from .ethereum import DAI_PACKED_DERIVATION_PATH, DAI_CONF
 
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
-from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
+from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF, BTC_SEGWIT_PACKED_DERIVATION_PATH, BTC_TAPROOT_PACKED_DERIVATION_PATH
 from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
 from .solana_utils import SOL_PACKED_DERIVATION_PATH, SOL_CONF
 from .xrp import XRP_PACKED_DERIVATION_PATH, XRP_CONF
@@ -37,6 +37,8 @@ class CurrencyConfiguration:
 ETC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ETC", conf=ETC_CONF, packed_derivation_path=ETC_PACKED_DERIVATION_PATH)
 ETH_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ETH", conf=ETH_CONF, packed_derivation_path=ETH_PACKED_DERIVATION_PATH)
 BTC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BTC", conf=BTC_CONF, packed_derivation_path=BTC_PACKED_DERIVATION_PATH)
+BTC_SEGWIT_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BTC", conf=BTC_CONF, packed_derivation_path=BTC_SEGWIT_PACKED_DERIVATION_PATH)
+BTC_TAPROOT_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BTC", conf=BTC_CONF, packed_derivation_path=BTC_TAPROOT_PACKED_DERIVATION_PATH)
 LTC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="LTC", conf=LTC_CONF, packed_derivation_path=LTC_PACKED_DERIVATION_PATH)
 XLM_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XLM", conf=XLM_CONF, packed_derivation_path=XLM_PACKED_DERIVATION_PATH)
 SOL_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SOL", conf=SOL_CONF, packed_derivation_path=SOL_PACKED_DERIVATION_PATH)
