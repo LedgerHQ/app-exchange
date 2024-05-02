@@ -17,41 +17,48 @@ Communication is done through a series of request-response exchanges (APDU / RAP
 
 ### COMMAND:
 
-| Name                         | Value | Description                                                                           |
-| ---------------------------- | ----- | ------------------------------------------------------------------------------------- |
-| GET_VERSION                  | 0x02  | Get application version. This APDU can be sent independently of the current app state |
-| START_NEW_TRANSACTION        | 0x03  | Start new EXCHANGE transaction. This APDU resets the app state                        |
-| SET_PARTNER_KEY              | 0x04  | Set the credentials of the exchange partner                                           |
-| CHECK_PARTNER                | 0x05  | Check that the credentials of the exchange partner are signed by the Ledger key       |
-| PROCESS_TRANSACTION_RESPONSE | 0x06  | Receive the transaction proposal from the exchange partner                            |
-| CHECK_TRANSACTION_SIGNATURE  | 0x07  | Check that the transaction proposal is signed by the exchange partner                 |
-| CHECK_ASSET_IN_LEGACY        | 0x08  | Format the amounts and fees used. (FUND_LEGACY and SELL_LEGACY flows only)            |
-| CHECK_ASSET_IN               | 0x0B  | Format the amounts and fees used. (FUND_NEW and SELL_NEW flows only)                  |
-| CHECK_PAYOUT_ADDRESS         | 0x08  | Check that the payout address belongs to us (SWAP based flows only)                   |
-| CHECK_REFUND_ADDRESS         | 0x09  | Check that the refund address belongs to us (SWAP based flows only)                   |
-| START_SIGNING_TRANSACTION    | 0x0A  | Start the library application responsible for the FROM signing                        |
+| Name                              | Value | Description                                                                                         |
+| --------------------------------- | ----- | --------------------------------------------------------------------------------------------------- |
+| GET_VERSION                       | 0x02  | Get application version. This APDU can be sent independently of the current app state               |
+| START_NEW_TRANSACTION             | 0x03  | Start new EXCHANGE transaction. This APDU resets the app state                                      |
+| SET_PARTNER_KEY                   | 0x04  | Set the credentials of the exchange partner                                                         |
+| CHECK_PARTNER                     | 0x05  | Check that the credentials of the exchange partner are signed by the Ledger key                     |
+| PROCESS_TRANSACTION_RESPONSE      | 0x06  | Receive the transaction proposal from the exchange partner                                          |
+| CHECK_TRANSACTION_SIGNATURE       | 0x07  | Check that the transaction proposal is signed by the exchange partner                               |
+| CHECK_ASSET_IN_LEGACY_AND_DISPLAY | 0x08  | Format the amounts and fees used and prompts screen review (FUND_LEGACY and SELL_LEGACY flows only) |
+| CHECK_ASSET_IN_AND_DISPLAY        | 0x0B  | Format the amounts and fees used and prompts screen review (FUND based and SELL based flows)        |
+| CHECK_ASSET_IN_NO_DISPLAY         | 0x0D  | Format the amounts and fees used. (FUND based and SELL based flows only)                            |
+| CHECK_PAYOUT_ADDRESS              | 0x08  | Check that the payout address belongs to us (SWAP based flows only)                                 |
+| CHECK_REFUND_ADDRESS_AND_DISPLAY  | 0x09  | Check that the refund address belongs to us (SWAP based flows only) and prompts screen review       |
+| CHECK_REFUND_ADDRESS_NO_DISPLAY   | 0x0C  | Check that the refund address belongs to us (SWAP based flows only)                                 |
+| PROMPT_UI_DISPLAY                 | 0x0F  | Prompt the screen review for the user                                                               |
+| START_SIGNING_TRANSACTION         | 0x0A  | Start the library application responsible for the FROM signing                                      |
 
 The COMMANDS must be sent to the application in the correct order, this order depends of the TYPE chosen for the exchange flow:
-1. START_NEW_TRANSACTION
-2. SET_PARTNER_KEY
-3. CHECK_PARTNER
-4. PROCESS_TRANSACTION_RESPONSE
-5. CHECK_TRANSACTION_SIGNATURE
 
-- For SWAP based TYPES: \
-6.1. CHECK_PAYOUT_ADDRESS \
-6.2. CHECK_REFUND_ADDRESS 
-- For FUND_LEGACY and SELL_LEGACY TYPES: \
-6.1. CHECK_ASSET_IN_LEGACY
-- For FUND_NEW and SELL_NEW TYPES: \
-6.1. CHECK_ASSET_IN
+| All types                    |
+| ---------------------------- |
+| START_NEW_TRANSACTION        |
+| SET_PARTNER_KEY              |
+| CHECK_PARTNER                |
+| PROCESS_TRANSACTION_RESPONSE |
+| CHECK_TRANSACTION_SIGNATURE  |
 
-7. START_SIGNING_TRANSACTION
+| SWAP based TYPES                | or (discouraged version)         | FUND based and SELL based TYPES | or (discouraged version)   |
+| ------------------------------- | -------------------------------- | ------------------------------- | ---------------------------|
+| CHECK_PAYOUT_ADDRESS            | CHECK_PAYOUT_ADDRESS             | CHECK_ASSET_IN_NO_DISPLAY       | CHECK_ASSET_IN_AND_DISPLAY |
+| CHECK_REFUND_ADDRESS_NO_DISPLAY | CHECK_REFUND_ADDRESS_AND_DISPLAY | PROMPT_UI_DISPLAY               |                            |
+| PROMPT_UI_DISPLAY               |                                  |                                 |                            |
+
+| All types                 |
+| ------------------------- |
+| START_SIGNING_TRANSACTION |
 
 #### Notes on COMMANDS:
 
-- Commands CHECK_REFUND_ADDRESS, CHECK_ASSET_IN_LEGACY, and CHECK_ASSET_IN prompt an UI review screen. \
-- It is always possible to restart the flow by sending a START_NEW_TRANSACTION command, except when an UI review screen is displayed. \
+- Command START_SIGNING_TRANSACTION requires that a UI review by the user has happened. \
+    Either through a CHECK_X_AND_DISPLAY (legacy method), or through the dedicated PROMPT_UI_DISPLAY command. \
+- It is always possible to restart the flow by sending a START_NEW_TRANSACTION command, except when the UI review screen is being displayed. \
 - The command START_SIGNING_TRANSACTION will start the library application, the current application will not be EXCHANGE anymore.
 
 ### RATE_TYPE:
@@ -189,9 +196,22 @@ With the possible values for the format of the transaction used for signing bein
 
 With the possible values for the format of the signature itself being 0x00 for DER format, and 0x01 for (R,S) format.
 
-#### CHECK_ASSET_IN_LEGACY
+#### CHECK_ASSET_IN_LEGACY_AND_DISPLAY
 
-This command is used only in the SELL_LEGACY and FUND_LEGACY TYPES.
+This command is DEPRECATED. \
+Please refer to CHECK_ASSET_IN_AND_DISPLAY (strict equivalent but discouraged) or CHECK_ASSET_IN_NO_DISPLAY + PROMPT_UI_DISPLAY
+
+This command works only for the SELL_LEGACY and FUND_LEGACY TYPES, the data content is the same as CHECK_ASSET_IN_AND_DISPLAY, \
+only the INS byte is different (and does not collide with CHECK_PAYOUT_ADDRESS).
+
+#### CHECK_ASSET_IN_AND_DISPLAY
+
+This command is the same as CHECK_ASSET_IN_NO_DISPLAY except that the application will prompt the UI review if the check is successful. \
+Usage of this command is discouraged, pease use CHECK_ASSET_IN_NO_DISPLAY + PROMPT_UI_DISPLAY instead.
+
+#### CHECK_ASSET_IN_NO_DISPLAY
+
+This command is used for SELL based and FUND based TYPES.
 
 | Bytes   | Description                                                                                                    |
 | ------- | -------------------------------------------------------------------------------------------------------------- |
@@ -205,11 +225,6 @@ This command is used only in the SELL_LEGACY and FUND_LEGACY TYPES.
 | S bytes | Signature of the coin configuration by the Ledger key in DER format, curve secp256k1 hashfunc sha256           |
 | 1 byte  | Packed derivation path length T                                                                                |
 | T bytes | Packed derivation path used for the FROM coin                                                                  |
-
-#### CHECK_ASSET_IN
-
-This command is used only in the SELL_NEW and FUND_NEW TYPES. \
-The data content is the same as CHECK_ASSET_IN_LEGACY, only the command id is different.
 
 #### CHECK_PAYOUT_ADDRESS
 
@@ -228,7 +243,12 @@ This command is used only in the SWAP_LEGACY and SWAP_NEW TYPES.
 | 1 byte  | Packed derivation path length T                                                                              |
 | T bytes | Packed derivation path used for the TO coin                                                                  |
 
-#### CHECK_REFUND_ADDRESS
+#### CHECK_REFUND_ADDRESS_AND_DISPLAY
+
+This command is the same as CHECK_REFUND_ADDRESS_NO_DISPLAY except that the application will prompt the UI review if the check is successful. \
+Usage of this command is discouraged, pease use CHECK_REFUND_ADDRESS_NO_DISPLAY + PROMPT_UI_DISPLAY instead.
+
+#### CHECK_REFUND_ADDRESS_NO_DISPLAY
 
 This command is used only in the SWAP_LEGACY and SWAP_NEW TYPES.
 
@@ -244,6 +264,10 @@ This command is used only in the SWAP_LEGACY and SWAP_NEW TYPES.
 | S bytes | Signature of the coin configuration by the Ledger key in DER format, curve secp256k1 hashfunc sha256           |
 | 1 byte  | Packed derivation path length T                                                                                |
 | T bytes | Packed derivation path used for the FROM coin                                                                  |
+
+#### PROMPT_UI_DISPLAY
+
+This command prompts the UI so the user can validate the transaction on screen.
 
 #### START_SIGNING_TRANSACTION
 
