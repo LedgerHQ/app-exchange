@@ -55,18 +55,20 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
     // {STATE} if this command is only accepted at a specific state, -1 otherwise
     int check_current_state = -1;
 
-    if (instruction == CHECK_ASSET_IN && (subcommand == SWAP || subcommand == SWAP_NG)) {
-        PRINTF("Instruction CHECK_ASSET_IN is only for SELL and FUND based flows\n");
+    if (instruction == CHECK_ASSET_IN_AND_DISPLAY &&
+        (subcommand == SWAP || subcommand == SWAP_NG)) {
+        PRINTF("Instruction CHECK_ASSET_IN_AND_DISPLAY is only for SELL and FUND based flows\n");
         return INVALID_INSTRUCTION;
     }
 
-    if (instruction == CHECK_PAYOUT_ADDRESS && subcommand != SWAP && subcommand != SWAP_NG) {
+    if (instruction == CHECK_PAYOUT_ADDRESS && (subcommand != SWAP && subcommand != SWAP_NG)) {
         PRINTF("Instruction CHECK_PAYOUT_ADDRESS is only for SWAP based flows\n");
         return INVALID_INSTRUCTION;
     }
 
-    if (instruction == CHECK_REFUND_ADDRESS && subcommand != SWAP && subcommand != SWAP_NG) {
-        PRINTF("Instruction CHECK_REFUND_ADDRESS is only for SWAP based flows\n");
+    if (instruction == CHECK_REFUND_ADDRESS_AND_DISPLAY &&
+        (subcommand != SWAP && subcommand != SWAP_NG)) {
+        PRINTF("Instruction CHECK_REFUND_ADDRESS_AND_DISPLAY is only for SWAP based flows\n");
         return INVALID_INSTRUCTION;
     }
 
@@ -101,11 +103,11 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
             check_subcommand_context = true;
             break;
         case CHECK_PAYOUT_ADDRESS:
-        case CHECK_ASSET_IN:
+        case CHECK_ASSET_IN_AND_DISPLAY:
             check_current_state = SIGNATURE_CHECKED;
             check_subcommand_context = true;
             break;
-        case CHECK_REFUND_ADDRESS:
+        case CHECK_REFUND_ADDRESS_AND_DISPLAY:
             check_current_state = TO_ADDR_CHECKED;
             check_subcommand_context = true;
             break;
@@ -183,12 +185,13 @@ uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
 
     // Get instruction and ensure it makes sense in the current context
     uint8_t instruction = apdu[OFFSET_INS];
-    // CHECK_ASSET_IN_LEGACY shares the same value as CHECK_PAYOUT_ADDRESS which is inconvenient
-    // Replace this with the new CHECK_ASSET_IN for legacy flows.
-    // New flows must use CHECK_ASSET_IN directly.
-    if (instruction == CHECK_ASSET_IN_LEGACY && (subcommand == SELL || subcommand == FUND)) {
-        PRINTF("Replacing legacy value for CHECK_ASSET_IN instruction\n");
-        instruction = CHECK_ASSET_IN;
+    // CHECK_ASSET_IN_LEGACY_AND_DISPLAY shares the same value as CHECK_PAYOUT_ADDRESS which is
+    // inconvenient. Replace this with the new CHECK_ASSET_IN_AND_DISPLAY for legacy flows. New
+    // flows must use CHECK_ASSET_IN_AND_DISPLAY directly.
+    if (instruction == CHECK_ASSET_IN_LEGACY_AND_DISPLAY &&
+        (subcommand == SELL || subcommand == FUND)) {
+        PRINTF("Replacing legacy value for CHECK_ASSET_IN_AND_DISPLAY instruction\n");
+        instruction = CHECK_ASSET_IN_AND_DISPLAY;
     }
     uint16_t err = check_instruction(instruction, subcommand);
     if (err != 0) {

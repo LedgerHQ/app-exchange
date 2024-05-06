@@ -58,11 +58,11 @@ def all_commands_for_subcommand_except(s: SubCommand, c: Command) -> List[Comman
            Command.CHECK_TRANSACTION_SIGNATURE,
            Command.START_SIGNING_TRANSACTION]
     if s == SubCommand.SWAP or s == SubCommand.SWAP_NG:
-        ret += [Command.CHECK_PAYOUT_ADDRESS, Command.CHECK_REFUND_ADDRESS]
+        ret += [Command.CHECK_PAYOUT_ADDRESS, Command.CHECK_REFUND_ADDRESS_AND_DISPLAY]
     elif s == SubCommand.FUND or s == SubCommand.SELL:
-        ret += [Command.CHECK_ASSET_IN_LEGACY]
+        ret += [Command.CHECK_ASSET_IN_LEGACY_AND_DISPLAY]
     else:
-        ret += [Command.CHECK_ASSET_IN]
+        ret += [Command.CHECK_ASSET_IN_AND_DISPLAY]
 
     if c in ret:
         ret.remove(c)
@@ -108,14 +108,14 @@ def test_wrong_flow_order(backend, subcommand, exchange_navigation_helper):
         try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_PAYOUT_ADDRESS)
         ex.check_payout_address(CURRENCY_TO.get_conf_for_ticker())
 
-        try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_REFUND_ADDRESS)
+        try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_REFUND_ADDRESS_AND_DISPLAY)
         with ex.check_refund_address(CURRENCY_FROM.get_conf_for_ticker()):
             exchange_navigation_helper.simple_accept()
     else:
         if subcommand == SubCommand.FUND or subcommand == SubCommand.SELL:
-            try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_ASSET_IN_LEGACY)
+            try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_ASSET_IN_LEGACY_AND_DISPLAY)
         else:
-            try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_ASSET_IN)
+            try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_ASSET_IN_AND_DISPLAY)
         with ex.check_asset_in(CURRENCY_FROM.get_conf_for_ticker()):
             exchange_navigation_helper.simple_accept()
 

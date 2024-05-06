@@ -234,7 +234,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
     }
 
     // Format the fees, except during CHECK_PAYOUT_ADDRESS for SWAP, (it's done in
-    // CHECK_REFUND_ADDRESS as the fees are in the OUT going currency)
+    // CHECK_REFUND_ADDRESS_AND_DISPLAY as the fees are in the OUT going currency)
     if (!((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) &&
           cmd->ins == CHECK_PAYOUT_ADDRESS)) {
         err = format_fees(sub_coin_config, application_name);
@@ -258,7 +258,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
     }
 
     // If we are in a SWAP flow at step CHECK_PAYOUT_ADDRESS, we are still waiting for
-    // CHECK_REFUND_ADDRESS
+    // CHECK_REFUND_ADDRESS_AND_DISPLAY
     // Otherwise we can trigger the UI to get user validation now
     if ((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) &&
         cmd->ins == CHECK_PAYOUT_ADDRESS) {

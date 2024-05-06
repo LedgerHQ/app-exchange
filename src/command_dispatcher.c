@@ -42,8 +42,8 @@ int dispatch_command(const command_t *cmd) {
             ret = check_tx_signature(cmd);
             break;
         case CHECK_PAYOUT_ADDRESS:
-        case CHECK_ASSET_IN:
-        case CHECK_REFUND_ADDRESS:
+        case CHECK_ASSET_IN_AND_DISPLAY:
+        case CHECK_REFUND_ADDRESS_AND_DISPLAY:
             ret = check_addresses_and_amounts(cmd);
             break;
         case START_SIGNING_TRANSACTION:
