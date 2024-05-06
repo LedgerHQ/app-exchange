@@ -1,6 +1,6 @@
 import pytest
 
-from typing import List
+from typing import List, Union
 from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.error import ExceptionRAPDU
 
@@ -51,26 +51,32 @@ TX_INFOS = {
 }
 FEES = 100
 
-def all_commands_for_subcommand_except(s: SubCommand, c: Command) -> List[Command]:
+def all_commands_for_subcommand_except(s: SubCommand, cs: List[Command]) -> List[Command]:
     ret = [Command.SET_PARTNER_KEY,
            Command.CHECK_PARTNER,
            Command.PROCESS_TRANSACTION_RESPONSE,
            Command.CHECK_TRANSACTION_SIGNATURE,
+           Command.PROMPT_UI_DISPLAY,
            Command.START_SIGNING_TRANSACTION]
     if s == SubCommand.SWAP or s == SubCommand.SWAP_NG:
-        ret += [Command.CHECK_PAYOUT_ADDRESS, Command.CHECK_REFUND_ADDRESS_AND_DISPLAY]
-    elif s == SubCommand.FUND or s == SubCommand.SELL:
-        ret += [Command.CHECK_ASSET_IN_LEGACY_AND_DISPLAY]
+        ret += [Command.CHECK_PAYOUT_ADDRESS, Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, Command.CHECK_REFUND_ADDRESS_NO_DISPLAY]
     else:
-        ret += [Command.CHECK_ASSET_IN_AND_DISPLAY]
+        ret += [Command.CHECK_ASSET_IN_AND_DISPLAY, Command.CHECK_ASSET_IN_NO_DISPLAY]
+        if s == SubCommand.FUND or s == SubCommand.SELL:
+            ret += [Command.CHECK_ASSET_IN_LEGACY_AND_DISPLAY]
 
-    if c in ret:
-        ret.remove(c)
+    for c in cs:
+        if c in ret:
+            ret.remove(c)
 
     return ret
 
-def try_all_commands_for_subcommand_except(ex: ExchangeClient, s: SubCommand, c: Command):
-    commands = all_commands_for_subcommand_except(s, c)
+def try_all_commands_for_subcommand_except(ex: ExchangeClient, s: SubCommand, c: Union[Command, List[Command]]):
+    if isinstance(c, Command):
+        cs = [c]
+    else:
+        cs = c
+    commands = all_commands_for_subcommand_except(s, cs)
     for c in commands:
         print(f"Sending {c}")
         with pytest.raises(ExceptionRAPDU) as e:
@@ -78,8 +84,10 @@ def try_all_commands_for_subcommand_except(ex: ExchangeClient, s: SubCommand, c:
         assert e.value.status == Errors.UNEXPECTED_INSTRUCTION
 
 @pytest.mark.parametrize("subcommand", ALL_SUBCOMMANDS)
-def test_wrong_flow_order(backend, subcommand, exchange_navigation_helper):
+@pytest.mark.parametrize("prompt_ui_separately", [True, False])
+def test_wrong_flow_order(backend, subcommand, prompt_ui_separately, exchange_navigation_helper):
     # Mutualize new and legacy snapshots. Eg SubCommand.SWAP_NG => "swap"
+    # Also mutualize prompt_ui_separately tests
     suffix = "_" + str(subcommand).split('.')[1].split('_')[0].lower()
     exchange_navigation_helper.set_test_name_suffix(suffix)
 
@@ -108,16 +116,29 @@ def test_wrong_flow_order(backend, subcommand, exchange_navigation_helper):
         try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_PAYOUT_ADDRESS)
         ex.check_payout_address(CURRENCY_TO.get_conf_for_ticker())
 
-        try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_REFUND_ADDRESS_AND_DISPLAY)
-        with ex.check_refund_address(CURRENCY_FROM.get_conf_for_ticker()):
-            exchange_navigation_helper.simple_accept()
+        if prompt_ui_separately:
+            try_all_commands_for_subcommand_except(ex, subcommand, [Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, Command.CHECK_REFUND_ADDRESS_NO_DISPLAY])
+            ex.check_refund_address_no_display(CURRENCY_FROM.get_conf_for_ticker())
+
+            try_all_commands_for_subcommand_except(ex, subcommand, Command.PROMPT_UI_DISPLAY)
+            with ex.prompt_ui_display():
+                exchange_navigation_helper.simple_accept()
+        else:
+            try_all_commands_for_subcommand_except(ex, subcommand, [Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, Command.CHECK_REFUND_ADDRESS_NO_DISPLAY])
+            with ex.check_refund_address(CURRENCY_FROM.get_conf_for_ticker()):
+                exchange_navigation_helper.simple_accept()
     else:
         if subcommand == SubCommand.FUND or subcommand == SubCommand.SELL:
-            try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_ASSET_IN_LEGACY_AND_DISPLAY)
+            try_all_commands_for_subcommand_except(ex, subcommand, [Command.CHECK_ASSET_IN_LEGACY_AND_DISPLAY, Command.CHECK_ASSET_IN_AND_DISPLAY, Command.CHECK_ASSET_IN_NO_DISPLAY])
         else:
-            try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_ASSET_IN_AND_DISPLAY)
-        with ex.check_asset_in(CURRENCY_FROM.get_conf_for_ticker()):
-            exchange_navigation_helper.simple_accept()
+            try_all_commands_for_subcommand_except(ex, subcommand, [Command.CHECK_ASSET_IN_AND_DISPLAY, Command.CHECK_ASSET_IN_NO_DISPLAY])
+        if prompt_ui_separately:
+            ex.check_asset_in_no_display(CURRENCY_FROM.get_conf_for_ticker())
+            with ex.prompt_ui_display():
+                exchange_navigation_helper.simple_accept()
+        else:
+            with ex.check_asset_in(CURRENCY_FROM.get_conf_for_ticker()):
+                exchange_navigation_helper.simple_accept()
 
     try_all_commands_for_subcommand_except(ex, subcommand, Command.START_SIGNING_TRANSACTION)
     ex.start_signing_transaction()

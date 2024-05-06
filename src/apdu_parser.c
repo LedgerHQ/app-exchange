@@ -55,7 +55,7 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
     // {STATE} if this command is only accepted at a specific state, -1 otherwise
     int check_current_state = -1;
 
-    if (instruction == CHECK_ASSET_IN_AND_DISPLAY &&
+    if ((instruction == CHECK_ASSET_IN_AND_DISPLAY || instruction == CHECK_ASSET_IN_NO_DISPLAY) &&
         (subcommand == SWAP || subcommand == SWAP_NG)) {
         PRINTF("Instruction CHECK_ASSET_IN_AND_DISPLAY is only for SELL and FUND based flows\n");
         return INVALID_INSTRUCTION;
@@ -66,9 +66,10 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
         return INVALID_INSTRUCTION;
     }
 
-    if (instruction == CHECK_REFUND_ADDRESS_AND_DISPLAY &&
+    if ((instruction == CHECK_REFUND_ADDRESS_AND_DISPLAY ||
+         instruction == CHECK_REFUND_ADDRESS_NO_DISPLAY) &&
         (subcommand != SWAP && subcommand != SWAP_NG)) {
-        PRINTF("Instruction CHECK_REFUND_ADDRESS_AND_DISPLAY is only for SWAP based flows\n");
+        PRINTF("Instruction CHECK_REFUND_ADDRESS_X is only for SWAP based flows\n");
         return INVALID_INSTRUCTION;
     }
 
@@ -104,11 +105,17 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
             break;
         case CHECK_PAYOUT_ADDRESS:
         case CHECK_ASSET_IN_AND_DISPLAY:
+        case CHECK_ASSET_IN_NO_DISPLAY:
             check_current_state = SIGNATURE_CHECKED;
             check_subcommand_context = true;
             break;
         case CHECK_REFUND_ADDRESS_AND_DISPLAY:
-            check_current_state = TO_ADDR_CHECKED;
+        case CHECK_REFUND_ADDRESS_NO_DISPLAY:
+            check_current_state = PAYOUT_ADDRESS_CHECKED;
+            check_subcommand_context = true;
+            break;
+        case PROMPT_UI_DISPLAY:
+            check_current_state = ALL_ADDRESSES_CHECKED;
             check_subcommand_context = true;
             break;
         case START_SIGNING_TRANSACTION:
