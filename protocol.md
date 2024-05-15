@@ -287,6 +287,8 @@ Return code can be one of the following values:
 | 0x6A87 | WRONG_P2_SUBCOMMAND      | The P2 lower 4 bits of the P2 byte is not a valid SUBCOMMAND                            |
 | 0x6A88 | WRONG_P2_EXTENSION       | The P2 upper 4 bits of the P2 byte is not a valid EXTENSION                             |
 | 0x6A89 | INVALID_P2_EXTENSION     | The extension is a valid value but is refused in the current context                    |
+| 0x6A8A | MEMORY_CORRUPTION        | A child application started by Exchange has corrupted the Exchange application memory   |
+| 0x6A8B | AMOUNT_FORMATTING_FAILED | A child application failed to format an amount provided by the partner                  |
 | 0x6E00 | CLASS_NOT_SUPPORTED      | The CLASS is not 0xE0                                                                   |
 | 0x6E01 | MALFORMED_APDU           | The APDU header is malformed                                                            |
 | 0x6E02 | INVALID_DATA_LENGTH      | The length of the DATA is refused for this COMMAND                                      |

@@ -64,18 +64,19 @@ static uint16_t check_payout_or_refund_address(command_e ins,
         return INCORRECT_COMMAND_DATA;
     }
 
-    if (check_address(&sub_coin_config,
-                      &address_parameters,
-                      appname,
-                      address_to_check,
-                      extra_id_to_check) != 1) {
-        PRINTF("Error: Address validation failed\n");
-        return INVALID_ADDRESS;
+    uint16_t err = check_address(&sub_coin_config,
+                                 &address_parameters,
+                                 appname,
+                                 address_to_check,
+                                 extra_id_to_check);
+    if (err != 0) {
+        PRINTF("Error: check_address failed\n");
+        return err;
     }
     return 0;
 }
 
-static bool format_relevant_amount(command_e ins, buf_t sub_coin_config, char *appname) {
+static uint16_t format_relevant_amount(command_e ins, buf_t sub_coin_config, char *appname) {
     pb_bytes_array_16_t *amount;
     char *dest;
     uint8_t dest_size;
@@ -98,33 +99,36 @@ static bool format_relevant_amount(command_e ins, buf_t sub_coin_config, char *a
         dest = G_swap_ctx.printable_send_amount;
         dest_size = sizeof(G_swap_ctx.printable_send_amount);
     }
-    if (get_printable_amount(&sub_coin_config,
-                             appname,
-                             amount->bytes,
-                             amount->size,
-                             dest,
-                             dest_size,
-                             false) < 0) {
+
+    uint16_t err = get_printable_amount(&sub_coin_config,
+                                        appname,
+                                        amount->bytes,
+                                        amount->size,
+                                        dest,
+                                        dest_size,
+                                        false);
+    if (err != 0) {
         PRINTF("Error: Failed to get printable amount\n");
-        return false;
+        return err;
     }
     PRINTF("Formatted amount: %s\n", dest);
-    return true;
+    return 0;
 }
 
-static bool format_fees(buf_t sub_coin_config, char *appname) {
-    if (get_printable_amount(&sub_coin_config,
-                             appname,
-                             G_swap_ctx.transaction_fee,
-                             G_swap_ctx.transaction_fee_length,
-                             G_swap_ctx.printable_fees_amount,
-                             sizeof(G_swap_ctx.printable_fees_amount),
-                             true) < 0) {
+static uint16_t format_fees(buf_t sub_coin_config, char *appname) {
+    uint16_t err = get_printable_amount(&sub_coin_config,
+                                        appname,
+                                        G_swap_ctx.transaction_fee,
+                                        G_swap_ctx.transaction_fee_length,
+                                        G_swap_ctx.printable_fees_amount,
+                                        sizeof(G_swap_ctx.printable_fees_amount),
+                                        true);
+    if (err != 0) {
         PRINTF("Error: Failed to get printable fees amount\n");
-        return false;
+        return err;
     }
     PRINTF("Fees: %s\n", G_swap_ctx.printable_fees_amount);
-    return true;
+    return 0;
 }
 
 static bool format_fiat_amount(void) {
@@ -178,6 +182,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
     buf_t parsed_application_name;
     buf_t sub_coin_config;
     char application_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
+    uint16_t err;
 
     if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         PRINTF("Error: Can't parse command\n");
@@ -222,18 +227,20 @@ int check_addresses_and_amounts(const command_t *cmd) {
 
     // Call the lib app to format the amount according to its coin.
     // It can be the OUT going amount or IN coming amount for SWAP
-    if (!format_relevant_amount(cmd->ins, sub_coin_config, application_name)) {
+    err = format_relevant_amount(cmd->ins, sub_coin_config, application_name);
+    if (err != 0) {
         PRINTF("Error: Failed to format printable amount\n");
-        return reply_error(INTERNAL_ERROR);
+        return reply_error(err);
     }
 
     // Format the fees, except during CHECK_PAYOUT_ADDRESS for SWAP, (it's done in
     // CHECK_REFUND_ADDRESS as the fees are in the OUT going currency)
     if (!((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) &&
           cmd->ins == CHECK_PAYOUT_ADDRESS)) {
-        if (!format_fees(sub_coin_config, application_name)) {
+        err = format_fees(sub_coin_config, application_name);
+        if (err != 0) {
             PRINTF("Error: Failed to format fees amount\n");
-            return reply_error(INTERNAL_ERROR);
+            return reply_error(err);
         }
     }
 
