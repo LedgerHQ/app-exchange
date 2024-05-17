@@ -34,8 +34,6 @@
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
 
-uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-
 swap_app_context_t G_swap_ctx;
 
 void app_main(void) {
@@ -73,17 +71,6 @@ void app_main(void) {
             return;
         }
     }
-}
-
-void app_exit(void) {
-    BEGIN_TRY_L(exit) {
-        TRY_L(exit) {
-            os_sched_exit(-1);
-        }
-        FINALLY_L(exit) {
-        }
-    }
-    END_TRY_L(exit);
 }
 
 // On Stax, remember some data from the previous cycle if applicable to display a status screen
@@ -180,6 +167,6 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
         }
         END_TRY;
     }
-    app_exit();
+    os_sched_exit(-1);
     return 0;
 }

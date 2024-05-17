@@ -34,6 +34,8 @@ void io_seproxyhal_display(const bagl_element_t *element) {
 }
 #endif  // HAVE_BAGL
 
+uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
+
 uint8_t io_event(uint8_t channel) {
     (void) channel;
 
