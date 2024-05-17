@@ -31,10 +31,14 @@
 
 #include "usbd_core.h"
 
+// Error code thrown by os_lib_call when the requested application is not installed
+// Defined in SDK for old API_LEVELs, but not on recent API_LEVELs
+#ifndef SWO_SEC_APP_14
+#define SWO_SEC_APP_14 0x5114  // (ERR_SEC_APP + ERR_GEN_ID_14)
+#endif
+
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
-
-uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 
 swap_app_context_t G_swap_ctx;
 
@@ -73,17 +77,6 @@ void app_main(void) {
             return;
         }
     }
-}
-
-void app_exit(void) {
-    BEGIN_TRY_L(exit) {
-        TRY_L(exit) {
-            os_sched_exit(-1);
-        }
-        FINALLY_L(exit) {
-        }
-    }
-    END_TRY_L(exit);
 }
 
 // On Stax, remember some data from the previous cycle if applicable to display a status screen
@@ -166,6 +159,15 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
 
                 app_main();
             }
+            CATCH(SWO_SEC_APP_14) {
+                // We have called os_lib_call for an application that is not installed.
+                // Inform the caller of this failure and fully reset the context
+                // We don't try to handle this kind of error
+                PRINTF("Fatal: os_lib_call has thrown SWO_SEC_APP_14\n");
+                instant_reply_error(APPLICATION_NOT_INSTALLED);
+                CLOSE_TRY;
+                continue;
+            }
             CATCH(EXCEPTION_IO_RESET) {
                 // reset IO and UX before continuing
                 CLOSE_TRY;
@@ -180,6 +182,6 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
         }
         END_TRY;
     }
-    app_exit();
+    os_sched_exit(-1);
     return 0;
 }
