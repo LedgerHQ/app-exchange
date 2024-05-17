@@ -31,6 +31,12 @@
 
 #include "usbd_core.h"
 
+// Error code thrown by os_lib_call when the requested application is not installed
+// Defined in SDK for old API_LEVELs, but not on recent API_LEVELs
+#ifndef SWO_SEC_APP_14
+#define SWO_SEC_APP_14 0x5114  // (ERR_SEC_APP + ERR_GEN_ID_14)
+#endif
+
 ux_state_t G_ux;
 bolos_ux_params_t G_ux_params;
 
@@ -152,6 +158,15 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
 #endif
 
                 app_main();
+            }
+            CATCH(SWO_SEC_APP_14) {
+                // We have called os_lib_call for an application that is not installed.
+                // Inform the caller of this failure and fully reset the context
+                // We don't try to handle this kind of error
+                PRINTF("Fatal: os_lib_call has thrown SWO_SEC_APP_14\n");
+                instant_reply_error(APPLICATION_NOT_INSTALLED);
+                CLOSE_TRY;
+                continue;
             }
             CATCH(EXCEPTION_IO_RESET) {
                 // reset IO and UX before continuing

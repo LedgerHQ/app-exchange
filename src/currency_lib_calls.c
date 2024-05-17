@@ -53,6 +53,11 @@ static int os_lib_call_bss_safe(unsigned int libcall_params[5]) {
     PRINTF("Check BSS from %p to %p\n", &_bss, &_ebss);
     volatile uint16_t os_lib_call_canary = OS_LIB_CALL_CANARY_VALUE;
     volatile uint16_t bss_before = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
+    // os_lib_call will throw SWO_SEC_APP_14 if the called application is not installed.
+    // We DON'T define a local TRY / CATCH context because it costs a lot of stack and we are short
+    // for some exchanged coins
+    // This means we will fallback to the main function that will handle the error (error RAPDU)
+    // TODO: once LNS is deprecated, handle the error properly here
     os_lib_call(libcall_params);
     volatile uint16_t bss_after = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
     if (bss_before != bss_after) {
@@ -187,6 +192,9 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
     strlcpy(appname, G_swap_ctx.payin_binary_name, sizeof(appname));
 #endif
 
+    // This os_lib_call may not throw SWO_SEC_APP_14 (missing library), as the existence of the
+    // application has been enforced through an earlier call to os_lib_call for CHECK_ADDRESS and
+    // GET_PRINTABLE_AMOUNT
     os_lib_call(libcall_params);
 
     // From now on our BSS is corrupted and unusable. Return to main loop to start a new cycle ASAP

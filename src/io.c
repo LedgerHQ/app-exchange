@@ -176,12 +176,16 @@ int reply_error(swap_error_e error) {
     return send_apdu(output_buffer, 2);
 }
 
+int instant_reply_error(swap_error_e error) {
+    G_io_apdu_buffer[0] = (error >> 8) & 0xFF;
+    G_io_apdu_buffer[1] = error & 0xFF;
+    return io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
+}
+
 int reply_success(void) {
     return reply_error(SUCCESS);
 }
 
 int instant_reply_success(void) {
-    G_io_apdu_buffer[0] = 0x90;
-    G_io_apdu_buffer[1] = 0x00;
-    return io_exchange(CHANNEL_APDU | IO_RETURN_AFTER_TX, 2);
+    return instant_reply_error(SUCCESS);
 }
