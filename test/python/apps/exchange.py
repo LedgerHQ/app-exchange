@@ -14,17 +14,20 @@ P2_MORE   = 0x02 << 4
 
 
 class Command(IntEnum):
-    GET_VERSION                  = 0x02
-    START_NEW_TRANSACTION        = 0x03
-    SET_PARTNER_KEY              = 0x04
-    CHECK_PARTNER                = 0x05
-    PROCESS_TRANSACTION_RESPONSE = 0x06
-    CHECK_TRANSACTION_SIGNATURE  = 0x07
-    CHECK_PAYOUT_ADDRESS         = 0x08
-    CHECK_ASSET_IN_LEGACY        = 0x08
-    CHECK_ASSET_IN               = 0x0B
-    CHECK_REFUND_ADDRESS         = 0x09
-    START_SIGNING_TRANSACTION    = 0x0A
+    GET_VERSION                       = 0x02
+    START_NEW_TRANSACTION             = 0x03
+    SET_PARTNER_KEY                   = 0x04
+    CHECK_PARTNER                     = 0x05
+    PROCESS_TRANSACTION_RESPONSE      = 0x06
+    CHECK_TRANSACTION_SIGNATURE       = 0x07
+    CHECK_ASSET_IN_LEGACY_AND_DISPLAY = 0x08
+    CHECK_ASSET_IN_AND_DISPLAY        = 0x0B
+    CHECK_ASSET_IN_NO_DISPLAY         = 0x0D
+    CHECK_PAYOUT_ADDRESS              = 0x08
+    CHECK_REFUND_ADDRESS_AND_DISPLAY  = 0x09
+    CHECK_REFUND_ADDRESS_NO_DISPLAY   = 0x0C
+    PROMPT_UI_DISPLAY                 = 0x0F
+    START_SIGNING_TRANSACTION         = 0x0A
 
 
 class Rate(IntEnum):
@@ -131,23 +134,29 @@ class ExchangeClient:
 
     @contextmanager
     def check_refund_address(self, refund_configuration) -> Generator[None, None, None]:
-        with self._exchange_async(Command.CHECK_REFUND_ADDRESS, payload=refund_configuration) as response:
+        with self._exchange_async(Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, payload=refund_configuration) as response:
+            yield response
+
+    def check_refund_address_no_display(self, refund_configuration) -> RAPDU:
+        return self._exchange(Command.CHECK_REFUND_ADDRESS_NO_DISPLAY, payload=refund_configuration)
+
+    @contextmanager
+    def check_asset_in_legacy(self, payout_configuration: bytes) -> Generator[None, None, None]:
+        with self._exchange_async(Command.CHECK_ASSET_IN_LEGACY_AND_DISPLAY, payload=payout_configuration) as response:
             yield response
 
     @contextmanager
     def check_asset_in(self, payout_configuration: bytes) -> Generator[None, None, None]:
-        if self._subcommand == SubCommand.SELL or self._subcommand == SubCommand.FUND:
-            ins = Command.CHECK_ASSET_IN_LEGACY
-        else:
-            ins = Command.CHECK_ASSET_IN
-        with self._exchange_async(ins, payload=payout_configuration) as response:
+        with self._exchange_async(Command.CHECK_ASSET_IN_AND_DISPLAY, payload=payout_configuration) as response:
             yield response
 
-    def get_check_address_response(self) -> RAPDU:
-        if self._premature_error:
-            return self._check_address_result
-        else:
-            return self._client.last_async_response
+    def check_asset_in_no_display(self, payout_configuration: bytes) -> RAPDU:
+        return self._exchange(Command.CHECK_ASSET_IN_NO_DISPLAY, payload=payout_configuration)
+
+    @contextmanager
+    def prompt_ui_display(self) -> Generator[None, None, None]:
+        with self._exchange_async(Command.PROMPT_UI_DISPLAY) as response:
+            yield response
 
     def start_signing_transaction(self) -> RAPDU:
         rapdu = self._exchange(Command.START_SIGNING_TRANSACTION)

@@ -127,7 +127,7 @@ class TestRobustnessCHECK_ADDRESS:
             self._restart_test(backend, ex)
             ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
             backend.raise_policy = RaisePolicy.RAISE_NOTHING
-            rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=refund_payload)
+            rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, payload=refund_payload)
             assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
 
     def test_robustness_coin_configuration(self, backend):
@@ -178,7 +178,7 @@ class TestRobustnessCHECK_ADDRESS:
                 self._restart_test(backend, ex)
                 ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
                 backend.raise_policy = RaisePolicy.RAISE_NOTHING
-                rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=refund_payload)
+                rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, payload=refund_payload)
                 # The address is false on purpose to prevent from having to handle the UI
                 # What we want to test is before the actual address check by Stellar
                 assert rapdu.status == Errors.INVALID_ADDRESS

@@ -12,6 +12,7 @@
 #include "menu.h"
 #include "pb_structs.h"
 #include "ticker_normalization.h"
+#include "prompt_ui_display.h"
 
 #include "check_addresses_and_amounts.h"
 
@@ -234,9 +235,8 @@ int check_addresses_and_amounts(const command_t *cmd) {
     }
 
     // Format the fees, except during CHECK_PAYOUT_ADDRESS for SWAP, (it's done in
-    // CHECK_REFUND_ADDRESS as the fees are in the OUT going currency)
-    if (!((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) &&
-          cmd->ins == CHECK_PAYOUT_ADDRESS)) {
+    // CHECK_REFUND_ADDRESS_AND_DISPLAY as the fees are in the OUT going currency)
+    if (cmd->ins != CHECK_PAYOUT_ADDRESS) {
         err = format_fees(sub_coin_config, application_name);
         if (err != 0) {
             PRINTF("Error: Failed to format fees amount\n");
@@ -257,17 +257,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
         format_account_name();
     }
 
-    // If we are in a SWAP flow at step CHECK_PAYOUT_ADDRESS, we are still waiting for
-    // CHECK_REFUND_ADDRESS
-    // Otherwise we can trigger the UI to get user validation now
-    if ((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) &&
-        cmd->ins == CHECK_PAYOUT_ADDRESS) {
-        if (reply_success() < 0) {
-            PRINTF("Error: failed to send\n");
-            return -1;
-        }
-        G_swap_ctx.state = TO_ADDR_CHECKED;
-    } else {
+    if (cmd->ins != CHECK_PAYOUT_ADDRESS) {
         // Save the paying coin application_name, we'll need it to start the app during
         // START_SIGNING step
         memcpy(G_swap_ctx.payin_binary_name, application_name, sizeof(application_name));
@@ -277,10 +267,28 @@ int check_addresses_and_amounts(const command_t *cmd) {
         memset(G_swap_ctx.paying_sub_coin_config, 0, sizeof(G_swap_ctx.paying_sub_coin_config));
         memcpy(G_swap_ctx.paying_sub_coin_config, sub_coin_config.bytes, sub_coin_config.size);
 
-        G_swap_ctx.state = WAITING_USER_VALIDATION;
+        // Save the rate. We could have saved it at the first command and then checked at each ŝtep
+        // that it did not change, but it is not certain that the Live sends it right from the
+        // begining and we won't risk regressions for something that is not a security issue.
         G_swap_ctx.rate = cmd->rate;
+    }
 
-        ui_validate_amounts();
+    // Only trigger the UI validation for CHECK_X_AND_DISPLAY
+    if (cmd->ins == CHECK_ASSET_IN_AND_DISPLAY || cmd->ins == CHECK_REFUND_ADDRESS_AND_DISPLAY) {
+        start_ui_display();
+    } else {
+        // No display case, reply the status and update the state machine
+        if (reply_success() < 0) {
+            PRINTF("Error: failed to send\n");
+            return -1;
+        }
+        // If we checked the PAYOUT address (swap flow), we still have the REFUND address to check
+        if (cmd->ins == CHECK_PAYOUT_ADDRESS) {
+            G_swap_ctx.state = PAYOUT_ADDRESS_CHECKED;
+        } else {
+            // Otherwise we are ready to start the display
+            G_swap_ctx.state = ALL_ADDRESSES_CHECKED;
+        }
     }
 
     return 0;

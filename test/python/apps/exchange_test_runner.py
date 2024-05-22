@@ -117,7 +117,8 @@ class ExchangeTestRunner:
             ex.check_payout_address(to_configuration)
 
             # Request the final address check and UI approval request on the device
-            with ex.check_refund_address(from_configuration):
+            ex.check_refund_address_no_display(from_configuration)
+            with ex.prompt_ui_display():
                 if ui_validation:
                     self.exchange_navigation_helper.simple_accept()
                 else:
@@ -126,7 +127,8 @@ class ExchangeTestRunner:
                     # As a workaround, we avoid calling the navigation if we want the function to raise
                     pass
         else:
-            with ex.check_asset_in(from_configuration):
+            ex.check_asset_in_no_display(from_configuration)
+            with ex.prompt_ui_display():
                 if ui_validation:
                     self.exchange_navigation_helper.simple_accept()
                 else:
