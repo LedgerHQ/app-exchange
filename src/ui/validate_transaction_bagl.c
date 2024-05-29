@@ -8,6 +8,7 @@
 #include "glyphs.h"
 #include "io.h"
 #include "commands.h"
+#include "swap_errors.h"
 
 static void on_accept(__attribute__((unused)) const bagl_element_t *e) {
     reply_success();
