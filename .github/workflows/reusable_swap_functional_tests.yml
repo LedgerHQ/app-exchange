@@ -23,7 +23,7 @@ on:
         type: string
       repo_for_tezos:
         required: false
-        default: 'LedgerHQ/app-tezos-new'
+        default: 'LedgerHQ/app-tezos'
         type: string
 
       branch_for_xrp:
