@@ -4,7 +4,7 @@
 #include "check_tx_signature.h"
 #include "globals.h"
 #include "swap_errors.h"
-#include "io.h"
+#include "io_helpers.h"
 #include "der.h"
 
 // One int (r or s) in DER is (1 byte prefix + 1 byte r/s length + r/s + 1 optional ending byte)

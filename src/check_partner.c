@@ -4,7 +4,7 @@
 #include "check_partner.h"
 #include "globals.h"
 #include "swap_errors.h"
-#include "io.h"
+#include "io_helpers.h"
 
 // This function receive signature of
 // Input should be in the form of DER serialized signature

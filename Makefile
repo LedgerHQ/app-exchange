@@ -98,8 +98,7 @@ ENABLE_BLUETOOTH = 1
 # These advanced settings allow to disable some feature that are by
 # default enabled in the SDK `Makefile.standard_app`.
 
-# Todo at a later date
-DISABLE_STANDARD_APP_FILES = 1
+# DISABLE_STANDARD_APP_FILES = 1
 
 #DISABLE_DEFAULT_IO_SEPROXY_BUFFER_SIZE = 1 # To allow custom size declaration
 #DISABLE_STANDARD_APP_DEFINES = 1 # Will set all the following disablers

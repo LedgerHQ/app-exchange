@@ -4,7 +4,7 @@
 #include "swap_errors.h"
 #include "globals.h"
 #include "currency_lib_calls.h"
-#include "io.h"
+#include "io_helpers.h"
 #include "parse_check_address_message.h"
 #include "parse_coin_config.h"
 #include "printable_amount.h"

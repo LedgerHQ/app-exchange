@@ -20,6 +20,7 @@
 #include "os_io_seproxyhal.h"
 #include "init.h"
 #include "io.h"
+#include "io_helpers.h"
 #include "menu.h"
 #include "globals.h"
 #include "commands.h"
@@ -37,19 +38,16 @@
 #define SWO_SEC_APP_14 0x5114  // (ERR_SEC_APP + ERR_GEN_ID_14)
 #endif
 
-ux_state_t G_ux;
-bolos_ux_params_t G_ux_params;
-
 swap_app_context_t G_swap_ctx;
 
 void app_main(void) {
     int input_length = 0;
     command_t cmd;
 
-    init_io();
+    io_init();
 
     for (;;) {
-        input_length = recv_apdu();
+        input_length = io_recv_command();
         PRINTF("New APDU received:\n%.*H\n", input_length, G_io_apdu_buffer);
         // there was a fatal error during APDU reception, restart from the beginning
         // Don't bother trying to send a status code, IOs are probably out
@@ -58,7 +56,7 @@ void app_main(void) {
             return;
         }
 
-        uint16_t ret = apdu_parser(G_io_apdu_buffer, input_length, &cmd);
+        uint16_t ret = check_apdu_validity(G_io_apdu_buffer, input_length, &cmd);
         if (ret != 0) {
             PRINTF("Sending early reply 0x%4x\n", ret);
             reply_error(ret);

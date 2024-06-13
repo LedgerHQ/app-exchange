@@ -7,6 +7,7 @@
 #include "globals.h"
 #include "glyphs.h"
 #include "io.h"
+#include "io_helpers.h"
 #include "commands.h"
 #include "swap_errors.h"
 

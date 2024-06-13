@@ -10,6 +10,8 @@
 #include "nbgl_layout.h"
 #include "os.h"
 #include "io.h"
+#include "io_helpers.h"
+#include "swap_errors.h"
 #include "ux.h"
 
 #define REFUSAL_TEXT_PART_1 "Incorrect transaction\nrejected by the\n"
