@@ -15,34 +15,25 @@ static void app_quit(void) {
     os_sched_exit(-1);
 }
 
-static const char* const info_types[] = {"Version", "Exchange App"};
-static const char* const info_contents[] = {APPVERSION, "(c) 2023 Ledger"};
+#define SETTING_INFO_NB 2
+static const char* const INFO_TYPES[SETTING_INFO_NB] = {"Version", "Exchange App"};
+static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION, "(c) 2024 Ledger"};
 
-#define SETTINGS_PAGE_NUMBER 2
-static bool nav_callback(uint8_t page, nbgl_pageContent_t* content) {
-    if (page == 0) {
-        content->type = INFOS_LIST;
-        content->infosList.nbInfos = 2;
-        content->infosList.infoTypes = info_types;
-        content->infosList.infoContents = info_contents;
-    } else {
-        return false;
-    }
-
-    return true;
-}
-
-static void ui_menu_settings(void) {
-    nbgl_useCaseSettings(APPNAME, 0, 1, false, ui_idle, nav_callback, NULL);
-}
+static const nbgl_contentInfoList_t infoList = {
+    .nbInfos = SETTING_INFO_NB,
+    .infoTypes = INFO_TYPES,
+    .infoContents = INFO_CONTENTS,
+};
 
 void ui_idle(void) {
-    nbgl_useCaseHome(APPNAME,
-                     &C_icon_exchange_64x64,
-                     "This app enables swapping\nand selling assets\nin Ledger Live.",
-                     true,
-                     ui_menu_settings,
-                     app_quit);
+    nbgl_useCaseHomeAndSettings(APPNAME,
+                                &C_icon_exchange_64x64,
+                                "This app enables swapping\nand selling assets\nin Ledger Live.",
+                                INIT_HOME_PAGE,
+                                NULL,
+                                &infoList,
+                                NULL,
+                                app_quit);
 }
 
 #endif  // HAVE_NBGL
