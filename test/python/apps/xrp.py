@@ -191,7 +191,7 @@ class XRPClient:
                     self.CLA, ins=Ins.SIGN, p1=p1, p2=p2, data=payload[:size]
                 ) as r:
                     if navigate:
-                        if self._firmware.device == "stax":
+                        if not self._backend.firmware.is_nano:
                             sleep(1.5)
                             self._navigator.navigate_until_text_and_compare(
                                 NavIns(NavInsID.USE_CASE_REVIEW_TAP),
