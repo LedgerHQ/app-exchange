@@ -1,6 +1,6 @@
 #pragma once
 
-#include "buffer.h"
+#include "buf.h"
 
 // CLA to use when communicating with Exchange
 #define CLA 0xE0

@@ -6,7 +6,7 @@
 #include "swap_errors.h"
 #include "globals.h"
 #include "buffer.h"
-#include "io.h"
+#include "io_helpers.h"
 #include "cx.h"
 
 static uint16_t parse_set_partner_key_command(const command_t *cmd,

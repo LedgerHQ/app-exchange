@@ -5,6 +5,7 @@
 #include "proto/protocol.pb.h"
 #include "swap_errors.h"
 #include "io.h"
+#include "io_helpers.h"
 #include "base64.h"
 #include "pb_structs.h"
 #include "globals.h"

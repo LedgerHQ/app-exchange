@@ -1,7 +1,7 @@
 #include "start_signing_transaction.h"
 #include "currency_lib_calls.h"
 #include "globals.h"
-#include "io.h"
+#include "io_helpers.h"
 
 int start_signing_transaction(const command_t *cmd) {
     // Inform the caller that we will call the lib app

@@ -155,7 +155,7 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
 }
 
 // Return 0 if we can proceed with this APDU, return a status code if we can not
-uint16_t apdu_parser(uint8_t *apdu, size_t apdu_length, command_t *command) {
+uint16_t check_apdu_validity(uint8_t *apdu, size_t apdu_length, command_t *command) {
     if (apdu_length < OFFSET_CDATA) {
         PRINTF("Error: malformed APDU, length is too short %d\n", apdu_length);
         return MALFORMED_APDU;

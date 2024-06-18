@@ -3,13 +3,14 @@
 #include "start_new_transaction.h"
 #include "init.h"
 #include "io.h"
+#include "io_helpers.h"
+#include "swap_errors.h"
 #include "globals.h"
 #include "menu.h"
+#include "buffer.h"
 
 int start_new_transaction(const command_t *cmd) {
-    // prepare size for device_transaction_id + 0x9000
-    uint8_t output_buffer[sizeof(G_swap_ctx.device_transaction_id) + 2];
-    size_t output_buffer_size = 0;
+    buffer_t output;
 
     // Force a UI reset if we are currently displaying a modal
     if (G_swap_ctx.state == WAITING_SIGNING) {
@@ -24,9 +25,11 @@ int start_new_transaction(const command_t *cmd) {
 
     // Legacy swap flow : 10 char 'string' (not '\0' terminated)
     if (cmd->subcommand == SWAP) {
-        output_buffer_size = sizeof(G_swap_ctx.device_transaction_id.swap);
+        output.ptr = (uint8_t *) G_swap_ctx.device_transaction_id.swap;
+        output.size = sizeof(G_swap_ctx.device_transaction_id.swap);
+        output.offset = 0;
 
-        for (unsigned int i = 0; i < output_buffer_size; ++i) {
+        for (unsigned int i = 0; i < output.size; ++i) {
 #ifdef TESTING
             G_swap_ctx.device_transaction_id.swap[i] = (char) ((int) 'A' + 42 % 26);
 #else
@@ -35,7 +38,9 @@ int start_new_transaction(const command_t *cmd) {
         }
     } else {
         // All other flows : 32 bytes
-        output_buffer_size = sizeof(G_swap_ctx.device_transaction_id.unified);
+        output.ptr = G_swap_ctx.device_transaction_id.unified;
+        output.size = sizeof(G_swap_ctx.device_transaction_id.unified);
+        output.offset = 0;
 
 #ifdef TESTING
         unsigned char tx_id[32] = {
@@ -46,19 +51,11 @@ int start_new_transaction(const command_t *cmd) {
         };
         memcpy(G_swap_ctx.device_transaction_id.unified, tx_id, sizeof(tx_id));
 #else
-        cx_rng(G_swap_ctx.device_transaction_id.unified, output_buffer_size);
+        cx_rng(G_swap_ctx.device_transaction_id.unified, output.size);
 #endif
     }
 
-    memcpy(output_buffer, &G_swap_ctx.device_transaction_id, output_buffer_size);
-
-    // TODO: add extra sw args for send() and skip status word set in each caller
-    output_buffer[output_buffer_size] = 0x90;
-    output_buffer[output_buffer_size + 1] = 0x00;
-
-    output_buffer_size += 2;
-
-    if (send_apdu(output_buffer, output_buffer_size) < 0) {
+    if (io_send_response_buffers(&output, 1, SUCCESS) < 0) {
         PRINTF("Error: failed to send\n");
         return -1;
     }

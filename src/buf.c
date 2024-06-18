@@ -1,4 +1,4 @@
-#include "buffer.h"
+#include "buf.h"
 #include "os.h"
 
 // Parse a buffer at a given offset to read a buf_t, the offset is incremented accordingly
