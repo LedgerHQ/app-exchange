@@ -145,8 +145,19 @@ jobs:
       # Set the coin variant to build with COIN or CHAIN depending on the app + flags for ETH compilation
       # As a rule of thumb we don't care about giving unexisting flags to other apps, it has no effect
       flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} CAL_TEST_KEY=1 DOMAIN_NAME_TEST_KEY=1 SET_PLUGIN_TEST_KEY=1 NFT_TEST_KEY=1"
-      upload_app_binaries_artifact: libraries_binaries
+      upload_app_binaries_artifact: libraries_binaries-${{ matrix.coin.name }}
       upload_as_lib_artifact: ${{ matrix.coin.name }}
+
+  merge_libraries_build:
+    name: Merge built libraries
+    needs: build_sideloaded_applications
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: libraries_binaries
+          pattern: libraries_binaries-*
+          delete-merged: true
 
   build_exchange_application:
     name: Build application using the reusable workflow
@@ -161,7 +172,7 @@ jobs:
     name: Run ragger tests using the reusable workflow
     needs:
       - build_exchange_application
-      - build_sideloaded_applications
+      - merge_libraries_build
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_ragger_tests.yml@v1
     with:
       app_repository: LedgerHQ/app-exchange
