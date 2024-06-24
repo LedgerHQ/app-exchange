@@ -28,7 +28,7 @@
 #include "apdu_offsets.h"
 #include "swap_errors.h"
 #include "apdu_parser.h"
-#include "validate_transaction.h"
+#include "sign_result.h"
 
 #include "usbd_core.h"
 
