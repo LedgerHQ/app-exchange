@@ -39,6 +39,20 @@ class PolkadotTests(ExchangeTestRunner):
         # Assert signature is verified properly with key and message
         assert dot.verify_signature(hex_key=key,signature=sign_response.data[1:],message=message.hex().encode()) == True
 
+    def perform_final_tx_wrong_method(self, destination, send_amount, fees, memo):
+        dot = PolkadotClient(self.backend)
+        # Get public key.
+        key = dot.get_pubkey()
+        # Init signature process and assert response APDU code is 0x9000 (OK).
+        dot.sign_init().status
+        # craft tx
+        message = PolkadotClient.craft_invalid_polkadot_transaction(destination, send_amount, None, None)
+        # Send message to be signed
+        sign_response = dot.sign_last(message)
+
+        # Assert signature is verified properly with key and message
+        assert dot.verify_signature(hex_key=key,signature=sign_response.data[1:],message=message.hex().encode()) == True
+
 
 # Use a class to reuse the same Speculos instance
 class TestsPolkadot:
