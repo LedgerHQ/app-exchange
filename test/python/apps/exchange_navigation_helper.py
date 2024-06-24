@@ -38,7 +38,7 @@ class ExchangeNavigationHelper:
                 # Don't try to assert the "Processing" spinner on stax
                 screen_change_after_last_instruction = False
             else:
-                validation_instructions = [NavInsID.USE_CASE_REVIEW_REJECT, NavInsID.USE_CASE_CHOICE_CONFIRM]
+                validation_instructions = [NavInsID.USE_CASE_REVIEW_REJECT, NavInsID.USE_CASE_CHOICE_CONFIRM, NavInsID.USE_CASE_STATUS_DISMISS]
 
         self._navigator.navigate_until_text_and_compare(navigate_instruction=navigate_instruction,
                                                         validation_instructions=validation_instructions,
