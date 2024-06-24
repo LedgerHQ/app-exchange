@@ -87,6 +87,7 @@ static void reject_tx(void) {
     PRINTF("User refused transaction\n");
     reply_error(USER_REFUSED);
     nbgl_useCaseStatus("Transaction\nrejected", false, ui_idle);
+    G_swap_ctx.state = INITIAL_STATE;
 }
 
 // If the user asks for message rejection, ask for confirmation
