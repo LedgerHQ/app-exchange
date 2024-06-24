@@ -116,12 +116,15 @@ def createFakeWalletTransaction(n_inputs: int, n_outputs: int, output_amount: in
     return tx, selected_output_index, selected_output_change, selected_output_address_index
 
 
-def createPsbt(wallet: WalletPolicy, input_amounts: List[int], output_amounts: List[int], output_is_change: List[bool], output_wallet: Optional[List[Optional[WalletPolicy]]] = None) -> PSBT:
+def createPsbt(wallet: WalletPolicy, input_amounts: List[int], output_amounts: List[int], output_is_change: List[bool], output_wallet: Optional[List[Optional[WalletPolicy]]] = None, output_opreturn_data: Optional[List[Optional[bytes]]] = None) -> PSBT:
     if output_wallet is None:
         output_wallet = [None] * len(output_amounts)
+    if output_opreturn_data is None:
+        output_opreturn_data = [None] * len(output_amounts)
 
     assert len(output_amounts) == len(output_is_change)
     assert len(output_amounts) == len(output_wallet)
+    assert len(output_amounts) <= len(output_opreturn_data)
     assert sum(output_amounts) <= sum(input_amounts)
 
     # TODO: add support for wrapped segwit wallets
@@ -205,13 +208,20 @@ def createPsbt(wallet: WalletPolicy, input_amounts: List[int], output_amounts: L
             raise RuntimeError("Unexpected state: unknown transaction type")
 
     for i, output_amount in enumerate(output_amounts):
-        wallet_i = output_wallet[i]
-        if output_is_change[i] or wallet_i is None:
-            script = getScriptPubkeyFromWallet(wallet, output_is_change[i], i)
-        else:
-            script = getScriptPubkeyFromWallet(wallet_i, 0, i)
+        assert (output_opreturn_data[i] is None or output_is_change[i] == False)
 
-        tx.vout[i].scriptPubKey = script.data
+        wallet_i = output_wallet[i]
+        if wallet_i is None:
+            if output_is_change[i]:
+                script_data = getScriptPubkeyFromWallet(wallet, output_is_change[i], i).data
+            elif output_opreturn_data[i] is not None:
+                script_data = bytes([0x6a, len(output_opreturn_data[i])]) + output_opreturn_data[i]
+            else:
+                assert False
+        else:
+            script_data = getScriptPubkeyFromWallet(wallet_i, 0, i).data
+
+        tx.vout[i].scriptPubKey = script_data
         tx.vout[i].nValue = output_amount
 
         if output_is_change[i]:
@@ -230,6 +240,10 @@ def createPsbt(wallet: WalletPolicy, input_amounts: List[int], output_amounts: L
 
                 psbt.outputs[i].tap_bip32_paths[tweaked_key] = (
                     list(), KeyOriginInfo(master_key_fpr, path))
+
+        if output_opreturn_data[i] is not None:
+            assert output_amount == 0
+            assert 2 <= len(output_opreturn_data[i]) <= 75
 
     psbt.tx = tx
 

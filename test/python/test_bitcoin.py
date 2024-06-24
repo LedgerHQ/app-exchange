@@ -54,13 +54,15 @@ class BitcoinTests(ExchangeTestRunner):
             BitcoinClient(self.backend).send_simple_sign_tx(in_wallet=in_wallet,
                                                       fees=fees,
                                                       destination=out_wallet,
-                                                      send_amount=send_amount)
+                                                      send_amount=send_amount,
+                                                      opreturn_data=bytes.fromhex("CAFEDECA"))
 
         elif destination == BitcoinClient.get_address_from_wallet(out_wallet_2):
             BitcoinClient(self.backend).send_simple_sign_tx(in_wallet=in_wallet,
                                                       fees=fees,
                                                       destination=out_wallet_2,
-                                                      send_amount=send_amount)
+                                                      send_amount=send_amount,
+                                                      opreturn_data=bytes.fromhex("CAFEDECA"))
 
         # TODO : assert signature validity
 

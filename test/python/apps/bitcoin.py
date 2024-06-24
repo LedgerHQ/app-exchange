@@ -1,4 +1,5 @@
 import sys
+from typing import Optional
 from enum import IntEnum
 from pathlib import Path
 from ragger.utils import create_currency_config
@@ -30,10 +31,22 @@ class BitcoinClient:
         self._backend.whitelisted_status = [0x9000, 0xE000]
         self.client = createClient(backend, chain=CHAIN, debug=True)
 
-    def send_simple_sign_tx(self, in_wallet: WalletPolicy, fees: int, destination: WalletPolicy, send_amount: int) -> RAPDU:
+    def send_simple_sign_tx(self, in_wallet: WalletPolicy, fees: int, destination: WalletPolicy, send_amount: int, *, opreturn_data: Optional[bytes] = None) -> RAPDU:
         in_amounts = [send_amount + fees]
-        out_amounts = [send_amount]
-        psbt = createPsbt(in_wallet, in_amounts, out_amounts, [False], [destination])
+
+        # Prepend one opreturn data if needed with amount 0
+        if opreturn_data is not None:
+            out_amounts = [0, send_amount]
+            output_is_change = [False, False]
+            output_wallet = [None, destination]
+            output_opreturn_data = [opreturn_data, None]
+        else:
+            out_amounts = [send_amount]
+            output_is_change = [False]
+            output_wallet = [destination]
+            output_opreturn_data = [None]
+
+        psbt = createPsbt(in_wallet, in_amounts, out_amounts, output_is_change, output_wallet=output_wallet, output_opreturn_data=output_opreturn_data)
         self.client.sign_psbt(psbt, in_wallet, None)
 
     def get_address_from_wallet(wallet: WalletPolicy):
