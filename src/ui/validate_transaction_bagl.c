@@ -20,6 +20,7 @@ static void on_accept(__attribute__((unused)) const bagl_element_t *e) {
 static void on_reject(__attribute__((unused)) const bagl_element_t *e) {
     PRINTF("User refused transaction\n");
     reply_error(USER_REFUSED);
+    G_swap_ctx.state = INITIAL_STATE;
     ui_idle();
 }
 
