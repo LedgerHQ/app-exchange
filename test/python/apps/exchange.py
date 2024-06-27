@@ -4,7 +4,7 @@ from enum import IntEnum
 
 from ragger.backend.interface import BackendInterface, RAPDU
 
-from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom
+from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom, get_version_from_makefile
 from .exchange_transaction_builder import SubCommand
 
 MAX_CHUNK_SIZE = 255
@@ -167,3 +167,11 @@ class ExchangeClient:
         if rapdu.status == 0x9000:
             handle_lib_call_start_or_stop(self._client)
         return rapdu
+
+    def assert_exchange_is_started(self):
+        # We don't care at all for the subcommand / rate
+        version = self.get_version().data
+        major, minor, patch = get_version_from_makefile()
+        assert version[0] == major
+        assert version[1] == minor
+        assert version[2] == patch
