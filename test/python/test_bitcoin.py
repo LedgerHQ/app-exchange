@@ -1,9 +1,11 @@
 import pytest
 
+from .apps.exchange import PayinExtraDataID
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
 from .apps.bitcoin import BitcoinClient, BitcoinErrors
 from .apps import cal as cal
 from ledger_bitcoin import WalletPolicy
+from hashlib import sha256
 
 in_wallet = WalletPolicy(
     "",
@@ -13,7 +15,7 @@ in_wallet = WalletPolicy(
     ],
 )
 
-out_wallet = WalletPolicy(
+out_wallet_1 = WalletPolicy(
     "",
     "wpkh(@0/**)",
     [
@@ -29,38 +31,50 @@ out_wallet_2 = WalletPolicy(
     ],
 )
 
+opreturn_data_1 = bytes.fromhex("CAFE")
+opreturn_data_2 = bytes.fromhex("CAFEDECA00DECA00CAFE00DEADBEEF123456789012345678901234567890123456789012345CAFEDECA00DECA00CAFE00DEADBEEF123456789012345678901234567890123456789012345")
+
+
 # ExchangeTestRunner implementation for Bitcoin
 class BitcoinTests(ExchangeTestRunner):
 
     currency_configuration = cal.BTC_CURRENCY_CONFIGURATION
-    valid_destination_1 = BitcoinClient.get_address_from_wallet(out_wallet)
-    valid_destination_memo_1 = ""
+    valid_destination_1 = BitcoinClient.get_address_from_wallet(out_wallet_1)
     valid_destination_2 = BitcoinClient.get_address_from_wallet(out_wallet_2)
-    valid_destination_memo_2 = "0"
     valid_refund = BitcoinClient.get_address_from_wallet(in_wallet)
-    valid_refund_memo = ""
     valid_send_amount_1 = 20900000
     valid_send_amount_2 = 446739662
     valid_fees_1 = 100000
     valid_fees_2 = 10078
     fake_refund = "abcdabcd"
-    fake_refund_memo = ""
     fake_payout = "abcdabcd"
-    fake_payout_memo = ""
     signature_refusal_error_code = BitcoinErrors.SW_SWAP_CHECKING_FAIL
+    valid_payin_extra_data_1 = PayinExtraDataID.OP_RETURN.to_bytes(1, byteorder='big') + sha256(opreturn_data_1).digest()
+    valid_payin_extra_data_2 = PayinExtraDataID.OP_RETURN.to_bytes(1, byteorder='big') + sha256(opreturn_data_2).digest()
+    invalid_payin_extra_data = PayinExtraDataID.EVM_CALLDATA.to_bytes(1, byteorder='big') + sha256(opreturn_data_1).digest()
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        if destination == BitcoinClient.get_address_from_wallet(out_wallet):
-            BitcoinClient(self.backend).send_simple_sign_tx(in_wallet=in_wallet,
-                                                      fees=fees,
-                                                      destination=out_wallet,
-                                                      send_amount=send_amount)
+        if destination == self.valid_destination_1:
+            wallet = out_wallet_1
+        elif destination == self.valid_destination_2:
+            wallet = out_wallet_2
+        else:
+            assert False
 
-        elif destination == BitcoinClient.get_address_from_wallet(out_wallet_2):
-            BitcoinClient(self.backend).send_simple_sign_tx(in_wallet=in_wallet,
-                                                      fees=fees,
-                                                      destination=out_wallet_2,
-                                                      send_amount=send_amount)
+        if memo == self.valid_payin_extra_data_1:
+            opreturn_data = opreturn_data_1
+        elif memo == self.valid_payin_extra_data_2:
+            opreturn_data = opreturn_data_2
+        elif memo == self.invalid_payin_extra_data:
+            opreturn_data = opreturn_data_1
+        else:
+            opreturn_data = None
+
+        BitcoinClient(self.backend).send_simple_sign_tx(in_wallet=in_wallet,
+                                                        fees=fees,
+                                                        destination=wallet,
+                                                        send_amount=send_amount,
+                                                        opreturn_data=opreturn_data)
 
         # TODO : assert signature validity
 
@@ -71,4 +85,3 @@ class TestsBitcoin:
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
     def test_bitcoin(self, backend, exchange_navigation_helper, test_to_run):
         BitcoinTests(backend, exchange_navigation_helper).run_test(test_to_run)
-

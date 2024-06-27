@@ -1,6 +1,6 @@
 import pytest
 
-from .apps.exchange_test_runner import ExchangeTestRunner, SWAP_TESTS
+from .apps.exchange_test_runner import ExchangeTestRunner, SWAP_TESTS_EXCEPT_THORSWAP
 from .apps.xrp import XRPClient, DEFAULT_PATH, XRP_PACKED_DERIVATION_PATH, RippleErrors
 from .apps import cal as cal
 
@@ -36,6 +36,6 @@ class RippleTests(ExchangeTestRunner):
 # Use a class to reuse the same Speculos instance
 class TestsRipple:
 
-    @pytest.mark.parametrize('test_to_run', SWAP_TESTS)
+    @pytest.mark.parametrize('test_to_run', SWAP_TESTS_EXCEPT_THORSWAP)
     def test_ripple(self, backend, exchange_navigation_helper, test_to_run):
         RippleTests(backend, exchange_navigation_helper).run_test(test_to_run)
