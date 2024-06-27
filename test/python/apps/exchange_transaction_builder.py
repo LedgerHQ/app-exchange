@@ -52,7 +52,7 @@ class SubCommandSpecs:
     signature_encoding: SignatureEncoding
     payload_encoding: PayloadEncoding
     transaction_type: Callable
-    required_fields: Iterable[str]
+    possible_fields: Iterable[str]
     transaction_id_field: str
 
     @property
@@ -72,7 +72,9 @@ class SubCommandSpecs:
         return (2 if self.is_ng else 1)
 
     def check_conf(self, conf: Dict) -> bool:
-        return (all(i in conf for i in self.required_fields) and (len(conf) == len(self.required_fields)))
+        # No unknow memmbers in the Dict
+        # We accept crafting pb with missing fields
+        return all(key in self.possible_fields for key in conf)
 
     def format_transaction(self, transaction: bytes) -> bytes:
         if self.signature_computation == SignatureComputation.DOT_PREFIXED_BASE_64_URL:
@@ -100,6 +102,7 @@ class SubCommandSpecs:
         # Alter a copy of conf to not modify the actual conf
         c = conf.copy()
         c[self.transaction_id_field] = transaction_id
+        print(self.transaction_type(**c))
         raw_transaction = self.transaction_type(**c).SerializeToString()
         return self.encode_payload(raw_transaction)
 
@@ -127,7 +130,7 @@ SWAP_NG_SPECS = SubCommandSpecs(
     signature_encoding = SignatureEncoding.PLAIN_R_S,
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewTransactionResponse,
-    required_fields = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
+    possible_fields = ["payin_address", "payin_extra_id", "payin_extra_data", "refund_address", "refund_extra_id",
                        "payout_address", "payout_extra_id", "currency_from", "currency_to",
                        "amount_to_provider", "amount_to_wallet"],
     transaction_id_field = "device_transaction_id_ng",
@@ -140,7 +143,7 @@ SWAP_SPECS = SubCommandSpecs(
     signature_encoding = SignatureEncoding.DER,
     payload_encoding = PayloadEncoding.BYTES_ARRAY,
     transaction_type = NewTransactionResponse,
-    required_fields = ["payin_address", "payin_extra_id", "refund_address", "refund_extra_id",
+    possible_fields = ["payin_address", "payin_extra_id", "payin_extra_data", "refund_address", "refund_extra_id",
                        "payout_address", "payout_extra_id", "currency_from", "currency_to",
                        "amount_to_provider", "amount_to_wallet"],
     transaction_id_field = "device_transaction_id",
@@ -154,7 +157,7 @@ SELL_NG_SPECS = SubCommandSpecs(
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewSellResponse,
     transaction_id_field = "device_transaction_id",
-    required_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
+    possible_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
 )
 
 SELL_SPECS = SubCommandSpecs(
@@ -165,7 +168,7 @@ SELL_SPECS = SubCommandSpecs(
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewSellResponse,
     transaction_id_field = "device_transaction_id",
-    required_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
+    possible_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
 )
 
 FUND_NG_SPECS = SubCommandSpecs(
@@ -175,7 +178,7 @@ FUND_NG_SPECS = SubCommandSpecs(
     signature_encoding = SignatureEncoding.PLAIN_R_S,
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewFundResponse,
-    required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
+    possible_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
     transaction_id_field = "device_transaction_id",
 )
 
@@ -186,7 +189,7 @@ FUND_SPECS = SubCommandSpecs(
     signature_encoding = SignatureEncoding.DER,
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewFundResponse,
-    required_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
+    possible_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
     transaction_id_field = "device_transaction_id",
 )
 

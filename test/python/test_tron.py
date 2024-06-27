@@ -3,7 +3,7 @@ import pytest
 from ragger.error import ExceptionRAPDU
 
 from .apps.exchange_test_runner import ExchangeTestRunner
-from .apps.exchange_test_runner import VALID_TESTS, ALL_TESTS_EXCEPT_FEES
+from .apps.exchange_test_runner import VALID_TESTS_EXCEPT_THORSWAP, ALL_TESTS_EXCEPT_THORSWAP_AND_FEES
 from .apps.tron import TronClient, TronErrors
 from .apps import cal as cal
 
@@ -43,7 +43,7 @@ class TronTrxTests(TronTests):
 
 
 class TestsTrx:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_FEES)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_THORSWAP_AND_FEES)
     def test_tron_trx(self, backend, exchange_navigation_helper, test_to_run):
         TronTrxTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
@@ -64,7 +64,7 @@ class TronUsdtTests(TronTests):
 
 
 class TestsUsdt:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_FEES)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_THORSWAP_AND_FEES)
     def test_tron_usdt(self, backend, exchange_navigation_helper, test_to_run):
         TronUsdtTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
@@ -85,7 +85,7 @@ class TronUsdcTests(TronTests):
 
 
 class TestsUsdc:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_FEES)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_THORSWAP_AND_FEES)
     def test_tron_usdc(self, backend, exchange_navigation_helper, test_to_run):
         TronUsdcTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
@@ -107,7 +107,7 @@ class TronTrxToUsdtTests(TronTests):
 
 
 class TestsTRXToUsdt:
-    @pytest.mark.parametrize('test_to_run', VALID_TESTS)
+    @pytest.mark.parametrize('test_to_run', VALID_TESTS_EXCEPT_THORSWAP)
     def test_tron_trx_to_usdt(self, backend, exchange_navigation_helper, test_to_run):
         TronTrxToUsdtTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
@@ -129,7 +129,7 @@ class TronUsdttoTrxTests(TronTests):
 
 
 class TestsUsdtToTrx:
-    @pytest.mark.parametrize('test_to_run', VALID_TESTS)
+    @pytest.mark.parametrize('test_to_run', VALID_TESTS_EXCEPT_THORSWAP)
     def test_tron_usdt_to_trx(self, backend, exchange_navigation_helper, test_to_run):
         TronUsdttoTrxTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
@@ -151,6 +151,6 @@ class TronUsdtoUsdcTests(TronTests):
 
 
 class TestsUsdtToUsdc:
-    @pytest.mark.parametrize('test_to_run', VALID_TESTS)
+    @pytest.mark.parametrize('test_to_run', VALID_TESTS_EXCEPT_THORSWAP)
     def test_tron_usdt_to_usdc(self, backend, exchange_navigation_helper, test_to_run):
         TronUsdtoUsdcTests(backend, exchange_navigation_helper).run_test(test_to_run)

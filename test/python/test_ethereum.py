@@ -3,7 +3,7 @@ import os
 import json
 from web3 import Web3
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
+from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
 from .apps.ethereum import ETH_PATH
 from ledger_app_clients.ethereum.client import EthAppClient
 from .apps import cal as cal
@@ -12,19 +12,14 @@ from .apps import cal as cal
 # ExchangeTestRunner implementation for all Ethereum network
 class GenericEthereumNetworkTests(ExchangeTestRunner):
     valid_destination_1 = "0xd692Cb1346262F584D17B4B470954501f6715a82"
-    valid_destination_memo_1 = ""
     valid_destination_2 = "0x999999cf1046e68e36E1aA2E0E07105eDDD1f08E"
-    valid_destination_memo_2 = ""
     valid_refund = "0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D"
-    valid_refund_memo = ""
     valid_send_amount_1 = 10000000
     valid_send_amount_2 = 446739662
     valid_fees_1 = 100
     valid_fees_2 = 10078
     fake_refund = "abcdabcd"
-    fake_refund_memo = ""
     fake_payout = "abcdabcd"
-    fake_payout_memo = ""
     signature_refusal_error_code = 0x6001
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
@@ -49,7 +44,7 @@ class EthereumTests(GenericEthereumNetworkTests):
     currency_configuration = cal.ETH_CURRENCY_CONFIGURATION
 
 class TestsEthereum:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
     def test_ethereum(self, backend, exchange_navigation_helper, test_to_run):
         EthereumTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
@@ -61,7 +56,7 @@ class BSCTests(GenericEthereumNetworkTests):
     currency_configuration = cal.BNB_CURRENCY_CONFIGURATION
 
 class TestsBSC:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
     def test_bsc(self, backend, exchange_navigation_helper, test_to_run):
         BSCTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
@@ -73,7 +68,7 @@ class BSCLegacyTests(GenericEthereumNetworkTests):
     currency_configuration = cal.BNB_LEGACY_CURRENCY_CONFIGURATION
 
 class TestsBSCLegacy:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
     def test_bsc_legacy(self, backend, exchange_navigation_helper, test_to_run):
         BSCLegacyTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
@@ -105,6 +100,6 @@ class DAITests(GenericEthereumNetworkTests):
             pass
 
 class TestsDAI:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
     def test_dai(self, backend, exchange_navigation_helper, test_to_run):
         DAITests(backend, exchange_navigation_helper).run_test(test_to_run)

@@ -4,6 +4,7 @@ package ledger_swap;
 message NewTransactionResponse {
     string payin_address = 1;
     string payin_extra_id = 2;
+    bytes payin_extra_data = 13;
     string refund_address = 3;
     string refund_extra_id = 4;
     string payout_address = 5;
