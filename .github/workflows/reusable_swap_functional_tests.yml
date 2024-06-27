@@ -154,8 +154,6 @@ jobs:
       flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} CAL_TEST_KEY=1 DOMAIN_NAME_TEST_KEY=1 SET_PLUGIN_TEST_KEY=1 NFT_TEST_KEY=1"
       upload_app_binaries_artifact: libraries_binaries-${{ matrix.coin.name }}-${{ matrix.coin.branch }}
       upload_as_lib_artifact: ${{ matrix.coin.name }}
-      # Bitcoin has two branches depending on the device, use ternary expression to run nanos or nanox
-      run_for_devices: ${{ matrix.coin.name != 'bitcoin' && '["nanos", "nanox", "nanosp", "stax"]' || matrix.coin.branch == inputs.branch_for_bitcoin_nanos && '["nanos"]' || '["nanox", "nanosp", "stax"]' }}
 
   merge_libraries_build:
     name: Merge built libraries
