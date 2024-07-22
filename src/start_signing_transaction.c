@@ -30,7 +30,17 @@ int start_signing_transaction(const command_t *cmd) {
         lib_in_out_params.amount = G_swap_ctx.swap_transaction.amount_to_provider.bytes;
         lib_in_out_params.amount_length = G_swap_ctx.swap_transaction.amount_to_provider.size;
         lib_in_out_params.destination_address = G_swap_ctx.swap_transaction.payin_address;
-        lib_in_out_params.destination_address_extra_id = G_swap_ctx.swap_transaction.payin_extra_id;
+        if (G_swap_ctx.swap_transaction.payin_extra_data.size == 33) {
+            PRINTF("Using extra data %.*H\n",
+                   G_swap_ctx.swap_transaction.payin_extra_data.size,
+                   G_swap_ctx.swap_transaction.payin_extra_data.bytes);
+            lib_in_out_params.destination_address_extra_id =
+                (char *) G_swap_ctx.swap_transaction.payin_extra_data.bytes;
+        } else {
+            PRINTF("Using native payin_extra_id %s\n", G_swap_ctx.swap_transaction.payin_extra_id);
+            lib_in_out_params.destination_address_extra_id =
+                G_swap_ctx.swap_transaction.payin_extra_id;
+        }
     }
 
     if (cmd->subcommand == SELL || cmd->subcommand == SELL_NG) {

@@ -1,6 +1,6 @@
 import pytest
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_FEES
+from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
 from .apps.polkadot import PolkadotClient, ERR_SWAP_CHECK_WRONG_METHOD, ERR_SWAP_CHECK_WRONG_DEST_ADDR, ERR_SWAP_CHECK_WRONG_AMOUNT
 from .apps import cal as cal
 
@@ -8,19 +8,14 @@ from .apps import cal as cal
 class PolkadotTests(ExchangeTestRunner):
     currency_configuration = cal.DOT_CURRENCY_CONFIGURATION
     valid_destination_1 = "14ypt3a2m9yiq4ZQDcJFrkD99C3ZoUjLCDz1gBpCDwJPqVDY"
-    valid_destination_memo_1 = ""
     valid_destination_2 = "13zAiMiN2HdJfEXn4NkVCWxuemScdaXGYKJrbJr1Nt6kjBRD"
-    valid_destination_memo_2 = ""
     valid_refund = "14TwSqXEoCPK7Q7Jnk2RFzbPZXppsxz24bHaQ7fakwio7DFn"
-    valid_refund_memo = ""
     valid_send_amount_1 = 12345670000
     valid_send_amount_2 = 446739662
     valid_fees_1 = 100000000
     valid_fees_2 = 10000123
     fake_refund = "abcdabcd"
-    fake_refund_memo = ""
     fake_payout = "abcdabcd"
-    fake_payout_memo = ""
     wrong_method_error_code = ERR_SWAP_CHECK_WRONG_METHOD
     wrong_destination_error_code = ERR_SWAP_CHECK_WRONG_DEST_ADDR
     wrong_amount_error_code = ERR_SWAP_CHECK_WRONG_AMOUNT
@@ -43,6 +38,6 @@ class PolkadotTests(ExchangeTestRunner):
 # Use a class to reuse the same Speculos instance
 class TestsPolkadot:
 
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_FEES)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
     def test_polkadot(self, backend, exchange_navigation_helper, test_to_run):
         PolkadotTests(backend, exchange_navigation_helper).run_test(test_to_run)

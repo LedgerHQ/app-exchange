@@ -1,6 +1,6 @@
 import pytest
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS
+from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_THORSWAP
 from .apps.stellar import Network, StellarClient, StellarErrors
 from .apps import cal as cal
 
@@ -36,6 +36,6 @@ class StellarTests(ExchangeTestRunner):
 # Use a class to reuse the same Speculos instance
 class TestsStellar:
 
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_THORSWAP)
     def test_stellar(self, backend, exchange_navigation_helper, test_to_run):
         StellarTests(backend, exchange_navigation_helper).run_test(test_to_run)

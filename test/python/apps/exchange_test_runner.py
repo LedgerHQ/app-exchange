@@ -1,5 +1,5 @@
 import pytest
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 from ragger.backend import RaisePolicy
 from ragger.utils import RAPDU
@@ -21,26 +21,34 @@ class ExchangeTestRunner:
     # You will need to define the following elements in the child application:
     # currency_configuration: CurrencyConfiguration
     # valid_destination_1: str
-    # valid_destination_memo_1: str
     # valid_destination_2: str
-    # valid_destination_memo_2: str
     # valid_refund: str
-    # valid_refund_memo: str
     # valid_send_amount_1: int
     # valid_send_amount_2: int
     # valid_fees_1: int
     # valid_fees_2: int
     # fake_refund: str
-    # fake_refund_memo: str
     # fake_payout: str
-    # fake_payout_memo: str
-    #
+
+    # Values to overwrite if your application uses memo
+    valid_destination_memo_1: str = ""
+    valid_destination_memo_2: str = ""
+    valid_refund_memo: str = ""
+    fake_refund_memo: str = ""
+    fake_payout_memo: str = ""
+
+    # Values to overwrite if your application supports extra_data
+    valid_payin_extra_data_1: bytes = b""
+    valid_payin_extra_data_2: bytes = b""
+    invalid_payin_extra_data: bytes = b""
+
     # signature_refusal_error_code: int
     #
     # you can override signature_refusal_error_code with specific values
     # wrong_method_error_code: int
     # wrong_fees_error_code: int
     # wrong_memo_error_code: int
+    # wrong_extra_data_error_code: int
     # wrong_destination_error_code: int
     # wrong_amount_error_code: int
 
@@ -56,6 +64,7 @@ class ExchangeTestRunner:
     wrong_method_error_code = None
     wrong_fees_error_code = None
     wrong_memo_error_code = None
+    wrong_extra_data_error_code = None
     wrong_destination_error_code = None
     wrong_amount_error_code = None
 
@@ -69,6 +78,8 @@ class ExchangeTestRunner:
             self.wrong_fees_error_code = self.signature_refusal_error_code
         if self.wrong_memo_error_code is None:
             self.wrong_memo_error_code = self.signature_refusal_error_code
+        if self.wrong_extra_data_error_code is None:
+            self.wrong_extra_data_error_code = self.signature_refusal_error_code
         if self.wrong_destination_error_code is None:
             self.wrong_destination_error_code = self.signature_refusal_error_code
         if self.wrong_amount_error_code is None:
@@ -129,14 +140,15 @@ class ExchangeTestRunner:
 
         self.exchange_navigation_helper.wait_for_library_spinner()
 
-    def perform_valid_swap_from_custom(self, destination, send_amount, fees, memo, refund_address=None, refund_memo=None, ui_validation=True):
+    def perform_valid_swap_from_custom(self, destination, send_amount, fees, destination_memo, refund_address=None, refund_memo=None, ui_validation=True):
+        # Refund data is almost always 'valid', make it optionnal to specify it
         refund_address = self.valid_refund if refund_address is None else refund_address
         refund_memo = self.valid_refund_memo if refund_memo is None else refund_memo
         tx_infos = {
             "payin_address": destination,
-            "payin_extra_id": memo,
+            "payin_extra_id": destination_memo,
             "refund_address": refund_address,
-            "refund_extra_id": refund_memo.encode(),
+            "refund_extra_id": refund_memo,
             "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
             "payout_extra_id": b"", # Default
             "currency_from": self.currency_configuration.ticker,
@@ -146,14 +158,30 @@ class ExchangeTestRunner:
         }
         self._perform_valid_exchange(SubCommand.SWAP_NG, tx_infos, self.currency_configuration, cal.ETH_CURRENCY_CONFIGURATION, fees, ui_validation=ui_validation)
 
-    def perform_valid_swap_to_custom(self, destination, send_amount, fees, memo, ui_validation=True):
+    def perform_valid_thorswap_from_custom(self, destination, send_amount, fees, payin_extra_data, refund_address=None, ui_validation=True):
+        refund_address = self.valid_refund if refund_address is None else refund_address
+        tx_infos = {
+            "payin_address": destination,
+            "payin_extra_data": payin_extra_data,
+            "refund_address": refund_address,
+            "refund_extra_id": b"",
+            "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
+            "payout_extra_id": b"",
+            "currency_from": self.currency_configuration.ticker,
+            "currency_to": cal.ETH_CURRENCY_CONFIGURATION.ticker,
+            "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
+            "amount_to_wallet": b"\246\333t\233+\330\000", # Default
+        }
+        self._perform_valid_exchange(SubCommand.SWAP_NG, tx_infos, self.currency_configuration, cal.ETH_CURRENCY_CONFIGURATION, fees, ui_validation=ui_validation)
+
+    def perform_valid_swap_to_custom(self, destination, send_amount, fees, destination_memo, ui_validation=True):
         tx_infos = {
             "payin_address": "0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
             "payin_extra_id": "", # Default
             "refund_address": "0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
             "refund_extra_id": "", # Default
             "payout_address": destination,
-            "payout_extra_id": memo.encode(),
+            "payout_extra_id": destination_memo,
             "currency_from": cal.ETH_CURRENCY_CONFIGURATION.ticker,
             "currency_to": self.currency_configuration.ticker,
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
@@ -199,6 +227,10 @@ class ExchangeTestRunner:
     def assert_exchange_is_started(self):
         # We don't care at all for the subcommand / rate
         ExchangeClient(self.backend, Rate.FIXED, SubCommand.SWAP_NG).assert_exchange_is_started()
+
+    def skip_thorswap_if_needed(self):
+        if self.backend.firmware.device == "nanos":
+            pytest.skip("Thorswap is not implemented on NanoS device")
 
     #########################################################
     # Generic SWAP tests functions, call them in your tests #
@@ -269,6 +301,54 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, self.valid_destination_memo_1)
         assert e.value.status == self.wrong_amount_error_code
+        self.assert_exchange_is_started()
+
+    #######################################################################
+    # Thorswap / LiFi / ... SWAP tests functions, call them in your tests #
+    #######################################################################
+
+    def perform_test_thorswap_valid_1(self):
+        self.skip_thorswap_if_needed()
+        self.perform_valid_thorswap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_1)
+        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_1)
+        self.assert_exchange_is_started()
+
+    def perform_test_thorswap_valid_2(self):
+        self.skip_thorswap_if_needed()
+        self.perform_valid_thorswap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_2)
+        self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_2)
+        self.assert_exchange_is_started()
+
+    def perform_test_thorswap_wrong_hash(self):
+        self.skip_thorswap_if_needed()
+        self.perform_valid_thorswap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_1)
+        with pytest.raises(ExceptionRAPDU) as e:
+            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_2)
+        assert e.value.status == self.wrong_extra_data_error_code
+        self.assert_exchange_is_started()
+
+    def perform_test_thorswap_invalid_type(self):
+        self.skip_thorswap_if_needed()
+        self.perform_valid_thorswap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.invalid_payin_extra_data)
+        with pytest.raises(ExceptionRAPDU) as e:
+            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.invalid_payin_extra_data)
+        assert e.value.status == self.wrong_extra_data_error_code
+        self.assert_exchange_is_started()
+
+    def perform_test_thorswap_unexpected_extra_data(self):
+        self.skip_thorswap_if_needed()
+        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
+        with pytest.raises(ExceptionRAPDU) as e:
+            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_1)
+        assert e.value.status == self.wrong_extra_data_error_code
+        self.assert_exchange_is_started()
+
+    def perform_test_thorswap_missing_extra_data(self):
+        self.skip_thorswap_if_needed()
+        self.perform_valid_thorswap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_1)
+        with pytest.raises(ExceptionRAPDU) as e:
+            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, None)
+        assert e.value.status == self.wrong_extra_data_error_code
         self.assert_exchange_is_started()
 
     #########################################################
@@ -377,11 +457,28 @@ class ExchangeTestRunner:
 _all_test_methods_prefixed = [method for method in dir(ExchangeTestRunner) if method.startswith(TEST_METHOD_PREFIX)]
 # Remove prefix to have nice snapshots directories
 ALL_TESTS = [str(i).replace(TEST_METHOD_PREFIX, '') for i in _all_test_methods_prefixed]
-
 ALL_TESTS_EXCEPT_MEMO = [test for test in ALL_TESTS if not "memo" in test]
+ALL_TESTS_EXCEPT_THORSWAP = [test for test in ALL_TESTS if not "thorswap" in test]
 ALL_TESTS_EXCEPT_FEES = [test for test in ALL_TESTS if not "fees" in test]
-ALL_TESTS_EXCEPT_MEMO_AND_FEES = [test for test in ALL_TESTS if (not "memo" in test and not "fees" in test)]
 SWAP_TESTS = [test for test in ALL_TESTS if "swap" in test]
 FUND_TESTS = [test for test in ALL_TESTS if "fund" in test]
 SELL_TESTS = [test for test in ALL_TESTS if "sell" in test]
 VALID_TESTS = [test for test in ALL_TESTS if "valid" in test]
+
+def common_part(a, b) -> List:
+    a_set = set(a)
+    b_set = set(b)
+
+    # check length
+    if len(a_set.intersection(b_set)) > 0:
+        return list(a_set.intersection(b_set))
+    else:
+        return []
+
+
+ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP = common_part(ALL_TESTS_EXCEPT_MEMO, ALL_TESTS_EXCEPT_THORSWAP)
+ALL_TESTS_EXCEPT_MEMO_AND_FEES = common_part(ALL_TESTS_EXCEPT_MEMO, ALL_TESTS_EXCEPT_FEES)
+ALL_TESTS_EXCEPT_THORSWAP_AND_FEES = common_part(ALL_TESTS_EXCEPT_THORSWAP, ALL_TESTS_EXCEPT_FEES)
+ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES = common_part(ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP, ALL_TESTS_EXCEPT_FEES)
+SWAP_TESTS_EXCEPT_THORSWAP = common_part(SWAP_TESTS, ALL_TESTS_EXCEPT_THORSWAP)
+VALID_TESTS_EXCEPT_THORSWAP = common_part(VALID_TESTS, ALL_TESTS_EXCEPT_THORSWAP)

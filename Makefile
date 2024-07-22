@@ -29,8 +29,8 @@ APPNAME = "Exchange"
 
 # Application version
 APPVERSION_M = 3
-APPVERSION_N = 3
-APPVERSION_P = 4
+APPVERSION_N = 4
+APPVERSION_P = 0
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files

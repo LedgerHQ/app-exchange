@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x18src/proto/protocol.proto\x12\x0bledger_swap\"\xcc\x02\n\x16NewTransactionResponse\x12\x15\n\rpayin_address\x18\x01 \x01(\t\x12\x16\n\x0epayin_extra_id\x18\x02 \x01(\t\x12\x16\n\x0erefund_address\x18\x03 \x01(\t\x12\x17\n\x0frefund_extra_id\x18\x04 \x01(\t\x12\x16\n\x0epayout_address\x18\x05 \x01(\t\x12\x17\n\x0fpayout_extra_id\x18\x06 \x01(\t\x12\x15\n\rcurrency_from\x18\x07 \x01(\t\x12\x13\n\x0b\x63urrency_to\x18\x08 \x01(\t\x12\x1a\n\x12\x61mount_to_provider\x18\t \x01(\x0c\x12\x18\n\x10\x61mount_to_wallet\x18\n \x01(\x0c\x12\x1d\n\x15\x64\x65vice_transaction_id\x18\x0b \x01(\t\x12 \n\x18\x64\x65vice_transaction_id_ng\x18\x0c \x01(\x0c\"1\n\x08UDecimal\x12\x13\n\x0b\x63oefficient\x18\x01 \x01(\x0c\x12\x10\n\x08\x65xponent\x18\x02 \x01(\r\"\xc3\x01\n\x0fNewSellResponse\x12\x14\n\x0ctrader_email\x18\x01 \x01(\t\x12\x13\n\x0bin_currency\x18\x02 \x01(\t\x12\x11\n\tin_amount\x18\x03 \x01(\x0c\x12\x12\n\nin_address\x18\x04 \x01(\t\x12\x14\n\x0cout_currency\x18\x05 \x01(\t\x12)\n\nout_amount\x18\x06 \x01(\x0b\x32\x15.ledger_swap.UDecimal\x12\x1d\n\x15\x64\x65vice_transaction_id\x18\x07 \x01(\x0c\"\x93\x01\n\x0fNewFundResponse\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x14\n\x0c\x61\x63\x63ount_name\x18\x02 \x01(\t\x12\x13\n\x0bin_currency\x18\x03 \x01(\t\x12\x11\n\tin_amount\x18\x04 \x01(\x0c\x12\x12\n\nin_address\x18\x05 \x01(\t\x12\x1d\n\x15\x64\x65vice_transaction_id\x18\x06 \x01(\x0c\x62\x06proto3'
+  serialized_pb=b'\n\x18src/proto/protocol.proto\x12\x0bledger_swap\"\xe6\x02\n\x16NewTransactionResponse\x12\x15\n\rpayin_address\x18\x01 \x01(\t\x12\x16\n\x0epayin_extra_id\x18\x02 \x01(\t\x12\x18\n\x10payin_extra_data\x18\r \x01(\x0c\x12\x16\n\x0erefund_address\x18\x03 \x01(\t\x12\x17\n\x0frefund_extra_id\x18\x04 \x01(\t\x12\x16\n\x0epayout_address\x18\x05 \x01(\t\x12\x17\n\x0fpayout_extra_id\x18\x06 \x01(\t\x12\x15\n\rcurrency_from\x18\x07 \x01(\t\x12\x13\n\x0b\x63urrency_to\x18\x08 \x01(\t\x12\x1a\n\x12\x61mount_to_provider\x18\t \x01(\x0c\x12\x18\n\x10\x61mount_to_wallet\x18\n \x01(\x0c\x12\x1d\n\x15\x64\x65vice_transaction_id\x18\x0b \x01(\t\x12 \n\x18\x64\x65vice_transaction_id_ng\x18\x0c \x01(\x0c\"1\n\x08UDecimal\x12\x13\n\x0b\x63oefficient\x18\x01 \x01(\x0c\x12\x10\n\x08\x65xponent\x18\x02 \x01(\r\"\xc3\x01\n\x0fNewSellResponse\x12\x14\n\x0ctrader_email\x18\x01 \x01(\t\x12\x13\n\x0bin_currency\x18\x02 \x01(\t\x12\x11\n\tin_amount\x18\x03 \x01(\x0c\x12\x12\n\nin_address\x18\x04 \x01(\t\x12\x14\n\x0cout_currency\x18\x05 \x01(\t\x12)\n\nout_amount\x18\x06 \x01(\x0b\x32\x15.ledger_swap.UDecimal\x12\x1d\n\x15\x64\x65vice_transaction_id\x18\x07 \x01(\x0c\"\x93\x01\n\x0fNewFundResponse\x12\x0f\n\x07user_id\x18\x01 \x01(\t\x12\x14\n\x0c\x61\x63\x63ount_name\x18\x02 \x01(\t\x12\x13\n\x0bin_currency\x18\x03 \x01(\t\x12\x11\n\tin_amount\x18\x04 \x01(\x0c\x12\x12\n\nin_address\x18\x05 \x01(\t\x12\x1d\n\x15\x64\x65vice_transaction_id\x18\x06 \x01(\x0c\x62\x06proto3'
 )
 
 
@@ -48,70 +48,77 @@ _NEWTRANSACTIONRESPONSE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='refund_address', full_name='ledger_swap.NewTransactionResponse.refund_address', index=2,
+      name='payin_extra_data', full_name='ledger_swap.NewTransactionResponse.payin_extra_data', index=2,
+      number=13, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='refund_address', full_name='ledger_swap.NewTransactionResponse.refund_address', index=3,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='refund_extra_id', full_name='ledger_swap.NewTransactionResponse.refund_extra_id', index=3,
+      name='refund_extra_id', full_name='ledger_swap.NewTransactionResponse.refund_extra_id', index=4,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='payout_address', full_name='ledger_swap.NewTransactionResponse.payout_address', index=4,
+      name='payout_address', full_name='ledger_swap.NewTransactionResponse.payout_address', index=5,
       number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='payout_extra_id', full_name='ledger_swap.NewTransactionResponse.payout_extra_id', index=5,
+      name='payout_extra_id', full_name='ledger_swap.NewTransactionResponse.payout_extra_id', index=6,
       number=6, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='currency_from', full_name='ledger_swap.NewTransactionResponse.currency_from', index=6,
+      name='currency_from', full_name='ledger_swap.NewTransactionResponse.currency_from', index=7,
       number=7, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='currency_to', full_name='ledger_swap.NewTransactionResponse.currency_to', index=7,
+      name='currency_to', full_name='ledger_swap.NewTransactionResponse.currency_to', index=8,
       number=8, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='amount_to_provider', full_name='ledger_swap.NewTransactionResponse.amount_to_provider', index=8,
+      name='amount_to_provider', full_name='ledger_swap.NewTransactionResponse.amount_to_provider', index=9,
       number=9, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=b"",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='amount_to_wallet', full_name='ledger_swap.NewTransactionResponse.amount_to_wallet', index=9,
+      name='amount_to_wallet', full_name='ledger_swap.NewTransactionResponse.amount_to_wallet', index=10,
       number=10, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=b"",
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='device_transaction_id', full_name='ledger_swap.NewTransactionResponse.device_transaction_id', index=10,
+      name='device_transaction_id', full_name='ledger_swap.NewTransactionResponse.device_transaction_id', index=11,
       number=11, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='device_transaction_id_ng', full_name='ledger_swap.NewTransactionResponse.device_transaction_id_ng', index=11,
+      name='device_transaction_id_ng', full_name='ledger_swap.NewTransactionResponse.device_transaction_id_ng', index=12,
       number=12, type=12, cpp_type=9, label=1,
       has_default_value=False, default_value=b"",
       message_type=None, enum_type=None, containing_type=None,
@@ -130,7 +137,7 @@ _NEWTRANSACTIONRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=42,
-  serialized_end=374,
+  serialized_end=400,
 )
 
 
@@ -168,8 +175,8 @@ _UDECIMAL = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=376,
-  serialized_end=425,
+  serialized_start=402,
+  serialized_end=451,
 )
 
 
@@ -242,8 +249,8 @@ _NEWSELLRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=428,
-  serialized_end=623,
+  serialized_start=454,
+  serialized_end=649,
 )
 
 
@@ -309,8 +316,8 @@ _NEWFUNDRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=626,
-  serialized_end=773,
+  serialized_start=652,
+  serialized_end=799,
 )
 
 _NEWSELLRESPONSE.fields_by_name['out_amount'].message_type = _UDECIMAL

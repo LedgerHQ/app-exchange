@@ -1,6 +1,6 @@
 import pytest
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_FEES
+from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
 from .apps.solana import SolanaClient, ErrorType
 from .apps.solana_utils import SOL_PACKED_DERIVATION_PATH
 from .apps.solana_cmd_builder import SystemInstructionTransfer, Message, verify_signature
@@ -17,19 +17,14 @@ SOLANA_ADDRESS_DECODER = {
 class SolanaTests(ExchangeTestRunner):
     currency_configuration = cal.SOL_CURRENCY_CONFIGURATION
     valid_destination_1 = SOL.FOREIGN_ADDRESS
-    valid_destination_memo_1 = ""
     valid_destination_2 = SOL.FOREIGN_ADDRESS_2
-    valid_destination_memo_2 = ""
     valid_refund = SOL.OWNED_ADDRESS
-    valid_refund_memo = ""
     valid_send_amount_1 = SOL.AMOUNT
     valid_send_amount_2 = SOL.AMOUNT_2
     valid_fees_1 = SOL.FEES
     valid_fees_2 = SOL.FEES_2
     fake_refund = SOL.FOREIGN_ADDRESS
-    fake_refund_memo = ""
     fake_payout = SOL.FOREIGN_ADDRESS
-    fake_payout_memo = ""
     signature_refusal_error_code = ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
 
     partner_name = "Partner name"
@@ -50,6 +45,6 @@ class SolanaTests(ExchangeTestRunner):
 # Use a class to reuse the same Speculos instance
 class TestsSolana:
 
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_FEES)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
     def test_solana(self, backend, exchange_navigation_helper, test_to_run):
         SolanaTests(backend, exchange_navigation_helper).run_test(test_to_run)
