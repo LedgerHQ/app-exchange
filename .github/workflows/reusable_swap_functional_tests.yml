@@ -55,7 +55,7 @@ on:
 
       branch_for_bitcoin:
         required: false
-        default: 'develop'
+        default: 'swap'
         type: string
       branch_for_bitcoin_nanos:
         required: false
