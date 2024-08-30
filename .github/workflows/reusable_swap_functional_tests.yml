@@ -135,9 +135,6 @@ jobs:
         - name: solana
           repo: ${{ inputs.repo_for_solana }}
           branch: ${{ inputs.branch_for_solana }}
-        - name: bsc
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
         - name: DOT
           repo: ${{ inputs.repo_for_polkadot }}
           branch: ${{ inputs.branch_for_polkadot }}
