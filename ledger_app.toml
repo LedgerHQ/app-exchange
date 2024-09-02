@@ -3,5 +3,9 @@ build_directory = "./"
 sdk = "C"
 devices = ["nanos", "nanox", "nanos+", "stax"]
 
+[use_cases]
+use_test_keys = "TEST_PUBLIC_KEY=1"
+dbg_use_test_keys = "DEBUG=1 TEST_PUBLIC_KEY=1"
+
 [tests]
 pytest_directory = "./test/python/"
