@@ -242,7 +242,7 @@ class TestAliasAppname:
             "payin_extra_id": b"",
             "refund_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
             "refund_extra_id": b"",
-            "payout_address": encode_address("e6330795ffe18f873b83cb13662442b87bd98c22"),
+            "payout_address": "tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9",
             "payout_extra_id": b"",
             "currency_from": "ETH",
             "currency_to": "XTZ",
@@ -264,5 +264,5 @@ class TestAliasAppname:
             ex.check_transaction_signature(tx_signature)
 
             # If the alias does not work, CHECK_PAYOUT_ADDRESS will crash
-            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(CURRENCY_TO.packed_derivation_path)
+            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(cal.XTZ_CURRENCY_CONFIGURATION.packed_derivation_path)
             ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
