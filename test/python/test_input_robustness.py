@@ -4,6 +4,7 @@ from ragger.backend import RaisePolicy
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command
 from .apps.exchange_transaction_builder import get_partner_curve, craft_and_sign_tx
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.tezos import encode_address
 from .apps import cal as cal
 
 CURRENCY_FROM = cal.XLM_CURRENCY_CONFIGURATION
@@ -241,19 +242,18 @@ class TestAliasAppname:
             "payin_extra_id": b"",
             "refund_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
             "refund_extra_id": b"",
-            "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+            "payout_address": "tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9",
             "payout_extra_id": b"",
             "currency_from": "ETH",
-            "currency_to": "BNB",
+            "currency_to": "XTZ",
             "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
             "amount_to_wallet": b"\246\333t\233+\330\000",
         }
         fees = 100
 
-        bsc_conf = cal.BNB_CURRENCY_CONFIGURATION.conf # "Binance Smart Chain"
-        bsc_conf_alias_1 = create_currency_config("BNB", "bsc", ("BNB", 18))
-        bsc_conf_alias_2 = create_currency_config("BNB", "Bsc", ("BNB", 18))
-        for conf in bsc_conf, bsc_conf_alias_1, bsc_conf_alias_2:
+        xtz_conf = cal.XTZ_CURRENCY_CONFIGURATION.conf # "Tezos"
+        xtz_conf_alias = create_currency_config("XTZ", "Tezos Wallet")
+        for conf in xtz_conf, xtz_conf_alias:
             ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
             transaction_id = ex.init_transaction().data
             backend.wait_for_home_screen()
@@ -264,5 +264,5 @@ class TestAliasAppname:
             ex.check_transaction_signature(tx_signature)
 
             # If the alias does not work, CHECK_PAYOUT_ADDRESS will crash
-            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(CURRENCY_TO.packed_derivation_path)
+            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(cal.XTZ_CURRENCY_CONFIGURATION.packed_derivation_path)
             ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
