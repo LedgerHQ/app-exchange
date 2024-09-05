@@ -98,6 +98,11 @@ on:
         default: '""'
         type: string
 
+      regenerate_snapshots:
+        required: false
+        default: false
+        type: boolean
+
 jobs:
   build_sideloaded_applications:
     name: Build libraries
@@ -184,3 +189,4 @@ jobs:
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
       test_filter: ${{ inputs.test_filter }}
+      test_options: ${{ inputs.regenerate_snapshots == 'true' && '--golden_run' || '' }}
