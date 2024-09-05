@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Delete snapshots
         run: |
@@ -23,3 +23,4 @@ jobs:
     with:
       branch_for_exchange: ${{ github.ref }}
       regenerate_snapshots: true
+      test_filter: '"test_bitcoin and fund_valid_1"'
