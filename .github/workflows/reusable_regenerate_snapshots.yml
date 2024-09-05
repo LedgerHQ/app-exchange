@@ -3,23 +3,112 @@ name: Regenerate and commit snapshots
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
-  delete_snapshots:
-    name: Delete current snapshots
+  # regenerate_snapshots:
+  #   name: Run ragger with golden run
+  #   # needs: delete_snapshots
+  #   uses: ./.github/workflows/reusable_swap_functional_tests.yml
+  #   with:
+  #     branch_for_exchange: ${{ github.ref }}
+  #     regenerate_snapshots: true
+  #     test_filter: '"test_bitcoin and fund_valid_1"'
+
+  call_get_app_metadata:
+    # This job digests inputs and repository metadata provided by the `ledger_app.toml` manifest
+    # file, in order to output relevant directories, compatible devices, and other variables needed
+    # by following jobs.
+    name: Retrieve application metadata
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/_get_app_metadata.yml@fbe/regenerate_snapshots
+
+  commit_new_snapshots:
+    name: Commit new snapshots
+    # needs: [regenerate_snapshots, call_get_app_metadata]
+    needs: call_get_app_metadata
     runs-on: ubuntu-latest
     steps:
+      # - name: Snapshot artifact expected
+      #   if: ${{ needs.regenerate_snapshots.outputs.snapshot_artifact_uploaded != 'true' }}
+      #   run: exit 1
+
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # by default the action uses fetch-depth = 1, which creates
+          # shallow repositories from which we can't push
+          fetch-depth: 0
+          # needed, else the push inside the action will use default credentials
+          # instead of provided ones
+          persist-credentials: false
 
-      - name: Delete snapshots
+      - name: Delete current snapshots
         run: |
-          rm -rf ./test/python/snapshots
+          rm -rf ${{ needs.call_get_app_metadata.outputs.pytest_directory }}/*
 
-  regenerate_snapshots:
-    name: Run ragger with golden run
-    needs: delete_snapshots
-    uses: ./.github/workflows/reusable_swap_functional_tests.yml
-    with:
-      branch_for_exchange: ${{ github.ref }}
-      regenerate_snapshots: true
+      # - name: Download new snapshots
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: tests_snapshots
+      #     path: ${{ needs.call_get_app_metadata.outputs.pytest_directory }}/snapshots
+
+      - name: Check if update is needed
+        id: check-changes
+        run: |
+          if [[ -n $(git status --porcelain) ]]; then
+              echo "changes_detected=true" >> "$GITHUB_OUTPUT";
+          else
+              echo "changes_detected=false" >> "$GITHUB_OUTPUT";
+          fi
+
+      - name: Commit changes
+        if: ${{ steps.check-changes.outputs.changes_detected == 'true' }}
+        id: commit-changes
+        run: |
+          # Set credentials for commit creation
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          branch_name="auto/update_snapshots"
+          title="[auto-update] Update Ragger snapshots for all devices"
+          echo "Branch Name: $branch_name"
+          echo "Title: $title"
+          git status
+          git add ${{ needs.call_get_app_metadata.outputs.pytest_directory }}/snapshots
+          git commit -m "$title"
+          # Set output
+          echo "title=$title" >> $GITHUB_OUTPUT
+          echo "branch_name=$branch_name" >> $GITHUB_OUTPUT
+
+      - name: Push commit on branch
+        if: ${{ steps.check-changes.outputs.changes_detected == 'true' }}
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.CI_BOT_TOKEN }}
+          branch: ${{ steps.commit-changes.outputs.branch_name }}
+          force: true
+
+      - name: Create 'auto' label if missing
+        if: ${{ steps.check-changes.outputs.changes_detected == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ -z $(gh label list --search auto) ]]; then
+            gh label create 'auto' --color 'b4a8d1' --description 'Automatically created'
+          fi
+
+      - name: Create pull request
+        if: ${{ steps.check-changes.outputs.changes_detected == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Create the PR with a placeholder body. Will be consolidated at a later step
+          pr_url=$(gh pr create \
+                     --base 'develop' \
+                     --head '${{ steps.commit-changes.outputs.branch_name }}' \
+                     --label 'auto' \
+                     --title '${{ steps.commit-changes.outputs.title }}' \
+                     --body 'Created by a Github workflow')
+          echo "Pull request URL: $pr_url"
+          # Log the url of the PR in the issue on SDK side. We'll collect them from the issue later
+          gh issue comment "${{ needs.open-issue.outputs.issue_url }}" --body "OPENED $pr_url"
