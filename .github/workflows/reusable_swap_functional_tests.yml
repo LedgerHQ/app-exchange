@@ -97,6 +97,11 @@ on:
         required: false
         default: '""'
         type: string
+      regenerate_snapshots:
+        description: 'Clean snapshots, regenerate them, commit the changes in a branch, and open a PR'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build_sideloaded_applications:
@@ -184,3 +189,4 @@ jobs:
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
       test_filter: ${{ inputs.test_filter }}
+      regenerate_snapshots: ${{ inputs.regenerate_snapshots }}
