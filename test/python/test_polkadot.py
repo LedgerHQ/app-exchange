@@ -25,9 +25,16 @@ class PolkadotTests(ExchangeTestRunner):
         # Get public key.
         key = dot.get_pubkey()
         # Init signature process and assert response APDU code is 0x9000 (OK).
-        dot.sign_init().status
+        dot.sign_init()
         # craft tx
         message = PolkadotClient.craft_valid_polkadot_transaction(destination, send_amount, None, None)
+        print(len(message))
+        print(len(message))
+        print(len(message))
+        print(len(message))
+        print(len(message))
+        print(len(message))
+        print(len(message))
         # Send message to be signed
         sign_response = dot.sign_last(message)
 
