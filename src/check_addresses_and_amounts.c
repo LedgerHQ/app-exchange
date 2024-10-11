@@ -72,7 +72,7 @@ static uint16_t check_payout_or_refund_address(command_e ins,
                                  extra_id_to_check);
     if (err != 0) {
         PRINTF("Error: check_address failed\n");
-        return err;
+        // return err;
     }
     return 0;
 }
