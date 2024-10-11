@@ -123,19 +123,42 @@ class DAITests(GenericEthereumNetworkTests):
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         app_client = EthAppClient(self.backend)
-        app_client.provide_token_metadata("DAI", self.DAI_ADDRESS, 18, 1)
-        with app_client.sign(bip32_path=ETH_PATH,
-                             tx_params={
-                                "nonce": 0,
-                                "gasPrice": 1,
-                                "gas": fees,
-                                "to": self.contract.address,
-                                "data": self.contract.encodeABI("transfer", [destination, send_amount]),
-                                "chainId": 1
-                             }):
-            pass
+
+        if memo == self.valid_payin_extra_data_1:
+            contract = contract_1
+        elif memo == self.valid_payin_extra_data_2:
+            contract = contract_2
+        elif memo == self.invalid_payin_extra_data:
+            contract = contract_1
+        else:
+            contract = None
+
+        if contract == None:
+            app_client.provide_token_metadata("DAI", self.DAI_ADDRESS, 18, 1)
+            with app_client.sign(bip32_path=ETH_PATH,
+                                 tx_params={
+                                    "nonce": 0,
+                                    "gasPrice": 1,
+                                    "gas": fees,
+                                    "to": self.contract.address,
+                                    "chainId": 1,
+                                    "data": self.contract.encodeABI("transfer", [destination, send_amount]),
+                                 }):
+                pass
+        else:
+            with app_client.sign(bip32_path=ETH_PATH,
+                                 tx_params={
+                                     "nonce": 0,
+                                     "gasPrice": 1,
+                                     "gas": fees,
+                                     "to": destination,
+                                     "value": 0,
+                                     "chainId": 1,
+                                     "data": contract,
+                                 }):
+                pass
 
 class TestsDAI:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
     def test_dai(self, backend, exchange_navigation_helper, test_to_run):
         DAITests(backend, exchange_navigation_helper).run_test(test_to_run)
