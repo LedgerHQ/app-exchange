@@ -99,7 +99,7 @@ on:
 
       branch_for_near:
         required: false
-        default: 'add_swap_support'
+        default: 'y333_241015/add_swap_support'
         type: string
       repo_for_near:
         required: false
