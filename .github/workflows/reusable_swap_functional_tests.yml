@@ -99,7 +99,11 @@ on:
 
       branch_for_near:
         required: false
-        default: 'add-swap'
+        default: 'add_swap_support'
+        type: string
+      repo_for_near:
+        required: false
+        default: 'LedgerHQ/app-near-new'
         type: string
 
       branch_for_ton:
@@ -177,7 +181,7 @@ jobs:
           repo: ${{ inputs.repo_for_cardano }}
           branch: ${{ inputs.branch_for_cardano }}
         - name: near
-          repo: app-near
+          repo: ${{ inputs.repo_for_near }}
           branch: ${{ inputs.branch_for_near }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
