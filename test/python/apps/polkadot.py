@@ -1,4 +1,6 @@
 import traceback
+import requests
+import json
 from enum import IntEnum
 
 from nacl.encoding import HexEncoder
@@ -11,6 +13,51 @@ from ragger.error import ExceptionRAPDU
 from scalecodec.base import RuntimeConfiguration
 from scalecodec.type_registry import load_type_registry_preset
 from scalecodec.utils.ss58 import ss58_decode
+
+
+def fetch_metadata(tx_blob) -> bytes:
+    url = "https://polkadot-metadata-shortener.api.live.ledger.com/transaction/metadata"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "chain": {
+            "id": "dot"
+        },
+        "txBlob": tx_blob.hex()
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    if response.status_code == 200:
+        metadata_hex = response.json().get("txMetadata")
+        if metadata_hex.startswith("0x"):
+            # Strip the "0x" prefix
+            metadata_hex = metadata_hex[2:]
+        # Convert the hex string to bytes
+        return bytes.fromhex(metadata_hex)
+    else:
+        raise Exception(f"Error fetching metadata: {response.status_code} - {response.text}")
+
+def fetch_short_metadata() -> bytes:
+    url = "https://polkadot-metadata-shortener.api.live.ledger.com/node/metadata/hash"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "id": "dot"
+    }
+
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+
+    if response.status_code == 200:
+        # Assuming the metadata hash is returned as a hex string prefixed with "0x"
+        metadata_hash_hex = response.json().get("metadataHash")
+        if metadata_hash_hex.startswith("0x"):
+            metadata_hash_hex = metadata_hash_hex[2:]  # Strip the "0x" prefix
+        return bytes.fromhex(metadata_hash_hex)  # Convert the hex string to bytes
+    else:
+        raise Exception(f"Error fetching short metadata: {response.status_code} - {response.text}")
 
 class Method(IntEnum):
     BALANCE_TRANSFER_ALLOW_DEATH = 0x0500
@@ -32,26 +79,28 @@ def _format_amount(amount: int) -> bytes:
     scale_data = obj.encode(amount)
     return bytes(scale_data.get_remaining_bytes())
 
-# Not sure what this exactly is but we don't actually care
-UNKNOWN = bytes([0x85, 0x02, 0x00, 0x00])
-
-SPEC_VERSION = 1001000
-TX_VERSION = 25
-
-# We don't care about the block hash content
-BLOCK_HASH = bytes([0x00] * 32)
-
+ERA = "f500"
+NONCE = 0
+CHECK_METADATA_HASH = 1
+SPEC_VERSION = 1003000
+TX_VERSION = 26
 GENESIS_HASH = bytes([
     0x91, 0xb1, 0x71, 0xbb, 0x15, 0x8e, 0x2d, 0x38, 0x48, 0xfa,
     0x23, 0xa9, 0xf1, 0xc2, 0x51, 0x82, 0xfb, 0x8e, 0x20, 0x31,
     0x3b, 0x2c, 0x1e, 0xb4, 0x92, 0x19, 0xda, 0x7a, 0x70, 0xce,
     0x90, 0xc3,
 ])
+# We don't care about the block hash content
+BLOCK_HASH = bytes([0x00] * 32)
+SHORT_METADATA_ID = 1
+# Dynamic fetch of short metadata as it may change in the future
+SHORT_METADATA = fetch_short_metadata()
 
-ERR_SWAP_CHECK_WRONG_METHOD = 0x6984
-ERR_SWAP_CHECK_WRONG_METHOD_ARGS_CNT = 0x6984
-ERR_SWAP_CHECK_WRONG_DEST_ADDR = 0x6984
-ERR_SWAP_CHECK_WRONG_AMOUNT = 0x6984
+class Errors:
+    ERR_SWAP_CHECK_WRONG_METHOD = 0x6984
+    ERR_SWAP_CHECK_WRONG_METHOD_ARGS_CNT = 0x6984
+    ERR_SWAP_CHECK_WRONG_DEST_ADDR = 0x6984
+    ERR_SWAP_CHECK_WRONG_AMOUNT = 0x6984
 
 class Command:
     GET_VERSION = 0x00
@@ -81,9 +130,10 @@ DOT_PACKED_DERIVATION_PATH_SIGN_INIT = bytes([0x2c, 0x00, 0x00, 0x80,
                                               0x00, 0x00, 0x00, 0x80,
                                               0x00, 0x00, 0x00, 0x80])
 
+MAX_CHUNK_SIZE = 250
 
 class PolkadotClient:
-    CLA = 0x90
+    CLA = 0xF9
     def __init__(self, client):
         self._client = client
 
@@ -92,19 +142,14 @@ class PolkadotClient:
         return self._client
 
     def get_pubkey(self):
-        msg = self.client.exchange(self.CLA, ins=Command.GET_ADDRESS, p1=0, p2=0, data=DOT_PACKED_DERIVATION_PATH_SIGN_INIT)
+        data = DOT_PACKED_DERIVATION_PATH_SIGN_INIT + bytes([0x00, 0x00])
+        msg = self.client.exchange(self.CLA, ins=Command.GET_ADDRESS, p1=0, p2=0, data=data)
         return msg.data[:32].hex().encode()
 
-    def sign_init(self):
-        return self.client.exchange(self.CLA, ins=Command.SIGN_TX, p1=SignP1.INIT, data=DOT_PACKED_DERIVATION_PATH_SIGN_INIT)
+    def sign_add(self, tx_chunk):
+        return self.client.exchange(self.CLA, ins=Command.SIGN_TX, p1=SignP1.ADD, data=tx_chunk)
 
-    def sign_add(self,tx_chunk):
-        return self.client.exchange(self.CLA, ins=Command.SIGN_TX, p1=SignP1.ADD,data=tx_chunk)
-
-    def sign_last(self,tx_chunk):
-        return self.client.exchange(self.CLA, ins=Command.SIGN_TX, p1=SignP1.LAST, p2=SignP2Last.ED25519, data=tx_chunk)
-
-    def verify_signature(self,hex_key:bytes,signature:bytes,message:bytes) -> bool :
+    def verify_signature(self, hex_key: bytes, signature: bytes, message: bytes) -> bool :
         # Create a VerifyKey object from a hex serialized public key
         verify_key = VerifyKey(hex_key, encoder=HexEncoder)
         # Check the validity of a message's signature
@@ -122,18 +167,7 @@ class PolkadotClient:
             print("Signature is ok.")
             return True
 
-    def craft_valid_polkadot_transaction(address, send_amount, fees, memo) -> bytes:
-        return Method.BALANCE_TRANSFER_ALLOW_DEATH.to_bytes(2, "big") \
-               + AccountIdLookupType.ID.to_bytes(1, "big") \
-               + _polkadot_address_to_pk(address) \
-               + _format_amount(send_amount) \
-               + UNKNOWN \
-               + SPEC_VERSION.to_bytes(4, "little") \
-               + TX_VERSION.to_bytes(4, "little") \
-               + GENESIS_HASH \
-               + BLOCK_HASH
-
-    def craft_invalid_polkadot_transaction(address, send_amount, fees, memo) -> bytes:
+    def craft_invalid_polkadot_transaction(self, address, send_amount) -> bytes:
         force_transfer = Method.BALANCE_FORCE_TRANSFER.to_bytes(2, "big") \
                        + bytes([0x00, 0xdc, 0x5a, 0xda, 0x10, 0xee, 0xdd, 0x89, 0x81, 0x92,
                                 0x78, 0xb0, 0x92, 0x35, 0x87, 0x80, 0x3d, 0x7d, 0xb2, 0x07,
@@ -149,3 +183,39 @@ class PolkadotClient:
                + TX_VERSION.to_bytes(4, "little") \
                + GENESIS_HASH \
                + BLOCK_HASH
+
+    def perform_polkadot_transaction(self, address, send_amount) -> bytes:
+        # Get public key.
+        key = self.get_pubkey()
+
+        path = DOT_PACKED_DERIVATION_PATH_SIGN_INIT
+        tx_blob = Method.BALANCE_TRANSFER_ALLOW_DEATH.to_bytes(2, "big") \
+            + AccountIdLookupType.ID.to_bytes(1, "big") \
+            + _polkadot_address_to_pk(address) \
+            + _format_amount(send_amount) \
+            + bytes.fromhex(ERA) \
+            + NONCE.to_bytes(2, "little") \
+            + CHECK_METADATA_HASH.to_bytes(1, "little") \
+            + SPEC_VERSION.to_bytes(4, "little") \
+            + TX_VERSION.to_bytes(4, "little") \
+            + GENESIS_HASH \
+            + BLOCK_HASH \
+            + SHORT_METADATA_ID.to_bytes(1, "little") \
+            + SHORT_METADATA
+
+        tx_blob_length = len(tx_blob).to_bytes(2, "little")
+        metadata = fetch_metadata(tx_blob)
+        message = tx_blob + metadata
+
+        chunk_0 = path + tx_blob_length
+        self.client.exchange(self.CLA, ins=Command.SIGN_TX, p1=SignP1.INIT, data=chunk_0)
+
+        message_splited = [message[x:x + MAX_CHUNK_SIZE] for x in range(0, len(message), MAX_CHUNK_SIZE)]
+        for index, chunk in enumerate(message_splited):
+            payload_type = SignP1.ADD
+            if index == len(message_splited) - 1:
+                payload_type = SignP1.LAST
+
+            response = self.client.exchange(self.CLA, ins=Command.SIGN_TX, p1=payload_type, p2=SignP2Last.ED25519, data=chunk)
+
+        assert self.verify_signature(hex_key=key, signature=response.data[1:], message=tx_blob.hex().encode())
