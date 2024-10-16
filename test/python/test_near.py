@@ -2,10 +2,12 @@ import pytest
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_FEES
 from .apps.near import  NearClient, NearErrors
+from .apps import cal as cal
 
 # ExchangeTestRunner implementation for Near
 class NearTests(ExchangeTestRunner):
-    currency_ticker = "NEAR"
+
+    currency_configuration = cal.NEAR_CURRENCY_CONFIGURATION
     valid_destination_1 = "speculos.testnet"
     valid_destination_memo_1 = ""
     valid_destination_2 = "speculo.testnet"
