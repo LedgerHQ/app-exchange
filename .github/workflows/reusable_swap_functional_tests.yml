@@ -93,6 +93,15 @@ on:
         default: 'LedgerHQ/app-tron'
         type: string
 
+      branch_for_ton:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_ton:
+        required: false
+        default: 'LedgerHQ/app-ton'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -146,6 +155,9 @@ jobs:
         - name: tron
           repo: ${{ inputs.repo_for_tron }}
           branch: ${{ inputs.branch_for_tron }}
+        - name: ton
+          repo: ${{ inputs.repo_for_ton }}
+          branch: ${{ inputs.branch_for_ton }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
