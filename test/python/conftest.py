@@ -25,6 +25,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "solana": "Solana",
     "DOT": "Polkadot",
     "tron": "Tron",
+    "ton": "TON",
 }
 
 configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
