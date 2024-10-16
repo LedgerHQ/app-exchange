@@ -103,7 +103,7 @@ on:
         type: string
       repo_for_near:
         required: false
-        default: 'LedgerHQ/app-near-new'
+        default: 'LedgerHQ/app-near'
         type: string
 
       branch_for_ton:
