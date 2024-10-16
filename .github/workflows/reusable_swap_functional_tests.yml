@@ -184,7 +184,7 @@ jobs:
           repo: ${{ inputs.repo_for_near }}
           branch: ${{ inputs.branch_for_near }}
 
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@y333/upload_rust_app_as_lib
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
       app_repository: ${{ matrix.coin.repo }}
       app_branch_name: ${{ matrix.coin.branch }}
@@ -208,7 +208,7 @@ jobs:
 
   build_exchange_application:
     name: Build Exchange
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@y333/upload_rust_app_as_lib
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
       app_repository: LedgerHQ/app-exchange
       app_branch_name: ${{ inputs.branch_for_exchange }}
