@@ -95,11 +95,11 @@ on:
 
       branch_for_ton:
         required: false
-        default: 'develop'
+        default: 'fbe/add_swap'
         type: string
       repo_for_ton:
         required: false
-        default: 'LedgerHQ/app-ton'
+        default: 'LedgerHQ/app-ton-new'
         type: string
 
       test_filter:
