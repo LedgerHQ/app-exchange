@@ -77,6 +77,8 @@ void app_main(void) {
     }
 }
 
+// TODO: remove
+
 // On Stax, remember some data from the previous cycle if applicable to display a status screen
 #ifdef HAVE_NBGL
 previous_cycle_data_t G_previous_cycle_data;
