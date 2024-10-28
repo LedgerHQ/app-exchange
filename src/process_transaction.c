@@ -211,6 +211,13 @@ static bool check_extra_id_extra_data(subcommand_e subcommand) {
         }
 
         if (has_extra_data) {
+#ifdef TARGET_NANOS
+            // We make sure that we return an error on Nano S, if a payin_extra_data is provided.
+            // Nano S does not support Thorchain.
+            PRINTF("Error: payin_extra_data is not supported on Nano S.\n");
+            return false;
+#endif
+
             // Size has to be header + 32 bytes hash
             if (extra->size != 33) {
                 PRINTF("Error: incorrect payin_extra_data size %d != 33; payin_extra_data = %.*H\n",
