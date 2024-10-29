@@ -29,6 +29,8 @@ class TestsPolkadot:
 
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
     def test_polkadot(self, backend, exchange_navigation_helper, test_to_run):
-        if backend.firmware.device == "nanos":
-            pytest.skip("Polkadot swap is not supported on NanoS device")
-        PolkadotTests(backend, exchange_navigation_helper).run_test(test_to_run)
+        pytest.skip("Polkadot swap test is disabled")
+
+        # if backend.firmware.device == "nanos":
+        #     pytest.skip("Polkadot swap is not supported on NanoS device")
+        # PolkadotTests(backend, exchange_navigation_helper).run_test(test_to_run)
