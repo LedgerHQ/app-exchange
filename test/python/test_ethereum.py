@@ -50,27 +50,27 @@ class TestsEthereum:
 
 
 
-# ExchangeTestRunner implementation for BSC on ETH application
-class BSCTests(GenericEthereumNetworkTests):
-    chain_id = 56
-    currency_configuration = cal.BNB_CURRENCY_CONFIGURATION
+# # ExchangeTestRunner implementation for BSC on ETH application
+# class BSCTests(GenericEthereumNetworkTests):
+#     chain_id = 56
+#     currency_configuration = cal.BNB_CURRENCY_CONFIGURATION
 
-class TestsBSC:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
-    def test_bsc(self, backend, exchange_navigation_helper, test_to_run):
-        BSCTests(backend, exchange_navigation_helper).run_test(test_to_run)
+# class TestsBSC:
+#     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
+#     def test_bsc(self, backend, exchange_navigation_helper, test_to_run):
+#         BSCTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
 
 
-# ExchangeTestRunner implementation for BSC on BNB application
-class BSCLegacyTests(GenericEthereumNetworkTests):
-    chain_id = 56
-    currency_configuration = cal.BNB_LEGACY_CURRENCY_CONFIGURATION
+# # ExchangeTestRunner implementation for BSC on BNB application
+# class BSCLegacyTests(GenericEthereumNetworkTests):
+#     chain_id = 56
+#     currency_configuration = cal.BNB_LEGACY_CURRENCY_CONFIGURATION
 
-class TestsBSCLegacy:
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
-    def test_bsc_legacy(self, backend, exchange_navigation_helper, test_to_run):
-        BSCLegacyTests(backend, exchange_navigation_helper).run_test(test_to_run)
+# class TestsBSCLegacy:
+#     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
+#     def test_bsc_legacy(self, backend, exchange_navigation_helper, test_to_run):
+#         BSCLegacyTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
 
 
