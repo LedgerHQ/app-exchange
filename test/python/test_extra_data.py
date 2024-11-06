@@ -49,7 +49,7 @@ class TestExtraData:
         ConfForTest(payin_extra_id="abcdefghijklmnopqrs",
                     payin_extra_data=None,
                     valid=True),
-        # Having only one is allowed
+        # Having only one is allowed (except for NanoS)
         ConfForTest(payin_extra_id=None,
                     payin_extra_data=bytes.fromhex("01000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F"),
                     valid=True),
@@ -58,7 +58,7 @@ class TestExtraData:
                     payin_extra_data=bytes.fromhex("00"),
                     valid=True),
     ])
-    def test_extra_data_and_or_extra_id(self, backend, configurations):
+    def test_extra_data_and_or_extra_id(self, backend, configurations, firmware):
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP_NG)
         partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP_NG), name="Default name")
 
@@ -84,7 +84,11 @@ class TestExtraData:
 
         fees = 339
 
-        tx, tx_signature = craft_and_sign_tx(SubCommand.SWAP_NG, tx_infos, transaction_id, fees, partner)
+        tx, _ = craft_and_sign_tx(SubCommand.SWAP_NG, tx_infos, transaction_id, fees, partner)
+
+        # NanoS does not support payin_extra_data
+        if firmware.device == "nanos" and configurations.payin_extra_id is None and configurations.payin_extra_data == bytes.fromhex("01000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F"):
+            configurations.valid = False
 
         if configurations.valid:
             ex.process_transaction(tx)

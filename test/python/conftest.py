@@ -23,7 +23,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "litecoin": "Litecoin",
     "stellar": "Stellar",
     "solana": "Solana",
-    # "DOT": "Polkadot",
+    "DOT": "Polkadot",
     "tron": "Tron",
     "ton": "TON",
 }
