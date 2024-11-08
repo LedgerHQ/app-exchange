@@ -106,6 +106,15 @@ on:
         default: 'LedgerHQ/app-ton-new'
         type: string
 
+      branch_for_cardano:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_cardano:
+        required: false
+        default: 'LedgerHQ/app-cardano'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -165,6 +174,9 @@ jobs:
         - name: ton
           repo: ${{ inputs.repo_for_ton }}
           branch: ${{ inputs.branch_for_ton }}
+        - name: cardano
+          repo: ${{ inputs.repo_for_cardano }}
+          branch: ${{ inputs.branch_for_cardano }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
