@@ -5,6 +5,11 @@
 This app is the orchestrator of Swap and Sell functionalities on ledger devices.
 An overview of the feature is available [here](https://blog.ledger.com/secure-swap/)
 
+## Documentation 
+
+* [Flow](doc/flow)
+* [APDU protocol](doc/protocol) 
+
 ## Building and installing
 
 To build and install the app on your Nano S or X you must set up the Ledger Nano S or X build environments. Please follow the Getting Started instructions at the [Ledger Nano S github repository](https://github.com/LedgerHQ/ledger-nano-s).
