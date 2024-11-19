@@ -103,6 +103,14 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
             check_current_state = TRANSACTION_RECEIVED;
             check_subcommand_context = true;
             break;
+        case GET_CHALLENGE_COMMAND:
+            check_current_state = SIGNATURE_CHECKED;
+            check_subcommand_context = true;
+            break;
+        case SEND_TRUSTED_NAME_DESCRIPTOR_COMMAND:
+            check_current_state = CHALLENGE_SENT;
+            check_subcommand_context = true;
+            break;
         case CHECK_PAYOUT_ADDRESS:
         case CHECK_ASSET_IN_AND_DISPLAY:
         case CHECK_ASSET_IN_NO_DISPLAY:

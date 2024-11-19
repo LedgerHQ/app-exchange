@@ -42,6 +42,9 @@ int dispatch_command(const command_t *cmd) {
         case CHECK_TRANSACTION_SIGNATURE_COMMAND:
             ret = check_tx_signature(cmd);
             break;
+        case GET_CHALLENGE_COMMAND:
+            ret = get_challenge_handler();
+            break;
         case CHECK_PAYOUT_ADDRESS:
         case CHECK_ASSET_IN_AND_DISPLAY:
         case CHECK_ASSET_IN_NO_DISPLAY:

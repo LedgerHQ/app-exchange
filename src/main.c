@@ -29,6 +29,7 @@
 #include "swap_errors.h"
 #include "apdu_parser.h"
 #include "sign_result.h"
+#include "get_challenge_handler.h"
 
 #include "usbd_core.h"
 
@@ -154,6 +155,9 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 BLE_power(0, NULL);
                 BLE_power(1, NULL);
 #endif
+
+                // to prevent it from having a fixed value at boot
+                roll_challenge();
 
                 app_main();
             }
