@@ -12,6 +12,7 @@
 #include "start_signing_transaction.h"
 #include "check_addresses_and_amounts.h"
 #include "prompt_ui_display.h"
+#include "get_challenge_handler.h"
 
 #include "io.h"
 
