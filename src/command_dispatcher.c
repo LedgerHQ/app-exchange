@@ -13,6 +13,7 @@
 #include "check_addresses_and_amounts.h"
 #include "prompt_ui_display.h"
 #include "get_challenge_handler.h"
+#include "trusted_name_descriptor_handler.h"
 
 #include "io.h"
 
@@ -43,8 +44,11 @@ int dispatch_command(const command_t *cmd) {
         case CHECK_TRANSACTION_SIGNATURE_COMMAND:
             ret = check_tx_signature(cmd);
             break;
-        case GET_CHALLENGE_COMMAND:
+        case GET_CHALLENGE:
             ret = get_challenge_handler();
+            break;
+        case SEND_TRUSTED_NAME_DESCRIPTOR:
+            ret = trusted_name_descriptor_handler(cmd);
             break;
         case CHECK_PAYOUT_ADDRESS:
         case CHECK_ASSET_IN_AND_DISPLAY:
