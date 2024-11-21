@@ -104,7 +104,7 @@ on:
 
       branch_for_cardano:
         required: false
-        default: 'develop'
+        default: 'cev/B2CA-1838_implement-swap'
         type: string
       repo_for_cardano:
         required: false
