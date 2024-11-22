@@ -14,7 +14,7 @@ from .ethereum import DAI_PACKED_DERIVATION_PATH, DAI_CONF
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
-from .solana_utils import SOL_PACKED_DERIVATION_PATH, SOL_CONF
+from .solana_utils import SOL_PACKED_DERIVATION_PATH, SOL_CONF, JUP_CONF, JUP_PACKED_DERIVATION_PATH
 from .xrp import XRP_PACKED_DERIVATION_PATH, XRP_CONF
 from .tezos import XTZ_PACKED_DERIVATION_PATH, XTZ_CONF
 from .polkadot import DOT_PACKED_DERIVATION_PATH, DOT_CONF
@@ -57,6 +57,7 @@ TUSD_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="TUSD", conf=TRX_TUSD
 USDD_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDD", conf=TRX_USDD_CONF, packed_derivation_path=TRX_PACKED_DERIVATION_PATH)
 ADA_BYRON_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_BYRON_PACKED_DERIVATION_PATH)
 ADA_SHELLEY_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_SHELLEY_PACKED_DERIVATION_PATH)
+JUP_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="JUP", conf=JUP_CONF, packed_derivation_path=JUP_PACKED_DERIVATION_PATH)
 
 
 # Helper that can be called from outside if we want to generate errors easily
