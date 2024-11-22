@@ -85,7 +85,7 @@ class SPLTokenTests(GenericSolanaTests):
     signature_refusal_error_code = ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        # Define the sender and receiver public keys
+        # Get the sender public key
         sender_public_key = Pubkey.from_string(SOL.OWNED_ADDRESS_STR)
 
         # Get the associated token addresses for the sender
