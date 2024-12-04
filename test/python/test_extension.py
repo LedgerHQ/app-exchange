@@ -52,23 +52,6 @@ FEES = 100
 
 class TestExtension:
 
-    @pytest.mark.parametrize("subcommand", LEGACY_SUBCOMMANDS)
-    def test_extension_forbidden_for_subcommand(self, backend, subcommand):
-        ex = ExchangeClient(backend, Rate.FIXED, subcommand)
-        partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
-        transaction_id = ex.init_transaction().data
-        credentials = get_credentials(subcommand, partner)
-        ex.set_partner_key(credentials)
-        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
-        tx, _ = craft_and_sign_tx(subcommand, TX_INFOS[subcommand], transaction_id, FEES, partner)
-        # Send the exchange transaction proposal and its signature
-
-        for ext in [P2_MORE, P2_EXTEND, (P2_EXTEND | P2_MORE)]:
-            with pytest.raises(ExceptionRAPDU) as e:
-                backend.exchange(ex.CLA, Command.PROCESS_TRANSACTION_RESPONSE, p1=Rate.FIXED, p2=(subcommand | ext), data=tx)
-            assert e.value.status == Errors.WRONG_P2_EXTENSION
-
-
     @pytest.mark.parametrize("subcommand", ALL_SUBCOMMANDS)
     def test_extension_forbidden_for_command(self, backend, subcommand):
         for ext in [P2_MORE, P2_EXTEND, (P2_EXTEND | P2_MORE)]:
@@ -77,7 +60,7 @@ class TestExtension:
             assert e.value.status == Errors.WRONG_P2_EXTENSION
 
 
-    @pytest.mark.parametrize("subcommand", NEW_SUBCOMMANDS)
+    @pytest.mark.parametrize("subcommand", ALL_SUBCOMMANDS)
     def test_extension_many_chunks(self, backend, subcommand):
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
@@ -99,7 +82,7 @@ class TestExtension:
         ex.check_transaction_signature(tx_signature)
 
 
-    @pytest.mark.parametrize("subcommand", NEW_SUBCOMMANDS)
+    @pytest.mark.parametrize("subcommand", ALL_SUBCOMMANDS)
     def test_extension_advanced_usage(self, backend, subcommand):
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
