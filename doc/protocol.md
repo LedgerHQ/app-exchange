@@ -88,6 +88,8 @@ Changing the subcommand after an exchange flow is started will result in an erro
 
 ### EXTENSION:
 
+This feature is only available in a PROCESS_TRANSACTION_RESPONSE command in a SWAP_NEW, SELL_NEW, or FUND_NEW flow.\
+In Legacy flows the extension must be P2_NONE. \
 The extension is sent to the app as the upper 4 bits of the P2 byte of the APDU.
 
 The maximum DATA in a single APDU is 255 bytes, in case it is not sufficient for a command,
