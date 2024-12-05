@@ -13,8 +13,9 @@ on:
           - 'Open a PR'
   push:
     branches:
-    - master
-    - develop
+      - master
+      - develop
+      - nanos
   pull_request:
 
 jobs:
