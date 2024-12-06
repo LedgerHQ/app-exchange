@@ -135,12 +135,16 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 //  - we need a BSS reset + UX_INIT
                 if (G_previous_cycle_data.had_previous_cycle) {
                     G_previous_cycle_data.had_previous_cycle = false;
-                    if (G_previous_cycle_data.was_successful) {
+                    if (G_previous_cycle_data.was_successful == LAST_CYCLE_ERROR) {
+                        PRINTF("Displaying modal for failed last cycle\n");
+                        display_signing_failure(G_previous_cycle_data.appname_last_cycle);
+                    } else if (G_previous_cycle_data.was_successful == LAST_CYCLE_SUCCESS) {
                         PRINTF("Displaying modal for successful last cycle\n");
                         display_signing_success();
                     } else {
-                        PRINTF("Displaying modal for failed last cycle\n");
-                        display_signing_failure(G_previous_cycle_data.appname_last_cycle);
+                        // LAST_CYCLE_EXCEPTION
+                        PRINTF("Displaying modal for exception last cycle\n");
+                        display_signing_exception(G_previous_cycle_data.appname_last_cycle);
                     }
                 } else {
                     ui_idle();
