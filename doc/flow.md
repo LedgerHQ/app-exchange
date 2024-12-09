@@ -107,9 +107,9 @@ sequenceDiagram
 
     LL->>EA: START_SIGNING_TRANSACTION (0x0A)
     activate EA
+    EA-->>LL: Ok
     EA->>FRCA: os_lib_call(SIGN_TRANSACTION, transaction_parameters)
     activate FRCA
-    EA-->>LL: Ok
     deactivate EA
     FRCA-->>FRCA: Save data validated by the user
     LL->>FRCA: Sign transaction request
