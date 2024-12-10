@@ -10,9 +10,8 @@ int start_signing_transaction(const command_t *cmd) {
         return -1;
     }
 
-    // Create the variable given to the signing app. It's placed in BSS section to save RAM
-    // (heap is shared, stack is not)
-    static create_transaction_parameters_t lib_in_out_params;
+    // Create the variable given to the signing app.
+    create_transaction_parameters_t lib_in_out_params;
 
     lib_in_out_params.fee_amount = G_swap_ctx.transaction_fee;
     lib_in_out_params.fee_amount_length = G_swap_ctx.transaction_fee_length;
