@@ -88,11 +88,10 @@ class SolanaClient:
     def split_and_prefix_message(self, derivation_path : bytes, message: bytes) -> List[bytes]:
         assert len(message) <= 65535, "Message to send is too long"
         header: bytes = _extend_and_serialize_multiple_derivations_paths([derivation_path])
-        # Check to see if this data needs to be split up and sent in chunks.
-        max_size = MAX_CHUNK_SIZE - len(header)
+        max_size = MAX_CHUNK_SIZE
         message_splited = [message[x:x + max_size] for x in range(0, len(message), max_size)]
-        # Add the header to every chunk
-        return [header + s for s in message_splited]
+        # The first chunk is the header, then all chunks with max size
+        return [header] + message_splited
 
 
     def send_first_message_batch(self, messages: List[bytes], p1: int) -> RAPDU:
