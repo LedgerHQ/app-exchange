@@ -11,8 +11,6 @@ from .apps.exchange_navigation_helper import ExchangeNavigationHelper
 # You can configure optional parameters by overriding the value of ragger.configuration.OPTIONAL_CONFIGURATION
 # Please refer to ragger/conftest/configuration.py for their descriptions and accepted values
 
-configuration.OPTIONAL.APP_NAME = "Exchange"
-
 configuration.OPTIONAL.SIDELOADED_APPS = {
     "bitcoin": "Bitcoin",
     "bitcoin_legacy": "Bitcoin Legacy",
