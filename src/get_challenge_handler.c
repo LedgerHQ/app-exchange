@@ -13,7 +13,7 @@ static uint32_t challenge;
  * Generate a new challenge from the Random Number Generator
  */
 void roll_challenge(void) {
-#ifdef HAVE_TRUSTED_NAME_TEST
+#ifdef FIXED_TLV_CHALLENGE
     challenge = 0xdeadbeef;
 #else
     challenge = cx_rng_u32();
@@ -48,8 +48,6 @@ int get_challenge_handler(void) {
     if (io_send_response_buffers(&output, 1, SUCCESS) < 0) {
         return -1;
     }
-
-    G_swap_ctx.state = CHALLENGE_SENT;
 
     return 0;
 }
