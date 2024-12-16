@@ -21,7 +21,7 @@ class P2():
 
 class NearErrors(IntEnum):
     SW_DENY = 0x6985
-    SW_SWAP_CHECKING_FAIL = 0x6A88
+    SW_SWAP_CHECKING_FAIL = 0xB008
 
 
 class NearClient:
@@ -33,24 +33,82 @@ class NearClient:
     def send_simple_sign_tx(self, path: str, destination: str, send_amount: int) -> RAPDU:
         packed_path = pack_derivation_path(path)
 
-        """
-        1234.56 NEAR
-        Transaction {
-            signer_id: "blablatest.testnet",
-            public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
-            nonce: 103595482000005,
-            receiver_id: "speculos.testnet",
-            block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
-            actions: [
-                Transfer(
-                    TransferAction {
-                        deposit: 1234560000000000000000000000,
-                    },
-                ),
-            ],
-        }
-        """
-
-        tx = bytes.fromhex("12000000626c61626c61746573742e746573746e657400c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001000000073706563756c6f732e746573746e6574ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000030000001049f203b43f34fd0300000000")
+        if destination == "speculos.testnet" and send_amount == 1234560000000000000000000000:
+            """
+            1234.56 NEAR
+            Transaction {
+                signer_id: "blablatest.testnet",
+                public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+                nonce: 103595482000005,
+                receiver_id: "speculos.testnet",
+                block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+                actions: [
+                    Transfer(
+                        TransferAction {
+                            deposit: 1234560000000000000000000000,
+                        },
+                    ),
+                ],
+            }
+            """
+            tx = bytes.fromhex("12000000626c61626c61746573742e746573746e657400c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001000000073706563756c6f732e746573746e6574ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000030000001049f203b43f34fd0300000000")
+        
+        elif destination == "speculos.testnet" and send_amount == 500000000000000000000000:
+            """
+            0.5 NEAR
+            Transaction {
+                signer_id: "blablatest.testnet",
+                public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+                nonce: 103595482000005,
+                receiver_id: "speculos.testnet",
+                block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+                actions: [
+                    Transfer(
+                        TransferAction {
+                            deposit: 500000000000000000000000,
+                        },
+                    ),
+                ],
+            }
+            """
+            tx = bytes.fromhex("12000000626c61626c61746573742e746573746e657400c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00001000000073706563756c6f732e746573746e6574ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a7258310100000003000080d07666e70de169000000000000")
+        elif destination == "ledger.testnet" and send_amount == 1234560000000000000000000000:
+            """
+            1234.56 NEAR
+            Transaction {
+                signer_id: "blablatest.testnet",
+                public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+                nonce: 103595482000005,
+                receiver_id: "ledger.testnet",
+                block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+                actions: [
+                    Transfer(
+                        TransferAction {
+                            deposit: 1234560000000000000000000000,
+                        },
+                    ),
+                ],
+            }
+            """
+            tx = bytes.fromhex("12000000626c61626c61746573742e746573746e657400c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00000e0000006c65646765722e746573746e6574ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a72583101000000030000001049f203b43f34fd0300000000")
+        else:
+            """
+            0.5 NEAR
+            Transaction {
+                signer_id: "blablatest.testnet",
+                public_key: ed25519:EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U,
+                nonce: 103595482000005,
+                receiver_id: "ledger.testnet",
+                block_hash: Cb3vKNiF3MUuVoqfjuEFCgSNPT79pbuVfXXd2RxDXc5E,
+                actions: [
+                    Transfer(
+                        TransferAction {
+                            deposit: 500000000000000000000000,
+                        },
+                    ),
+                ],
+            }
+            """
+            tx = bytes.fromhex("12000000626c61626c61746573742e746573746e657400c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f85aae733385e00000e0000006c65646765722e746573746e6574ac299ac1376e375cd39338d8b29225613ef947424b74a3207c1226863a7258310100000003000080d07666e70de169000000000000") 
 
         return self._backend.exchange(self.CLA, Ins.SIGN, P1.MORE, P2.UNUSED, packed_path[1:] + tx)

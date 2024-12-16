@@ -10,12 +10,12 @@ class NearTests(ExchangeTestRunner):
     currency_configuration = cal.NEAR_CURRENCY_CONFIGURATION
     valid_destination_1 = "speculos.testnet"
     valid_destination_memo_1 = ""
-    valid_destination_2 = "speculos.testnet"
+    valid_destination_2 = "ledger.testnet"
     valid_destination_memo_2 = ""
     valid_refund = "EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U"
     valid_refund_memo = ""
     valid_send_amount_1 = 1234560000000000000000000000
-    valid_send_amount_2 = 1234560000000000000000000000
+    valid_send_amount_2 = 500000000000000000000000
     valid_fees_1 = 0
     valid_fees_2 = 0
     fake_refund = "abcdabcd"
