@@ -59,12 +59,10 @@ int parse_check_address_message(const command_t *cmd,
     }
 
     // Read address parameters
-    PRINTF("Read Address Parameters\n");
     if (!parse_to_sized_buffer(cmd->data.bytes, cmd->data.size, 1, address_parameters, &read)) {
         PRINTF("Cannot read the address_parameters\n");
         return 0;
     }
-    PRINTF("Address Parameters size: %d\n", address_parameters->size);
     if (address_parameters->size < 1) {
         PRINTF("Invalid address_parameters size %d\n", address_parameters->size);
         return 0;
