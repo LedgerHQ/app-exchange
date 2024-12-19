@@ -8,6 +8,9 @@ from .apps.exchange_transaction_builder import get_partner_curve, LEGACY_SUBCOMM
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps import cal as cal
 
+CURRENCY_FROM = cal.ETH_CURRENCY_CONFIGURATION
+CURRENCY_TO = cal.BTC_CURRENCY_CONFIGURATION
+
 # Some valid infos for TX. Content is irrelevant for the test
 
 SWAP_TX_INFOS = {
@@ -17,15 +20,15 @@ SWAP_TX_INFOS = {
      "refund_extra_id": b"",
      "payout_address": b"bc1qqtl9jlrwcr3fsfcjj2du7pu6fcgaxl5dsw2vyg",
      "payout_extra_id": b"",
-     "currency_from": "ETH",
-     "currency_to": "BTC",
+     "currency_from": CURRENCY_FROM.ticker,
+     "currency_to": CURRENCY_TO.ticker,
      "amount_to_provider": bytes.fromhex("013fc3a717fb5000"),
      "amount_to_wallet": b"\x0b\xeb\xc2\x00",
 }
 FUND_TX_INFOS = {
     "user_id": "John Wick",
     "account_name": "Remember Daisy",
-    "in_currency": "ETH",
+    "in_currency": CURRENCY_FROM.ticker,
     "in_amount": b"\032\200\250]$T\000",
     "in_address": "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
 }
@@ -33,7 +36,7 @@ SELL_TX_INFOS = {
     "trader_email": "john@doe.lost",
     "out_currency": "USD",
     "out_amount": {"coefficient": b"\x01", "exponent": 3},
-    "in_currency": "ETH",
+    "in_currency": CURRENCY_FROM.ticker,
     "in_amount": b"\032\200\250]$T\000",
     "in_address": "0x252fb4acbe0de4f0bd2409a5ed59a71e4ef1d2bc"
 }

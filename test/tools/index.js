@@ -86,6 +86,7 @@ const main = () => {
     const xlmConfig = createCurrencyConfig("XLM", "Stellar", Buffer(0), ledgerTestPrivateKey);
     const xtzConfig = createCurrencyConfig("XTZ", "Tezos Wallet", Buffer(0), ledgerTestPrivateKey);
     const xtzLegacyConfig = createCurrencyConfig("XTZ", "Tezos", Buffer(0), ledgerTestPrivateKey);
+    const solConfig = createCurrencyConfig("SOL", "Solana", Buffer(0), ledgerTestPrivateKey);
 
     const ethSubConfig = Buffer.concat([Buffer.from(["ETH".length]), Buffer.from("ETH"), Buffer.from([18])])
     const ethConfig = createCurrencyConfig("ETH", "Ethereum", ethSubConfig, ledgerTestPrivateKey);
@@ -131,6 +132,8 @@ const main = () => {
     console.log("const USDTConfigSignature = Buffer.from(" + toHexPrintableConst(usdtConfig.signature));
     console.log("\nconst REPConfig = Buffer.from(" + toHexPrintableConst(repConfig.coinConfig));
     console.log("const REPConfigSignature = Buffer.from(" + toHexPrintableConst(repConfig.signature));
+    console.log("\nconst SOLConfig = Buffer.from(" + toHexPrintableConst(solConfig.coinConfig));
+    console.log("const SOLConfigSignature = Buffer.from(" + toHexPrintableConst(solConfig.signature));
 }
 
 

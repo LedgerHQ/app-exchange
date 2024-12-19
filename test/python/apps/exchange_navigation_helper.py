@@ -38,7 +38,7 @@ class ExchangeNavigationHelper:
                 # Don't try to assert the "Processing" spinner on stax
                 screen_change_after_last_instruction = False
             else:
-                validation_instructions = [NavInsID.USE_CASE_REVIEW_REJECT, NavInsID.USE_CASE_CHOICE_CONFIRM]
+                validation_instructions = [NavInsID.USE_CASE_REVIEW_REJECT, NavInsID.USE_CASE_CHOICE_CONFIRM, NavInsID.USE_CASE_STATUS_DISMISS]
 
         self._navigator.navigate_until_text_and_compare(navigate_instruction=navigate_instruction,
                                                         validation_instructions=validation_instructions,
@@ -54,15 +54,15 @@ class ExchangeNavigationHelper:
         self._navigate_and_compare(False)
 
     def wait_for_exchange_spinner(self):
-        if self._backend.firmware.device == "stax":
+        if not self._backend.firmware.is_nano:
             self._backend.wait_for_text_on_screen("Processing")
 
     def wait_for_library_spinner(self):
-        if self._backend.firmware.device == "stax":
+        if not self._backend.firmware.is_nano:
             self._backend.wait_for_text_on_screen("Signing")
 
     def check_post_sign_display(self):
-        if self._backend.firmware.device == "stax":
+        if not self._backend.firmware.is_nano:
             # Wait for the end of the lib app spinner
             self._backend.wait_for_text_not_on_screen("Signing")
             # We should now be back in exchange with a success or failure modal, check it and dismiss it

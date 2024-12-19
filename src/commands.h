@@ -1,6 +1,6 @@
 #pragma once
 
-#include "buffer.h"
+#include "buf.h"
 
 // CLA to use when communicating with Exchange
 #define CLA 0xE0
@@ -14,9 +14,12 @@ typedef enum {
     PROCESS_TRANSACTION_RESPONSE_COMMAND = 0x06,
     CHECK_TRANSACTION_SIGNATURE_COMMAND = 0x07,
     CHECK_PAYOUT_ADDRESS = 0x08,
-    CHECK_ASSET_IN_LEGACY = 0x08,  // Same ID as CHECK_PAYOUT_ADDRESS
-    CHECK_ASSET_IN = 0x0B,         // Do note the 0x0B
-    CHECK_REFUND_ADDRESS = 0x09,
+    CHECK_ASSET_IN_LEGACY_AND_DISPLAY = 0x08,  // Same ID as CHECK_PAYOUT_ADDRESS, deprecated
+    CHECK_ASSET_IN_AND_DISPLAY = 0x0B,         // Do note the 0x0B
+    CHECK_ASSET_IN_NO_DISPLAY = 0x0D,          // Do note the 0x0B
+    CHECK_REFUND_ADDRESS_AND_DISPLAY = 0x09,
+    CHECK_REFUND_ADDRESS_NO_DISPLAY = 0x0C,
+    PROMPT_UI_DISPLAY = 0x0F,
     START_SIGNING_TRANSACTION = 0x0A,
 } command_e;
 

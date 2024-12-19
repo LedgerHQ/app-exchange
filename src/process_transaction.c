@@ -5,6 +5,7 @@
 #include "proto/protocol.pb.h"
 #include "swap_errors.h"
 #include "io.h"
+#include "io_helpers.h"
 #include "base64.h"
 #include "pb_structs.h"
 #include "globals.h"
@@ -193,6 +194,43 @@ static bool deserialize_protobuf_payload(buf_t payload,
     return true;
 }
 
+static bool check_extra_id_extra_data(subcommand_e subcommand) {
+    if (subcommand == SWAP || subcommand == SWAP_NG) {
+        pb_bytes_array_33_t *extra =
+            (pb_bytes_array_33_t *) &G_swap_ctx.swap_transaction.payin_extra_data;
+        // has_extra_id == extra id string is not 0 sized
+        bool has_extra_id = (G_swap_ctx.swap_transaction.payin_extra_id[0] != '\0');
+        // has_extra_data == extra data is not empty and does not have only one byte NATIVE id (0)
+        bool has_extra_data = (extra->size != 0 && !(extra->size == 1 && extra->bytes[0] == 0));
+        if (has_extra_id && has_extra_data) {
+            PRINTF("Error: both payin_extra_id '%s' and payin_extra_data '%.*H' received\n",
+                   G_swap_ctx.swap_transaction.payin_extra_id,
+                   extra->size,
+                   extra->bytes);
+            return false;
+        }
+
+        if (has_extra_data) {
+#ifdef TARGET_NANOS
+            // We make sure that we return an error on Nano S, if a payin_extra_data is provided.
+            // Nano S does not support Thorchain.
+            PRINTF("Error: payin_extra_data is not supported on Nano S.\n");
+            return false;
+#endif
+
+            // Size has to be header + 32 bytes hash
+            if (extra->size != 33) {
+                PRINTF("Error: incorrect payin_extra_data size %d != 33; payin_extra_data = %.*H\n",
+                       extra->size,
+                       extra->size,
+                       extra->bytes);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 static bool check_transaction_id(subcommand_e subcommand) {
     if (subcommand == SWAP) {
         if (G_swap_ctx.swap_transaction.device_transaction_id[10] != '\0') {
@@ -329,6 +367,10 @@ int process_transaction(const command_t *cmd) {
 
     if (!deserialize_protobuf_payload(payload, cmd->subcommand, needs_base64_decoding)) {
         return reply_error(DESERIALIZATION_FAILED);
+    }
+
+    if (!check_extra_id_extra_data(cmd->subcommand)) {
+        return reply_error(WRONG_EXTRA_ID_OR_EXTRA_DATA);
     }
 
     if (!check_transaction_id(cmd->subcommand)) {

@@ -20,6 +20,7 @@
 #include "os_io_seproxyhal.h"
 #include "init.h"
 #include "io.h"
+#include "io_helpers.h"
 #include "menu.h"
 #include "globals.h"
 #include "commands.h"
@@ -27,14 +28,15 @@
 #include "apdu_offsets.h"
 #include "swap_errors.h"
 #include "apdu_parser.h"
-#include "validate_transaction.h"
+#include "sign_result.h"
 
 #include "usbd_core.h"
 
-ux_state_t G_ux;
-bolos_ux_params_t G_ux_params;
-
-uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
+// Error code thrown by os_lib_call when the requested application is not installed
+// Defined in SDK for old API_LEVELs, but not on recent API_LEVELs
+#ifndef SWO_SEC_APP_14
+#define SWO_SEC_APP_14 0x5114  // (ERR_SEC_APP + ERR_GEN_ID_14)
+#endif
 
 swap_app_context_t G_swap_ctx;
 
@@ -42,10 +44,10 @@ void app_main(void) {
     int input_length = 0;
     command_t cmd;
 
-    init_io();
+    io_init();
 
     for (;;) {
-        input_length = recv_apdu();
+        input_length = io_recv_command();
         PRINTF("New APDU received:\n%.*H\n", input_length, G_io_apdu_buffer);
         // there was a fatal error during APDU reception, restart from the beginning
         // Don't bother trying to send a status code, IOs are probably out
@@ -54,7 +56,7 @@ void app_main(void) {
             return;
         }
 
-        uint16_t ret = apdu_parser(G_io_apdu_buffer, input_length, &cmd);
+        uint16_t ret = check_apdu_validity(G_io_apdu_buffer, input_length, &cmd);
         if (ret != 0) {
             PRINTF("Sending early reply 0x%4x\n", ret);
             reply_error(ret);
@@ -72,22 +74,7 @@ void app_main(void) {
             // Force a return to the main function in order to trigger a full clean restart
             return;
         }
-
-        if (G_swap_ctx.state == INITIAL_STATE) {
-            ui_idle();
-        }
     }
-}
-
-void app_exit(void) {
-    BEGIN_TRY_L(exit) {
-        TRY_L(exit) {
-            os_sched_exit(-1);
-        }
-        FINALLY_L(exit) {
-        }
-    }
-    END_TRY_L(exit);
 }
 
 // On Stax, remember some data from the previous cycle if applicable to display a status screen
@@ -149,8 +136,10 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 if (G_previous_cycle_data.had_previous_cycle) {
                     G_previous_cycle_data.had_previous_cycle = false;
                     if (G_previous_cycle_data.was_successful) {
+                        PRINTF("Displaying modal for successful last cycle\n");
                         display_signing_success();
                     } else {
+                        PRINTF("Displaying modal for failed last cycle\n");
                         display_signing_failure(G_previous_cycle_data.appname_last_cycle);
                     }
                 } else {
@@ -168,6 +157,15 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
 
                 app_main();
             }
+            CATCH(SWO_SEC_APP_14) {
+                // We have called os_lib_call for an application that is not installed.
+                // Inform the caller of this failure and fully reset the context
+                // We don't try to handle this kind of error
+                PRINTF("Fatal: os_lib_call has thrown SWO_SEC_APP_14\n");
+                instant_reply_error(APPLICATION_NOT_INSTALLED);
+                CLOSE_TRY;
+                continue;
+            }
             CATCH(EXCEPTION_IO_RESET) {
                 // reset IO and UX before continuing
                 CLOSE_TRY;
@@ -182,6 +180,6 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
         }
         END_TRY;
     }
-    app_exit();
+    os_sched_exit(-1);
     return 0;
 }

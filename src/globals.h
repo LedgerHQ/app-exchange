@@ -11,7 +11,7 @@
 #define CURVE_SIZE_BYTES         32U
 #define UNCOMPRESSED_KEY_LENGTH  65U
 #define MIN_DER_SIGNATURE_LENGTH 67U
-#define MAX_DER_SIGNATURE_LENGTH 72U
+#define MAX_DER_SIGNATURE_LENGTH 73U
 
 #define CURVE_SECP256K1 0x00
 #define CURVE_SECP256R1 0x01
@@ -39,7 +39,10 @@ extern uint8_t G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
 #define PARTNER_NAME_PREFIX_FOR_FUND "To "
 
 typedef struct partner_data_s {
-    char prefixed_name[sizeof(PARTNER_NAME_PREFIX_FOR_FUND) - 1 + MAX_PARTNER_NAME_LENGHT + 1];
+    union {
+        char unprefixed_name[MAX_PARTNER_NAME_LENGHT + 1];
+        char prefixed_name[sizeof(PARTNER_NAME_PREFIX_FOR_FUND) - 1 + MAX_PARTNER_NAME_LENGHT + 1];
+    };
     cx_ecfp_256_public_key_t public_key;
 } partner_data_t;
 

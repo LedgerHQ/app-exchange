@@ -4,8 +4,11 @@ from ragger.backend import RaisePolicy
 from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command
 from .apps.exchange_transaction_builder import get_partner_curve, craft_and_sign_tx
 from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.tezos import encode_address
 from .apps import cal as cal
 
+CURRENCY_FROM = cal.XLM_CURRENCY_CONFIGURATION
+CURRENCY_TO = cal.ETH_CURRENCY_CONFIGURATION
 
 class TestRobustnessSET_PARTNER_KEY:
 
@@ -48,8 +51,8 @@ class TestRobustnessCHECK_ADDRESS:
         "refund_extra_id": b"",
         "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
         "payout_extra_id": b"",
-        "currency_from": "XLM",
-        "currency_to": "ETH",
+        "currency_from": CURRENCY_FROM.ticker,
+        "currency_to": CURRENCY_TO.ticker,
         "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
         "amount_to_wallet": b"\246\333t\233+\330\000",
     }
@@ -67,12 +70,12 @@ class TestRobustnessCHECK_ADDRESS:
     def test_robustness_check_payout_address(self, backend):
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
 
-        payout_currency_conf = cal.get_currency_conf(self.tx_infos["currency_to"])
+        payout_currency_conf = CURRENCY_TO.conf
         signed_payout_conf = cal.sign_currency_conf(payout_currency_conf)
-        payout_currency_derivation_path = cal.get_derivation_path(self.tx_infos["currency_to"])
-        refund_currency_conf = cal.get_currency_conf(self.tx_infos["currency_from"])
+        payout_currency_derivation_path = CURRENCY_TO.packed_derivation_path
+        refund_currency_conf = CURRENCY_FROM.conf
         signed_refund_conf = cal.sign_currency_conf(refund_currency_conf)
-        refund_currency_derivation_path = cal.get_derivation_path(self.tx_infos["currency_from"])
+        refund_currency_derivation_path = CURRENCY_FROM.packed_derivation_path
 
         payloads_to_test = (
             # Nothing
@@ -97,12 +100,12 @@ class TestRobustnessCHECK_ADDRESS:
     def test_robustness_check_refund_address(self, backend):
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
 
-        payout_currency_conf = cal.get_currency_conf(self.tx_infos["currency_to"])
+        payout_currency_conf = CURRENCY_TO.conf
         signed_payout_conf = cal.sign_currency_conf(payout_currency_conf)
-        payout_currency_derivation_path = cal.get_derivation_path(self.tx_infos["currency_to"])
-        refund_currency_conf = cal.get_currency_conf(self.tx_infos["currency_from"])
+        payout_currency_derivation_path = CURRENCY_TO.packed_derivation_path
+        refund_currency_conf = CURRENCY_FROM.conf
         signed_refund_conf = cal.sign_currency_conf(refund_currency_conf)
-        refund_currency_derivation_path = cal.get_derivation_path(self.tx_infos["currency_from"])
+        refund_currency_derivation_path = CURRENCY_FROM.packed_derivation_path
 
         payloads_to_test = (
             # Nothing
@@ -125,7 +128,7 @@ class TestRobustnessCHECK_ADDRESS:
             self._restart_test(backend, ex)
             ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
             backend.raise_policy = RaisePolicy.RAISE_NOTHING
-            rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=refund_payload)
+            rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, payload=refund_payload)
             assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
 
     def test_robustness_coin_configuration(self, backend):
@@ -149,7 +152,7 @@ class TestRobustnessCHECK_ADDRESS:
         for conf in currency_conf_to_test:
             backend.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
             self._restart_test(backend, ex)
-            payload = prefix_with_len(conf) + cal.sign_currency_conf(conf) + prefix_with_len(cal.get_derivation_path(self.tx_infos["currency_to"]))
+            payload = prefix_with_len(conf) + cal.sign_currency_conf(conf) + prefix_with_len(CURRENCY_TO.packed_derivation_path)
             backend.raise_policy = RaisePolicy.RAISE_NOTHING
             rapdu = ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)
             assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
@@ -169,14 +172,14 @@ class TestRobustnessCHECK_ADDRESS:
 
         for payout_conf in payout_currency_conf_to_test:
             for refund_conf in refund_currency_conf_to_test:
-                payout_payload = prefix_with_len(payout_conf) + cal.sign_currency_conf(payout_conf) + prefix_with_len(cal.get_derivation_path(self.tx_infos["currency_to"]))
-                refund_payload = prefix_with_len(refund_conf) + cal.sign_currency_conf(refund_conf) + prefix_with_len(cal.get_derivation_path(self.tx_infos["currency_from"]))
+                payout_payload = prefix_with_len(payout_conf) + cal.sign_currency_conf(payout_conf) + prefix_with_len(CURRENCY_TO.packed_derivation_path)
+                refund_payload = prefix_with_len(refund_conf) + cal.sign_currency_conf(refund_conf) + prefix_with_len(CURRENCY_FROM.packed_derivation_path)
 
                 backend.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
                 self._restart_test(backend, ex)
                 ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
                 backend.raise_policy = RaisePolicy.RAISE_NOTHING
-                rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS, payload=refund_payload)
+                rapdu = ex._exchange(Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, payload=refund_payload)
                 # The address is false on purpose to prevent from having to handle the UI
                 # What we want to test is before the actual address check by Stellar
                 assert rapdu.status == Errors.INVALID_ADDRESS
@@ -193,7 +196,7 @@ class TestRobustnessCHECK_ADDRESS:
         for conf in currency_conf_to_test:
             backend.raise_policy = RaisePolicy.RAISE_ALL_BUT_0x9000
             self._restart_test(backend, ex)
-            payout_payload = prefix_with_len(conf) + cal.sign_currency_conf(conf) + prefix_with_len(cal.get_derivation_path(self.tx_infos["currency_to"]))
+            payout_payload = prefix_with_len(conf) + cal.sign_currency_conf(conf) + prefix_with_len(CURRENCY_TO.packed_derivation_path)
             backend.raise_policy = RaisePolicy.RAISE_NOTHING
             rapdu = ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payout_payload)
             assert rapdu.status == Errors.INCORRECT_COMMAND_DATA
@@ -224,7 +227,7 @@ def test_currency_normalization_fund(backend, exchange_navigation_helper):
         ex.process_transaction(tx)
         ex.check_transaction_signature(tx_signature)
 
-        payload = prefix_with_len(conf) + cal.sign_currency_conf(conf) + prefix_with_len(cal.get_derivation_path(tx_infos["in_currency"]))
+        payload = prefix_with_len(conf) + cal.sign_currency_conf(conf) + prefix_with_len(CURRENCY_TO.packed_derivation_path)
         backend.raise_policy = RaisePolicy.RAISE_NOTHING
         with ex._exchange_async(Command.CHECK_PAYOUT_ADDRESS, payload=payload):
             exchange_navigation_helper.simple_accept()
@@ -239,19 +242,18 @@ class TestAliasAppname:
             "payin_extra_id": b"",
             "refund_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
             "refund_extra_id": b"",
-            "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D",
+            "payout_address": "tz1YPjCVqgimTAPmxZX9egDeTFRCmrTRqmp9",
             "payout_extra_id": b"",
             "currency_from": "ETH",
-            "currency_to": "BNB",
+            "currency_to": "XTZ",
             "amount_to_provider": int.to_bytes(1000, length=8, byteorder='big'),
             "amount_to_wallet": b"\246\333t\233+\330\000",
         }
         fees = 100
 
-        bsc_conf = cal.get_currency_conf(tx_infos["currency_to"]) # "Binance Smart Chain"
-        bsc_conf_alias_1 = create_currency_config("BNB", "bsc", ("BNB", 18))
-        bsc_conf_alias_2 = create_currency_config("BNB", "Bsc", ("BNB", 18))
-        for conf in bsc_conf, bsc_conf_alias_1, bsc_conf_alias_2:
+        xtz_conf = cal.XTZ_CURRENCY_CONFIGURATION.conf # "Tezos"
+        xtz_conf_alias = create_currency_config("XTZ", "Tezos Wallet")
+        for conf in xtz_conf, xtz_conf_alias:
             ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP)
             transaction_id = ex.init_transaction().data
             backend.wait_for_home_screen()
@@ -262,5 +264,5 @@ class TestAliasAppname:
             ex.check_transaction_signature(tx_signature)
 
             # If the alias does not work, CHECK_PAYOUT_ADDRESS will crash
-            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(cal.get_derivation_path(tx_infos["currency_to"]))
+            payload = prefix_with_len(conf) + LEDGER_SIGNER.sign(conf) + prefix_with_len(cal.XTZ_CURRENCY_CONFIGURATION.packed_derivation_path)
             ex._exchange(Command.CHECK_PAYOUT_ADDRESS, payload=payload)

@@ -1,11 +1,12 @@
 import pytest
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS
+from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_THORSWAP
 from .apps.stellar import Network, StellarClient, StellarErrors
+from .apps import cal as cal
 
 # ExchangeTestRunner implementation for Stellar
 class StellarTests(ExchangeTestRunner):
-    currency_ticker = "XLM"
+    currency_configuration = cal.XLM_CURRENCY_CONFIGURATION
     valid_destination_1 = "GCKUD4BHIYSAYHU7HBB5FDSW6CSYH3GSOUBPWD2KE7KNBERP4BSKEJDV"
     valid_destination_memo_1 = ""
     valid_destination_2 = "GB5ZQJYKSZP3JOMOCWCBI7SPQUBW6ZL3642FUB7IYNAOC2EQMAFXI3P2"
@@ -35,6 +36,6 @@ class StellarTests(ExchangeTestRunner):
 # Use a class to reuse the same Speculos instance
 class TestsStellar:
 
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_THORSWAP)
     def test_stellar(self, backend, exchange_navigation_helper, test_to_run):
         StellarTests(backend, exchange_navigation_helper).run_test(test_to_run)

@@ -4,7 +4,7 @@
 #include "swap_errors.h"
 #include "globals.h"
 #include "currency_lib_calls.h"
-#include "io.h"
+#include "io_helpers.h"
 #include "parse_check_address_message.h"
 #include "parse_coin_config.h"
 #include "printable_amount.h"
@@ -12,6 +12,7 @@
 #include "menu.h"
 #include "pb_structs.h"
 #include "ticker_normalization.h"
+#include "prompt_ui_display.h"
 
 #include "check_addresses_and_amounts.h"
 
@@ -64,18 +65,19 @@ static uint16_t check_payout_or_refund_address(command_e ins,
         return INCORRECT_COMMAND_DATA;
     }
 
-    if (check_address(&sub_coin_config,
-                      &address_parameters,
-                      appname,
-                      address_to_check,
-                      extra_id_to_check) != 1) {
-        PRINTF("Error: Address validation failed\n");
-        return INVALID_ADDRESS;
+    uint16_t err = check_address(&sub_coin_config,
+                                 &address_parameters,
+                                 appname,
+                                 address_to_check,
+                                 extra_id_to_check);
+    if (err != 0) {
+        PRINTF("Error: check_address failed\n");
+        return err;
     }
     return 0;
 }
 
-static bool format_relevant_amount(command_e ins, buf_t sub_coin_config, char *appname) {
+static uint16_t format_relevant_amount(command_e ins, buf_t sub_coin_config, char *appname) {
     pb_bytes_array_16_t *amount;
     char *dest;
     uint8_t dest_size;
@@ -98,33 +100,36 @@ static bool format_relevant_amount(command_e ins, buf_t sub_coin_config, char *a
         dest = G_swap_ctx.printable_send_amount;
         dest_size = sizeof(G_swap_ctx.printable_send_amount);
     }
-    if (get_printable_amount(&sub_coin_config,
-                             appname,
-                             amount->bytes,
-                             amount->size,
-                             dest,
-                             dest_size,
-                             false) < 0) {
+
+    uint16_t err = get_printable_amount(&sub_coin_config,
+                                        appname,
+                                        amount->bytes,
+                                        amount->size,
+                                        dest,
+                                        dest_size,
+                                        false);
+    if (err != 0) {
         PRINTF("Error: Failed to get printable amount\n");
-        return false;
+        return err;
     }
     PRINTF("Formatted amount: %s\n", dest);
-    return true;
+    return 0;
 }
 
-static bool format_fees(buf_t sub_coin_config, char *appname) {
-    if (get_printable_amount(&sub_coin_config,
-                             appname,
-                             G_swap_ctx.transaction_fee,
-                             G_swap_ctx.transaction_fee_length,
-                             G_swap_ctx.printable_fees_amount,
-                             sizeof(G_swap_ctx.printable_fees_amount),
-                             true) < 0) {
+static uint16_t format_fees(buf_t sub_coin_config, char *appname) {
+    uint16_t err = get_printable_amount(&sub_coin_config,
+                                        appname,
+                                        G_swap_ctx.transaction_fee,
+                                        G_swap_ctx.transaction_fee_length,
+                                        G_swap_ctx.printable_fees_amount,
+                                        sizeof(G_swap_ctx.printable_fees_amount),
+                                        true);
+    if (err != 0) {
         PRINTF("Error: Failed to get printable fees amount\n");
-        return false;
+        return err;
     }
     PRINTF("Fees: %s\n", G_swap_ctx.printable_fees_amount);
-    return true;
+    return 0;
 }
 
 static bool format_fiat_amount(void) {
@@ -178,6 +183,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
     buf_t parsed_application_name;
     buf_t sub_coin_config;
     char application_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
+    uint16_t err;
 
     if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
         PRINTF("Error: Can't parse command\n");
@@ -222,18 +228,19 @@ int check_addresses_and_amounts(const command_t *cmd) {
 
     // Call the lib app to format the amount according to its coin.
     // It can be the OUT going amount or IN coming amount for SWAP
-    if (!format_relevant_amount(cmd->ins, sub_coin_config, application_name)) {
+    err = format_relevant_amount(cmd->ins, sub_coin_config, application_name);
+    if (err != 0) {
         PRINTF("Error: Failed to format printable amount\n");
-        return reply_error(INTERNAL_ERROR);
+        return reply_error(err);
     }
 
     // Format the fees, except during CHECK_PAYOUT_ADDRESS for SWAP, (it's done in
-    // CHECK_REFUND_ADDRESS as the fees are in the OUT going currency)
-    if (!((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) &&
-          cmd->ins == CHECK_PAYOUT_ADDRESS)) {
-        if (!format_fees(sub_coin_config, application_name)) {
+    // CHECK_REFUND_ADDRESS_AND_DISPLAY as the fees are in the OUT going currency)
+    if (cmd->ins != CHECK_PAYOUT_ADDRESS) {
+        err = format_fees(sub_coin_config, application_name);
+        if (err != 0) {
             PRINTF("Error: Failed to format fees amount\n");
-            return reply_error(INTERNAL_ERROR);
+            return reply_error(err);
         }
     }
 
@@ -250,17 +257,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
         format_account_name();
     }
 
-    // If we are in a SWAP flow at step CHECK_PAYOUT_ADDRESS, we are still waiting for
-    // CHECK_REFUND_ADDRESS
-    // Otherwise we can trigger the UI to get user validation now
-    if ((G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) &&
-        cmd->ins == CHECK_PAYOUT_ADDRESS) {
-        if (reply_success() < 0) {
-            PRINTF("Error: failed to send\n");
-            return -1;
-        }
-        G_swap_ctx.state = TO_ADDR_CHECKED;
-    } else {
+    if (cmd->ins != CHECK_PAYOUT_ADDRESS) {
         // Save the paying coin application_name, we'll need it to start the app during
         // START_SIGNING step
         memcpy(G_swap_ctx.payin_binary_name, application_name, sizeof(application_name));
@@ -270,10 +267,28 @@ int check_addresses_and_amounts(const command_t *cmd) {
         memset(G_swap_ctx.paying_sub_coin_config, 0, sizeof(G_swap_ctx.paying_sub_coin_config));
         memcpy(G_swap_ctx.paying_sub_coin_config, sub_coin_config.bytes, sub_coin_config.size);
 
-        G_swap_ctx.state = WAITING_USER_VALIDATION;
+        // Save the rate. We could have saved it at the first command and then checked at each ŝtep
+        // that it did not change, but it is not certain that the Live sends it right from the
+        // begining and we won't risk regressions for something that is not a security issue.
         G_swap_ctx.rate = cmd->rate;
+    }
 
-        ui_validate_amounts();
+    // Only trigger the UI validation for CHECK_X_AND_DISPLAY
+    if (cmd->ins == CHECK_ASSET_IN_AND_DISPLAY || cmd->ins == CHECK_REFUND_ADDRESS_AND_DISPLAY) {
+        start_ui_display();
+    } else {
+        // No display case, reply the status and update the state machine
+        if (reply_success() < 0) {
+            PRINTF("Error: failed to send\n");
+            return -1;
+        }
+        // If we checked the PAYOUT address (swap flow), we still have the REFUND address to check
+        if (cmd->ins == CHECK_PAYOUT_ADDRESS) {
+            G_swap_ctx.state = PAYOUT_ADDRESS_CHECKED;
+        } else {
+            // Otherwise we are ready to start the display
+            G_swap_ctx.state = ALL_ADDRESSES_CHECKED;
+        }
     }
 
     return 0;

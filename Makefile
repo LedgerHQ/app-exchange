@@ -21,21 +21,106 @@ endif
 
 include $(BOLOS_SDK)/Makefile.defines
 
-APP_LOAD_PARAMS = --curve ed25519 --curve secp256k1 --curve secp256r1
+########################################
+#        Mandatory configuration       #
+########################################
+# Application name
+APPNAME = "Exchange"
 
-# Permissions: DERIVE_MASTER, GLOBAL_PIN, APPLICATION_FLAG_BOLOS_SETTINGS
-# DERIVE_MASTER is needed to compute the master key fingerprint in app-bitcoin-new
-APP_LOAD_PARAMS += --appFlags 0x250
+# Application version
+APPVERSION_M = 4
+APPVERSION_N = 0
+APPVERSION_P = 0
+APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
-APP_LOAD_PARAMS += --path ""
-APP_LOAD_PARAMS += $(COMMON_LOAD_PARAMS)
+# Application source files
+APP_SOURCE_PATH += src
 
-APPNAME      = "Exchange"
-APPVERSION_M = 3
-APPVERSION_N = 3
-APPVERSION_P = 4
-APPVERSION   = $(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
+# Application icons following guidelines:
+# https://developers.ledger.com/docs/embedded-app/design-requirements/#device-icon
+ICON_NANOS = icons/nanos_app_exchange.gif
+ICON_NANOX = icons/nanox_app_exchange.gif
+ICON_NANOSP = icons/nanox_app_exchange.gif
+ICON_STAX = icons/stax_app_exchange.gif
+ICON_FLEX = icons/flex_app_exchange.gif
 
+# Application allowed derivation curves.
+# Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
+# If your app needs it, you can specify multiple curves by using:
+# `CURVE_APP_LOAD_PARAMS = <curve1> <curve2>`
+CURVE_APP_LOAD_PARAMS = ed25519 secp256k1 secp256r1
+
+# Application allowed derivation paths.
+# You should request a specific path for your app.
+# This serve as an isolation mechanism.
+# Most application will have to request a path according to the BIP-0044
+# and SLIP-0044 standards.
+# If your app needs it, you can specify multiple path by using:
+# `PATH_APP_LOAD_PARAMS = "44'/1'" "45'/1'"`
+PATH_APP_LOAD_PARAMS = ""
+
+# Setting to allow building variant applications
+# - <VARIANT_PARAM> is the name of the parameter which should be set
+#   to specify the variant that should be build.
+# - <VARIANT_VALUES> a list of variant that can be build using this app code.
+#   * It must at least contains one value.
+#   * Values can be the app ticker or anything else but should be unique.
+VARIANT_PARAM = COIN
+VARIANT_VALUES = exchange
+
+# Enabling DEBUG flag will enable PRINTF and disable optimizations
+#DEBUG = 1
+
+########################################
+#     Application custom permissions   #
+########################################
+# See SDK `include/appflags.h` for the purpose of each permission
+HAVE_APPLICATION_FLAG_DERIVE_MASTER = 1
+HAVE_APPLICATION_FLAG_GLOBAL_PIN = 1
+HAVE_APPLICATION_FLAG_BOLOS_SETTINGS = 1
+#HAVE_APPLICATION_FLAG_LIBRARY = 1
+
+########################################
+# Application communication interfaces #
+########################################
+ENABLE_BLUETOOTH = 1
+#ENABLE_NFC = 1
+
+########################################
+#         NBGL custom features         #
+########################################
+#ENABLE_NBGL_QRCODE = 1
+#ENABLE_NBGL_KEYBOARD = 1
+#ENABLE_NBGL_KEYPAD = 1
+
+########################################
+#          Features disablers          #
+########################################
+# These advanced settings allow to disable some feature that are by
+# default enabled in the SDK `Makefile.standard_app`.
+
+# DISABLE_STANDARD_APP_FILES = 1
+
+#DISABLE_DEFAULT_IO_SEPROXY_BUFFER_SIZE = 1 # To allow custom size declaration
+#DISABLE_STANDARD_APP_DEFINES = 1 # Will set all the following disablers
+
+# Define HAVE_SPRINTF manually, don't define HAVE_SNPRINTF_FORMAT_U
+DISABLE_STANDARD_SNPRINTF = 1
+DEFINES += HAVE_SPRINTF
+
+# Save some flash size
+ifeq ($(TARGET_NAME),TARGET_NANOS)
+DISABLE_STANDARD_WEBUSB = 1
+endif
+
+#DISABLE_STANDARD_USB = 1
+#DISABLE_STANDARD_BAGL_UX_FLOW = 1
+#DISABLE_DEBUG_LEDGER_ASSERT = 1
+#DISABLE_DEBUG_THROW = 1
+
+########################################
+#            Testing flags             #
+########################################
 ifdef TESTING
     $(info [INFO] TESTING enabled)
     DEFINES += TESTING
@@ -46,98 +131,10 @@ ifdef TEST_PUBLIC_KEY
     DEFINES += TEST_PUBLIC_KEY
 endif
 
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-    ICONNAME=icons/nanos_app_exchange.gif
-else ifeq ($(TARGET_NAME),TARGET_STAX)
-    ICONNAME=icons/stax_app_exchange.gif
-else
-    ICONNAME=icons/nanox_app_exchange.gif
-endif
 
-################
-# Default rule #
-################
-all: default
-
-############
-# Platform #
-############
-
-DEFINES   += $(DEFINES_LIB)
-DEFINES   += APPNAME=\"$(APPNAME)\"
-DEFINES   += APPVERSION=\"$(APPVERSION)\"
-DEFINES   += LEDGER_MAJOR_VERSION=$(APPVERSION_M) LEDGER_MINOR_VERSION=$(APPVERSION_N) LEDGER_PATCH_VERSION=$(APPVERSION_P)
-DEFINES   += OS_IO_SEPROXYHAL
-DEFINES   += HAVE_SPRINTF
-DEFINES   += HAVE_IO_USB HAVE_L4_USBLIB IO_USB_MAX_ENDPOINTS=4 IO_HID_EP_LENGTH=64 HAVE_USB_APDU
-ifeq ($(TARGET_NAME),TARGET_STAX)
-    # This is only needed to fix an issue on Stax, and can be removed after version 1.4.0-rc1
-    DEFINES   += HAVE_WEBUSB WEBUSB_URL_SIZE_B=0 WEBUSB_URL=""
-endif
-
-DEFINES   += USB_SEGMENT_SIZE=64
-DEFINES   += BLE_SEGMENT_SIZE=32 #max MTU, min 20
-
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX))
-    DEFINES += HAVE_BLE BLE_COMMAND_TIMEOUT_MS=2000 HAVE_BLE_APDU
-endif
-
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-    DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=128
-else
-    DEFINES += IO_SEPROXYHAL_BUFFER_SIZE_B=300
-endif
-
-ifneq ($(TARGET_NAME),TARGET_STAX)
-    DEFINES += HAVE_BAGL HAVE_UX_FLOW
-    ifneq ($(TARGET_NAME),TARGET_NANOS)
-        DEFINES += HAVE_GLO096
-        DEFINES += BAGL_WIDTH=128 BAGL_HEIGHT=64
-        DEFINES += HAVE_BAGL_ELLIPSIS # long label truncation feature
-        DEFINES += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
-        DEFINES += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
-        DEFINES += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
-    endif
-endif
-
-
-# Enabling debug PRINTF
-DEBUG ?= 0
-ifneq ($(DEBUG),0)
-        DEFINES   += HAVE_STACK_OVERFLOW_CHECK
-        ifeq ($(TARGET_NAME),TARGET_NANOS)
-                DEFINES   += HAVE_PRINTF PRINTF=screen_printf
-        else
-                DEFINES   += HAVE_PRINTF PRINTF=mcu_usb_printf
-        endif
-else
-        DEFINES   += PRINTF\(...\)=
-endif
-
-##############
-#  Compiler  #
-##############
-
-CC       := $(CLANGPATH)clang
-AS       := $(GCCPATH)arm-none-eabi-gcc
-LD       := $(GCCPATH)arm-none-eabi-gcc
-LDLIBS   += -lm -lgcc -lc
-
-# import rules to compile glyphs(/pone)
-include $(BOLOS_SDK)/Makefile.glyphs
-
-### variables processed by the common makefile.rules of the SDK to grab source files and include dirs
-APP_SOURCE_PATH  += src
-SDK_SOURCE_PATH  += lib_stusb lib_stusb_impl
-
-ifneq ($(TARGET_NAME),TARGET_STAX)
-SDK_SOURCE_PATH += lib_ux
-endif
-
-ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_STAX))
-    SDK_SOURCE_PATH += lib_blewbxx lib_blewbxx_impl
-endif
-
+########################################
+#      Protobuf files regeneration     #
+########################################
 .PHONY: proto
 proto:
 	make -C ledger-nanopb/generator/proto
@@ -145,25 +142,6 @@ proto:
 	protoc --python_out=. src/proto/protocol.proto
 	mv src/proto/protocol_pb2.py test/python/apps/pb/exchange_pb2.py
 
-load: all
-	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS)
+########################################
 
-load-offline: all
-	python3 -m ledgerblue.loadApp $(APP_LOAD_PARAMS) --offline
-
-delete:
-	python3 -m ledgerblue.deleteApp $(COMMON_DELETE_PARAMS)
-
-release: all
-	export APP_LOAD_PARAMS_EVALUATED="$(shell printf '\\"%s\\" ' $(APP_LOAD_PARAMS))"; \
-	cat load-template.sh | envsubst > load.sh
-	chmod +x load.sh
-	tar -zcf app-exchange-$(APPVERSION).tar.gz load.sh bin/app.hex
-	rm load.sh
-
-# import generic rules from the sdk
-include $(BOLOS_SDK)/Makefile.rules
-
-
-listvariants:
-	@echo VARIANTS COIN exchange
+include $(BOLOS_SDK)/Makefile.standard_app

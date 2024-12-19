@@ -10,14 +10,13 @@
 #include "nbgl_layout.h"
 #include "os.h"
 #include "io.h"
+#include "io_helpers.h"
+#include "swap_errors.h"
 #include "ux.h"
 
-#define REFUSAL_TEXT_PART_1 "Incorrect transaction\nrejected by the\n"
-#define REFUSAL_TEXT_PART_2 " app"
-#define REFUSAL_TEXT_MAX_SIZE                                                         \
-    ((sizeof(REFUSAL_TEXT_PART_1) - 1) + (sizeof(G_swap_ctx.payin_binary_name) - 1) + \
-     (sizeof(REFUSAL_TEXT_PART_2) - 1) + 1)
-static char refusal_text[REFUSAL_TEXT_MAX_SIZE];
+/*****************************
+ *     TITLE AND CONFIRM     *
+ *****************************/
 
 // One of:
 #define REVIEW_P1_TITLE   "Review transaction"
@@ -34,15 +33,19 @@ static char refusal_text[REFUSAL_TEXT_MAX_SIZE];
 #define REVIEW_P3_SELL "sell "
 #define REVIEW_P3_FUND "fund account"
 
+// P4 = 'FROM currency' for SWAP and SELL, '' for FUND
+
 // Delimiter ' ' or '\n'
 
 // One of:
-#define REVIEW_P4_SWAP "to "
-#define REVIEW_P4_SELL "for "
-#define REVIEW_P4_FUND "with "
+#define REVIEW_P5_SWAP "to "
+#define REVIEW_P5_SELL "for "
+#define REVIEW_P5_FUND "with "
+
+// P6 = 'TO currency' for SWAP and SELL, 'FROM currency' for FUND
 
 // Maybe:
-#define REVIEW_P5_CONFIRM "?"
+#define REVIEW_P7_CONFIRM "?"
 
 // Calculate REVIEW_TITLE_MAX_SIZE with the SELL operation as it is the longest
 #define REVIEW_TITLE_MAX_SIZE                                                          \
@@ -53,7 +56,7 @@ static char refusal_text[REFUSAL_TEXT_MAX_SIZE];
      + sizeof(REVIEW_P3_SELL)                                 /* sell */               \
      + (sizeof(G_swap_ctx.sell_transaction.in_currency) - 1)  /* TOKEN */              \
      + 1                                                      /* ' ' */                \
-     + sizeof(REVIEW_P4_SELL)                                 /* for */                \
+     + sizeof(REVIEW_P5_SELL)                                 /* for */                \
      + (sizeof(G_swap_ctx.sell_transaction.out_currency) - 1) /* CURRENCY */           \
      + 1)                                                     /* '\0' */
 
@@ -66,50 +69,107 @@ static char refusal_text[REFUSAL_TEXT_MAX_SIZE];
      + sizeof(REVIEW_P3_SELL)                                 /* sell */             \
      + (sizeof(G_swap_ctx.sell_transaction.in_currency) - 1)  /* TOKEN */            \
      + 1                                                      /* ' ' */              \
-     + sizeof(REVIEW_P4_SELL)                                 /* for */              \
+     + sizeof(REVIEW_P5_SELL)                                 /* for */              \
      + (sizeof(G_swap_ctx.sell_transaction.out_currency) - 1) /* CURRENCY */         \
-     + 1                                                      /* ? */                \
+     + sizeof(REVIEW_P7_CONFIRM)                              /* ? */                \
      + 1)                                                     /* '\0' */
 
 // Dynamic texts, dimensionned for worst case scenario
-static char review_title[REVIEW_TITLE_MAX_SIZE];
-static char review_confirm[REVIEW_CONFIRM_MAX_SIZE];
+static char review_title_string[REVIEW_TITLE_MAX_SIZE];
+static char review_confirm_string[REVIEW_CONFIRM_MAX_SIZE];
 
-static void accept_tx(void) {
-    nbgl_useCaseSpinner("Processing");
-    reply_success();
-    G_swap_ctx.state = WAITING_SIGNING;
-}
+static inline void prepare_title_and_confirm(void) {
+    // As the default wrapping is very ugly, we do a custom one by calculating manually
+    // Detect if we should display on 2 or 3 lines.
+    char delimitor_1 = ' ';
+    char delimitor_2 = '\n';
+    const char *p3;
+    const char *p4;
+    char delimitor_3 = ' ';
+    const char *p5;
+    const char *p6;
 
-static void reject_tx(void) {
-    PRINTF("User refused transaction\n");
-    reply_error(USER_REFUSED);
-    nbgl_useCaseStatus("Transaction\nrejected", false, ui_idle);
-}
-
-// If the user asks for message rejection, ask for confirmation
-static void rejectUseCaseChoice(void) {
-    nbgl_useCaseConfirm("Reject transaction?",
-                        NULL,
-                        "Yes, reject",
-                        "Go back to transaction",
-                        reject_tx);
-}
-
-static void review_choice(bool confirm) {
-    if (confirm) {
-        accept_tx();
-    } else {
-        rejectUseCaseChoice();
+    // We don't always have the same title and confirm strings depending on the FLOW type
+    switch (G_swap_ctx.subcommand) {
+        case SWAP:
+        case SWAP_NG:
+            p3 = REVIEW_P3_SWAP;
+            p4 = G_swap_ctx.swap_transaction.currency_from;
+            p5 = REVIEW_P5_SWAP;
+            p6 = G_swap_ctx.swap_transaction.currency_to;
+            break;
+        case SELL:
+        case SELL_NG:
+            p3 = REVIEW_P3_SELL;
+            p4 = G_swap_ctx.sell_transaction.in_currency;
+            p5 = REVIEW_P5_SELL;
+            p6 = G_swap_ctx.sell_transaction.out_currency;
+            break;
+        case FUND:
+        case FUND_NG:
+            p3 = REVIEW_P3_FUND;
+            p4 = "";
+            p5 = REVIEW_P5_FUND;
+            p6 = G_swap_ctx.fund_transaction.in_currency;
+            break;
     }
+
+    if ((G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) ||
+        (strlen(p4) + strlen(p6) >= 10)) {
+        PRINTF("Review title and confirm on 3 lines\n");
+        // Move the "to" to the second line with the operation
+        delimitor_1 = '\n';
+        delimitor_2 = ' ';
+        delimitor_3 = '\n';
+    }
+
+    // Finally let's compute the title and confirm strings prepared above
+    // Example
+    // "Review transaction" + '\n' + "to" + ' ' + "swap " + "Bitcoin" + '\n' + "to " + "Ethereum"
+    snprintf(review_title_string,
+             sizeof(review_title_string),
+             "%s%c%s%c%s%s%c%s%s",
+             REVIEW_P1_TITLE,
+             delimitor_1,
+             REVIEW_P2,
+             delimitor_2,
+             p3,
+             p4,
+             delimitor_3,
+             p5,
+             p6);
+
+    snprintf(review_confirm_string,
+             sizeof(review_confirm_string),
+             "%s%c%s%c%s%s%c%s%s%s",
+             REVIEW_P1_CONFIRM,
+             delimitor_1,
+             REVIEW_P2,
+             delimitor_2,
+             p3,
+             p4,
+             delimitor_3,
+             p5,
+             p6,
+             REVIEW_P7_CONFIRM);
 }
 
-static nbgl_layoutTagValue_t pairs[4];
-static nbgl_layoutTagValueList_t pair_list;
-static nbgl_pageInfoLongPress_t info_long_press;
+/**********************
+ *     PAIRS LIST     *
+ **********************/
 
-static void continue_review(void) {
+static nbgl_layoutTagValue_t pairs[5];
+static nbgl_layoutTagValueList_t pair_list;
+
+static inline void prepare_pairs_list(void) {
     uint8_t index = 0;
+
+    // Prepare the values to display depending on the FLOW type
+    if (G_swap_ctx.subcommand != FUND && G_swap_ctx.subcommand != FUND_NG) {
+        pairs[index].item = "Exchange partner";
+        pairs[index].value = G_swap_ctx.partner.unprefixed_name;
+        index++;
+    }
 
     if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
         pairs[index].item = "Email";
@@ -143,107 +203,44 @@ static void continue_review(void) {
     pairs[index].value = G_swap_ctx.printable_fees_amount;
     index++;
 
+    // Register the pairs we prepared into the pair list
     pair_list.nbMaxLinesForValue = 0;
     pair_list.nbPairs = index;
     pair_list.pairs = pairs;
-
-    info_long_press.icon = &C_icon_exchange_64x64;
-    info_long_press.text = review_confirm;
-    info_long_press.longPressText = "Hold to sign";
-
-    nbgl_useCaseStaticReview(&pair_list, &info_long_press, "Reject transaction", review_choice);
 }
+
+/********************
+ *     CALLBACK     *
+ ********************/
+
+static void review_choice(bool confirm) {
+    if (confirm) {
+        nbgl_useCaseSpinner("Processing");
+        reply_success();
+        G_swap_ctx.state = WAITING_SIGNING;
+    } else {
+        PRINTF("User refused transaction\n");
+        reply_error(USER_REFUSED);
+        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_idle);
+        G_swap_ctx.state = INITIAL_STATE;
+    }
+}
+
+/*********************
+ *    ENTRY POINT    *
+ *********************/
 
 void ui_validate_amounts(void) {
-    // The "to" is on the first line
-    char delimitor_1 = ' ';
-    char delimitor_2 = '\n';
-    char delimitor_3 = ' ';
-    const char *dyn_string_1;
-    const char *dyn_string_2;
-    const char *p3;
-    const char *p4;
-    switch (G_swap_ctx.subcommand) {
-        case SWAP:
-        case SWAP_NG:
-            dyn_string_1 = G_swap_ctx.swap_transaction.currency_from;
-            dyn_string_2 = G_swap_ctx.swap_transaction.currency_to;
-            p3 = REVIEW_P3_SWAP;
-            p4 = REVIEW_P4_SWAP;
-            break;
-        case SELL:
-        case SELL_NG:
-            dyn_string_1 = G_swap_ctx.sell_transaction.in_currency;
-            dyn_string_2 = G_swap_ctx.sell_transaction.out_currency;
-            p3 = REVIEW_P3_SELL;
-            p4 = REVIEW_P4_SELL;
-            break;
-        case FUND:
-        case FUND_NG:
-            dyn_string_1 = "";
-            dyn_string_2 = G_swap_ctx.fund_transaction.in_currency;
-            p3 = REVIEW_P3_FUND;
-            p4 = REVIEW_P4_FUND;
-            break;
-    }
+    prepare_title_and_confirm();
+    prepare_pairs_list();
 
-    // Detect if we should display on 2 or 3 lines.
-    if ((G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) ||
-        (strlen(dyn_string_1) + strlen(dyn_string_2) >= 10)) {
-        PRINTF("Review title and confirm on 3 lines\n");
-        // Move the "to" to the second line with the operation
-        delimitor_1 = '\n';
-        delimitor_2 = ' ';
-        delimitor_3 = '\n';
-    }
-
-    snprintf(review_title,
-             sizeof(review_title),
-             "%s%c%s%c%s%s%c%s%s",
-             REVIEW_P1_TITLE,
-             delimitor_1,
-             REVIEW_P2,
-             delimitor_2,
-             p3,
-             dyn_string_1,
-             delimitor_3,
-             p4,
-             dyn_string_2);
-
-    snprintf(review_confirm,
-             sizeof(review_confirm),
-             "%s%c%s%c%s%s%c%s%s%s",
-             REVIEW_P1_CONFIRM,
-             delimitor_1,
-             REVIEW_P2,
-             delimitor_2,
-             p3,
-             dyn_string_1,
-             delimitor_3,
-             p4,
-             dyn_string_2,
-             REVIEW_P5_CONFIRM);
-
-    nbgl_useCaseReviewStart(&C_icon_exchange_64x64,
-                            review_title,
-                            NULL,
-                            "Reject transaction",
-                            continue_review,
-                            rejectUseCaseChoice);
-}
-
-void display_signing_success(void) {
-    nbgl_useCaseStatus("TRANSACTION\nSIGNED", true, ui_idle);
-}
-
-void display_signing_failure(const char *appname) {
-    snprintf(refusal_text,
-             sizeof(refusal_text),
-             "%s%s%s",
-             REFUSAL_TEXT_PART_1,
-             appname,
-             REFUSAL_TEXT_PART_2);
-    nbgl_useCaseStatus(refusal_text, false, ui_idle);
+    nbgl_useCaseReview(TYPE_TRANSACTION,
+                       &pair_list,
+                       &C_icon_exchange_64x64,
+                       review_title_string,
+                       NULL,
+                       review_confirm_string,
+                       review_choice);
 }
 
 #endif  // HAVE_NBGL

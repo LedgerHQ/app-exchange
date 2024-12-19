@@ -1,8 +1,10 @@
 #include <string.h>
 
 #include "os_io_seproxyhal.h"
+#include "cx.h"
 #include "os.h"
 #include "globals.h"
+#include "swap_errors.h"
 
 #include "currency_lib_calls.h"
 
@@ -35,13 +37,47 @@
   `libcall_params[4]` -> `libargs_s` union
  */
 
-int get_printable_amount(buf_t *coin_config,
-                         char *application_name,
-                         unsigned char *amount,
-                         unsigned char amount_size,
-                         char *printable_amount,
-                         unsigned char printable_amount_size,
-                         bool is_fee) {
+// BSS start and end defines symbols
+extern void *_bss;
+extern void *_ebss;
+
+// We set a canary before calling os_lib_call to ensure the child application did not mess up when
+// writing it's output
+#define OS_LIB_CALL_CANARY_VALUE 0xCAFE
+
+// Call the os_lib_call with a checksum before and after the call to ensure the child application
+// did not corrupt our memory
+// Caller needs to ensure that the child application will not write it's output in BSS, otherwise
+// this function will yield a false positive
+static int os_lib_call_bss_safe(unsigned int libcall_params[5]) {
+    PRINTF("Check BSS from %p to %p\n", &_bss, &_ebss);
+    volatile uint16_t os_lib_call_canary = OS_LIB_CALL_CANARY_VALUE;
+    volatile uint16_t bss_before = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
+    // os_lib_call will throw SWO_SEC_APP_14 if the called application is not installed.
+    // We DON'T define a local TRY / CATCH context because it costs a lot of stack and we are short
+    // for some exchanged coins
+    // This means we will fallback to the main function that will handle the error (error RAPDU)
+    // TODO: once LNS is deprecated, handle the error properly here
+    os_lib_call(libcall_params);
+    volatile uint16_t bss_after = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
+    if (bss_before != bss_after) {
+        PRINTF("BSS corrupted by the child application, %d != %d\n", bss_before, bss_after);
+        return -1;
+    }
+    if (os_lib_call_canary != OS_LIB_CALL_CANARY_VALUE) {
+        PRINTF("Stack corrupted by the child application, 0x%x\n", os_lib_call_canary);
+        return -1;
+    }
+    return 0;
+}
+
+uint16_t get_printable_amount(buf_t *coin_config,
+                              char *application_name,
+                              unsigned char *amount,
+                              unsigned char amount_size,
+                              char *printable_amount,
+                              unsigned char printable_amount_size,
+                              bool is_fee) {
     unsigned int libcall_params[5];
     get_printable_amount_parameters_t lib_in_out_params;
     memset(&lib_in_out_params, 0, sizeof(lib_in_out_params));
@@ -64,19 +100,21 @@ int get_printable_amount(buf_t *coin_config,
     libcall_params[4] = (unsigned int) &lib_in_out_params;
 
     PRINTF("Exchange will call '%s' as library for GET_PRINTABLE_AMOUNT\n", application_name);
-    os_lib_call(libcall_params);
+    if (os_lib_call_bss_safe(libcall_params) != 0) {
+        return MEMORY_CORRUPTION;
+    }
     PRINTF("Back in Exchange, the app finished the library command GET_PRINTABLE_AMOUNT\n");
 
     // the lib application should have something for us to display
     if (lib_in_out_params.printable_amount[0] == '\0') {
         PRINTF("Error: Printable amount should exist\n");
-        return -1;
+        return AMOUNT_FORMATTING_FAILED;
     }
     // result should be null terminated string, so we need to have at least one 0
     if (lib_in_out_params.printable_amount[sizeof(lib_in_out_params.printable_amount) - 1] !=
         '\0') {
         PRINTF("Error: Printable amount should be null-terminated\n");
-        return -1;
+        return AMOUNT_FORMATTING_FAILED;
     }
     if (strlcpy(printable_amount, lib_in_out_params.printable_amount, printable_amount_size) >=
         printable_amount_size) {
@@ -87,11 +125,11 @@ int get_printable_amount(buf_t *coin_config,
     return 0;
 }
 
-int check_address(buf_t *coin_config,
-                  buf_t *address_parameters,
-                  char *application_name,
-                  char *address_to_check,
-                  char *address_extra_to_check) {
+uint16_t check_address(buf_t *coin_config,
+                       buf_t *address_parameters,
+                       char *application_name,
+                       char *address_to_check,
+                       char *address_extra_to_check) {
     unsigned int libcall_params[5];
     check_address_parameters_t lib_in_out_params;
     memset(&lib_in_out_params, 0, sizeof(lib_in_out_params));
@@ -116,11 +154,17 @@ int check_address(buf_t *coin_config,
 
     PRINTF("Exchange will call '%s' as library for CHECK_ADDRESS\n", application_name);
     PRINTF("The address to check '%s'\n", lib_in_out_params.address_to_check);
-    os_lib_call(libcall_params);
+    if (os_lib_call_bss_safe(libcall_params) != 0) {
+        return MEMORY_CORRUPTION;
+    }
     PRINTF("Back in Exchange, the app finished the library command CHECK_ADDRESS\n");
     PRINTF("Returned code %d\n", lib_in_out_params.result);
 
-    return lib_in_out_params.result;
+    if (lib_in_out_params.result != 1) {
+        return INVALID_ADDRESS;
+    }
+
+    return 0;
 }
 
 int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params) {
@@ -148,6 +192,9 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
     strlcpy(appname, G_swap_ctx.payin_binary_name, sizeof(appname));
 #endif
 
+    // This os_lib_call may not throw SWO_SEC_APP_14 (missing library), as the existence of the
+    // application has been enforced through an earlier call to os_lib_call for CHECK_ADDRESS and
+    // GET_PRINTABLE_AMOUNT
     os_lib_call(libcall_params);
 
     // From now on our BSS is corrupted and unusable. Return to main loop to start a new cycle ASAP

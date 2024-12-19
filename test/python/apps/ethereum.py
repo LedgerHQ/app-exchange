@@ -38,3 +38,6 @@ BSC_PACKED_DERIVATION_PATH = pack_derivation_path(ETH_PATH)
 
 ETC_CONF = create_currency_config("ETC", "Ethereum Classic", get_sub_config("ETC", 18))
 ETC_PACKED_DERIVATION_PATH = pack_derivation_path(ETC_PATH)
+
+DAI_CONF = create_currency_config("DAI", "Ethereum", get_sub_config("DAI", 18))
+DAI_PACKED_DERIVATION_PATH = pack_derivation_path(ETH_PATH)

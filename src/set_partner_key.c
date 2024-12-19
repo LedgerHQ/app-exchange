@@ -6,7 +6,7 @@
 #include "swap_errors.h"
 #include "globals.h"
 #include "buffer.h"
-#include "io.h"
+#include "io_helpers.h"
 #include "cx.h"
 
 static uint16_t parse_set_partner_key_command(const command_t *cmd,
@@ -73,14 +73,20 @@ int set_partner_key(const command_t *cmd) {
         return reply_error(err);
     }
 
-    memset(G_swap_ctx.partner.prefixed_name, 0, sizeof(G_swap_ctx.partner.prefixed_name));
-    // Prepare the prefix for FUND display
-    strlcpy(G_swap_ctx.partner.prefixed_name,
-            PARTNER_NAME_PREFIX_FOR_FUND,
-            sizeof(G_swap_ctx.partner.prefixed_name));
-    // The incoming partner name is NOT NULL terminated, so we use strncat
-    // Don't erase the prefix copied above
-    strncat(G_swap_ctx.partner.prefixed_name, (char *) partner.bytes, partner.size);
+    if (G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) {
+        // Prepare the prefix for FUND display
+        memset(G_swap_ctx.partner.prefixed_name, 0, sizeof(G_swap_ctx.partner.prefixed_name));
+        strlcpy(G_swap_ctx.partner.prefixed_name,
+                PARTNER_NAME_PREFIX_FOR_FUND,
+                sizeof(G_swap_ctx.partner.prefixed_name));
+        // The incoming partner name is NOT NULL terminated, so we use strncat
+        // Don't erase the prefix copied above
+        strncat(G_swap_ctx.partner.prefixed_name, (char *) partner.bytes, partner.size);
+    } else {
+        memset(G_swap_ctx.partner.unprefixed_name, 0, sizeof(G_swap_ctx.partner.unprefixed_name));
+        // The incoming partner name is NOT NULL terminated, so we use strncpy
+        strncpy(G_swap_ctx.partner.unprefixed_name, (char *) partner.bytes, partner.size);
+    }
 
     // Create the verifying key from the raw public key
     if (cx_ecfp_init_public_key_no_throw(curve,
