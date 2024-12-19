@@ -45,7 +45,7 @@ static bool handle_struct_version(const tlv_data_t *data, tlv_out_t *trusted_nam
 }
 
 static bool handle_challenge(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_uint_from_tlv_data(data, &trusted_name_info->challenge);
+    return get_uint32_from_tlv_data(data, &trusted_name_info->challenge);
 }
 
 static bool handle_sign_key_id(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
@@ -195,8 +195,7 @@ static int trusted_name_descriptor_handler_internal(const command_t *cmd) {
     uint32_t received_tags_flags = 0;
 
     // The parser will fill it with the hash of the whole TLV payload (except SIGN tag)
-    uint8_t tlv_hash[INT256_LENGTH];
-    memset(&tlv_hash, 0, sizeof(tlv_hash));
+    uint8_t tlv_hash[INT256_LENGTH] = {0};
 
     // Mapping of tags to handler functions. Given ot the parser
     tlv_handler_t handlers[TLV_COUNT] = {
@@ -236,6 +235,7 @@ static int trusted_name_descriptor_handler_internal(const command_t *cmd) {
     ret = check_signature_with_pki(tlv_hash,
                                    INT256_LENGTH,
                                    CERTIFICATE_PUBLIC_KEY_USAGE_TRUSTED_NAME,
+                                   CX_CURVE_SECP256K1,
                                    &trusted_name_info.input_sig);
     if (ret != SUCCESS) {
         PRINTF("Failed to verify signature of trusted name info\n");

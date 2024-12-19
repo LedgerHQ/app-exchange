@@ -3,7 +3,7 @@
 #define DER_LONG_FORM_FLAG        0x80  // 8th bit set
 #define DER_FIRST_BYTE_VALUE_MASK 0x7f
 
-bool get_uint_from_tlv_data(const tlv_data_t *data, uint32_t *value) {
+bool get_uint32_from_tlv_data(const tlv_data_t *data, uint32_t *value) {
     uint8_t size_diff;
     uint8_t buffer[sizeof(uint32_t)];
 
@@ -18,12 +18,21 @@ bool get_uint_from_tlv_data(const tlv_data_t *data, uint32_t *value) {
     return true;
 }
 
-bool get_uint8_t_from_tlv_data(const tlv_data_t *data, uint8_t *value) {
+bool get_uint16_t_from_tlv_data(const tlv_data_t *data, uint16_t *value) {
     uint32_t tmp_value;
-    if (!get_uint_from_tlv_data(data, &tmp_value) || (tmp_value > UINT8_MAX)) {
+    if (!get_uint32_from_tlv_data(data, &tmp_value) || (tmp_value > UINT16_MAX)) {
         return false;
     }
-    *value = tmp_value;
+    *value = (uint16_t) tmp_value;
+    return true;
+}
+
+bool get_uint8_t_from_tlv_data(const tlv_data_t *data, uint8_t *value) {
+    uint32_t tmp_value;
+    if (!get_uint32_from_tlv_data(data, &tmp_value) || (tmp_value > UINT8_MAX)) {
+        return false;
+    }
+    *value = (uint8_t) tmp_value;
     return true;
 }
 
@@ -31,7 +40,7 @@ bool get_cbuf_from_tlv_data(const tlv_data_t *data,
                             cbuf_t *out,
                             uint16_t min_size,
                             uint16_t max_size) {
-    if (data->length < min_size) {
+    if (min_size != 0 && data->length < min_size) {
         PRINTF("Expected at least %d bytes, found %D\n", min_size, data->length);
         return false;
     }
@@ -54,7 +63,7 @@ bool get_cbuf_from_tlv_data(const tlv_data_t *data,
  * @param[out] value the parsed value
  * @return whether it was successful
  */
-bool parse_der_value(const buf_t *payload, size_t *offset, uint32_t *value) {
+static bool get_der_value_as_uint32(const buf_t *payload, size_t *offset, uint32_t *value) {
     bool ret = false;
     uint8_t byte_length;
     uint8_t buf[sizeof(*value)];
@@ -87,30 +96,35 @@ bool parse_der_value(const buf_t *payload, size_t *offset, uint32_t *value) {
     return ret;
 }
 
-/**
- * Get DER-encoded value as an uint8
- *
- * Parses the value and checks if it fits in the given \ref uint8_t value
- *
- * @param[in] payload the TLV payload
- * @param[in,out] offset
- * @param[out] value the parsed value
- * @return whether it was successful
- */
-bool get_der_value_as_uint8(const buf_t *payload, size_t *offset, uint8_t *value) {
+static bool get_der_value_as_uint16(const buf_t *payload, size_t *offset, uint16_t *value) {
     uint32_t tmp_value;
-    if (!parse_der_value(payload, offset, &tmp_value)) {
+    if (!get_der_value_as_uint32(payload, offset, &tmp_value) || (tmp_value > UINT16_MAX)) {
         return false;
     }
 
-    if (tmp_value > UINT8_MAX) {
-        PRINTF("TLV DER-encoded value %d does not fit in uint8_t\n", tmp_value);
+    *value = (uint16_t) tmp_value;
+    return true;
+}
+
+static bool get_der_value_as_uint8(const buf_t *payload, size_t *offset, uint8_t *value) {
+    uint32_t tmp_value;
+    if (!get_der_value_as_uint32(payload, offset, &tmp_value) || (tmp_value > UINT8_MAX)) {
         return false;
     }
 
     *value = (uint8_t) tmp_value;
     return true;
 }
+
+// clang-format off
+// Use _Generic keyword to perform a compile-time switch / case depending on value actual type
+#define GET_DER_VALUE_AS_UINTX(payload, offset, value) \
+    _Generic((value),                                  \
+        uint8_t  *: get_der_value_as_uint8,            \
+        uint16_t *: get_der_value_as_uint16,           \
+        uint32_t *: get_der_value_as_uint32            \
+    )(payload, offset, value)
+// clang-format on
 
 // Some Xmacro dark magic to assign to each tag_FLAG its flag value
 // Used by the function below that maps TAGS to FLAGS
@@ -202,14 +216,14 @@ bool parse_tlv(const tlv_handler_t handlers[TLV_COUNT],
         switch (step) {
             case TLV_TAG:
                 tag_start_offset = offset;
-                if (!get_der_value_as_uint8(payload, &offset, &data.tag)) {
+                if (!GET_DER_VALUE_AS_UINTX(payload, &offset, &data.tag)) {
                     return false;
                 }
                 step = TLV_LENGTH;
                 break;
 
             case TLV_LENGTH:
-                if (!get_der_value_as_uint8(payload, &offset, &data.length)) {
+                if (!get_der_value_as_uint16(payload, &offset, &data.length)) {
                     return false;
                 }
                 step = TLV_VALUE;

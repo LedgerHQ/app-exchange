@@ -54,6 +54,7 @@ TX_INFOS = {
 }
 FEES = 100
 
+
 class TestTrustedName:
 
     @pytest.mark.parametrize("subcommand", [SubCommand.SWAP, SubCommand.SWAP_NG])
@@ -215,6 +216,7 @@ class TestTrustedName:
                         challenge = ex.get_challenge().data
                         ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, address=value)
                 assert e.value.status == Errors.WRONG_TLV_FORMAT
+
 
 # Needs to be in a separate Speculos start
 class TestTrustedNameNoCertificate:

@@ -66,7 +66,7 @@ class Errors(IntEnum):
     WRONG_TLV_KEY_ID             = 0x6A92
     WRONG_TLV_SIGNATURE          = 0x6A93
     NO_CERTIFICATE_LOADED        = 0x6A94
-    WRONG_CERTIFICATE_KEY_USAGE  = 0x6A95
+    WRONG_CERTIFICATE_DATA       = 0x6A95
     CLASS_NOT_SUPPORTED          = 0x6E00
     MALFORMED_APDU               = 0x6E01
     INVALID_DATA_LENGTH          = 0x6E02

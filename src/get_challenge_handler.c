@@ -7,8 +7,6 @@
 
 static uint32_t challenge;
 
-#define LAST_BYTE_MASK 0x000000FF
-
 /**
  * Generate a new challenge from the Random Number Generator
  */
@@ -35,10 +33,7 @@ uint32_t get_challenge(void) {
 int get_challenge_handler(void) {
     PRINTF("New challenge -> %u\n", challenge);
     uint8_t output_buffer[4];
-    output_buffer[0] = (uint8_t) ((challenge >> 24) & LAST_BYTE_MASK);
-    output_buffer[1] = (uint8_t) ((challenge >> 16) & LAST_BYTE_MASK);
-    output_buffer[2] = (uint8_t) ((challenge >> 8) & LAST_BYTE_MASK);
-    output_buffer[3] = (uint8_t) (challenge & LAST_BYTE_MASK);
+    U4BE_ENCODE(output_buffer, 0, challenge);
 
     buffer_t output;
     output.ptr = output_buffer;

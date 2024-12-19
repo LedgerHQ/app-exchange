@@ -12,4 +12,5 @@
 swap_error_e check_signature_with_pki(const uint8_t *buffer,
                                       uint8_t buffer_length,
                                       uint8_t expected_key_usage,
+                                      cx_curve_t expected_curve,
                                       const cbuf_t *signature);

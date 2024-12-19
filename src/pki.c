@@ -6,6 +6,7 @@
 swap_error_e check_signature_with_pki(const uint8_t *buffer,
                                       uint8_t buffer_length,
                                       uint8_t expected_key_usage,
+                                      cx_curve_t expected_curve,
                                       const cbuf_t *signature) {
     uint8_t key_usage = 0;
     size_t certificate_name_len = 0;
@@ -21,7 +22,12 @@ swap_error_e check_signature_with_pki(const uint8_t *buffer,
 
     if (key_usage != expected_key_usage) {
         PRINTF("Wrong usage certificate %d, expected %d\n", key_usage, expected_key_usage);
-        return WRONG_CERTIFICATE_KEY_USAGE;
+        return WRONG_CERTIFICATE_DATA;
+    }
+
+    if (public_key.curve != expected_curve) {
+        PRINTF("Wrong curve %d, expected %d\n", public_key.curve, expected_curve);
+        return WRONG_CERTIFICATE_DATA;
     }
 
     PRINTF("Certificate '%s' loaded with success\n", certificate_name);

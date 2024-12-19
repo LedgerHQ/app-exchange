@@ -54,7 +54,7 @@ typedef enum tlv_tag_count_e {
 // The received TLV data that will be fed to each handler
 typedef struct tlv_data_s {
     tlv_tag_t tag;
-    uint8_t length;
+    uint16_t length;
     const uint8_t *value;
 } tlv_data_t;
 
@@ -79,13 +79,28 @@ typedef struct {
  * @param[out] value Pointer to a uint32_t where the result will be stored
  * @return True if the extraction was successful, false otherwise (invalid length or data)
  */
-bool get_uint_from_tlv_data(const tlv_data_t *data, uint32_t *value);
+bool get_uint32_from_tlv_data(const tlv_data_t *data, uint32_t *value);
+
+/**
+ * Get uint16_t from tlv data
+ *
+ * This function extracts a uint16_t value from the TLV data by calling `get_uint32_from_tlv_data`.
+ * The extracted value is then checked to ensure it fits within the uint16_t range.
+ *
+ * If the value is too large (greater than `UINT16_MAX`), the extraction fails.
+ *
+ * @param[in] data The TLV data containing the value to be extracted
+ * @param[out] value Pointer to a uint16_t where the result will be stored
+ * @return True if the extraction was successful, false otherwise (either failed extraction or
+ * out-of-range value)
+ */
+bool get_uint16_t_from_tlv_data(const tlv_data_t *data, uint16_t *value);
 
 /**
  * Get uint8_t from tlv data
  *
- * This function extracts a uint8_t value from the TLV data by calling `get_uint_from_tlv_data`.
- * The extracted value is then checked to ensure it fits within the uint8_t range (0-255).
+ * This function extracts a uint8_t value from the TLV data by calling `get_uint32_from_tlv_data`.
+ * The extracted value is then checked to ensure it fits within the uint8_t range.
  *
  * If the value is too large (greater than `UINT8_MAX`), the extraction fails.
  *
