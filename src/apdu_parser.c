@@ -36,13 +36,7 @@ typedef struct apdu_s {
     uint8_t rate;
     uint8_t subcommand;
     uint16_t data_length;
-    // We could have put the reconstructed apdu buffer here but it would increase the RAM usage by
-    // 512 bytes which is a lot on NANOS
-    // Instead the reconstructed apdu buffer is G_swap_ctx.raw_transaction
-    // It is unionized with the decoded protobuf transaction requests
-    // Pro: less memory usage
-    // Cons: use cautiously and only during the command PROCESS_TRANSACTION_RESPONSE_COMMAND
-    // The split reception is only made for this command anyway
+    uint8_t raw_transaction[256 * 2];
 } apdu_t;
 apdu_t G_received_apdu;
 
@@ -63,6 +57,17 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
 
     if (instruction == CHECK_PAYOUT_ADDRESS && (subcommand != SWAP && subcommand != SWAP_NG)) {
         PRINTF("Instruction CHECK_PAYOUT_ADDRESS is only for SWAP based flows\n");
+        return INVALID_INSTRUCTION;
+    }
+
+    if (instruction == GET_CHALLENGE && (subcommand != SWAP && subcommand != SWAP_NG)) {
+        PRINTF("Instruction GET_CHALLENGE is only for SWAP based flows\n");
+        return INVALID_INSTRUCTION;
+    }
+
+    if (instruction == SEND_TRUSTED_NAME_DESCRIPTOR &&
+        (subcommand != SWAP && subcommand != SWAP_NG)) {
+        PRINTF("Instruction SEND_TRUSTED_NAME_DESCRIPTOR is only for SWAP based flows\n");
         return INVALID_INSTRUCTION;
     }
 
@@ -101,6 +106,14 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
             break;
         case CHECK_TRANSACTION_SIGNATURE_COMMAND:
             check_current_state = TRANSACTION_RECEIVED;
+            check_subcommand_context = true;
+            break;
+        case GET_CHALLENGE:
+            check_current_state = SIGNATURE_CHECKED;
+            check_subcommand_context = true;
+            break;
+        case SEND_TRUSTED_NAME_DESCRIPTOR:
+            check_current_state = SIGNATURE_CHECKED;
             check_subcommand_context = true;
             break;
         case CHECK_PAYOUT_ADDRESS:
@@ -221,9 +234,9 @@ uint16_t check_apdu_validity(uint8_t *apdu, size_t apdu_length, command_t *comma
         return WRONG_P2_EXTENSION;
     }
     // Split reception is only for PROCESS_TRANSACTION_RESPONSE_COMMAND
-    if (instruction != PROCESS_TRANSACTION_RESPONSE_COMMAND && !is_whole_apdu) {
-        PRINTF("Extension %d refused, only allowed for PROCESS_TRANSACTION_RESPONSE instruction\n",
-               extension);
+    if (instruction != PROCESS_TRANSACTION_RESPONSE_COMMAND &&
+        instruction != SEND_TRUSTED_NAME_DESCRIPTOR && !is_whole_apdu) {
+        PRINTF("Extension %d refused for instruction %d\n", extension, instruction);
         return WRONG_P2_EXTENSION;
     }
 
@@ -233,11 +246,7 @@ uint16_t check_apdu_validity(uint8_t *apdu, size_t apdu_length, command_t *comma
         G_received_apdu.subcommand = subcommand;
         G_received_apdu.data_length = data_length;
         if (!is_last_data_chunk) {
-            // Use the raw_transaction buffer as temporary storage.
-            // It's unionized with the decoded transaction but we are currently handling
-            // PROCESS_TRANSACTION_RESPONSE_COMMAND instruction (checked previously).
-            // After this command is done it will contain the decoded PB data, don't use it anymore
-            memcpy(G_swap_ctx.raw_transaction, apdu + OFFSET_CDATA, data_length);
+            memcpy(G_received_apdu.raw_transaction, apdu + OFFSET_CDATA, data_length);
             G_received_apdu.expecting_more = true;
         }
     } else {
@@ -258,15 +267,15 @@ uint16_t check_apdu_validity(uint8_t *apdu, size_t apdu_length, command_t *comma
                    subcommand);
             return INVALID_P2_EXTENSION;
         }
-        if (G_received_apdu.data_length + data_length > sizeof(G_swap_ctx.raw_transaction)) {
+        if (G_received_apdu.data_length + data_length > sizeof(G_received_apdu.raw_transaction)) {
             PRINTF("Reception buffer size %d is not sufficient to receive more data (%d + %d)\n",
-                   sizeof(G_swap_ctx.raw_transaction),
+                   sizeof(G_received_apdu.raw_transaction),
                    G_received_apdu.data_length,
                    data_length);
             return INVALID_P2_EXTENSION;
         }
         // Extend the already received buffer
-        memcpy(G_swap_ctx.raw_transaction + G_received_apdu.data_length,
+        memcpy(G_received_apdu.raw_transaction + G_received_apdu.data_length,
                apdu + OFFSET_CDATA,
                data_length);
         G_received_apdu.data_length += data_length;
@@ -292,7 +301,7 @@ uint16_t check_apdu_validity(uint8_t *apdu, size_t apdu_length, command_t *comma
         } else {
             // Split has taken place, data is in the split buffer
             PRINTF("Split APDU successfully recreated, size %d\n", G_received_apdu.data_length);
-            command->data.bytes = G_swap_ctx.raw_transaction;
+            command->data.bytes = G_received_apdu.raw_transaction;
         }
         return 0;
     }

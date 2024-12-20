@@ -29,9 +29,9 @@ APPNAME = "Exchange"
 
 # Application version
 APPVERSION_M = 4
-APPVERSION_N = 0
+APPVERSION_N = 1
 APPVERSION_P = 0
-APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
+APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)-pkiv1"
 
 # Application source files
 APP_SOURCE_PATH += src
@@ -130,6 +130,18 @@ ifdef TEST_PUBLIC_KEY
     $(info [INFO] TEST_PUBLIC_KEY enabled)
     DEFINES += TEST_PUBLIC_KEY
 endif
+
+ifdef TRUSTED_NAME_TEST_KEY
+    $(info [INFO] TRUSTED_NAME_TEST_KEY enabled)
+    DEFINES += TRUSTED_NAME_TEST_KEY
+endif
+
+ifdef FIXED_TLV_CHALLENGE
+    $(info [INFO] FIXED_TLV_CHALLENGE enabled)
+    DEFINES += FIXED_TLV_CHALLENGE
+endif
+
+DEFINES += SDK_TLV_PARSER
 
 
 ########################################

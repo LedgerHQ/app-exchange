@@ -62,8 +62,6 @@ typedef struct swap_app_context_s {
 
     // SWAP, SELL, and FUND flows are unionized as they cannot be used in the same context
     union {
-        // This is the raw received APDU
-        uint8_t raw_transaction[256 * 2];
         ledger_swap_NewTransactionResponse swap_transaction;
         struct {
             ledger_swap_NewSellResponse sell_transaction;

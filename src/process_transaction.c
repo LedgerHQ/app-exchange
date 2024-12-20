@@ -336,23 +336,10 @@ static void save_fees(buf_t fees) {
 }
 
 int process_transaction(const command_t *cmd) {
-    uint8_t undecoded_transaction[sizeof(G_swap_ctx.raw_transaction)];
-    uint8_t *data;
-    // For memory optimization, the undecoded protobuf apdu may have been stored in an union
-    // with the decoded protobuf transaction.
-    if (cmd->data.bytes == G_swap_ctx.raw_transaction) {
-        // Copy locally the apdu to avoid problems during protobuf decode and fees extraction
-        PRINTF("Copying locally, the APDU has been received split\n");
-        memcpy(undecoded_transaction, G_swap_ctx.raw_transaction, cmd->data.size);
-        data = undecoded_transaction;
-    } else {
-        data = cmd->data.bytes;
-    }
-
     buf_t fees;
     buf_t payload;
     bool needs_base64_decoding;
-    if (!parse_transaction(data,
+    if (!parse_transaction(cmd->data.bytes,
                            cmd->data.size,
                            cmd->subcommand,
                            &payload,
