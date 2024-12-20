@@ -12,7 +12,8 @@ class NearTests(ExchangeTestRunner):
     valid_destination_memo_1 = ""
     valid_destination_2 = "ledger.testnet"
     valid_destination_memo_2 = ""
-    valid_refund = "EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U"
+    #valid_refund = "EFr6nRvgKKeteKoEH7hudt8UHYiu94Liq2yMM7x2AU9U"
+    valid_refund = "c4f5941e81e071c2fd1dae2e71fd3d859d462484391d9a90bf219211dcbb320f"
     valid_refund_memo = ""
     valid_send_amount_1 = 1234560000000000000000000000
     valid_send_amount_2 = 500000000000000000000000
