@@ -26,8 +26,8 @@ SWAP_TX_INFOS = {
      "payout_extra_id": b"",
      "currency_from": CURRENCY_FROM.ticker,
      "currency_to": CURRENCY_TO.ticker,
-     "amount_to_provider": bytes.fromhex("013fc3a717fb5000"),
-     "amount_to_wallet": b"\x0b\xeb\xc2\x00",
+     "amount_to_provider": bytes.fromhex("01"),
+     "amount_to_wallet": bytes.fromhex("01"),
 }
 FUND_TX_INFOS = {
     "user_id": "John Wick",
@@ -82,8 +82,10 @@ class TestTrustedName:
 
     @pytest.mark.parametrize("subcommand", [SubCommand.SWAP, SubCommand.SWAP_NG])
     @pytest.mark.parametrize("field_to_test", ["payout_address", "refund_address"])
-    @pytest.mark.parametrize("value", [b"0xcafedeca", b"f" * 62])
+    @pytest.mark.parametrize("value", [b"0xcafedeca", b"f" * 150])
     def test_trusted_name_valid(self, backend, subcommand, field_to_test, value):
+        if subcommand == SubCommand.SWAP and len(value) > 50:
+            pytest.skip("Can't test max address value on legacy flows")
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
         partner = SigningAuthority(curve=get_partner_curve(subcommand), name="Name")
         transaction_id = ex.init_transaction().data
@@ -94,6 +96,7 @@ class TestTrustedName:
         tx_infos = TX_INFOS[subcommand].copy()
         actual_address = tx_infos[field_to_test]
         temp_address = value
+        print(f"Replacing {actual_address} by {temp_address}")
         tx_infos[field_to_test] = temp_address
         tx, tx_signature = craft_and_sign_tx(subcommand, tx_infos, transaction_id, FEES, partner)
         ex.process_transaction(tx)
@@ -178,21 +181,17 @@ class TestTrustedName:
         ex.check_transaction_signature(tx_signature)
 
         for fake in ["structure_type", "version", "trusted_name_type", "trusted_name_source", "signer_algo"]:
+            challenge = ex.get_challenge().data
             with pytest.raises(ExceptionRAPDU) as e:
                 if fake == "structure_type":
-                    challenge = ex.get_challenge().data
                     ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, structure_type=0)
                 elif fake == "version":
-                    challenge = ex.get_challenge().data
                     ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, version=0)
                 elif fake == "trusted_name_type":
-                    challenge = ex.get_challenge().data
                     ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, trusted_name_type=0)
                 elif fake == "trusted_name_source":
-                    challenge = ex.get_challenge().data
                     ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, trusted_name_source=0)
                 elif fake == "signer_algo":
-                    challenge = ex.get_challenge().data
                     ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, signer_algo=0)
             assert e.value.status == Errors.WRONG_TLV_CONTENT
 
@@ -207,13 +206,15 @@ class TestTrustedName:
         assert e.value.status == Errors.WRONG_TLV_SIGNATURE
 
         for fake in ["trusted_name", "address"]:
-            for value in [b"", b"F"*63]:
+            values = [b""]
+            if subcommand == SubCommand.SWAP_NG:
+                values += [b"F"*151]
+            for value in values:
+                challenge = ex.get_challenge().data
                 with pytest.raises(ExceptionRAPDU) as e:
                     if fake == "trusted_name":
-                        challenge = ex.get_challenge().data
                         ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, trusted_name=value)
                     elif fake == "address":
-                        challenge = ex.get_challenge().data
                         ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, address=value)
                 assert e.value.status == Errors.WRONG_TLV_FORMAT
 
