@@ -115,6 +115,15 @@ on:
         default: 'LedgerHQ/app-cardano'
         type: string
 
+      branch_for_cosmos:
+        required: false
+        default: 'main'
+        type: string
+      repo_for_cosmos:
+        required: false
+        default: 'cosmos/ledger-cosmos'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -177,6 +186,9 @@ jobs:
         - name: cardano
           repo: ${{ inputs.repo_for_cardano }}
           branch: ${{ inputs.branch_for_cardano }}
+        - name: cosmos
+          repo: ${{ inputs.repo_for_cosmos }}
+          branch: ${{ inputs.branch_for_cosmos }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
