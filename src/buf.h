@@ -9,6 +9,11 @@ typedef struct buf_s {
     uint16_t size;
 } buf_t;
 
+typedef struct cbuf_s {
+    const uint8_t *bytes;
+    uint16_t size;
+} cbuf_t;
+
 bool parse_to_sized_buffer(uint8_t *in_buffer,
                            uint16_t in_size,
                            uint8_t size_of_length_field,

@@ -59,6 +59,7 @@ def all_commands_for_subcommand_except(s: SubCommand, cs: List[Command]) -> List
            Command.PROMPT_UI_DISPLAY,
            Command.START_SIGNING_TRANSACTION]
     if s == SubCommand.SWAP or s == SubCommand.SWAP_NG:
+        ret += [Command.GET_CHALLENGE, Command.SEND_TRUSTED_NAME_DESCRIPTOR]
         ret += [Command.CHECK_PAYOUT_ADDRESS, Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, Command.CHECK_REFUND_ADDRESS_NO_DISPLAY]
     else:
         ret += [Command.CHECK_ASSET_IN_AND_DISPLAY, Command.CHECK_ASSET_IN_NO_DISPLAY]
@@ -113,7 +114,7 @@ def test_wrong_flow_order(backend, subcommand, prompt_ui_separately, exchange_na
     ex.check_transaction_signature(tx_signature)
 
     if subcommand == SubCommand.SWAP or subcommand == SubCommand.SWAP_NG:
-        try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_PAYOUT_ADDRESS)
+        try_all_commands_for_subcommand_except(ex, subcommand, [Command.CHECK_PAYOUT_ADDRESS, Command.GET_CHALLENGE, Command.SEND_TRUSTED_NAME_DESCRIPTOR])
         ex.check_payout_address(CURRENCY_TO.get_conf_for_ticker())
 
         if prompt_ui_separately:
