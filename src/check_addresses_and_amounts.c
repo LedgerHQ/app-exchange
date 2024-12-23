@@ -52,10 +52,12 @@ static uint16_t check_payout_or_refund_address(command_e ins,
 
     // Depending on the current command, check either PAYOUT or REFUND
     if (ins == CHECK_PAYOUT_ADDRESS) {
+        PRINTF("Preparing to run CHECK_PAYOUT_ADDRESS\n");
         address_to_check = G_swap_ctx.swap_transaction.payout_address;
         address_max_size = sizeof(G_swap_ctx.swap_transaction.payout_address);
         extra_id_to_check = G_swap_ctx.swap_transaction.payout_extra_id;
     } else {
+        PRINTF("Preparing to run CHECK_REFUND_ADDRESS\n");
         address_to_check = G_swap_ctx.swap_transaction.refund_address;
         address_max_size = sizeof(G_swap_ctx.swap_transaction.refund_address);
         extra_id_to_check = G_swap_ctx.swap_transaction.refund_extra_id;
