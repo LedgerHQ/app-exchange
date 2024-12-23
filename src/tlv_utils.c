@@ -203,7 +203,7 @@ bool parse_tlv(const tlv_handler_t *handlers,
                const buf_t *payload,
                tlv_out_t *tlv_out,
                tlv_tag_t signature_tag,
-               uint8_t tlv_hash[INT256_LENGTH],
+               uint8_t hash[INT256_LENGTH],
                uint32_t *received_tags_flags) {
     tlv_step_t step = TLV_TAG;
     tlv_data_t data;
@@ -277,13 +277,8 @@ bool parse_tlv(const tlv_handler_t *handlers,
     }
 
     // If the user requested the hash of the TLV, forward it to him
-    if (tlv_hash != NULL) {
-        CX_ASSERT(cx_hash_no_throw((cx_hash_t *) &hash_ctx,
-                  CX_LAST,
-                  NULL,
-                  0,
-                  tlv_hash,
-                  INT256_LENGTH));
+    if (hash != NULL) {
+        CX_ASSERT(cx_hash_no_throw((cx_hash_t *) &hash_ctx, CX_LAST, NULL, 0, hash, INT256_LENGTH));
     }
 
     return true;

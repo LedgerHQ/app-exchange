@@ -1,9 +1,10 @@
-from typing import List, Generator
+from typing import List, Generator, Optional
 from enum import IntEnum
 from contextlib import contextmanager
 
 from ragger.backend.interface import BackendInterface, RAPDU
-
+from ragger.firmware import Firmware
+from ragger.error import ExceptionRAPDU
 
 class INS(IntEnum):
     # DEPRECATED - Use non "16" suffixed variants below
@@ -15,6 +16,8 @@ class INS(IntEnum):
     INS_GET_PUBKEY = 0x05
     INS_SIGN_MESSAGE = 0x06
     INS_SIGN_OFFCHAIN_MESSAGE = 0x07
+    INS_GET_CHALLENGE = 0x20
+    INS_TRUSTED_INFO = 0x21
 
 
 CLA = 0xE0
@@ -69,13 +72,49 @@ def _extend_and_serialize_multiple_derivations_paths(derivations_paths: List[byt
         serialized += derivations_path
     return serialized
 
+class StatusWord(IntEnum):
+    OK = 0x9000
+    ERROR_NO_INFO = 0x6a00
+    INVALID_DATA = 0x6a80
+    INSUFFICIENT_MEMORY = 0x6a84
+    INVALID_INS = 0x6d00
+    INVALID_P1_P2 = 0x6b00
+    CONDITION_NOT_SATISFIED = 0x6985
+    REF_DATA_NOT_FOUND = 0x6a88
+    EXCEPTION_OVERFLOW = 0x6807
+    NOT_IMPLEMENTED = 0x911c
+
+class PKIClient:
+    _CLA: int = 0xB0
+    _INS: int = 0x06
+
+    def __init__(self, client: BackendInterface) -> None:
+        self._client = client
+
+    def  send_certificate(self, payload: bytes) -> RAPDU:
+        response = self.send_raw(payload)
+        assert response.status == StatusWord.OK
+
+
+    def send_raw(self, payload: bytes) -> RAPDU:
+        header = bytearray()
+        header.append(self._CLA)
+        header.append(self._INS)
+        header.append(0x04) # PubKeyUsage = 0x04
+        header.append(0x00)
+        header.append(len(payload))
+        return self._client.exchange_raw(header + payload)
+
 
 class SolanaClient:
     client: BackendInterface
 
     def __init__(self, client: BackendInterface):
         self._client = client
-
+        self._pki_client: Optional[PKIClient] = None
+        if self._client.firmware != Firmware.NANOS:
+            # LedgerPKI not supported on Nanos
+            self._pki_client = PKIClient(self._client)
 
     def get_public_key(self, derivation_path: bytes) -> bytes:
         public_key: RAPDU = self._client.exchange(CLA, INS.INS_GET_PUBKEY,
@@ -85,24 +124,32 @@ class SolanaClient:
         return public_key.data
 
 
-    def split_and_prefix_message(self, derivation_path : bytes, message: bytes) -> List[bytes]:
+    @contextmanager
+    def send_public_key_with_confirm(self, derivation_path: bytes) -> bytes:
+        with self._client.exchange_async(CLA, INS.INS_GET_PUBKEY,
+                                         P1_CONFIRM, P2_NONE,
+                                         derivation_path):
+            yield
+
+
+    def split_and_prefix_message(self, derivation_path: bytes, message: bytes) -> List[bytes]:
         assert len(message) <= 65535, "Message to send is too long"
         header: bytes = _extend_and_serialize_multiple_derivations_paths([derivation_path])
-        # Check to see if this data needs to be split up and sent in chunks.
-        max_size = MAX_CHUNK_SIZE - len(header)
+        max_size = MAX_CHUNK_SIZE
         message_splited = [message[x:x + max_size] for x in range(0, len(message), max_size)]
-        # Add the header to every chunk
-        return [header + s for s in message_splited]
+        # The first chunk is the header, then all chunks with max size
+        return [header] + message_splited
 
 
-    def send_first_message_batch(self, messages: List[bytes], p1: int) -> RAPDU:
-        self._client.exchange(CLA, INS.INS_SIGN_MESSAGE, p1, P2_MORE, messages[0])
+    def send_first_message_batch(self, ins: INS, messages: List[bytes], p1: int) -> RAPDU:
+        self._client.exchange(CLA, ins, p1, P2_MORE, messages[0])
         for m in messages[1:]:
-            self._client.exchange(CLA, INS.INS_SIGN_MESSAGE, p1, P2_MORE | P2_EXTEND, m)
+            self._client.exchange(CLA, ins, p1, P2_MORE | P2_EXTEND, m)
 
 
     @contextmanager
-    def send_async_sign_message(self,
+    def send_async_sign_request(self,
+                                ins: INS,
                                 derivation_path : bytes,
                                 message: bytes) -> Generator[None, None, None]:
         message_splited_prefixed = self.split_and_prefix_message(derivation_path, message)
@@ -111,15 +158,31 @@ class SolanaClient:
         # Send all chunks with P2_EXTEND except for the first chunk
         if len(message_splited_prefixed) > 1:
             final_p2 = P2_EXTEND
-            self.send_first_message_batch(message_splited_prefixed[:-1], P1_CONFIRM)
+            self.send_first_message_batch(ins, message_splited_prefixed[:-1], P1_CONFIRM)
         else:
             final_p2 = 0
 
         with self._client.exchange_async(CLA,
-                                         INS.INS_SIGN_MESSAGE,
+                                         ins,
                                          P1_CONFIRM,
                                          final_p2,
                                          message_splited_prefixed[-1]):
+            yield
+
+
+    @contextmanager
+    def send_async_sign_message(self,
+                                derivation_path : bytes,
+                                message: bytes) -> Generator[None, None, None]:
+        with self.send_async_sign_request(INS.INS_SIGN_MESSAGE, derivation_path, message):
+            yield
+
+
+    @contextmanager
+    def send_async_sign_offchain_message(self,
+                                         derivation_path : bytes,
+                                         message: bytes) -> Generator[None, None, None]:
+        with self.send_async_sign_request(INS.INS_SIGN_OFFCHAIN_MESSAGE, derivation_path, message):
             yield
 
 

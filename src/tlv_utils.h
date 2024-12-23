@@ -162,7 +162,7 @@ bool parse_tlv(const tlv_handler_t *handlers,
                const buf_t *payload,
                tlv_out_t *tlv_out,
                tlv_tag_t signature_tag,
-               uint8_t tlv_hash[INT256_LENGTH],
+               uint8_t hash[INT256_LENGTH],
                uint32_t *received_tags_flags);
 
 bool received_required_tags(uint32_t rcv_flags, const tlv_tag_t *tags, size_t tag_count);

@@ -8,9 +8,9 @@ from ragger.utils import prefix_with_len
 
 from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom, get_version_from_makefile
 from .exchange_transaction_builder import SubCommand
-from .solana_keychain import Key, sign_data
+from .pki.pem_signer import KeySigner
 
-from .solana_tlv import FieldTag, format_tlv
+from .pki.tlv import FieldTag, format_tlv
 
 MAX_CHUNK_SIZE = 255
 
@@ -114,6 +114,7 @@ class ExchangeClient:
         self._rate = rate
         self._subcommand = subcommand
         self._pki_client = PKIClient(self._client)
+        self.trusted_name_key_signer = KeySigner("trusted_name.pem")
 
     @property
     def rate(self) -> Rate:
@@ -212,10 +213,10 @@ class ExchangeClient:
         if not skip_signature_field:
             if fake_signature_field:
                 payload += format_tlv(FieldTag.TAG_DER_SIGNATURE,
-                                      sign_data(Key.TRUSTED_NAME, payload + b"0"))
+                                      self.trusted_name_key_signer.sign_data(payload + b"0"))
             else:
                 payload += format_tlv(FieldTag.TAG_DER_SIGNATURE,
-                                      sign_data(Key.TRUSTED_NAME, payload))
+                                      self.trusted_name_key_signer.sign_data(payload))
 
         return self._exchange_split(Command.SEND_TRUSTED_NAME_DESCRIPTOR, payload=payload)
 
