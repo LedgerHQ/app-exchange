@@ -40,10 +40,8 @@
 // BSS start and end defines symbols
 extern void *_bss;
 extern void *_ebss;
-
-// We set a canary before calling os_lib_call to ensure the child application did not mess up when
-// writing it's output
-#define OS_LIB_CALL_CANARY_VALUE 0xCAFE
+// Known at LINK time, not COMPILE time
+#define BSS_SIZE ((uintptr_t)&_ebss - (uintptr_t)&_bss)
 
 // Call the os_lib_call with a checksum before and after the call to ensure the child application
 // did not corrupt our memory
@@ -51,21 +49,26 @@ extern void *_ebss;
 // this function will yield a false positive
 static int os_lib_call_bss_safe(unsigned int libcall_params[5]) {
     PRINTF("Check BSS from %p to %p\n", &_bss, &_ebss);
-    volatile uint16_t os_lib_call_canary = OS_LIB_CALL_CANARY_VALUE;
-    volatile uint16_t bss_before = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
+    // Make crc of the BSS before the lib call
+    volatile uint16_t bss_crc_before = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
+    // Safeguard the BSS on the stack
+    uint8_t *stack_ptr = __builtin_alloca(BSS_SIZE);
+    memcpy(stack_ptr, &_bss, BSS_SIZE);
+
     // os_lib_call will throw SWO_SEC_APP_14 if the called application is not installed.
     // We DON'T define a local TRY / CATCH context because it costs a lot of stack and we are short
     // for some exchanged coins
     // This means we will fallback to the main function that will handle the error (error RAPDU)
     // TODO: once LNS is deprecated, handle the error properly here
     os_lib_call(libcall_params);
-    volatile uint16_t bss_after = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
-    if (bss_before != bss_after) {
-        PRINTF("BSS corrupted by the child application, %d != %d\n", bss_before, bss_after);
-        return -1;
-    }
-    if (os_lib_call_canary != OS_LIB_CALL_CANARY_VALUE) {
-        PRINTF("Stack corrupted by the child application, 0x%x\n", os_lib_call_canary);
+
+    // Copy back the safe copy of the BSS from the stack to its original place
+    memcpy(&_bss, stack_ptr, BSS_SIZE);
+    // Ensure the BSS is back to a valid state. Corruption can happen on our stack if the lib apps
+    // Writes on it
+    volatile uint16_t bss_crc_after = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
+    if (bss_crc_before != bss_crc_after) {
+        PRINTF("BSS corrupted by the child application, %d != %d\n", bss_crc_before, bss_crc_after);
         return -1;
     }
     return 0;
