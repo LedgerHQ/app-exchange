@@ -278,12 +278,8 @@ bool parse_tlv(const tlv_handler_t *handlers,
 
     // If the user requested the hash of the TLV, forward it to him
     if (tlv_hash != NULL) {
-        CX_ASSERT(cx_hash_no_throw((cx_hash_t *) &hash_ctx,
-                  CX_LAST,
-                  NULL,
-                  0,
-                  tlv_hash,
-                  INT256_LENGTH));
+        CX_ASSERT(
+            cx_hash_no_throw((cx_hash_t *) &hash_ctx, CX_LAST, NULL, 0, tlv_hash, INT256_LENGTH));
     }
 
     return true;

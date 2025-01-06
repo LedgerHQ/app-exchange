@@ -167,35 +167,36 @@ uint16_t check_address(buf_t *coin_config,
     return 0;
 }
 
-int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params) {
+int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params,
+                             bool *reported_result) {
     unsigned int libcall_params[5];
 
-    // Initialize result with error value.
-    // This might be used in case the called app catch a throw and call os_lib_end()
-    // before setting the result value.
-    lib_in_out_params->result = 0;
-
-    libcall_params[0] = (unsigned int) G_swap_ctx.payin_binary_name;
+    libcall_params[0] = (unsigned int) G_swap_ctx->payin_binary_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = SIGN_TRANSACTION;
     libcall_params[3] = 0;
     libcall_params[4] = (unsigned int) lib_in_out_params;
 
     PRINTF("Exchange will call '%s' as library for SIGN_TRANSACTION\n",
-           G_swap_ctx.payin_binary_name);
+           G_swap_ctx->payin_binary_name);
     USB_power(0);
 
 #ifdef HAVE_NBGL
     // Save appname in stack to keep it from being erased
     // We'll need it later for the failure modale on Stax
-    char appname[BOLOS_APPNAME_MAX_SIZE_B];
-    strlcpy(appname, G_swap_ctx.payin_binary_name, sizeof(appname));
+    // char appname[BOLOS_APPNAME_MAX_SIZE_B];
+    // strlcpy(appname, G_swap_ctx->payin_binary_name, sizeof(appname));
 #endif
+
+    // Save G_swap_ctx and set it back after lib call
+    swap_app_context_t *swap_ctx_addr = G_swap_ctx;
 
     // This os_lib_call may not throw SWO_SEC_APP_14 (missing library), as the existence of the
     // application has been enforced through an earlier call to os_lib_call for CHECK_ADDRESS and
     // GET_PRINTABLE_AMOUNT
     os_lib_call(libcall_params);
+
+    G_swap_ctx = swap_ctx_addr;
 
     // From now on our BSS is corrupted and unusable. Return to main loop to start a new cycle ASAP
     PRINTF("Back in Exchange, the app finished the library command SIGN_TRANSACTION\n");
@@ -203,12 +204,13 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
 
 #ifdef HAVE_NBGL
     // Retrieve the appname from the stack and put it back in the BSS
-    strlcpy(G_previous_cycle_data.appname_last_cycle,
-            appname,
-            sizeof(G_previous_cycle_data.appname_last_cycle));
+    // strlcpy(G_previous_cycle_data.appname_last_cycle,
+    //         appname,
+    //         sizeof(G_previous_cycle_data.appname_last_cycle));
     // Remember if this sign was successful
-    G_previous_cycle_data.was_successful = (lib_in_out_params->result == 1);
+    // G_previous_cycle_data.was_successful = (lib_in_out_params->result == 1);
 #endif
+    *reported_result = (lib_in_out_params->result == 1);
 
-    return lib_in_out_params->result;
+    return 0;
 }

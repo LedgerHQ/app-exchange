@@ -116,19 +116,19 @@ int check_tx_signature(const command_t *cmd) {
     PRINTF("DER sig: %.*H\n", signature.size, signature.bytes);
     const uint8_t *hash;
     if (signature_is_computed_on_dot_prefixed_tx) {
-        hash = G_swap_ctx.sha256_digest_prefixed;
+        hash = G_swap_ctx->sha256_digest_prefixed;
         PRINTF("SHA256 %.*H\n",
-               sizeof(G_swap_ctx.sha256_digest_prefixed),
-               G_swap_ctx.sha256_digest_prefixed);
+               sizeof(G_swap_ctx->sha256_digest_prefixed),
+               G_swap_ctx->sha256_digest_prefixed);
     } else {
-        hash = G_swap_ctx.sha256_digest_no_prefix;
+        hash = G_swap_ctx->sha256_digest_no_prefix;
         PRINTF("SHA256 %.*H\n",
-               sizeof(G_swap_ctx.sha256_digest_no_prefix),
-               G_swap_ctx.sha256_digest_no_prefix);
+               sizeof(G_swap_ctx->sha256_digest_no_prefix),
+               G_swap_ctx->sha256_digest_no_prefix);
     }
 
     // Check the signature of the sha256_digest we computed from the tx payload
-    if (!cx_ecdsa_verify_no_throw(&G_swap_ctx.partner.public_key,
+    if (!cx_ecdsa_verify_no_throw(&G_swap_ctx->partner.public_key,
                                   hash,
                                   CURVE_SIZE_BYTES,
                                   signature.bytes,
@@ -142,7 +142,7 @@ int check_tx_signature(const command_t *cmd) {
         return -1;
     }
 
-    G_swap_ctx.state = SIGNATURE_CHECKED;
+    G_swap_ctx->state = SIGNATURE_CHECKED;
 
     return 0;
 }

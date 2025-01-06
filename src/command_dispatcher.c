@@ -21,7 +21,7 @@ int dispatch_command(const command_t *cmd) {
     PRINTF("command: %d, subcommand: %d, current state: %d\n",
            cmd->ins,
            cmd->subcommand,
-           G_swap_ctx.state);
+           G_swap_ctx->state);
 
     int ret = -1;
 
