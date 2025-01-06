@@ -40,10 +40,8 @@
 // BSS start and end defines symbols
 extern void *_bss;
 extern void *_ebss;
-
-// We set a canary before calling os_lib_call to ensure the child application did not mess up when
-// writing it's output
-#define OS_LIB_CALL_CANARY_VALUE 0xCAFE
+// Known at LINK time, not COMPILE time
+#define BSS_SIZE ((uintptr_t)&_ebss - (uintptr_t)&_bss)
 
 // Call the os_lib_call with a checksum before and after the call to ensure the child application
 // did not corrupt our memory
@@ -51,21 +49,26 @@ extern void *_ebss;
 // this function will yield a false positive
 static int os_lib_call_bss_safe(unsigned int libcall_params[5]) {
     PRINTF("Check BSS from %p to %p\n", &_bss, &_ebss);
-    volatile uint16_t os_lib_call_canary = OS_LIB_CALL_CANARY_VALUE;
-    volatile uint16_t bss_before = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
+    // Make crc of the BSS before the lib call
+    volatile uint16_t bss_crc_before = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
+    // Safeguard the BSS on the stack
+    uint8_t *stack_ptr = __builtin_alloca(BSS_SIZE);
+    memcpy(stack_ptr, &_bss, BSS_SIZE);
+
     // os_lib_call will throw SWO_SEC_APP_14 if the called application is not installed.
     // We DON'T define a local TRY / CATCH context because it costs a lot of stack and we are short
     // for some exchanged coins
     // This means we will fallback to the main function that will handle the error (error RAPDU)
     // TODO: once LNS is deprecated, handle the error properly here
     os_lib_call(libcall_params);
-    volatile uint16_t bss_after = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
-    if (bss_before != bss_after) {
-        PRINTF("BSS corrupted by the child application, %d != %d\n", bss_before, bss_after);
-        return -1;
-    }
-    if (os_lib_call_canary != OS_LIB_CALL_CANARY_VALUE) {
-        PRINTF("Stack corrupted by the child application, 0x%x\n", os_lib_call_canary);
+
+    // Copy back the safe copy of the BSS from the stack to its original place
+    memcpy(&_bss, stack_ptr, BSS_SIZE);
+    // Ensure the BSS is back to a valid state. Corruption can happen on our stack if the lib apps
+    // Writes on it
+    volatile uint16_t bss_crc_after = cx_crc16(&_bss, ((uintptr_t) &_ebss) - ((uintptr_t) &_bss));
+    if (bss_crc_before != bss_crc_after) {
+        PRINTF("BSS corrupted by the child application, %d != %d\n", bss_crc_before, bss_crc_after);
         return -1;
     }
     return 0;
@@ -167,35 +170,36 @@ uint16_t check_address(buf_t *coin_config,
     return 0;
 }
 
-int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params) {
+int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params,
+                             bool *reported_result) {
     unsigned int libcall_params[5];
 
-    // Initialize result with error value.
-    // This might be used in case the called app catch a throw and call os_lib_end()
-    // before setting the result value.
-    lib_in_out_params->result = 0;
-
-    libcall_params[0] = (unsigned int) G_swap_ctx.payin_binary_name;
+    libcall_params[0] = (unsigned int) G_swap_ctx->payin_binary_name;
     libcall_params[1] = 0x100;
     libcall_params[2] = SIGN_TRANSACTION;
     libcall_params[3] = 0;
     libcall_params[4] = (unsigned int) lib_in_out_params;
 
     PRINTF("Exchange will call '%s' as library for SIGN_TRANSACTION\n",
-           G_swap_ctx.payin_binary_name);
+           G_swap_ctx->payin_binary_name);
     USB_power(0);
 
 #ifdef HAVE_NBGL
     // Save appname in stack to keep it from being erased
     // We'll need it later for the failure modale on Stax
-    char appname[BOLOS_APPNAME_MAX_SIZE_B];
-    strlcpy(appname, G_swap_ctx.payin_binary_name, sizeof(appname));
+    // char appname[BOLOS_APPNAME_MAX_SIZE_B];
+    // strlcpy(appname, G_swap_ctx->payin_binary_name, sizeof(appname));
 #endif
+
+    // Save G_swap_ctx and set it back after lib call
+    swap_app_context_t *swap_ctx_addr = G_swap_ctx;
 
     // This os_lib_call may not throw SWO_SEC_APP_14 (missing library), as the existence of the
     // application has been enforced through an earlier call to os_lib_call for CHECK_ADDRESS and
     // GET_PRINTABLE_AMOUNT
     os_lib_call(libcall_params);
+
+    G_swap_ctx = swap_ctx_addr;
 
     // From now on our BSS is corrupted and unusable. Return to main loop to start a new cycle ASAP
     PRINTF("Back in Exchange, the app finished the library command SIGN_TRANSACTION\n");
@@ -203,12 +207,13 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
 
 #ifdef HAVE_NBGL
     // Retrieve the appname from the stack and put it back in the BSS
-    strlcpy(G_previous_cycle_data.appname_last_cycle,
-            appname,
-            sizeof(G_previous_cycle_data.appname_last_cycle));
+    // strlcpy(G_previous_cycle_data.appname_last_cycle,
+    //         appname,
+    //         sizeof(G_previous_cycle_data.appname_last_cycle));
     // Remember if this sign was successful
-    G_previous_cycle_data.was_successful = (lib_in_out_params->result == 1);
+    // G_previous_cycle_data.was_successful = (lib_in_out_params->result == 1);
 #endif
+    *reported_result = (lib_in_out_params->result == 1);
 
-    return lib_in_out_params->result;
+    return 0;
 }

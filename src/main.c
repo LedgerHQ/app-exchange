@@ -39,7 +39,17 @@
 #define SWO_SEC_APP_14 0x5114  // (ERR_SEC_APP + ERR_GEN_ID_14)
 #endif
 
-swap_app_context_t G_swap_ctx;
+// Simple global variable to access the stack variable defined in main
+swap_app_context_t *G_swap_ctx;
+
+#ifdef HAVE_NBGL
+// On nbgl, remember some data from the previous cycle if applicable to display a status screen
+typedef struct previous_cycle_data_s {
+    bool had_previous_cycle;
+    bool was_successful;
+    char appname_last_cycle[BOLOS_APPNAME_MAX_SIZE_B + 1];
+} previous_cycle_data_t;
+#endif
 
 void app_main(void) {
     int input_length = 0;
@@ -53,7 +63,7 @@ void app_main(void) {
         // there was a fatal error during APDU reception, restart from the beginning
         // Don't bother trying to send a status code, IOs are probably out
         if (input_length == -1) {
-            explicit_bzero(&G_swap_ctx, sizeof(G_swap_ctx));
+            explicit_bzero(G_swap_ctx, sizeof(*G_swap_ctx));
             return;
         }
 
@@ -66,11 +76,11 @@ void app_main(void) {
 
         if (dispatch_command(&cmd) < 0) {
             // some non recoverable error happened
-            explicit_bzero(&G_swap_ctx, sizeof(G_swap_ctx));
+            explicit_bzero(G_swap_ctx, sizeof(*G_swap_ctx));
             return;
         }
 
-        if (G_swap_ctx.state == SIGN_FINISHED) {
+        if (G_swap_ctx->state == SIGN_SUCCESS || G_swap_ctx->state == SIGN_FAILURE) {
             // We are back from an app started in signing mode, our globals are corrupted
             // Force a return to the main function in order to trigger a full clean restart
             return;
@@ -78,40 +88,41 @@ void app_main(void) {
     }
 }
 
-// On Stax, remember some data from the previous cycle if applicable to display a status screen
-#ifdef HAVE_NBGL
-previous_cycle_data_t G_previous_cycle_data;
-#endif
-
 __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
     // exit critical section
     __asm volatile("cpsie i");
 
-#ifdef HAVE_NBGL
-    G_previous_cycle_data.had_previous_cycle = false;
-#endif
-
     // ensure exception will work as planned
     os_boot();
 
+    // Global like variable, placed in stack to avoid BSS corruption by the library application
+    swap_app_context_t swap_ctx;
+    G_swap_ctx = &swap_ctx;
+    explicit_bzero(G_swap_ctx, sizeof(*G_swap_ctx));
+
+    // On NBGL, remember some data from the previous cycle if applicable to display a status screen
+#ifdef HAVE_NBGL
+    previous_cycle_data_t previous_cycle_data;
+    explicit_bzero(&previous_cycle_data, sizeof(previous_cycle_data));
+#endif
+
     for (;;) {
         // If we are back from a lib app in signing mode, clean our BSS
-        if (G_swap_ctx.state == SIGN_FINISHED) {
+        if (G_swap_ctx->state == SIGN_SUCCESS || G_swap_ctx->state == SIGN_FAILURE) {
 #ifdef HAVE_NBGL
-            G_previous_cycle_data.had_previous_cycle = true;
-            // We have saved some data for the status screen in the BSS
-            // Let's avoid them being erased by doing a stack save
-            previous_cycle_data_t tmp_previous_cycle_data;
-            memcpy(&tmp_previous_cycle_data, &G_previous_cycle_data, sizeof(G_previous_cycle_data));
+            // And save some data for the status screen
+            previous_cycle_data.had_previous_cycle = true;
+            strlcpy(previous_cycle_data.appname_last_cycle,
+                    G_swap_ctx->payin_binary_name,
+                    sizeof(previous_cycle_data.appname_last_cycle));
+            previous_cycle_data.was_successful = (G_swap_ctx->state == SIGN_SUCCESS);
 #endif
 
             // Fully reset the global space, as it is was corrupted by the signing app
             PRINTF("Exchange new cycle, reset BSS\n");
+            explicit_bzero(G_swap_ctx, sizeof(*G_swap_ctx));
             os_explicit_zero_BSS_segment();
-
-#ifdef HAVE_NBGL
-            memcpy(&G_previous_cycle_data, &tmp_previous_cycle_data, sizeof(G_previous_cycle_data));
-#endif
+            G_swap_ctx = &swap_ctx;
         }
 
         UX_INIT();
@@ -134,14 +145,14 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 // We can't do it earlier because :
                 //  - we need to shadow the ui_idle() call
                 //  - we need a BSS reset + UX_INIT
-                if (G_previous_cycle_data.had_previous_cycle) {
-                    G_previous_cycle_data.had_previous_cycle = false;
-                    if (G_previous_cycle_data.was_successful) {
+                if (previous_cycle_data.had_previous_cycle) {
+                    previous_cycle_data.had_previous_cycle = false;
+                    if (previous_cycle_data.was_successful) {
                         PRINTF("Displaying modal for successful last cycle\n");
                         display_signing_success();
                     } else {
                         PRINTF("Displaying modal for failed last cycle\n");
-                        display_signing_failure(G_previous_cycle_data.appname_last_cycle);
+                        display_signing_failure(previous_cycle_data.appname_last_cycle);
                     }
                 } else {
                     ui_idle();

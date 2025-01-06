@@ -141,26 +141,28 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
             return INVALID_INSTRUCTION;
     }
 
-    if (G_swap_ctx.state == WAITING_USER_VALIDATION) {
+    if (G_swap_ctx->state == WAITING_USER_VALIDATION) {
         PRINTF("Refuse all APDUs during UI display\n");
         return UNEXPECTED_INSTRUCTION;
     }
 
-    if (!allowed_during_waiting_for_signing && G_swap_ctx.state == WAITING_SIGNING) {
+    if (!allowed_during_waiting_for_signing && G_swap_ctx->state == WAITING_SIGNING) {
         PRINTF("Received instruction %d, not allowed during WAITING_SIGNING state\n", instruction);
         return UNEXPECTED_INSTRUCTION;
     }
 
-    if (check_subcommand_context && subcommand != G_swap_ctx.subcommand) {
-        PRINTF("Received subcommand %d, current flow uses %d\n", subcommand, G_swap_ctx.subcommand);
+    if (check_subcommand_context && subcommand != G_swap_ctx->subcommand) {
+        PRINTF("Received subcommand %d, current flow uses %d\n",
+               subcommand,
+               G_swap_ctx->subcommand);
         return UNEXPECTED_INSTRUCTION;
     }
 
-    if (check_current_state != -1 && G_swap_ctx.state != check_current_state) {
+    if (check_current_state != -1 && G_swap_ctx->state != check_current_state) {
         PRINTF("Received instruction %d requiring state %d, but current state is %d\n",
                instruction,
                check_current_state,
-               G_swap_ctx.state);
+               G_swap_ctx->state);
         return UNEXPECTED_INSTRUCTION;
     }
 

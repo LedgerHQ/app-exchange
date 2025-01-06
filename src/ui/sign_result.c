@@ -7,8 +7,8 @@
 
 #define REFUSAL_TEXT_PART_1 "Incorrect transaction\nrejected by the\n"
 #define REFUSAL_TEXT_PART_2 " app"
-#define REFUSAL_TEXT_MAX_SIZE                                                         \
-    ((sizeof(REFUSAL_TEXT_PART_1) - 1) + (sizeof(G_swap_ctx.payin_binary_name) - 1) + \
+#define REFUSAL_TEXT_MAX_SIZE                                                          \
+    ((sizeof(REFUSAL_TEXT_PART_1) - 1) + (sizeof(G_swap_ctx->payin_binary_name) - 1) + \
      (sizeof(REFUSAL_TEXT_PART_2) - 1) + 1)
 static char refusal_text[REFUSAL_TEXT_MAX_SIZE];
 

@@ -25,7 +25,7 @@
 #define KEY_ID_PROD 0x07
 
 // Reuse the size of the protobuf structure (-1 because TLV data is not NULL terminated)
-#define MAX_ADDRESS_LENGTH (sizeof(G_swap_ctx.swap_transaction.payout_address) - 1)
+#define MAX_ADDRESS_LENGTH (sizeof(G_swap_ctx->swap_transaction.payout_address) - 1)
 
 static bool handle_struct_type(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
     return get_uint8_t_from_tlv_data(data, &trusted_name_info->struct_type);
@@ -250,24 +250,24 @@ static int trusted_name_descriptor_handler_internal(const command_t *cmd) {
            trusted_name_info.owner.bytes);
 
     // Should never happen thanks to apdu_parser check but let's check again anyway
-    if (G_swap_ctx.subcommand != SWAP && G_swap_ctx.subcommand != SWAP_NG) {
+    if (G_swap_ctx->subcommand != SWAP && G_swap_ctx->subcommand != SWAP_NG) {
         PRINTF("Trusted name descriptor is only for SWAP based flows\n");
         return reply_error(INTERNAL_ERROR);
     }
 
     PRINTF("Checking against PAYOUT address %.*H\n",
-           sizeof(G_swap_ctx.swap_transaction.payout_address),
-           G_swap_ctx.swap_transaction.payout_address);
-    apply_trusted_name(G_swap_ctx.swap_transaction.payout_address,
-                       sizeof(G_swap_ctx.swap_transaction.payout_address),
+           sizeof(G_swap_ctx->swap_transaction.payout_address),
+           G_swap_ctx->swap_transaction.payout_address);
+    apply_trusted_name(G_swap_ctx->swap_transaction.payout_address,
+                       sizeof(G_swap_ctx->swap_transaction.payout_address),
                        &trusted_name_info.trusted_name,
                        &trusted_name_info.owner);
 
     PRINTF("Checking against REFUND address %.*H\n",
-           sizeof(G_swap_ctx.swap_transaction.refund_address),
-           G_swap_ctx.swap_transaction.refund_address);
-    apply_trusted_name(G_swap_ctx.swap_transaction.refund_address,
-                       sizeof(G_swap_ctx.swap_transaction.refund_address),
+           sizeof(G_swap_ctx->swap_transaction.refund_address),
+           G_swap_ctx->swap_transaction.refund_address);
+    apply_trusted_name(G_swap_ctx->swap_transaction.refund_address,
+                       sizeof(G_swap_ctx->swap_transaction.refund_address),
                        &trusted_name_info.trusted_name,
                        &trusted_name_info.owner);
 
