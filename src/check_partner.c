@@ -15,8 +15,8 @@ int check_partner(const command_t *cmd) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
-    if (!cx_ecdsa_verify_no_throw(&(G_swap_ctx.ledger_public_key),
-                                  G_swap_ctx.sha256_digest_no_prefix,
+    if (!cx_ecdsa_verify_no_throw(&(G_swap_ctx->ledger_public_key),
+                                  G_swap_ctx->sha256_digest_no_prefix,
                                   CURVE_SIZE_BYTES,
                                   cmd->data.bytes,
                                   cmd->data.size)) {
@@ -29,7 +29,7 @@ int check_partner(const command_t *cmd) {
         return -1;
     }
 
-    G_swap_ctx.state = PROVIDER_CHECKED;
+    G_swap_ctx->state = PROVIDER_CHECKED;
 
     return 0;
 }

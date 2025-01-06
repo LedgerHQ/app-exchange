@@ -73,26 +73,26 @@ int set_partner_key(const command_t *cmd) {
         return reply_error(err);
     }
 
-    if (G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) {
+    if (G_swap_ctx->subcommand == FUND || G_swap_ctx->subcommand == FUND_NG) {
         // Prepare the prefix for FUND display
-        memset(G_swap_ctx.partner.prefixed_name, 0, sizeof(G_swap_ctx.partner.prefixed_name));
-        strlcpy(G_swap_ctx.partner.prefixed_name,
+        memset(G_swap_ctx->partner.prefixed_name, 0, sizeof(G_swap_ctx->partner.prefixed_name));
+        strlcpy(G_swap_ctx->partner.prefixed_name,
                 PARTNER_NAME_PREFIX_FOR_FUND,
-                sizeof(G_swap_ctx.partner.prefixed_name));
+                sizeof(G_swap_ctx->partner.prefixed_name));
         // The incoming partner name is NOT NULL terminated, so we use strncat
         // Don't erase the prefix copied above
-        strncat(G_swap_ctx.partner.prefixed_name, (char *) partner.bytes, partner.size);
+        strncat(G_swap_ctx->partner.prefixed_name, (char *) partner.bytes, partner.size);
     } else {
-        memset(G_swap_ctx.partner.unprefixed_name, 0, sizeof(G_swap_ctx.partner.unprefixed_name));
+        memset(G_swap_ctx->partner.unprefixed_name, 0, sizeof(G_swap_ctx->partner.unprefixed_name));
         // The incoming partner name is NOT NULL terminated, so we use strncpy
-        strncpy(G_swap_ctx.partner.unprefixed_name, (char *) partner.bytes, partner.size);
+        strncpy(G_swap_ctx->partner.unprefixed_name, (char *) partner.bytes, partner.size);
     }
 
     // Create the verifying key from the raw public key
     if (cx_ecfp_init_public_key_no_throw(curve,
                                          raw_pubkey,
                                          UNCOMPRESSED_KEY_LENGTH,
-                                         &(G_swap_ctx.partner.public_key)) != CX_OK) {
+                                         &(G_swap_ctx->partner.public_key)) != CX_OK) {
         PRINTF("Error: cx_ecfp_init_public_key_no_throw\n");
         return reply_error(INTERNAL_ERROR);
     }
@@ -100,8 +100,8 @@ int set_partner_key(const command_t *cmd) {
     // Save the hash of the entire credentials to check that the Ledger key signed it later
     if (cx_hash_sha256(cmd->data.bytes,
                        cmd->data.size,
-                       G_swap_ctx.sha256_digest_no_prefix,
-                       sizeof(G_swap_ctx.sha256_digest_no_prefix)) == 0) {
+                       G_swap_ctx->sha256_digest_no_prefix,
+                       sizeof(G_swap_ctx->sha256_digest_no_prefix)) == 0) {
         PRINTF("cx_hash_sha256 internal error\n");
         return reply_error(INTERNAL_ERROR);
     }
@@ -111,7 +111,7 @@ int set_partner_key(const command_t *cmd) {
         return -1;
     }
 
-    G_swap_ctx.state = PROVIDER_SET;
+    G_swap_ctx->state = PROVIDER_SET;
 
     return 0;
 }

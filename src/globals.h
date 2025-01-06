@@ -100,15 +100,4 @@ typedef struct swap_app_context_s {
     char printable_fees_amount[MAX_PRINTABLE_AMOUNT_SIZE];
 } swap_app_context_t;
 
-extern swap_app_context_t G_swap_ctx;
-
-#ifdef HAVE_NBGL
-// On Stax, remember some data from the previous cycle if applicable to display a status screen
-typedef struct previous_cycle_data_s {
-    bool had_previous_cycle;
-    bool was_successful;
-    char appname_last_cycle[BOLOS_APPNAME_MAX_SIZE_B + 1];
-} previous_cycle_data_t;
-
-extern previous_cycle_data_t G_previous_cycle_data;
-#endif
+extern swap_app_context_t *G_swap_ctx;

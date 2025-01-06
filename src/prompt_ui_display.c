@@ -5,7 +5,7 @@
 #include "validate_transaction.h"
 
 void start_ui_display(void) {
-    G_swap_ctx.state = WAITING_USER_VALIDATION;
+    G_swap_ctx->state = WAITING_USER_VALIDATION;
     ui_validate_amounts();
 }
 

@@ -19,7 +19,7 @@
 static bool check_coin_configuration_signature(buf_t config, buf_t der) {
     uint8_t hash[CURVE_SIZE_BYTES];
     cx_hash_sha256(config.bytes, config.size, hash, CURVE_SIZE_BYTES);
-    return cx_ecdsa_verify_no_throw(&G_swap_ctx.ledger_public_key,
+    return cx_ecdsa_verify_no_throw(&G_swap_ctx->ledger_public_key,
                                     hash,
                                     CURVE_SIZE_BYTES,
                                     der.bytes,
@@ -30,14 +30,14 @@ static bool check_received_ticker_matches_context(buf_t ticker, const command_t 
     char *in_currency;
     if (cmd->subcommand == SWAP || cmd->subcommand == SWAP_NG) {
         if (cmd->ins == CHECK_PAYOUT_ADDRESS) {
-            in_currency = G_swap_ctx.swap_transaction.currency_to;
+            in_currency = G_swap_ctx->swap_transaction.currency_to;
         } else {
-            in_currency = G_swap_ctx.swap_transaction.currency_from;
+            in_currency = G_swap_ctx->swap_transaction.currency_from;
         }
     } else if (cmd->subcommand == SELL || cmd->subcommand == SELL_NG) {
-        in_currency = G_swap_ctx.sell_transaction.in_currency;
+        in_currency = G_swap_ctx->sell_transaction.in_currency;
     } else {
-        in_currency = G_swap_ctx.fund_transaction.in_currency;
+        in_currency = G_swap_ctx->fund_transaction.in_currency;
     }
     return check_matching_ticker(ticker, in_currency);
 }
@@ -52,13 +52,15 @@ static uint16_t check_payout_or_refund_address(command_e ins,
 
     // Depending on the current command, check either PAYOUT or REFUND
     if (ins == CHECK_PAYOUT_ADDRESS) {
-        address_to_check = G_swap_ctx.swap_transaction.payout_address;
-        address_max_size = sizeof(G_swap_ctx.swap_transaction.payout_address);
-        extra_id_to_check = G_swap_ctx.swap_transaction.payout_extra_id;
+        PRINTF("Preparing to run CHECK_PAYOUT_ADDRESS\n");
+        address_to_check = G_swap_ctx->swap_transaction.payout_address;
+        address_max_size = sizeof(G_swap_ctx->swap_transaction.payout_address);
+        extra_id_to_check = G_swap_ctx->swap_transaction.payout_extra_id;
     } else {
-        address_to_check = G_swap_ctx.swap_transaction.refund_address;
-        address_max_size = sizeof(G_swap_ctx.swap_transaction.refund_address);
-        extra_id_to_check = G_swap_ctx.swap_transaction.refund_extra_id;
+        PRINTF("Preparing to run CHECK_REFUND_ADDRESS\n");
+        address_to_check = G_swap_ctx->swap_transaction.refund_address;
+        address_max_size = sizeof(G_swap_ctx->swap_transaction.refund_address);
+        extra_id_to_check = G_swap_ctx->swap_transaction.refund_extra_id;
     }
     if (address_to_check[address_max_size - 1] != '\0') {
         PRINTF("Address to check is not NULL terminated\n");
@@ -81,24 +83,24 @@ static uint16_t format_relevant_amount(command_e ins, buf_t sub_coin_config, cha
     pb_bytes_array_16_t *amount;
     char *dest;
     uint8_t dest_size;
-    if (G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) {
+    if (G_swap_ctx->subcommand == SWAP || G_swap_ctx->subcommand == SWAP_NG) {
         if (ins == CHECK_PAYOUT_ADDRESS) {
-            amount = (pb_bytes_array_16_t *) &G_swap_ctx.swap_transaction.amount_to_wallet;
-            dest = G_swap_ctx.printable_get_amount;
-            dest_size = sizeof(G_swap_ctx.printable_get_amount);
+            amount = (pb_bytes_array_16_t *) &G_swap_ctx->swap_transaction.amount_to_wallet;
+            dest = G_swap_ctx->printable_get_amount;
+            dest_size = sizeof(G_swap_ctx->printable_get_amount);
         } else {
-            amount = (pb_bytes_array_16_t *) &G_swap_ctx.swap_transaction.amount_to_provider;
-            dest = G_swap_ctx.printable_send_amount;
-            dest_size = sizeof(G_swap_ctx.printable_send_amount);
+            amount = (pb_bytes_array_16_t *) &G_swap_ctx->swap_transaction.amount_to_provider;
+            dest = G_swap_ctx->printable_send_amount;
+            dest_size = sizeof(G_swap_ctx->printable_send_amount);
         }
-    } else if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
-        amount = (pb_bytes_array_16_t *) &G_swap_ctx.sell_transaction.in_amount;
-        dest = G_swap_ctx.printable_send_amount;
-        dest_size = sizeof(G_swap_ctx.printable_send_amount);
+    } else if (G_swap_ctx->subcommand == SELL || G_swap_ctx->subcommand == SELL_NG) {
+        amount = (pb_bytes_array_16_t *) &G_swap_ctx->sell_transaction.in_amount;
+        dest = G_swap_ctx->printable_send_amount;
+        dest_size = sizeof(G_swap_ctx->printable_send_amount);
     } else {
-        amount = (pb_bytes_array_16_t *) &G_swap_ctx.fund_transaction.in_amount;
-        dest = G_swap_ctx.printable_send_amount;
-        dest_size = sizeof(G_swap_ctx.printable_send_amount);
+        amount = (pb_bytes_array_16_t *) &G_swap_ctx->fund_transaction.in_amount;
+        dest = G_swap_ctx->printable_send_amount;
+        dest_size = sizeof(G_swap_ctx->printable_send_amount);
     }
 
     uint16_t err = get_printable_amount(&sub_coin_config,
@@ -119,49 +121,49 @@ static uint16_t format_relevant_amount(command_e ins, buf_t sub_coin_config, cha
 static uint16_t format_fees(buf_t sub_coin_config, char *appname) {
     uint16_t err = get_printable_amount(&sub_coin_config,
                                         appname,
-                                        G_swap_ctx.transaction_fee,
-                                        G_swap_ctx.transaction_fee_length,
-                                        G_swap_ctx.printable_fees_amount,
-                                        sizeof(G_swap_ctx.printable_fees_amount),
+                                        G_swap_ctx->transaction_fee,
+                                        G_swap_ctx->transaction_fee_length,
+                                        G_swap_ctx->printable_fees_amount,
+                                        sizeof(G_swap_ctx->printable_fees_amount),
                                         true);
     if (err != 0) {
         PRINTF("Error: Failed to get printable fees amount\n");
         return err;
     }
-    PRINTF("Fees: %s\n", G_swap_ctx.printable_fees_amount);
+    PRINTF("Fees: %s\n", G_swap_ctx->printable_fees_amount);
     return 0;
 }
 
 static bool format_fiat_amount(void) {
-    size_t len = strlen(G_swap_ctx.sell_transaction.out_currency);
-    if (len + 1 >= sizeof(G_swap_ctx.printable_get_amount)) {
+    size_t len = strlen(G_swap_ctx->sell_transaction.out_currency);
+    if (len + 1 >= sizeof(G_swap_ctx->printable_get_amount)) {
         return false;
     }
 
-    strlcpy(G_swap_ctx.printable_get_amount,
-            G_swap_ctx.sell_transaction.out_currency,
-            sizeof(G_swap_ctx.printable_get_amount));
-    G_swap_ctx.printable_get_amount[len] = ' ';
-    G_swap_ctx.printable_get_amount[len + 1] = '\x00';
+    strlcpy(G_swap_ctx->printable_get_amount,
+            G_swap_ctx->sell_transaction.out_currency,
+            sizeof(G_swap_ctx->printable_get_amount));
+    G_swap_ctx->printable_get_amount[len] = ' ';
+    G_swap_ctx->printable_get_amount[len + 1] = '\x00';
 
-    if (get_fiat_printable_amount(G_swap_ctx.sell_transaction.out_amount.coefficient.bytes,
-                                  G_swap_ctx.sell_transaction.out_amount.coefficient.size,
-                                  G_swap_ctx.sell_transaction.out_amount.exponent,
-                                  G_swap_ctx.printable_get_amount + len + 1,
-                                  sizeof(G_swap_ctx.printable_get_amount) - (len + 1)) < 0) {
+    if (get_fiat_printable_amount(G_swap_ctx->sell_transaction.out_amount.coefficient.bytes,
+                                  G_swap_ctx->sell_transaction.out_amount.coefficient.size,
+                                  G_swap_ctx->sell_transaction.out_amount.exponent,
+                                  G_swap_ctx->printable_get_amount + len + 1,
+                                  sizeof(G_swap_ctx->printable_get_amount) - (len + 1)) < 0) {
         PRINTF("Error: Failed to get source currency printable amount\n");
         return false;
     }
 
-    PRINTF("%s\n", G_swap_ctx.printable_get_amount);
+    PRINTF("%s\n", G_swap_ctx->printable_get_amount);
     return true;
 }
 
 static void format_account_name(void) {
-    strlcpy(G_swap_ctx.account_name,
-            G_swap_ctx.fund_transaction.account_name,
-            sizeof(G_swap_ctx.account_name));
-    G_swap_ctx.account_name[sizeof(G_swap_ctx.account_name) - 1] = '\x00';
+    strlcpy(G_swap_ctx->account_name,
+            G_swap_ctx->fund_transaction.account_name,
+            sizeof(G_swap_ctx->account_name));
+    G_swap_ctx->account_name[sizeof(G_swap_ctx->account_name) - 1] = '\x00';
 }
 
 // Three possibilities in this function:
@@ -216,7 +218,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
     // On SWAP flows we need to check refund or payout address (depending on step)
     // We received them as part of the TX but we couldn't check then as we did not have the
     // application_name yet
-    if (G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) {
+    if (G_swap_ctx->subcommand == SWAP || G_swap_ctx->subcommand == SWAP_NG) {
         uint16_t ret = check_payout_or_refund_address(cmd->ins,
                                                       sub_coin_config,
                                                       address_parameters,
@@ -245,7 +247,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
     }
 
     // On SELL flows we receive a FIAT amount, format it to display it on screen
-    if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
+    if (G_swap_ctx->subcommand == SELL || G_swap_ctx->subcommand == SELL_NG) {
         if (!format_fiat_amount()) {
             PRINTF("Error: Failed to format FIAT amount\n");
             return reply_error(INTERNAL_ERROR);
@@ -253,24 +255,24 @@ int check_addresses_and_amounts(const command_t *cmd) {
     }
 
     // On FUND flows we display the account name that will receive the funds
-    if (G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) {
+    if (G_swap_ctx->subcommand == FUND || G_swap_ctx->subcommand == FUND_NG) {
         format_account_name();
     }
 
     if (cmd->ins != CHECK_PAYOUT_ADDRESS) {
         // Save the paying coin application_name, we'll need it to start the app during
         // START_SIGNING step
-        memcpy(G_swap_ctx.payin_binary_name, application_name, sizeof(application_name));
+        memcpy(G_swap_ctx->payin_binary_name, application_name, sizeof(application_name));
 
         // Save the paying sub coin configuration as the lib app will need it to sign
-        G_swap_ctx.paying_sub_coin_config_size = sub_coin_config.size;
-        memset(G_swap_ctx.paying_sub_coin_config, 0, sizeof(G_swap_ctx.paying_sub_coin_config));
-        memcpy(G_swap_ctx.paying_sub_coin_config, sub_coin_config.bytes, sub_coin_config.size);
+        G_swap_ctx->paying_sub_coin_config_size = sub_coin_config.size;
+        memset(G_swap_ctx->paying_sub_coin_config, 0, sizeof(G_swap_ctx->paying_sub_coin_config));
+        memcpy(G_swap_ctx->paying_sub_coin_config, sub_coin_config.bytes, sub_coin_config.size);
 
         // Save the rate. We could have saved it at the first command and then checked at each ŝtep
         // that it did not change, but it is not certain that the Live sends it right from the
         // begining and we won't risk regressions for something that is not a security issue.
-        G_swap_ctx.rate = cmd->rate;
+        G_swap_ctx->rate = cmd->rate;
     }
 
     // Only trigger the UI validation for CHECK_X_AND_DISPLAY
@@ -284,10 +286,10 @@ int check_addresses_and_amounts(const command_t *cmd) {
         }
         // If we checked the PAYOUT address (swap flow), we still have the REFUND address to check
         if (cmd->ins == CHECK_PAYOUT_ADDRESS) {
-            G_swap_ctx.state = PAYOUT_ADDRESS_CHECKED;
+            G_swap_ctx->state = PAYOUT_ADDRESS_CHECKED;
         } else {
             // Otherwise we are ready to start the display
-            G_swap_ctx.state = ALL_ADDRESSES_CHECKED;
+            G_swap_ctx->state = ALL_ADDRESSES_CHECKED;
         }
     }
 
