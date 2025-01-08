@@ -2,6 +2,7 @@ from typing import Optional
 from dataclasses import dataclass
 
 from ragger.utils import prefix_with_len
+from .sui_utils import SUI_CONF, SUI_PACKED_DERIVATION_PATH
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -57,6 +58,7 @@ TUSD_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="TUSD", conf=TRX_TUSD
 USDD_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDD", conf=TRX_USDD_CONF, packed_derivation_path=TRX_PACKED_DERIVATION_PATH)
 ADA_BYRON_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_BYRON_PACKED_DERIVATION_PATH)
 ADA_SHELLEY_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_SHELLEY_PACKED_DERIVATION_PATH)
+SUI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SUI", conf=SUI_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
 
 
 # Helper that can be called from outside if we want to generate errors easily

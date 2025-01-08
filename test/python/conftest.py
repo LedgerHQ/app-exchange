@@ -25,6 +25,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "tron": "Tron",
     "ton": "TON",
     "cardano": "Cardano ADA",
+    "sui": "Sui",
 }
 
 configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
