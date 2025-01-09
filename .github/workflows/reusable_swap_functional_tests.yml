@@ -186,7 +186,7 @@ jobs:
         - name: cardano
           repo: ${{ inputs.repo_for_cardano }}
           branch: ${{ inputs.branch_for_cardano }}
-        - name: cosmos
+        - name: ATOM
           repo: ${{ inputs.repo_for_cosmos }}
           branch: ${{ inputs.branch_for_cosmos }}
 
