@@ -1,13 +1,12 @@
 import struct
 import hashlib
+
 from enum import IntEnum
-from contextlib import contextmanager
-from typing import List, Generator
 from typing import Dict, List, Union
 from pysui.sui.sui_txn.transaction_builder import ProgrammableTransactionBuilder
 from pysui.sui.sui_types.bcs import Intent, TransactionData, BuilderArg, Address, TransactionDataV1, GasData, TransactionExpiration, ObjectReference, Digest, Argument, _DIGEST_LENGTH
 
-from ragger.backend.interface import BackendInterface, RAPDU
+from ragger.backend.interface import BackendInterface
 from ragger.logger import get_default_logger
 
 class INS(IntEnum):
@@ -54,12 +53,12 @@ class ErrorType:
     SUI_OK                       = 0x9000 # Success, or continue if more input from client is expected
 
     #SUI_BADINS = 0X6E01,
-    SUI_BADP1P2 = 0x6E02,
-    SUI_BADLEN = 0x6E03,
-    SUI_USERCANCELLED = 0x6E04,
+    SUI_BAD_P1P2 = 0x6E02,
+    SUI_BAD_LEN = 0x6E03,
+    SUI_USER_CANCELLED = 0x6E04,
     SUI_UNKNOWN = 0x6D00,
     SUI_PANIC = 0xE000,
-    SUI_DEVICELOCKED = 0x5515,
+    SUI_DEVICE_LOCKED = 0x5515,
 
 
 class LedgerToHost:
@@ -78,16 +77,20 @@ class HostToLedger:
 class SuiClient:
     client: BackendInterface
 
-    def __init__(self, client: BackendInterface):
+    def __init__(self, client: BackendInterface, verbose: bool):
         self._client = client
-        self.log = print #get_default_logger().debug
+
+        if verbose:
+            self.log = get_default_logger().debug
+        else:
+            self.log = lambda *_args, **_kwargs: None
 
     def sui_address_to_list(addr: str):
         return list(bytes.fromhex(addr[2:]))
 
-    def build_simple_transaction(self, sender_addr: str, destination: bytes, send_amount: int) -> bytes:
+    def build_simple_transaction(self, sender_addr: str, destination: str, send_amount: int, fees: int) -> bytes:
         tx = b''
-        gas_budget = 1000
+        gas_budget = fees
 
         # Intent message
         intent_bsc = Intent.encode(Intent.from_list([1,2,3]))
@@ -99,7 +102,7 @@ class SuiClient:
         amount_bytes = list(send_amount.to_bytes(8, byteorder='little'))
         b.input_pure(BuilderArg("Pure", amount_bytes))
 
-        recepient_addr = list(bytes.fromhex(destination[2:].decode('utf-8')))
+        recepient_addr = list(bytes.fromhex(destination[2:]))
         recepient_idx = 1
         b.input_pure(BuilderArg("Pure", recepient_addr))
 
@@ -128,7 +131,7 @@ class SuiClient:
 
         return tx
 
-    def sign_transaction(self, path: bytes, txn: Union[str, bytes, bytearray]) -> Dict[str, bytes]:
+    def sign_transaction(self, path: bytes, txn: Union[str, bytes, bytearray]) -> bytes:
         """
         Sign a transaction with the key at a BIP32 path.
 
@@ -150,7 +153,7 @@ class SuiClient:
 
         # Combine hash size and transaction bytes
         payload_txn = hash_size + raw_txn
-        self.log("Payload Txn %s", payload_txn)
+        self.log("Payload Txn 0x%s", payload_txn.hex())
 
         ## Send payloads in blocks
         signature = self.send_with_blocks(CLA, INS.SIGN_TX, P1, P2, [payload_txn, bip32_key_payload])
@@ -178,19 +181,19 @@ class SuiClient:
         for block in payload:
             chunk_list = [block[i:i + chunk_size] for i in range(0, len(block), chunk_size)]
             last_hash = b'\x00' * 32
-            self.log("%s", last_hash)
+            self.log("last hash: 0x%s", last_hash.hex())
 
             for chunk in reversed(chunk_list):
                 linked_chunk = last_hash + chunk
-                self.log("Chunk: %s", chunk)
-                self.log("linkedChunk: %s", linked_chunk)
+                self.log("Chunk: 0x%s", chunk.hex())
+                self.log("linkedChunk: 0x%s", linked_chunk.hex())
                 last_hash = hashlib.sha256(linked_chunk).digest()
                 data[last_hash.hex()] = linked_chunk
 
             parameter_list.append(last_hash)
             last_hash = b'\x00' * 32
 
-        self.log("%s", data)
+        self.log("data: " + ", ".join(f"{key}: {value.hex()}" for key, value in data.items()))
 
         return self.handle_blocks_protocol(
             cla, ins, p1, p2, bytes([HostToLedger.START]) + b''.join(parameter_list), data
@@ -209,9 +212,9 @@ class SuiClient:
         result = b''
 
         while True:
-            self.log("Sending payload to ledger: %s", payload.hex())
+            self.log("Sending payload to ledger: 0x%s", payload.hex())
             rv = self._client.exchange(cla, ins, p1, p2, payload).data
-            self.log("Received response: %s", rv)
+            self.log("Received response: 0x%s", rv.hex())
             rv_instruction = rv[0]
             rv_payload = rv[1:]
 
@@ -228,8 +231,8 @@ class SuiClient:
 
             elif rv_instruction == LedgerToHost.GET_CHUNK:
                 chunk = data.get(rv_payload.hex())
-                self.log("Getting block %s", rv_payload)
-                self.log("Found block %s", chunk)
+                self.log("Getting block 0x%s", rv_payload.hex())
+                self.log("Found block 0x%s", chunk.hex())
                 payload = (bytes([HostToLedger.GET_CHUNK_RESPONSE_SUCCESS]) + chunk
                            if chunk else bytes([HostToLedger.GET_CHUNK_RESPONSE_FAILURE]))
 
@@ -238,73 +241,3 @@ class SuiClient:
                 payload = bytes([HostToLedger.PUT_CHUNK_RESPONSE])
 
         return result
-    
-    #@contextmanager
-    #def send_async_sign_message(self,
-    #                            derivation_path : bytes,
-    #                            message: bytes) -> Generator[None, None, None]:
-    #    message_splited_prefixed = self.split_and_prefix_message(derivation_path, message)
-
-    #    # Send all chunks with P2_MORE except for the last chunk
-    #    # Send all chunks with P2_EXTEND except for the first chunk
-    #    if len(message_splited_prefixed) > 1:
-    #        final_p2 = P2_EXTEND
-    #        self.send_first_message_batch(message_splited_prefixed[:-1], P1_CONFIRM)
-    #    else:
-    #        final_p2 = 0
-
-    #    with self._client.exchange_async(CLA,
-    #                                     INS.INS_SIGN_MESSAGE,
-    #                                     P1_CONFIRM,
-    #                                     final_p2,
-    #                                     message_splited_prefixed[-1]):
-    #        yield
-
-    #def get_public_key(self, derivation_path: bytes) -> bytes:
-    #    public_key: RAPDU = self._client.exchange(CLA, INS.INS_GET_PUBKEY,
-    #                                              P1_NON_CONFIRM, P2_NONE,
-    #                                              derivation_path)
-    #    assert len(public_key.data) == PUBLIC_KEY_LENGTH, "'from' public key size incorrect"
-    #    return public_key.data
-
-
-    #def split_and_prefix_message(self, derivation_path : bytes, message: bytes) -> List[bytes]:
-    #    assert len(message) <= 65535, "Message to send is too long"
-    #    header: bytes = _extend_and_serialize_multiple_derivations_paths([derivation_path])
-    #    # Check to see if this data needs to be split up and sent in chunks.
-    #    max_size = MAX_CHUNK_SIZE - len(header)
-    #    message_splited = [message[x:x + max_size] for x in range(0, len(message), max_size)]
-    #    # Add the header to every chunk
-    #    return [header + s for s in message_splited]
-
-
-    #def send_first_message_batch(self, messages: List[bytes], p1: int) -> RAPDU:
-    #    self._client.exchange(CLA, INS.INS_SIGN_MESSAGE, p1, P2_MORE, messages[0])
-    #    for m in messages[1:]:
-    #        self._client.exchange(CLA, INS.INS_SIGN_MESSAGE, p1, P2_MORE | P2_EXTEND, m)
-
-
-    #@contextmanager
-    #def send_async_sign_message(self,
-    #                            derivation_path : bytes,
-    #                            message: bytes) -> Generator[None, None, None]:
-    #    message_splited_prefixed = self.split_and_prefix_message(derivation_path, message)
-
-    #    # Send all chunks with P2_MORE except for the last chunk
-    #    # Send all chunks with P2_EXTEND except for the first chunk
-    #    if len(message_splited_prefixed) > 1:
-    #        final_p2 = P2_EXTEND
-    #        self.send_first_message_batch(message_splited_prefixed[:-1], P1_CONFIRM)
-    #    else:
-    #        final_p2 = 0
-
-    #    with self._client.exchange_async(CLA,
-    #                                     INS.INS_SIGN_MESSAGE,
-    #                                     P1_CONFIRM,
-    #                                     final_p2,
-    #                                     message_splited_prefixed[-1]):
-    #        yield
-
-
-    #def get_async_response(self) -> RAPDU:
-    #    return self._client.last_async_response
