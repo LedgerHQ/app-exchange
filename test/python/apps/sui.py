@@ -3,8 +3,8 @@ import hashlib
 
 from enum import IntEnum
 from typing import Dict, List, Union
-from pysui.sui.sui_txn.transaction_builder import ProgrammableTransactionBuilder
-from pysui.sui.sui_types.bcs import Intent, TransactionData, BuilderArg, Address, TransactionDataV1, GasData, TransactionExpiration, ObjectReference, Digest, Argument, _DIGEST_LENGTH
+from pysui.sui.sui_types.bcs import Intent, TransactionData, Address, TransactionDataV1, GasData, TransactionExpiration, ObjectReference, Digest
+from pysui.sui.sui_types.bcs import ProgrammableTransaction, CallArg, Command, SplitCoin, TransferObjects, TransactionKind, Argument, _DIGEST_LENGTH
 
 from ragger.backend.interface import BackendInterface
 from ragger.logger import get_default_logger
@@ -96,34 +96,45 @@ class SuiClient:
         intent_bsc = Intent.encode(Intent.from_list([1,2,3]))
         tx += intent_bsc
 
-        # Build the transaction
-        b = ProgrammableTransactionBuilder()
-
         amount_bytes = list(send_amount.to_bytes(8, byteorder='little'))
-        b.input_pure(BuilderArg("Pure", amount_bytes))
-
         recepient_addr = list(bytes.fromhex(destination[2:]))
         recepient_idx = 1
-        b.input_pure(BuilderArg("Pure", recepient_addr))
 
-        b.split_coin(Argument("GasCoin"), [BuilderArg("Pure",amount_bytes)])
-        b.transfer_objects(Argument("Input", recepient_idx), Argument("Result", 0))
-
-        tx_kind = b.finish_for_inspect()
         tx_data_v1 = TransactionDataV1(
-            TransactionKind =  tx_kind,
-            Sender= Address.from_str(sender_addr),
-            GasData = GasData(
-                Payment= [ObjectReference(
-                    ObjectID = Address.from_str("0xFEEE"),
-                    SequenceNumber= 6666,
-                    ObjectDigest= Digest.from_bytes(bytes(_DIGEST_LENGTH)),
-                )],
-                Owner= Address.from_str(sender_addr),
-                Price= 1,
-                Budget=gas_budget,
+            TransactionKind = TransactionKind(
+                "ProgrammableTransaction", ProgrammableTransaction(
+                    Inputs = [
+                        CallArg("Pure", amount_bytes),
+                        CallArg("Pure", recepient_addr),
+                    ],
+                    Command = [
+                        Command(
+                            "SplitCoin", SplitCoin(
+                                FromCoin = Argument("GasCoin"),
+                                Amount = [Argument("Input", 0)],
+                            ),
+                        ),
+                        Command(
+                            "TransferObjects", TransferObjects(
+                                Objects = [Argument("Result", 0)],
+                                Address = Argument("Input", recepient_idx),
+                            ),
+                        ),
+                    ],
+                ),
             ),
-            TransactionExpiration= TransactionExpiration("None"),
+            Sender = Address.from_str(sender_addr),
+            GasData = GasData(
+                Payment = [ObjectReference(
+                    ObjectID = Address.from_str("0xFEEE"),
+                    SequenceNumber = 6666,
+                    ObjectDigest = Digest.from_bytes(bytes(_DIGEST_LENGTH)),
+                )],
+                Owner = Address.from_str(sender_addr),
+                Price = 1,
+                Budget = gas_budget,
+            ),
+            TransactionExpiration = TransactionExpiration("None"),
         )
 
         tx_data = TransactionData("V1", tx_data_v1)
