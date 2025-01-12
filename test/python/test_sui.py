@@ -19,7 +19,7 @@ class GenericSuiTests(ExchangeTestRunner):
     valid_fees_2 = SUI.FEES_2
     fake_refund = SUI.FOREIGN_ADDRESS
     fake_payout = SUI.FOREIGN_ADDRESS
-    signature_refusal_error_code = ErrorType.SUI_SWAP_TX_BAD_PARAM[0]
+    signature_refusal_error_code = ErrorType.SUI_SWAP_TX_PARAM_MISMATCH[0]
 
     partner_name = "Partner name"
     fund_user_id = "Daft Punk"
