@@ -33,16 +33,16 @@ FEES_2_BYTES      = mist_to_bytes(FEES_2)
 ### Proposed foreign and owned addresses ###
 
 # "Foreign" Sui public key (actually the device public key derived on m/44'/784'/11111')
-FOREIGN_ADDRESS      = "0x5a64eec558ee719741578942714a0b35058ced15d79f4af64da014715ada4497"
-FOREIGN_PUBLIC_KEY   = "0x4857ad1ffa9dbca7f5cab2187455cece1ae3367975f71087019ba9642d64555b"
+FOREIGN_ADDRESS      = "5a64eec558ee719741578942714a0b35058ced15d79f4af64da014715ada4497"
+FOREIGN_PUBLIC_KEY   = "4857ad1ffa9dbca7f5cab2187455cece1ae3367975f71087019ba9642d64555b"
 
 # "Foreign" Sui public key (actually the device public key derived on m/44'/784'/11112')
-FOREIGN_ADDRESS_2    = "0x87aa2830134adc42ed726fde1755e2af38469920314f936755de616c3b4b46fd"
-FOREIGN_PUBLIC_KEY_2 = "0xea7d26fe9f91d35dfaeca579b0c94445e3902fc63fd997107a21a39886613b2c"
+FOREIGN_ADDRESS_2    = "87aa2830134adc42ed726fde1755e2af38469920314f936755de616c3b4b46fd"
+FOREIGN_PUBLIC_KEY_2 = "ea7d26fe9f91d35dfaeca579b0c94445e3902fc63fd997107a21a39886613b2c"
 
 # Device Sui public key (derived on m/44'/501'/12345')
-OWNED_ADDRESS        = "0xd5a6dc2129672c36d318ecc28c96a25fdf640933d6ed8840b1f78171f50f9cc9"
-OWNED_PUBLIC_KEY     = "0x5abb58c686211fa0dcbcb6455e80ae8af2ec52483d4761b95d025ce935f9cff4"
+OWNED_ADDRESS        = "d5a6dc2129672c36d318ecc28c96a25fdf640933d6ed8840b1f78171f50f9cc9"
+OWNED_PUBLIC_KEY     = "5abb58c686211fa0dcbcb6455e80ae8af2ec52483d4761b95d025ce935f9cff4"
 
 
 ### Proposed Sui derivation paths for tests ###

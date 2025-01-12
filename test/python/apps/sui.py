@@ -56,10 +56,10 @@ class ErrorType:
     SUI_BAD_P1P2 = 0x6E02,
     SUI_BAD_LEN = 0x6E03,
     SUI_USER_CANCELLED = 0x6E04,
+    SUI_SWAP_TX_BAD_PARAM = 0x6E05,
     SUI_UNKNOWN = 0x6D00,
     SUI_PANIC = 0xE000,
     SUI_DEVICE_LOCKED = 0x5515,
-
 
 class LedgerToHost:
     RESULT_ACCUMULATING = 0
@@ -85,9 +85,6 @@ class SuiClient:
         else:
             self.log = lambda *_args, **_kwargs: None
 
-    def sui_address_to_list(addr: str):
-        return list(bytes.fromhex(addr[2:]))
-
     def build_simple_transaction(self, sender_addr: str, destination: str, send_amount: int, fees: int) -> bytes:
         tx = b''
         gas_budget = fees
@@ -97,7 +94,7 @@ class SuiClient:
         tx += intent_bsc
 
         amount_bytes = list(send_amount.to_bytes(8, byteorder='little'))
-        recepient_addr = list(bytes.fromhex(destination[2:]))
+        recepient_addr = list(bytes.fromhex(destination))
         recepient_idx = 1
 
         tx_data_v1 = TransactionDataV1(
@@ -123,14 +120,14 @@ class SuiClient:
                     ],
                 ),
             ),
-            Sender = Address.from_str(sender_addr),
+            Sender = Address.from_str("0x" + sender_addr),
             GasData = GasData(
                 Payment = [ObjectReference(
                     ObjectID = Address.from_str("0xFEEE"),
                     SequenceNumber = 6666,
                     ObjectDigest = Digest.from_bytes(bytes(_DIGEST_LENGTH)),
                 )],
-                Owner = Address.from_str(sender_addr),
+                Owner = Address.from_str("0x" + sender_addr),
                 Price = 1,
                 Budget = gas_budget,
             ),

@@ -19,7 +19,7 @@ class GenericSuiTests(ExchangeTestRunner):
     valid_fees_2 = SUI.FEES_2
     fake_refund = SUI.FOREIGN_ADDRESS
     fake_payout = SUI.FOREIGN_ADDRESS
-    signature_refusal_error_code = ErrorType.SUI_USER_CANCELLED[0]
+    signature_refusal_error_code = ErrorType.SUI_SWAP_TX_BAD_PARAM[0]
 
     partner_name = "Partner name"
     fund_user_id = "Daft Punk"
@@ -30,7 +30,7 @@ class GenericSuiTests(ExchangeTestRunner):
         tx = sui.build_simple_transaction(SUI.OWNED_ADDRESS, destination, send_amount, fees)
         signature = sui.sign_transaction(SUI.SUI_PACKED_DERIVATION_PATH, tx)
 
-        public_key_bytes = bytes.fromhex(SUI.OWNED_PUBLIC_KEY[2:])
+        public_key_bytes = bytes.fromhex(SUI.OWNED_PUBLIC_KEY)
         verify_signature(public_key_bytes, blake2b(tx, digest_size=32).digest(), signature)
 
 class TestsSui:
