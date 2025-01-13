@@ -117,11 +117,11 @@ on:
 
       branch_for_cosmos:
         required: false
-        default: 'main'
+        default: 'fbe/integrate_zondax_swap'
         type: string
       repo_for_cosmos:
         required: false
-        default: 'cosmos/ledger-cosmos'
+        default: 'LedgerHQ/app-cosmos'
         type: string
 
       test_filter:
