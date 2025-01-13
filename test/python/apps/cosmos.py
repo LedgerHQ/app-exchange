@@ -8,7 +8,7 @@ from nacl.signing import VerifyKey,SigningKey
 from nacl.exceptions import BadSignatureError
 
 from ragger.utils import create_currency_config
-from ragger.bip import pack_derivation_path, bitcoin_pack_derivation_path, BtcDerivationPathFormat
+from ragger.bip import pack_derivation_path
 from ragger.error import ExceptionRAPDU
 from scalecodec.base import RuntimeConfiguration
 from scalecodec.type_registry import load_type_registry_preset
@@ -18,7 +18,7 @@ from ecdsa import VerifyingKey, SECP256k1
 from ecdsa.util import string_to_number
 
 COSMOS_CONF = create_currency_config("ATOM", "Cosmos")
-COSMOS_PACKED_DERIVATION_PATH = bitcoin_pack_derivation_path(BtcDerivationPathFormat.LEGACY, "m/44'/118'/5'/0'/3")
+COSMOS_PACKED_DERIVATION_PATH = pack_derivation_path("m/44'/118'/5'/0'/3")
 COSMOS_PACKED_DERIVATION_PATH_SIGN_INIT = bytes([0x2c, 0x00, 0x00, 0x80,
                                               0x76, 0x00, 0x00, 0x80,
                                               0x05, 0x00, 0x00, 0x80,
