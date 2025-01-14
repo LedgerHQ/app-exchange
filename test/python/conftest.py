@@ -12,6 +12,7 @@ from .apps.exchange_navigation_helper import ExchangeNavigationHelper
 # Please refer to ragger/conftest/configuration.py for their descriptions and accepted values
 
 configuration.OPTIONAL.SIDELOADED_APPS = {
+    "aptos": "Aptos",
     "bitcoin": "Bitcoin",
     "bitcoin_legacy": "Bitcoin Legacy",
     "ethereum": "Ethereum",

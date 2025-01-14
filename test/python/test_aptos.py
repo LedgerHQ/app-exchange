@@ -1,11 +1,5 @@
 import pytest
 import os
-
-from .apps.ton_application_client.ton_transaction import Transaction, SendMode, CommentPayload, Payload, JettonTransferPayload, NFTTransferPayload, CustomUnsafePayload, JettonBurnPayload, AddWhitelistPayload, SingleNominatorWithdrawPayload, ChangeValidatorPayload, TonstakersDepositPayload, JettonDAOVotePayload, ChangeDNSWalletPayload, ChangeDNSPayload, TokenBridgePaySwapPayload
-from .apps.ton_application_client.ton_command_sender import BoilerplateCommandSender, Errors
-from .apps.ton_application_client.ton_response_unpacker import unpack_sign_tx_response
-from .apps.ton_utils import check_signature_validity
-
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
 from .apps.aptos import SW_SWAP_FAILURE, APTOS_DERIVATION_PATH
 from .apps import cal as cal
