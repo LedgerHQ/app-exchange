@@ -1,4 +1,5 @@
 from ragger.utils import create_currency_config
+from ragger.bip import pack_derivation_path
 
 APTOS_CONF = create_currency_config("APT", "Aptos")
 APTOS_DERIVATION_PATH = "m/44'/607'/0'/0'/0'/0'"
