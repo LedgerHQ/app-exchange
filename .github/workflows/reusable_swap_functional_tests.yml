@@ -99,7 +99,7 @@ on:
 
       branch_for_near:
         required: false
-        default: 'y333_201224/appflags_hex'
+        default: 'develop'
         type: string
       repo_for_near:
         required: false
