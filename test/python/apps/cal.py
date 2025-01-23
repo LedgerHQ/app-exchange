@@ -15,6 +15,8 @@ from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
 from .stellar import XLM_PACKED_DERIVATION_PATH, XLM_CONF
 from .solana_utils import SOL_PACKED_DERIVATION_PATH, SOL_CONF
+from .solana_utils import JUP_PACKED_DERIVATION_PATH, JUP_CONF
+from .solana_utils import SOL_USDC_PACKED_DERIVATION_PATH, SOL_USDC_CONF
 from .xrp import XRP_PACKED_DERIVATION_PATH, XRP_CONF
 from .tezos import XTZ_PACKED_DERIVATION_PATH, XTZ_CONF
 from .polkadot import DOT_PACKED_DERIVATION_PATH, DOT_CONF
@@ -43,6 +45,8 @@ BTC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BTC", conf=BTC_CONF, 
 LTC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="LTC", conf=LTC_CONF, packed_derivation_path=LTC_PACKED_DERIVATION_PATH)
 XLM_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XLM", conf=XLM_CONF, packed_derivation_path=XLM_PACKED_DERIVATION_PATH)
 SOL_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SOL", conf=SOL_CONF, packed_derivation_path=SOL_PACKED_DERIVATION_PATH)
+JUP_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="JUP", conf=JUP_CONF, packed_derivation_path=JUP_PACKED_DERIVATION_PATH)
+SOL_USDC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDC", conf=SOL_USDC_CONF, packed_derivation_path=SOL_USDC_PACKED_DERIVATION_PATH)
 XRP_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XRP", conf=XRP_CONF, packed_derivation_path=XRP_PACKED_DERIVATION_PATH)
 XTZ_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XTZ", conf=XTZ_CONF, packed_derivation_path=XTZ_PACKED_DERIVATION_PATH)
 BNB_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BNB", conf=BSC_CONF, packed_derivation_path=BSC_PACKED_DERIVATION_PATH)

@@ -9,3 +9,5 @@ embit
 fastcrc
 ledger_app_clients.ethereum @ https://github.com/LedgerHQ/app-ethereum/archive/develop.zip#subdirectory=client
 tonsdk
+solders
+solana
