@@ -27,53 +27,53 @@
 // Reuse the size of the protobuf structure (-1 because TLV data is not NULL terminated)
 #define MAX_ADDRESS_LENGTH (sizeof(G_swap_ctx.swap_transaction.payout_address) - 1)
 
-static bool handle_struct_type(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_uint8_t_from_tlv_data(data, &trusted_name_info->struct_type);
+static bool handle_struct_type(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_uint8_t_from_tlv_data(data, &tlv_extracted->struct_type);
 }
 
-static bool handle_struct_version(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_uint8_t_from_tlv_data(data, &trusted_name_info->struct_version);
+static bool handle_struct_version(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_uint8_t_from_tlv_data(data, &tlv_extracted->struct_version);
 }
 
-static bool handle_challenge(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_uint32_from_tlv_data(data, &trusted_name_info->challenge);
+static bool handle_challenge(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_uint32_from_tlv_data(data, &tlv_extracted->challenge);
 }
 
-static bool handle_sign_key_id(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_uint8_t_from_tlv_data(data, &trusted_name_info->key_id);
+static bool handle_sign_key_id(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_uint8_t_from_tlv_data(data, &tlv_extracted->key_id);
 }
 
-static bool handle_sign_algo(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_uint8_t_from_tlv_data(data, &trusted_name_info->sig_algorithm);
+static bool handle_sign_algo(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_uint8_t_from_tlv_data(data, &tlv_extracted->sig_algorithm);
 }
 
-static bool handle_signature(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_cbuf_from_tlv_data(data, &trusted_name_info->input_sig, 1, 0);
+static bool handle_signature(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_cbuf_from_tlv_data(data, &tlv_extracted->input_sig, 1, 0);
 }
 
-static bool handle_trusted_name(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_cbuf_from_tlv_data(data, &trusted_name_info->trusted_name, 1, MAX_ADDRESS_LENGTH);
+static bool handle_trusted_name(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_cbuf_from_tlv_data(data, &tlv_extracted->trusted_name, 1, MAX_ADDRESS_LENGTH);
 }
 
-static bool handle_address(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_cbuf_from_tlv_data(data, &trusted_name_info->owner, 1, MAX_ADDRESS_LENGTH);
+static bool handle_address(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_cbuf_from_tlv_data(data, &tlv_extracted->owner, 1, MAX_ADDRESS_LENGTH);
 }
 
-static bool handle_trusted_name_type(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_uint8_t_from_tlv_data(data, &trusted_name_info->name_type);
+static bool handle_trusted_name_type(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_uint8_t_from_tlv_data(data, &tlv_extracted->name_type);
 }
 
-static bool handle_trusted_name_source(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
-    return get_uint8_t_from_tlv_data(data, &trusted_name_info->name_source);
+static bool handle_trusted_name_source(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
+    return get_uint8_t_from_tlv_data(data, &tlv_extracted->name_source);
 }
 
-static bool handle_chain_id(const tlv_data_t *data, tlv_out_t *trusted_name_info) {
+static bool handle_chain_id(const tlv_data_t *data, tlv_out_t *tlv_extracted) {
     switch (data->length) {
         case 1:
-            trusted_name_info->chain_id = data->value[0];
+            tlv_extracted->chain_id = data->value[0];
             return true;
         case 2:
-            trusted_name_info->chain_id = (data->value[0] << 8) | data->value[1];
+            tlv_extracted->chain_id = (data->value[0] << 8) | data->value[1];
             return true;
         default:
             PRINTF("Error while parsing chain ID: length = %d\n", data->length);
@@ -84,10 +84,10 @@ static bool handle_chain_id(const tlv_data_t *data, tlv_out_t *trusted_name_info
 /**
  * Verify the validity of the received trusted struct
  *
- * @param[in] trusted_name_info the trusted name information
+ * @param[in] tlv_extracted the trusted name information
  * @return whether the struct is valid
  */
-static swap_error_e verify_struct(const tlv_out_t *trusted_name_info,
+static swap_error_e verify_struct(const tlv_out_t *tlv_extracted,
                                   uint32_t received_tags_flags) {
     if (!(get_tag_flag(STRUCT_TYPE) & received_tags_flags)) {
         PRINTF("Error: no struct type specified!\n");
@@ -106,7 +106,7 @@ static swap_error_e verify_struct(const tlv_out_t *trusted_name_info,
     uint8_t valid_key_id = KEY_ID_PROD;
 #endif
 
-    switch (trusted_name_info->struct_version) {
+    switch (tlv_extracted->struct_version) {
         case 2:
             if (!RECEIVED_REQUIRED_TAGS(received_tags_flags,
                                         STRUCT_TYPE,
@@ -123,36 +123,36 @@ static swap_error_e verify_struct(const tlv_out_t *trusted_name_info,
                 PRINTF("Error: missing required fields in struct version 2\n");
                 return MISSING_TLV_CONTENT;
             }
-            if (trusted_name_info->challenge != expected_challenge) {
+            if (tlv_extracted->challenge != expected_challenge) {
                 // No risk printing it as DEBUG cannot be used in prod
                 PRINTF("Error: wrong challenge, received %u expected %u\n",
-                       trusted_name_info->challenge,
+                       tlv_extracted->challenge,
                        expected_challenge);
                 return WRONG_CHALLENGE;
             }
-            if (trusted_name_info->struct_type != STRUCT_TYPE_TRUSTED_NAME) {
-                PRINTF("Error: unexpected struct type %d\n", trusted_name_info->struct_type);
+            if (tlv_extracted->struct_type != STRUCT_TYPE_TRUSTED_NAME) {
+                PRINTF("Error: unexpected struct type %d\n", tlv_extracted->struct_type);
                 return WRONG_TLV_CONTENT;
             }
-            if (trusted_name_info->name_type != TYPE_ADDRESS) {
-                PRINTF("Error: unsupported name type %d\n", trusted_name_info->name_type);
+            if (tlv_extracted->name_type != TYPE_ADDRESS) {
+                PRINTF("Error: unsupported name type %d\n", tlv_extracted->name_type);
                 return WRONG_TLV_CONTENT;
             }
-            if (trusted_name_info->name_source != TYPE_DYN_RESOLVER) {
-                PRINTF("Error: unsupported name source %d\n", trusted_name_info->name_source);
+            if (tlv_extracted->name_source != TYPE_DYN_RESOLVER) {
+                PRINTF("Error: unsupported name source %d\n", tlv_extracted->name_source);
                 return WRONG_TLV_CONTENT;
             }
-            if (trusted_name_info->sig_algorithm != ALGO_SECP256K1) {
-                PRINTF("Error: unsupported sig algorithm %d\n", trusted_name_info->sig_algorithm);
+            if (tlv_extracted->sig_algorithm != ALGO_SECP256K1) {
+                PRINTF("Error: unsupported sig algorithm %d\n", tlv_extracted->sig_algorithm);
                 return WRONG_TLV_CONTENT;
             }
-            if (trusted_name_info->key_id != valid_key_id) {
-                PRINTF("Error: wrong metadata key ID %u\n", trusted_name_info->key_id);
+            if (tlv_extracted->key_id != valid_key_id) {
+                PRINTF("Error: wrong metadata key ID %u\n", tlv_extracted->key_id);
                 return WRONG_TLV_KEY_ID;
             }
             break;
         default:
-            PRINTF("Error: unsupported struct version %d\n", trusted_name_info->struct_version);
+            PRINTF("Error: unsupported struct version %d\n", tlv_extracted->struct_version);
             return WRONG_TLV_CONTENT;
     }
     return SUCCESS;
@@ -186,8 +186,8 @@ static int trusted_name_descriptor_handler_internal(const command_t *cmd) {
     swap_error_e ret;
 
     // Main structure that will received the parsed TLV data
-    tlv_out_t trusted_name_info;
-    memset(&trusted_name_info, 0, sizeof(trusted_name_info));
+    tlv_out_t tlv_extracted;
+    memset(&tlv_extracted, 0, sizeof(tlv_extracted));
 
     // Will be filled by the parser with the flags of received tags
     uint32_t received_tags_flags = 0;
@@ -217,7 +217,7 @@ static int trusted_name_descriptor_handler_internal(const command_t *cmd) {
     if (!parse_tlv(handlers,
                    ARRAY_LENGTH(handlers),
                    &cmd->data,
-                   &trusted_name_info,
+                   &tlv_extracted,
                    SIGNATURE,
                    tlv_hash,
                    &received_tags_flags)) {
@@ -226,7 +226,7 @@ static int trusted_name_descriptor_handler_internal(const command_t *cmd) {
     }
 
     // Verify that the fields received are correct in our context
-    ret = verify_struct(&trusted_name_info, received_tags_flags);
+    ret = verify_struct(&tlv_extracted, received_tags_flags);
     if (ret != SUCCESS) {
         PRINTF("Failed to verify tlv payload\n");
         return reply_error(ret);
@@ -237,17 +237,17 @@ static int trusted_name_descriptor_handler_internal(const command_t *cmd) {
                                    INT256_LENGTH,
                                    CERTIFICATE_PUBLIC_KEY_USAGE_TRUSTED_NAME,
                                    CX_CURVE_SECP256K1,
-                                   &trusted_name_info.input_sig);
+                                   &tlv_extracted.input_sig);
     if (ret != SUCCESS) {
         PRINTF("Failed to verify signature of trusted name info\n");
         return reply_error(ret);
     }
 
     PRINTF("trusted_name %.*H owned by %.*H\n",
-           trusted_name_info.trusted_name.size,
-           trusted_name_info.trusted_name.bytes,
-           trusted_name_info.owner.size,
-           trusted_name_info.owner.bytes);
+           tlv_extracted.trusted_name.size,
+           tlv_extracted.trusted_name.bytes,
+           tlv_extracted.owner.size,
+           tlv_extracted.owner.bytes);
 
     // Should never happen thanks to apdu_parser check but let's check again anyway
     if (G_swap_ctx.subcommand != SWAP && G_swap_ctx.subcommand != SWAP_NG) {
@@ -260,16 +260,16 @@ static int trusted_name_descriptor_handler_internal(const command_t *cmd) {
            G_swap_ctx.swap_transaction.payout_address);
     apply_trusted_name(G_swap_ctx.swap_transaction.payout_address,
                        sizeof(G_swap_ctx.swap_transaction.payout_address),
-                       &trusted_name_info.trusted_name,
-                       &trusted_name_info.owner);
+                       &tlv_extracted.trusted_name,
+                       &tlv_extracted.owner);
 
     PRINTF("Checking against REFUND address %.*H\n",
            sizeof(G_swap_ctx.swap_transaction.refund_address),
            G_swap_ctx.swap_transaction.refund_address);
     apply_trusted_name(G_swap_ctx.swap_transaction.refund_address,
                        sizeof(G_swap_ctx.swap_transaction.refund_address),
-                       &trusted_name_info.trusted_name,
-                       &trusted_name_info.owner);
+                       &tlv_extracted.trusted_name,
+                       &tlv_extracted.owner);
 
     return reply_success();
 }

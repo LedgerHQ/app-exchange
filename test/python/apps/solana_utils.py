@@ -34,6 +34,7 @@ AMOUNT_2_BYTES  = lamports_to_bytes(AMOUNT_2)
 FEES            = sol_to_lamports(0.00000564)
 FEES_BYTES      = lamports_to_bytes(FEES)
 
+CHAIN_ID = 101
 
 ### Proposed foreign and owned addresses ###
 
@@ -66,8 +67,16 @@ SOL_CONF = create_currency_config("SOL", "Solana")
 JUP_CONF = create_currency_config("JUP", "Solana", ("JUP", 6))
 JUP_PACKED_DERIVATION_PATH = SOL_PACKED_DERIVATION_PATH
 
+SOL_USDC_CONF = create_currency_config("USDC", "Solana", ("USDC", 6))
+SOL_USDC_PACKED_DERIVATION_PATH = SOL_PACKED_DERIVATION_PATH
+
 JUP_MINT_ADDRESS_STR = "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
 JUP_MINT_ADDRESS     = JUP_MINT_ADDRESS_STR.encode('utf-8')
+
+
+USDC_MINT_ADDRESS_STR = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+USDC_MINT_ADDRESS     = USDC_MINT_ADDRESS_STR.encode('utf-8')
+USDC_MINT_PUBLIC_KEY  = base58.b58decode(USDC_MINT_ADDRESS_STR)
 
 def enable_blind_signing(navigator, firmware, snapshots_name: str):
     if firmware.is_nano:

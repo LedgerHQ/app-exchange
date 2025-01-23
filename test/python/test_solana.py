@@ -15,6 +15,8 @@ from solders.message import Message
 from spl.token.constants import TOKEN_PROGRAM_ID
 from spl.token.instructions import TransferCheckedParams, transfer_checked, get_associated_token_address
 
+SOL.CHAIN_ID = 101
+
 # A bit hacky but way less hassle than actually writing an actual address decoder
 SOLANA_ADDRESS_DECODER = {
     SOL.FOREIGN_ADDRESS: SOL.FOREIGN_PUBLIC_KEY,
@@ -84,28 +86,18 @@ class TestsSolanaPriorityFees:
     def test_solana_priority_fees(self, backend, exchange_navigation_helper, test_to_run):
         SolanaPriorityFeesTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
-
 class SPLTokenTests(GenericSolanaTests):
-    currency_configuration = cal.JUP_CURRENCY_CONFIGURATION
+    currency_configuration = cal.SOL_USDC_CURRENCY_CONFIGURATION
 
-    valid_destination_1 = str(
-        get_associated_token_address(
-            Pubkey.from_string(SOL.FOREIGN_ADDRESS_STR),
-            Pubkey.from_string(SOL.JUP_MINT_ADDRESS_STR)
-        )
-    )
+    valid_destination_1 = "JA2zDGUjCJePxBWbW895rMPUSBPPU15Q5UbqspezSzwF"
     valid_destination_2 = str(
         get_associated_token_address(
             Pubkey.from_string(SOL.FOREIGN_ADDRESS_2_STR),
-            Pubkey.from_string(SOL.JUP_MINT_ADDRESS_STR)
+            Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR)
         )
     )
-    valid_refund = str(
-        get_associated_token_address(
-            Pubkey.from_string(SOL.OWNED_ADDRESS_STR),
-            Pubkey.from_string(SOL.JUP_MINT_ADDRESS_STR)
-        )
-    )
+    valid_refund = SOL.OWNED_ADDRESS
+
     valid_send_amount_1 = SOL.AMOUNT
     valid_send_amount_2 = SOL.AMOUNT_2
     valid_fees_1 = FEES
@@ -114,28 +106,30 @@ class SPLTokenTests(GenericSolanaTests):
     fake_payout = SOL.FOREIGN_ADDRESS_STR
     signature_refusal_error_code = ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
 
-    alias_address = SOL.OWNED_ADDRESS
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
+        destination_ata = str(
+            get_associated_token_address(
+                Pubkey.from_string(destination),
+                Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR)
+            )
+        )
         # Get the sender public key
         sender_public_key = Pubkey.from_string(SOL.OWNED_ADDRESS_STR)
 
         # Get the associated token addresses for the sender
-        sender_ata = get_associated_token_address(sender_public_key, Pubkey.from_string(SOL.JUP_MINT_ADDRESS_STR))
-
-        # Define the amount to send (in the smallest unit, e.g., if JUP has 6 decimals, 1 JUP = 1_000_000)
-        amount = send_amount
+        sender_ata = get_associated_token_address(sender_public_key, Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR))
 
         # Create the transaction
         transfer_instruction = transfer_checked(
             TransferCheckedParams(
                 program_id=TOKEN_PROGRAM_ID,
                 source=sender_ata,
-                mint=Pubkey.from_string(SOL.JUP_MINT_ADDRESS_STR),
-                dest=Pubkey.from_string(destination),
+                mint=Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR),
+                dest=Pubkey.from_string(destination_ata),
                 owner=sender_public_key,
-                amount=amount,
-                decimals=6  # Number of decimals for JUP token
+                amount=send_amount,
+                decimals=6  # Number of decimals for USDC token
             )
         )
 
@@ -144,13 +138,20 @@ class SPLTokenTests(GenericSolanaTests):
         tx = Transaction.new_unsigned(message)
 
         # Dump the message embedded in the transaction
-        message = tx.message_data()
+        message_data = tx.message_data()
 
         sol = SolanaClient(self.backend)
-        with sol.send_async_sign_message(SOL.SOL_PACKED_DERIVATION_PATH, message):
+        challenge = sol.get_challenge()
+        sol.provide_trusted_name(source_contract=SOL.USDC_MINT_ADDRESS,
+                                 trusted_name=destination_ata.encode('utf-8'),
+                                 address=destination.encode('utf-8'),
+                                 chain_id=SOL.CHAIN_ID,
+                                 challenge=challenge)
+        # self.backend.exchange_raw(bytes.fromhex("e0210000ed010103020102700106710106202c45343655536245523467374d4b486d7676457a4667525043646b6b34617731353353435a4b566a4c5871677a230165222c4a41327a4447556a434a65507842576257383935724d50555342505055313551355562717370657a537a7746732c45506a465764643541756671535371654d32714e31787a7962617043384734774547476b5a77795444743176120400000000130107140101154630440220254dfe6dae4d1303ecefce1fe491bac73f2aa31fc9597db2c1b2e95f6e130eaf0220355b0efbf76f462087e9f04acf10c375d072515bc436070a49e501817e48da9b"))
+        with sol.send_async_sign_message(SOL.SOL_PACKED_DERIVATION_PATH, message_data):
             pass
         signature: bytes = sol.get_async_response().data
-        verify_signature(SOL.OWNED_PUBLIC_KEY, message, signature)
+        verify_signature(SOL.OWNED_PUBLIC_KEY, message_data, signature)
 
 # Use a class to reuse the same Speculos instance
 class TestsSPLToken:
