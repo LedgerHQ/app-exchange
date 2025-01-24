@@ -22,11 +22,8 @@ from .ton import TON_PACKED_DERIVATION_PATH, TON_CONF
 from .tron import TRX_PACKED_DERIVATION_PATH, TRX_CONF
 from .tron import TRX_USDT_CONF, TRX_USDC_CONF, TRX_TUSD_CONF, TRX_USDD_CONF
 from .cardano import ADA_BYRON_PACKED_DERIVATION_PATH, ADA_SHELLEY_PACKED_DERIVATION_PATH, ADA_CONF
-<<<<<<< HEAD
 from .aptos import APTOS_PACKED_DERIVATION_PATH, APTOS_CONF
-=======
 from .near import NEAR_PACKED_DERIVATION_PATH, NEAR_CONF
->>>>>>> develop
 
 @dataclass
 class CurrencyConfiguration:
