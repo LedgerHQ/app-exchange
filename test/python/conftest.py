@@ -26,6 +26,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "ton": "TON",
     "ATOM": "Cosmos",
     "cardano": "Cardano ADA",
+    "near": "NEAR",
 }
 
 configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
