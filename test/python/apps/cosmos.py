@@ -7,8 +7,7 @@ from nacl.encoding import HexEncoder
 from nacl.signing import VerifyKey,SigningKey
 from nacl.exceptions import BadSignatureError
 
-from ragger.utils import create_currency_config
-from ragger.bip import pack_derivation_path, bitcoin_pack_derivation_path, BtcDerivationPathFormat
+from ragger.bip import pack_derivation_path
 from ragger.error import ExceptionRAPDU
 from scalecodec.base import RuntimeConfiguration
 from scalecodec.type_registry import load_type_registry_preset
@@ -17,8 +16,24 @@ from scalecodec.utils.ss58 import ss58_decode
 from ecdsa import VerifyingKey, SECP256k1
 from ecdsa.util import string_to_number
 
-COSMOS_CONF = create_currency_config("ATOM", "Cosmos")
-COSMOS_PACKED_DERIVATION_PATH = bitcoin_pack_derivation_path(BtcDerivationPathFormat.LEGACY, "m/44'/118'/5'/0'/3")
+
+def get_sub_config(hrp: str) -> bytes:
+    cfg = bytearray()
+    cfg.append(len(hrp))
+    cfg += hrp.encode()
+    return cfg
+
+def create_currency_config(main_ticker: str,
+                           application_name: str,
+                           sub_config: bytes = bytes()) -> bytes:
+    cfg = bytearray()
+    for elem in [main_ticker.encode(), application_name.encode(), sub_config]:
+        cfg.append(len(elem))
+        cfg += elem
+    return cfg
+
+COSMOS_CONF = create_currency_config("ATOM", "Cosmos", get_sub_config("cosmos"))
+COSMOS_PACKED_DERIVATION_PATH = pack_derivation_path("m/44'/118'/5'/0'/3")
 COSMOS_PACKED_DERIVATION_PATH_SIGN_INIT = bytes([0x2c, 0x00, 0x00, 0x80,
                                               0x76, 0x00, 0x00, 0x80,
                                               0x05, 0x00, 0x00, 0x80,
@@ -77,8 +92,8 @@ class CosmosClient:
         # Convert the JSON to bytes
         tx_blob = tx.encode('utf-8')
         
-        # Send the first chunk of the transaction path + cosmos hrp
-        chunk_0 = COSMOS_PACKED_DERIVATION_PATH_SIGN_INIT + bytes([0x06,0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73])
+        # Send the first chunk of the transaction path
+        chunk_0 = COSMOS_PACKED_DERIVATION_PATH_SIGN_INIT
         self.client.exchange(self.CLA, ins=Ins.SIGN, p1=SignP1.INIT, data=chunk_0)
 
         message_splited = [tx_blob[x:x + MAX_CHUNK_SIZE] for x in range(0, len(tx_blob), MAX_CHUNK_SIZE)]
