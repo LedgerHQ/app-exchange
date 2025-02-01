@@ -3,8 +3,8 @@ import hashlib
 
 from enum import IntEnum
 from typing import Dict, List, Union
-from pysui.sui.sui_types.bcs import Intent, TransactionData, Address, TransactionDataV1, GasData, TransactionExpiration, ObjectReference, Digest
-from pysui.sui.sui_types.bcs import ProgrammableTransaction, CallArg, Command, SplitCoin, TransferObjects, TransactionKind, Argument, _DIGEST_LENGTH
+from pysui_tx.bcs import Intent, TransactionData, Address, TransactionDataV1, GasData, TransactionExpiration, ObjectReference, Digest
+from pysui_tx.bcs import ProgrammableTransaction, CallArg, Command, SplitCoin, TransferObjects, TransactionKind, Argument, _DIGEST_LENGTH
 
 from ragger.backend.interface import BackendInterface
 from ragger.logger import get_default_logger
