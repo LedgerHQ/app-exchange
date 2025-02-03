@@ -24,6 +24,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "DOT": "Polkadot",
     "tron": "Tron",
     "ton": "TON",
+    "ATOM": "Cosmos",
     "cardano": "Cardano ADA",
     "near": "NEAR",
 }
