@@ -13,7 +13,7 @@ from ledger_bitcoin import Client, WalletPolicy, MultisigWallet, AddressType, Pa
 from ledger_bitcoin import Client, Chain, createClient
 from ledger_bitcoin.bip380.descriptors import Descriptor
 
-BTC_CONF = create_currency_config("BTC", "Bitcoin")
+BTC_CONF = create_currency_config("BTC", "Bitcoin Legacy")
 
 BTC_PACKED_DERIVATION_PATH = bitcoin_pack_derivation_path(BtcDerivationPathFormat.BECH32, "m/84'/0'/0'/0/0")
 
@@ -32,6 +32,9 @@ class BitcoinClient:
         self.client = createClient(backend, chain=CHAIN, debug=True)
 
     def send_simple_sign_tx(self, in_wallet: WalletPolicy, fees: int, destination: WalletPolicy, send_amount: int, *, opreturn_data: Optional[bytes] = None) -> RAPDU:
+
+        print("send_simple_sign_tx")
+
         in_amounts = [send_amount + fees]
 
         # Prepend one opreturn data if needed with amount 0

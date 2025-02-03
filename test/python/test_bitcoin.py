@@ -31,7 +31,7 @@ out_wallet_2 = WalletPolicy(
     ],
 )
 
-opreturn_data_1 = bytes.fromhex("CAFE")
+opreturn_data_1 = bytes.fromhex("CAFD")
 opreturn_data_2 = bytes.fromhex("CAFEDECA00DECA00CAFE00DEADBEEF123456789012345678901234567890123456789012345CAFEDECA00DECA00CAFE00DEADBEEF123456789012345678901234567890123456789012345")
 
 
@@ -70,6 +70,7 @@ class BitcoinTests(ExchangeTestRunner):
         else:
             opreturn_data = None
 
+        print("perform_final_tx")
         BitcoinClient(self.backend).send_simple_sign_tx(in_wallet=in_wallet,
                                                         fees=fees,
                                                         destination=wallet,

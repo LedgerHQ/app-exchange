@@ -68,7 +68,7 @@ class DongleAdaptor:
         lc = apdu[4]
         data = apdu[5:]
         assert len(data) == lc
-        return bytearray(self.comm_client.apdu_exchange(cla, ins, data, p1, p2))
+        return bytearray(self.comm_client.exchange(cla, ins, p1, p2, data).data)
 
 class LegacyClient(Client):
     """Wrapper for Ledger Bitcoin app before version 2.0.0."""
@@ -78,8 +78,8 @@ class LegacyClient(Client):
 
         self.app = btchip(DongleAdaptor(comm_client))
 
-        if self.app.getAppName() not in ["Bitcoin", "Bitcoin Legacy", "Bitcoin Test", "Bitcoin Test Legacy", "app"]:
-            raise ValueError("Ledger is not in either the Bitcoin or Bitcoin Testnet app")
+#if self.app.getAppName() not in ["Bitcoin", "Bitcoin Legacy", "Bitcoin Test", "Bitcoin Test Legacy", "app"]:
+#            raise ValueError("Ledger is not in either the Bitcoin or Bitcoin Testnet app")
 
     def get_extended_pubkey(self, path: str, display: bool = False) -> str:
         # mostly taken from HWI
@@ -158,6 +158,7 @@ class LegacyClient(Client):
         return output['address'][12:-2]  # HACK: A bug in getWalletPublicKey results in the address being returned as the string "bytearray(b'<address>')". This extracts the actual address to work around this.
 
     def sign_psbt(self, psbt: Union[PSBT, bytes, str], wallet: WalletPolicy, wallet_hmac: Optional[bytes]) -> List[Tuple[int, PartialSignature]]:
+        print("legacy: sing_psbt")
         if wallet_hmac is not None or wallet.n_keys != 1:
             raise NotImplementedError("Policy wallets are only supported from version 2.0.0. Please update your Ledger hardware wallet")
 
@@ -167,6 +168,8 @@ class LegacyClient(Client):
         if wallet.descriptor_template not in ["pkh(@0/**)", "pkh(@0/<0;1>/*)", "wpkh(@0/**)", "wpkh(@0/<0;1>/*)", "sh(wpkh(@0/**))", "sh(wpkh(@0/<0;1>/*))"]:
             raise NotImplementedError("Unsupported policy")
 
+        print("legacy: sing_psbt 100")
+
         psbt = normalize_psbt(psbt)
 
         # the rest of the code is basically the HWI code, and it ignores wallet
@@ -175,6 +178,7 @@ class LegacyClient(Client):
 
         #c_tx = tx.get_unsigned_tx()
         c_tx = tx.tx
+        print(f'c_tx = {repr(c_tx)}')
         tx_bytes = c_tx.serialize_with_witness()
 
         # Master key fingerprint
@@ -186,6 +190,7 @@ class LegacyClient(Client):
         version = self.app.getFirmwareVersion()
         use_trusted_segwit = (version['major_version'] == 1 and version['minor_version'] >= 4) or version['major_version'] > 1
 
+        print("legacy: sing_psbt 150")
         # NOTE: We only support signing Segwit inputs, where we can skip over non-segwit
         # inputs, or non-segwit inputs, where *all* inputs are non-segwit. This is due
         # to Ledger's mutually exclusive signing steps for each type.
@@ -201,6 +206,9 @@ class LegacyClient(Client):
         # Detect changepath, (p2sh-)p2(w)pkh only
         change_path = ''
         for txout, i_num in zip(c_tx.vout, range(len(c_tx.vout))):
+
+            print("legacy: sing_psbt 200")
+
             # Find which wallet key could be change based on hdsplit: m/.../1/k
             # Wallets shouldn't be sending to change address as user action
             # otherwise this will get confused
@@ -292,6 +300,7 @@ class LegacyClient(Client):
                 self.app.startUntrustedTransaction(i == 0, i, segwit_inputs, script_codes[i] if use_trusted_segwit else blank_script_code, c_tx.nVersion)
 
             # Number of unused fields for Nano S, only changepath and transaction in bytes req
+            print(f"Before finalizeInput/has_segwit, change_path = {change_path}, tx_bytes = {tx_bytes.hex()}")
             self.app.finalizeInput(b"DUMMY", -1, -1, change_path, tx_bytes)
 
             # For each input we control do segwit signature

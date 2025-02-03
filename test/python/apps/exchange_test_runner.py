@@ -84,11 +84,13 @@ class ExchangeTestRunner:
             self.wrong_destination_error_code = self.signature_refusal_error_code
         if self.wrong_amount_error_code is None:
             self.wrong_amount_error_code = self.signature_refusal_error_code
+        print("THORTHOR: __init__()")
 
     def run_test(self, function_to_test: str):
         # Remove the flow suffix as the function is the same and the snapshot path is the same too
         self.exchange_navigation_helper.set_test_name_suffix("_" + function_to_test)
         getattr(self, TEST_METHOD_PREFIX + function_to_test)()
+        print("THORTHOR: run_test()")
 
     def _perform_valid_exchange(self, subcommand, tx_infos, from_currency_configuration, to_currency_configuration, fees, ui_validation):
         # Initialize the exchange client plugin that will format and send the APDUs to the device
@@ -308,9 +310,18 @@ class ExchangeTestRunner:
     #######################################################################
 
     def perform_test_thorswap_valid_1(self):
+        print("THORTHOR: 00000000000000000000000000000000000000000000000000000000")
         self.skip_thorswap_if_needed()
+        print("THORTHOR: 11111111111111111111111111111111111111111111111111111111")
+        print(f'self.valid_destination_1  ={self.valid_destination_1}')
+        print(f'self.valid_send_amount_1  ={self.valid_send_amount_1}')
+        print(f'self.valid_fees_1  ={self.valid_fees_1}')
+        print(f'self.valid_payin_extra_data_1  ={self.valid_payin_extra_data_1}')
+
         self.perform_valid_thorswap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_1)
+        print("THORTHOR: 22222222222222222222222222222222222222222222222222222222")
         self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_payin_extra_data_1)
+        print("THORTHOR: 33333333333333333333333333333333333333333333333333333333")
         self.assert_exchange_is_started()
 
     def perform_test_thorswap_valid_2(self):

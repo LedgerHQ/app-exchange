@@ -220,7 +220,9 @@ def createPsbt(wallet: WalletPolicy, input_amounts: List[int], output_amounts: L
                 assert False
         else:
             script_data = getScriptPubkeyFromWallet(wallet_i, change=False, address_index=0).data
-            print(script_data)
+
+        print(f'script_data = {script_data.hex()}')
+        print(f'output_amount = {output_amount}')
 
         tx.vout[i].scriptPubKey = script_data
         tx.vout[i].nValue = output_amount

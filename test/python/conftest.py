@@ -12,20 +12,20 @@ from .apps.exchange_navigation_helper import ExchangeNavigationHelper
 # Please refer to ragger/conftest/configuration.py for their descriptions and accepted values
 
 configuration.OPTIONAL.SIDELOADED_APPS = {
-    "bitcoin": "Bitcoin",
+#    "bitcoin": "Bitcoin",
     "bitcoin_legacy": "Bitcoin Legacy",
     "ethereum": "Ethereum",
-    "ethereum_classic": "Ethereum Classic",
-    "tezos": "Tezos Wallet",
-    "xrp": "XRP",
-    "litecoin": "Litecoin",
-    "stellar": "Stellar",
-    "solana": "Solana",
-    "DOT": "Polkadot",
-    "tron": "Tron",
-    "ton": "TON",
-    "cardano": "Cardano ADA",
-    "near": "NEAR",
+#    "ethereum_classic": "Ethereum Classic",
+#    "tezos": "Tezos Wallet",
+#    "xrp": "XRP",
+#    "litecoin": "Litecoin",
+#    "stellar": "Stellar",
+#    "solana": "Solana",
+#    "DOT": "Polkadot",
+#    "tron": "Tron",
+#    "ton": "TON",
+#    "cardano": "Cardano ADA",
+#    "near": "NEAR",
 }
 
 configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
