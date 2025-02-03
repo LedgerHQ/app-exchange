@@ -5,10 +5,10 @@
 This app is the orchestrator of Swap and Sell functionalities on ledger devices.
 An overview of the feature is available [here](https://blog.ledger.com/secure-swap/)
 
-## Documentation 
+## Documentation
 
-* [Flow](doc/flow)
-* [APDU protocol](doc/protocol) 
+* [Flow](doc/flow.md)
+* [APDU protocol](doc/protocol.md)
 
 ## Building and installing
 

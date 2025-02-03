@@ -25,6 +25,7 @@ configuration.OPTIONAL.SIDELOADED_APPS = {
     "tron": "Tron",
     "ton": "TON",
     "cardano": "Cardano ADA",
+    "near": "NEAR",
     "sui": "Sui",
 }
 
