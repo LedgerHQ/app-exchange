@@ -126,11 +126,11 @@ on:
 
       branch_for_cosmos:
         required: false
-        default: 'main'
+        default: 'develop'
         type: string
       repo_for_cosmos:
         required: false
-        default: 'cosmos/ledger-cosmos'
+        default: 'LedgerHQ/app-cosmos'
         type: string
 
       test_filter:
