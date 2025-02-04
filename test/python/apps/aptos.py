@@ -58,10 +58,8 @@ class AptosCommandSender:
     def __init__(self, backend) -> None:
         self.backend = backend
 
-    def sign_tx(self, path: str, transaction: bytes) -> List[RAPDU]:
+    def sign_tx(self, transaction: bytes) -> List[RAPDU]:
         apdus = []
-        # TODO: for some reason, this is stalling the function
-        #packed_path = pack_derivation_path(path)
         packed_path = APTOS_PACKED_DERIVATION_PATH
         apdus.append(self.backend.exchange(cla=CLA,
                               ins=InsType.SIGN_TX,
