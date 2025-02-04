@@ -133,6 +133,15 @@ on:
         default: 'LedgerHQ/app-cosmos'
         type: string
 
+      branch_for_sui:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_sui:
+        required: false
+        default: 'LedgerHQ/app-sui'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -201,6 +210,9 @@ jobs:
         - name: ATOM
           repo: ${{ inputs.repo_for_cosmos }}
           branch: ${{ inputs.branch_for_cosmos }}
+        - name: sui
+          repo: ${{ inputs.repo_for_sui }}
+          branch: ${{ inputs.branch_for_sui }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
