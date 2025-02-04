@@ -37,6 +37,7 @@ debug/
 test/python/snapshots-tmp/
 test/python/lib_binaries/*.elf
 test/python/lib_binaries/*.zip
+test/python/lib_binaries/CACHEDIR.TAG
 __pycache__
 .egg
 .pyc
