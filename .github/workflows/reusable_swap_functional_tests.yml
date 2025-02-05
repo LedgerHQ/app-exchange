@@ -245,7 +245,7 @@ jobs:
     name: Build Exchange
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
-      app_repository: LedgerHQ/app-exchange
+      app_repository: ${{ inputs.repo_for_exchange }}
       app_branch_name: ${{ inputs.branch_for_exchange }}
       flags: "TESTING=1 TEST_PUBLIC_KEY=1"
       upload_app_binaries_artifact: exchange_binaries
