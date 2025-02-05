@@ -124,6 +124,15 @@ on:
         default: 'LedgerHQ/app-cardano'
         type: string
 
+      branch_for_cosmos:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_cosmos:
+        required: false
+        default: 'LedgerHQ/app-cosmos'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -189,6 +198,9 @@ jobs:
         - name: near
           repo: ${{ inputs.repo_for_near }}
           branch: ${{ inputs.branch_for_near }}
+        - name: ATOM
+          repo: ${{ inputs.repo_for_cosmos }}
+          branch: ${{ inputs.branch_for_cosmos }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
@@ -196,7 +208,7 @@ jobs:
       app_branch_name: ${{ matrix.coin.branch }}
       # Set the coin variant to build with COIN or CHAIN depending on the app + flags for ETH compilation
       # As a rule of thumb we don't care about giving unexisting flags to other apps, it has no effect
-      flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} CAL_TEST_KEY=1 DOMAIN_NAME_TEST_KEY=1 SET_PLUGIN_TEST_KEY=1 NFT_TEST_KEY=1"
+      flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} CAL_TEST_KEY=1 DOMAIN_NAME_TEST_KEY=1 SET_PLUGIN_TEST_KEY=1 NFT_TEST_KEY=1 TRUSTED_NAME_TEST_KEY=1"
       upload_app_binaries_artifact: libraries_binaries-${{ matrix.coin.name }}-${{ strategy.job-index }}
       upload_as_lib_artifact: ${{ matrix.coin.name }}
       builder: ledger-app-builder
