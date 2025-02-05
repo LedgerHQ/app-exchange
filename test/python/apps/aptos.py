@@ -47,6 +47,7 @@ class Errors(IntEnum):
     SW_BAD_STATE               = 0xB007
     SW_SIGNATURE_FAIL          = 0xB008
     SW_DISPLAY_GAS_FEE_FAIL    = 0xB009
+    SW_SWAP_CHECKING_FAIL      = 0xB00A
 
 
 def split_message(message: bytes, max_size: int) -> List[bytes]:

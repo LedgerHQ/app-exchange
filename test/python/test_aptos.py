@@ -3,7 +3,7 @@ import os
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
 from .apps import cal as cal
-from .apps.aptos import AptosCommandSender
+from .apps.aptos import AptosCommandSender, Errors
 
 # ExchangeTestRunner implementation for Ton
 class AptosTests(ExchangeTestRunner):
@@ -22,6 +22,10 @@ class AptosTests(ExchangeTestRunner):
     fake_refund_memo = "1"
     fake_payout = "abcdabcd"
     fake_payout_memo = "1"
+    signature_refusal_error_code = Errors.SW_SWAP_CHECKING_FAIL
+    wrong_method_error_code = Errors.SW_SWAP_CHECKING_FAIL
+    wrong_destination_error_code = Errors.SW_SWAP_CHECKING_FAIL
+    wrong_amount_error_code = Errors.SW_SWAP_CHECKING_FAIL
     def perform_final_tx(self, destination, send_amount, fees, memo):
         # Base and trail apdu for Aptos, builds a transaction by concatenating them
         # ex: base_apdu + dest_1 + middle_apdu + amount_1 + trail_apdu
