@@ -27,24 +27,16 @@ class AptosTests(ExchangeTestRunner):
     wrong_destination_error_code = Errors.SW_SWAP_CHECKING_FAIL
     wrong_amount_error_code = Errors.SW_SWAP_CHECKING_FAIL
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        # Base and trail apdu for Aptos, builds a transaction by concatenating them
-        # ex: base_apdu + dest_1 + middle_apdu + amount_1 + trail_apdu
-        base_apdu = "b5e97db07fa0bd0e5598aa3643a9bc6f6693bddc1a9fec9e674a461eaa00b193783135e8b00430253a22ba041d860c373d7a1501ccf7ac2d1ad37a8ed2775aee000000000000000002000000000000000000000000000000000000000000000000000000000000000104636f696e087472616e73666572010700000000000000000000000000000000000000000000000000000000000000010a6170746f735f636f696e094170746f73436f696e000220";
-        middle_apdu = "08"
-        trail_apdu = "00000000204e0000000000006400000000000000565c51630000000022"
         #valid_destination_1 encoded as bcs address
         dest_1 = "544E62745A53706B6E61517643376A50434C55347A6E4A4D676D386668754700"
         #valid_destination_2 encoded as bcs address
         dest_2 = "54426F545A6341527A5756676E4E7542395379453353356731527773586F5100"
-        
-        built_apdu = base_apdu
+        selected_destination = ""
         if destination == self.valid_destination_1:
-            built_apdu += dest_1 + middle_apdu
+            selected_destination = dest_1
         else:
-            built_apdu += dest_2 + middle_apdu
-        built_apdu += send_amount.to_bytes(4,'little').hex() + trail_apdu
-        transaction = bytes.fromhex(built_apdu)
-        AptosCommandSender(self.backend).sign_tx(transaction=transaction)
+            selected_destination = dest_2
+        AptosCommandSender(self.backend).sign_tx(send_amount=send_amount,destination=selected_destination)
             
 
 # Use a class to reuse the same Speculos instance
