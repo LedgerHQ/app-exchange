@@ -211,9 +211,9 @@ jobs:
         - name: near
           repo: ${{ inputs.repo_for_near }}
           branch: ${{ inputs.branch_for_near }}
-        #- name: ATOM
-        #  repo: ${{ inputs.repo_for_cosmos }}
-        #  branch: ${{ inputs.branch_for_cosmos }}
+        - name: ATOM
+          repo: ${{ inputs.repo_for_cosmos }}
+          branch: ${{ inputs.branch_for_cosmos }}
         - name: sui
           repo: ${{ inputs.repo_for_sui }}
           branch: ${{ inputs.branch_for_sui }}
