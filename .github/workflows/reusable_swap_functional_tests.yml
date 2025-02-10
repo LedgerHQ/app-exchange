@@ -218,8 +218,7 @@ jobs:
           repo: ${{ inputs.repo_for_sui }}
           branch: ${{ inputs.branch_for_sui }}
 
-    #uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
-    uses: Fingolfin69/ledger-app-workflows/.github/workflows/reusable_build.yml@bn-fix-rust-reusable-build
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
       app_repository: ${{ matrix.coin.repo }}
       app_branch_name: ${{ matrix.coin.branch }}
