@@ -12,7 +12,7 @@ class AptosTests(ExchangeTestRunner):
     valid_destination_memo_1 = ""
     valid_destination_2 = "TBoTZcARzWVgnNuB9SyE3S5g1RwsXoQL16"
     valid_destination_memo_2 = ""
-    valid_refund = "0x8F13F355F3AF444BD356ADEAAAF01235A7817D6A4417F5C9FA3D74A68F7B7AFD"
+    valid_refund = "0x8F13f355F3aF444BD356ADEAAAF01235A7817D6A4417F5c9FA3D74A68F7b7AFD"
     valid_refund_memo = ""
     valid_send_amount_1 = 42
     valid_send_amount_2 = 446739662
