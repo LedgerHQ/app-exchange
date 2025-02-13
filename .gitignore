@@ -28,21 +28,16 @@ obj/
 _ReSharper*/
 [Tt]est[Rr]esult*
 .vs/
-#Nuget packages folder
-packages/
+
 build/
 bin/
 debug/
-
-# Legacy zemu tests
-node_modules
-test/elfs
-test/snapshots-tmp
 
 # Functional tests
 test/python/snapshots-tmp/
 test/python/lib_binaries/*.elf
 test/python/lib_binaries/*.zip
+test/python/lib_binaries/CACHEDIR.TAG
 __pycache__
 .egg
 .pyc
