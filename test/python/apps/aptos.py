@@ -3,6 +3,12 @@ from ragger.utils import create_currency_config, RAPDU
 from ragger.bip import pack_derivation_path
 from typing import List, Optional
 
+from aptos_sdk.transactions import RawTransaction, TransactionPayload, TransactionArgument, EntryFunction
+from aptos_sdk.account import AccountAddress
+from aptos_sdk.type_tag import StructTag, TypeTag
+from aptos_sdk.bcs import Serializer
+
+
 APTOS_CONF = create_currency_config("APT", "Aptos")
 APTOS_DERIVATION_PATH = "m/44'/637'/0'"
 APTOS_PACKED_DERIVATION_PATH = pack_derivation_path(APTOS_DERIVATION_PATH)
@@ -59,17 +65,49 @@ class AptosCommandSender:
     def __init__(self, backend) -> None:
         self.backend = backend
 
-    def sign_tx(self, send_amount : int, destination : str) -> List[RAPDU]:
-        # Base and trail apdu for Aptos, builds a transaction by concatenating them
-        # ex: base_apdu + dest_1 + middle_apdu + amount_1 + trail_apdu
-        base_apdu = "b5e97db07fa0bd0e5598aa3643a9bc6f6693bddc1a9fec9e674a461eaa00b193783135e8b00430253a22ba041d860c373d7a1501ccf7ac2d1ad37a8ed2775aee000000000000000002000000000000000000000000000000000000000000000000000000000000000104636f696e087472616e73666572010700000000000000000000000000000000000000000000000000000000000000010a6170746f735f636f696e094170746f73436f696e000220";
-        middle_apdu = "08"
-        trail_apdu = "00000000204e0000000000006400000000000000565c51630000000022"
-        
+    def sign_tx(self, send_amount : int, transmitter : str, destination : str) -> List[RAPDU]:
+        sender = AccountAddress.from_str(transmitter)
+        receiver =  AccountAddress.from_str(destination)
 
+        # Transaction parameters
+        sequence_number = 0
+        gas_unit_price = 100
+        max_gas_amount = 1000
+        expiration_timestamp = 0
+        payload = EntryFunction.natural(
+            "0x1::aptos_account",
+            "transfer_coins",
+            [TypeTag(StructTag.from_str("0x1::aptos_coin::AptosCoin"))],
+            [
+                TransactionArgument(receiver, Serializer.struct),
+                TransactionArgument(send_amount, Serializer.u64),
+            ],
+        )
         
-        built_apdu = base_apdu + destination + middle_apdu + send_amount.to_bytes(4,'little').hex() + trail_apdu
-        transaction = bytes.fromhex(built_apdu)
+        try:
+            print(payload)
+            serializer_test = Serializer()
+            payload.serialize(serializer_test)
+            print("Payload Hex:", serializer_test.output().hex())
+        except Exception as e:
+            print(e)
+            
+        # Create the raw transaction (TX_RAW)
+        txn = RawTransaction(
+            sender=sender,
+            sequence_number=sequence_number,
+            payload=TransactionPayload(payload),
+            max_gas_amount=max_gas_amount,
+            gas_unit_price=gas_unit_price,
+            expiration_timestamps_secs=expiration_timestamp,
+            chain_id=1,
+        )
+        # Serialize the transaction
+        serializer = Serializer()
+        txn.serialize(serializer)
+        transaction = serializer.output()
+        # This is a salt required by the Nano App to make sure that the payload comes from Ledger Live host
+        transaction = bytes.fromhex("b5e97db07fa0bd0e5598aa3643a9bc6f6693bddc1a9fec9e674a461eaa00b193" + transaction.hex())
 
         packed_path = APTOS_PACKED_DERIVATION_PATH
         self.backend.exchange(cla=CLA,
@@ -79,7 +117,6 @@ class AptosCommandSender:
                               data=packed_path)
         messages = split_message(transaction, MAX_APDU_LEN)
         idx: int = P1.P1_START + 1
-
         for msg in messages[:-1]:
             self.backend.exchange(cla=CLA,
                                   ins=InsType.SIGN_TX,
