@@ -144,6 +144,13 @@ on:
       repo_for_sui:
         required: false
         default: 'LedgerHQ/app-sui'
+      branch_for_aptos:
+        required: false
+        default: 'swap/add_check_address'
+        type: string
+      repo_for_aptos:
+        required: false
+        default: 'LedgerHQ/app-aptos'
         type: string
 
       test_filter:
@@ -217,6 +224,9 @@ jobs:
         - name: sui
           repo: ${{ inputs.repo_for_sui }}
           branch: ${{ inputs.branch_for_sui }}
+        - name: APTOS
+          repo: ${{ inputs.repo_for_aptos }}
+          branch: ${{ inputs.branch_for_aptos }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
