@@ -83,15 +83,7 @@ class AptosCommandSender:
                 TransactionArgument(send_amount, Serializer.u64),
             ],
         )
-        
-        try:
-            print(payload)
-            serializer_test = Serializer()
-            payload.serialize(serializer_test)
-            print("Payload Hex:", serializer_test.output().hex())
-        except Exception as e:
-            print(e)
-            
+
         # Create the raw transaction (TX_RAW)
         txn = RawTransaction(
             sender=sender,

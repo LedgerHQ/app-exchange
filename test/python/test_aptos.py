@@ -10,7 +10,7 @@ class AptosTests(ExchangeTestRunner):
     currency_configuration = cal.APTOS_CURRENCY_CONFIGURATION
     valid_destination_1 = "0x8F13f355F3aF444BD356ADEAAAF01235A7817D6A4417F5c9FA3D74A68F7b7AFD"
     valid_destination_memo_1 = ""
-    valid_destination_2 = "0x8F13f355F3aF444BD356ADEAAAF01235A7817D6A4417F5c9FA3D74A68F7b7AFD"
+    valid_destination_2 = "0x7be51d04d3a482fa056bc094bc5eadad005aaf823a95269410f08730f0d03cb4"
     valid_destination_memo_2 = ""
     valid_refund = "0x8F13f355F3aF444BD356ADEAAAF01235A7817D6A4417F5c9FA3D74A68F7b7AFD"
     valid_refund_memo = ""
