@@ -2,6 +2,7 @@ from typing import Optional
 from dataclasses import dataclass
 
 from ragger.utils import prefix_with_len
+from .sui_utils import SUI_CONF, SUI_PACKED_DERIVATION_PATH
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -65,6 +66,7 @@ COSMOS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ATOM", conf=COSMOS
 ADA_BYRON_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_BYRON_PACKED_DERIVATION_PATH)
 ADA_SHELLEY_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_SHELLEY_PACKED_DERIVATION_PATH)
 NEAR_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="NEAR", conf=NEAR_CONF, packed_derivation_path=NEAR_PACKED_DERIVATION_PATH)
+SUI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SUI", conf=SUI_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
 
 # Helper that can be called from outside if we want to generate errors easily
 def sign_currency_conf(currency_conf: bytes, overload_signer: Optional[SigningAuthority]=None) -> bytes:

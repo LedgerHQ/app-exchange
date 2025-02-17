@@ -7,6 +7,10 @@ on:
         required: false
         default: 'develop'
         type: string
+      repo_for_exchange:
+        required: false
+        default: 'LedgerHQ/app-exchange'
+        type: string
 
       branch_for_stellar:
         required: false
@@ -133,6 +137,15 @@ on:
         default: 'LedgerHQ/app-cosmos'
         type: string
 
+      branch_for_sui:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_sui:
+        required: false
+        default: 'LedgerHQ/app-sui'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -201,6 +214,9 @@ jobs:
         - name: ATOM
           repo: ${{ inputs.repo_for_cosmos }}
           branch: ${{ inputs.branch_for_cosmos }}
+        - name: sui
+          repo: ${{ inputs.repo_for_sui }}
+          branch: ${{ inputs.branch_for_sui }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
@@ -228,7 +244,7 @@ jobs:
     name: Build Exchange
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
-      app_repository: LedgerHQ/app-exchange
+      app_repository: ${{ inputs.repo_for_exchange }}
       app_branch_name: ${{ inputs.branch_for_exchange }}
       flags: "TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1"
       upload_app_binaries_artifact: exchange_binaries
@@ -240,7 +256,7 @@ jobs:
       - merge_libraries_build
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_ragger_tests.yml@v1
     with:
-      app_repository: LedgerHQ/app-exchange
+      app_repository: ${{ inputs.repo_for_exchange }}
       app_branch_name: ${{ inputs.branch_for_exchange }}
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
