@@ -144,6 +144,8 @@ on:
       repo_for_sui:
         required: false
         default: 'LedgerHQ/app-sui'
+        type: string
+
       branch_for_aptos:
         required: false
         default: 'swap/add_check_address'
