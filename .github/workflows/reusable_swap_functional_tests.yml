@@ -148,7 +148,7 @@ on:
 
       branch_for_aptos:
         required: false
-        default: 'swap/add_check_address'
+        default: 'develop'
         type: string
       repo_for_aptos:
         required: false
