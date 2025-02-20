@@ -155,6 +155,15 @@ on:
         default: 'LedgerHQ/app-aptos'
         type: string
 
+      branch_for_bol:
+        required: false
+        default: 'master'
+        type: string
+      repo_for_bol:
+        required: false
+        default: 'LedgerHQ/app-boilerplate'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -229,6 +238,9 @@ jobs:
           - name: APTOS
             repo: ${{ inputs.repo_for_aptos }}
             branch: ${{ inputs.branch_for_aptos }}
+          - name: boilerplate
+            repo: ${{ inputs.repo_for_bol }}
+            branch: ${{ inputs.branch_for_bol }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
