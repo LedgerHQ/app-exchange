@@ -72,7 +72,11 @@ static uint16_t check_payout_or_refund_address(command_e ins,
                                  extra_id_to_check);
     if (err != 0) {
         PRINTF("Error: check_address failed\n");
+#ifndef BYPASS_CHECK_ADDRESS
+        // Do NOT activate the bypass when using real funds
+        // If you are a Ledger user, do NOT modify this in ANY case
         return err;
+#endif
     }
     return 0;
 }

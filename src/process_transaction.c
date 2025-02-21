@@ -374,7 +374,11 @@ int process_transaction(const command_t *cmd) {
     }
 
     if (!check_transaction_id(cmd->subcommand)) {
+#ifndef BYPASS_TRANSACTION_ID_CHECK
+        // Do NOT activate the bypass when using real funds
+        // If you are a Ledger user, do NOT modify this in ANY case
         return reply_error(WRONG_TRANSACTION_ID);
+#endif
     }
 
     normalize_currencies(cmd->subcommand);

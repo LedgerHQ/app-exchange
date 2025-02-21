@@ -121,16 +121,41 @@ endif
 ########################################
 #            Testing flags             #
 ########################################
+
+# /!\
+# If you are a Ledger user, do NOT modify this in ANY case
+# /!\
+
 ifdef TESTING
-    $(info [INFO] TESTING enabled)
+    $(warning [WARNING] TESTING enabled)
     DEFINES += TESTING
+    TEST_BUILD = 1
 endif
 
 ifdef TEST_PUBLIC_KEY
-    $(info [INFO] TEST_PUBLIC_KEY enabled)
+    $(warning [WARNING] TEST_PUBLIC_KEY enabled)
     DEFINES += TEST_PUBLIC_KEY
+    TEST_BUILD = 1
 endif
 
+ifdef BYPASS_TRANSACTION_ID_CHECK
+    $(warning [WARNING] BYPASS_TRANSACTION_ID_CHECK enabled)
+    DEFINES += BYPASS_TRANSACTION_ID_CHECK
+    TEST_BUILD = 1
+endif
+
+ifdef BYPASS_CHECK_ADDRESS
+    $(warning [WARNING] BYPASS_CHECK_ADDRESS enabled)
+    DEFINES += BYPASS_CHECK_ADDRESS
+    TEST_BUILD = 1
+endif
+
+ifeq ($(TEST_BUILD),1)
+    $(warning [WARNING] TEST_BUILD enabled)
+	APPNAME = "Exchange TEST"
+	VARIANT_VALUES = "exchangetest"
+	DEFINES += TEST_BUILD
+endif
 
 ########################################
 #      Protobuf files regeneration     #

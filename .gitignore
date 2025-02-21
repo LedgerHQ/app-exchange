@@ -42,3 +42,6 @@ __pycache__
 .egg
 .pyc
 *~
+
+# Manually ignore this file. It is a helper to replay apdus quickly.
+test/python/test_raw.py

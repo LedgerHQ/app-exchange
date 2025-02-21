@@ -27,8 +27,13 @@ static const nbgl_contentInfoList_t infoList = {
 
 void ui_idle(void) {
     nbgl_useCaseHomeAndSettings(APPNAME,
+#ifndef TEST_BUILD
                                 &C_icon_exchange_64x64,
                                 "This app enables swapping\nand selling assets\nin Ledger Live.",
+#else
+                                &C_Warning_64px,
+                                "DO NOT USE THIS APPLICATION\nWITH REAL FUNDS.\n!! TEST ONLY !!",
+#endif
                                 INIT_HOME_PAGE,
                                 NULL,
                                 &infoList,

@@ -11,8 +11,13 @@
 // clang-format off
 UX_STEP_NOCB(ux_idle_flow_1_step, nn,
 {
+#ifndef TEST_BUILD
     "Exchange",
     "is ready",
+#else
+    "DO NOT USE",
+    "WITH REAL FUNDS",
+#endif
 });
 UX_STEP_NOCB(ux_idle_flow_2_step, bn,
 {
