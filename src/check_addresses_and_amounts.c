@@ -19,7 +19,7 @@
 static bool check_coin_configuration_signature(buf_t config, buf_t der) {
     uint8_t hash[CURVE_SIZE_BYTES];
     cx_hash_sha256(config.bytes, config.size, hash, CURVE_SIZE_BYTES);
-    return cx_ecdsa_verify_no_throw(&G_swap_ctx.ledger_public_key,
+    return cx_ecdsa_verify_no_throw(&G_ledger_public_key,
                                     hash,
                                     CURVE_SIZE_BYTES,
                                     der.bytes,

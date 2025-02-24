@@ -84,8 +84,6 @@ typedef struct swap_app_context_s {
     uint8_t sha256_digest_prefixed[32];
     uint8_t sha256_digest_no_prefix[32];
 
-    cx_ecfp_256_public_key_t ledger_public_key;
-
     uint8_t paying_sub_coin_config_size;
     uint8_t paying_sub_coin_config[MAX_COIN_SUB_CONFIG_SIZE];
     char payin_binary_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
@@ -101,6 +99,7 @@ typedef struct swap_app_context_s {
 } swap_app_context_t;
 
 extern swap_app_context_t G_swap_ctx;
+extern cx_ecfp_256_public_key_t G_ledger_public_key;
 
 #ifdef HAVE_NBGL
 // On Stax, remember some data from the previous cycle if applicable to display a status screen

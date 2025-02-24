@@ -118,6 +118,7 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
         BEGIN_TRY {
             TRY {
                 io_seproxyhal_init();
+                init_public_keys();
 
 #ifdef TARGET_NANOX
                 // grab the current plane mode setting
