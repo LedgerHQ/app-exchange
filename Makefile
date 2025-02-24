@@ -150,6 +150,12 @@ ifdef BYPASS_CHECK_ADDRESS
     TEST_BUILD = 1
 endif
 
+ifdef DIRECT_CALLS_API
+    $(warning [WARNING] DIRECT_CALLS_API enabled)
+    DEFINES += DIRECT_CALLS_API
+    TEST_BUILD = 1
+endif
+
 ifeq ($(TEST_BUILD),1)
     $(warning [WARNING] TEST_BUILD enabled)
 	APPNAME = "Exchange TEST"

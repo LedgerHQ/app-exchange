@@ -125,4 +125,71 @@ void ui_validate_amounts(void) {
     ux_flow_init(0, ux_confirm_flow, NULL);
 }
 
-#endif
+#ifdef DIRECT_CALLS_API
+char G_application_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
+char G_to_print[sizeof(G_swap_ctx.printable_send_amount)] = {0};
+char G_to_print_fees[sizeof(G_swap_ctx.printable_send_amount)] = {0};
+
+static void on_direct_amount_review_accept(__attribute__((unused)) const bagl_element_t *e) {
+    reply_success();
+    ui_idle();
+}
+
+static void on_direct_amount_review_reject(__attribute__((unused)) const bagl_element_t *e) {
+    reply_error(USER_REFUSED);
+    ui_idle();
+}
+
+UX_STEP_NOCB(step_1_direct_amount_review,
+             bnnn_paging,
+             {
+                 .title = "Testing application",
+                 .text = G_application_name,
+             });
+UX_STEP_NOCB(step_2_direct_amount_review,
+             bnnn_paging,
+             {
+                 .title = "Amount displayed:",
+                 .text = G_to_print,
+             });
+UX_STEP_NOCB(step_3_direct_amount_review,
+             bnnn_paging,
+             {
+                 .title = "as fees:",
+                 .text = G_to_print_fees,
+             });
+UX_STEP_CB(step_4_direct_amount_review,
+           pbb,
+           on_direct_amount_review_accept(NULL),
+           {
+               &C_icon_validate_14,
+               "Approve",
+               "formatting",
+           });
+UX_STEP_CB(step_5_direct_amount_review,
+           pb,
+           on_direct_amount_review_reject(NULL),
+           {
+               &C_icon_crossmark,
+               "Reject",
+           });
+
+void direct_amount_review(const char *application_name,
+                          const char *to_print,
+                          const char *to_print_as_fees) {
+    memcpy(G_application_name, application_name, sizeof(G_application_name));
+    memcpy(G_to_print, to_print, sizeof(G_to_print));
+    memcpy(G_to_print_fees, to_print_as_fees, sizeof(G_to_print_fees));
+
+    ux_confirm_flow[0] = &step_1_direct_amount_review;
+    ux_confirm_flow[1] = &step_2_direct_amount_review;
+    ux_confirm_flow[2] = &step_3_direct_amount_review;
+    ux_confirm_flow[3] = &step_4_direct_amount_review;
+    ux_confirm_flow[4] = &step_5_direct_amount_review;
+    ux_confirm_flow[5] = FLOW_END_STEP;
+
+    ux_flow_init(0, ux_confirm_flow, NULL);
+}
+
+#endif  // DIRECT_CALLS_API
+#endif  // HAVE_BAGL

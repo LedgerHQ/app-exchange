@@ -21,6 +21,10 @@ typedef enum {
     CHECK_REFUND_ADDRESS_NO_DISPLAY = 0x0C,
     PROMPT_UI_DISPLAY = 0x0F,
     START_SIGNING_TRANSACTION = 0x0A,
+#ifdef DIRECT_CALLS_API
+    DIRECT_CHECK_ADDRESS = 0xF0,
+    DIRECT_FORMAT_AMOUNT = 0xF1,
+#endif
 } command_e;
 
 // Different rates possible for the transaction. They are given to the app as P1 of an APDU

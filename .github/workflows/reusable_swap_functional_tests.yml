@@ -258,7 +258,7 @@ jobs:
     with:
       app_repository: ${{ inputs.repo_for_exchange }}
       app_branch_name: ${{ inputs.branch_for_exchange }}
-      flags: "TESTING=1 TEST_PUBLIC_KEY=1 DEBUG=1"
+      flags: "TESTING=1 TEST_PUBLIC_KEY=1 DIRECT_CALLS_API=1 DEBUG=1"
       upload_app_binaries_artifact: exchange_binaries
 
   ragger_tests:

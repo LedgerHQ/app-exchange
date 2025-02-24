@@ -16,7 +16,7 @@
 
 #include "check_addresses_and_amounts.h"
 
-static bool check_coin_configuration_signature(buf_t config, buf_t der) {
+bool check_coin_configuration_signature(buf_t config, buf_t der) {
     uint8_t hash[CURVE_SIZE_BYTES];
     cx_hash_sha256(config.bytes, config.size, hash, CURVE_SIZE_BYTES);
     return cx_ecdsa_verify_no_throw(&G_ledger_public_key,
@@ -168,6 +168,40 @@ static void format_account_name(void) {
     G_swap_ctx.account_name[sizeof(G_swap_ctx.account_name) - 1] = '\x00';
 }
 
+uint16_t parse_check_address(const buf_t data,
+                             buf_t *address_parameters,
+                             buf_t *ticker,
+                             char (*application_name)[BOLOS_APPNAME_MAX_SIZE_B + 1],
+                             buf_t *sub_coin_config) {
+    buf_t config;
+    buf_t der;
+    buf_t parsed_application_name;
+
+    if (parse_check_address_message(data, &config, &der, address_parameters) == 0) {
+        PRINTF("Error: Can't parse command\n");
+        return INCORRECT_COMMAND_DATA;
+    }
+
+    // We received the coin configuration from the CAL and its signature. Check the signature
+    if (!check_coin_configuration_signature(config, der)) {
+        PRINTF("Error: Fail to verify signature of coin config\n");
+        return SIGN_VERIFICATION_FAIL;
+    }
+
+    // Break up the configuration into its individual elements
+    if (!parse_coin_config(config, ticker, &parsed_application_name, sub_coin_config)) {
+        PRINTF("Error: Can't parse coin config command\n");
+        return INCORRECT_COMMAND_DATA;
+    }
+
+    // We can't use the pointer to the parsed application name as it is not NULL terminated
+    // We have to make a local copy
+    memset(application_name, 0, sizeof(*application_name));
+    memcpy(application_name, parsed_application_name.bytes, parsed_application_name.size);
+
+    return 0;
+}
+
 // Three possibilities in this function:
 // - we are in CHECK_ASSET_IN (FUND or SELL flows)
 //     - we will ask the FROM app to format the FROM amount and the fees
@@ -179,37 +213,23 @@ static void format_account_name(void) {
 // - we are in CHECK_REFUND_ADDRESS (SWAP flow)
 //     - we will ask the FROM app to format the FROM amount and the fees
 //     - we will ask the FROM app to check the refund address
+
 int check_addresses_and_amounts(const command_t *cmd) {
-    buf_t config;
-    buf_t der;
     buf_t address_parameters;
     buf_t ticker;
-    buf_t parsed_application_name;
     buf_t sub_coin_config;
     char application_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
     uint16_t err;
 
-    if (parse_check_address_message(cmd, &config, &der, &address_parameters) == 0) {
-        PRINTF("Error: Can't parse command\n");
-        return reply_error(INCORRECT_COMMAND_DATA);
+    err = parse_check_address(cmd->data,
+                              &address_parameters,
+                              &ticker,
+                              &application_name,
+                              &sub_coin_config);
+    if (err != 0) {
+        PRINTF("Error: parse_check_address %d\n", err);
+        return reply_error(err);
     }
-
-    // We received the coin configuration from the CAL and its signature. Check the signature
-    if (!check_coin_configuration_signature(config, der)) {
-        PRINTF("Error: Fail to verify signature of coin config\n");
-        return reply_error(SIGN_VERIFICATION_FAIL);
-    }
-
-    // Break up the configuration into its individual elements
-    if (!parse_coin_config(config, &ticker, &parsed_application_name, &sub_coin_config)) {
-        PRINTF("Error: Can't parse coin config command\n");
-        return reply_error(INCORRECT_COMMAND_DATA);
-    }
-
-    // We can't use the pointer to the parsed application name as it is not NULL terminated
-    // We have to make a local copy
-    memset(application_name, 0, sizeof(application_name));
-    memcpy(application_name, parsed_application_name.bytes, parsed_application_name.size);
 
     // Ensure we received a coin configuration that actually serves us in the current TX context
     if (!check_received_ticker_matches_context(ticker, cmd)) {
@@ -221,12 +241,13 @@ int check_addresses_and_amounts(const command_t *cmd) {
     // We received them as part of the TX but we couldn't check then as we did not have the
     // application_name yet
     if (G_swap_ctx.subcommand == SWAP || G_swap_ctx.subcommand == SWAP_NG) {
-        uint16_t ret = check_payout_or_refund_address(cmd->ins,
-                                                      sub_coin_config,
-                                                      address_parameters,
-                                                      application_name);
-        if (ret != 0) {
-            return reply_error(ret);
+        err = check_payout_or_refund_address(cmd->ins,
+                                             sub_coin_config,
+                                             address_parameters,
+                                             application_name);
+        if (err != 0) {
+            PRINTF("Error: check_payout_or_refund_address %d\n", err);
+            return reply_error(err);
         }
     }
 

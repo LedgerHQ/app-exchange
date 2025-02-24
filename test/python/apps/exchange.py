@@ -3,8 +3,9 @@ from typing import Generator, Optional, Dict
 from enum import IntEnum
 
 from ragger.backend.interface import BackendInterface, RAPDU
+from ragger.utils import prefix_with_len
 
-from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom, get_version_from_makefile
+from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, get_version_from_makefile
 from .exchange_transaction_builder import SubCommand
 
 MAX_CHUNK_SIZE = 255
@@ -27,6 +28,8 @@ class Command(IntEnum):
     CHECK_REFUND_ADDRESS_NO_DISPLAY   = 0x0C
     PROMPT_UI_DISPLAY                 = 0x0F
     START_SIGNING_TRANSACTION         = 0x0A
+    DIRECT_CHECK_ADDRESS              = 0xF0
+    DIRECT_FORMAT_AMOUNT              = 0xF1
 
 
 class Rate(IntEnum):
@@ -68,8 +71,8 @@ class ExchangeClient:
     CLA = EXCHANGE_CLASS
     def __init__(self,
                  client: BackendInterface,
-                 rate: Rate,
-                 subcommand: SubCommand):
+                 rate: Rate = Rate.FLOATING,
+                 subcommand: SubCommand = SubCommand.SWAP_NG):
         if not isinstance(client, BackendInterface):
             raise TypeError('client must be an instance of BackendInterface')
         if not isinstance(rate, Rate):
@@ -160,6 +163,17 @@ class ExchangeClient:
     @contextmanager
     def prompt_ui_display(self) -> Generator[None, None, None]:
         with self._exchange_async(Command.PROMPT_UI_DISPLAY) as response:
+            yield response
+
+    def direct_check_address(self, address_to_check: str, coin_configuration: bytes) -> RAPDU:
+        payload = prefix_with_len(address_to_check.encode()) + coin_configuration
+        return self._exchange(Command.DIRECT_CHECK_ADDRESS, payload=payload)
+
+    @contextmanager
+    def direct_format_amount(self, amount: int, coin_configuration: bytes) -> Generator[None, None, None]:
+        amount_bytes = int_to_minimally_sized_bytes(amount)
+        payload = prefix_with_len(amount_bytes) + coin_configuration
+        with self._exchange_async(Command.DIRECT_FORMAT_AMOUNT, payload=payload) as response:
             yield response
 
     def start_signing_transaction(self) -> RAPDU:
