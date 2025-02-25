@@ -27,7 +27,7 @@ void ui_idle(void) {
     nbgl_useCaseHomeAndSettings(APPNAME,
 #ifndef TEST_BUILD
                                 ICON_APP_EXCHANGE,
-#else                      
+#else
                                 ICON_APP_WARNING,
 #endif
                                 HOME_TEXT,
