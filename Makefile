@@ -155,6 +155,8 @@ ifeq ($(TEST_BUILD),1)
 	DEFINES += TEST_BUILD
 endif
 
+include $(BOLOS_SDK)/Makefile.standard_app
+
 ########################################
 #      Protobuf files regeneration     #
 ########################################
@@ -166,5 +168,3 @@ proto:
 	mv src/proto/protocol_pb2.py test/python/apps/pb/exchange_pb2.py
 
 ########################################
-
-include $(BOLOS_SDK)/Makefile.standard_app
