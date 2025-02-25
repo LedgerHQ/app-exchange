@@ -2,7 +2,7 @@
 
 #if defined(SCREEN_SIZE_WALLET)
 #define ICON_APP_WARNING  &C_Warning_64px
-#define ICON_APP_EXCHANGE  &C_icon_exchange_64x64
+#define ICON_APP_EXCHANGE &C_icon_exchange_64x64
 #ifndef TEST_BUILD
 #define HOME_TEXT "This app enables swapping\nand selling assets\nin Ledger Live."
 #else
