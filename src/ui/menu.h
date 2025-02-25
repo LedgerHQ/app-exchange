@@ -12,7 +12,7 @@
 #define ICON_APP_EXCHANGE NULL
 #define ICON_APP_WARNING  &C_icon_warning
 #ifndef TEST_BUILD
-#define HOME_TEXT "Exchange is ready"
+#define HOME_TEXT "Exchange\nis ready"
 #else
 #define HOME_TEXT "DO NOT USE WITH REAL FUNDS"
 #endif
