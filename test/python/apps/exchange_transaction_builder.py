@@ -157,7 +157,7 @@ SELL_NG_SPECS = SubCommandSpecs(
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewSellResponse,
     transaction_id_field = "device_transaction_id",
-    possible_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
+    possible_fields = ["trader_email", "in_currency", "in_amount", "in_address", "in_extra_id", "out_currency", "out_amount"],
 )
 
 SELL_SPECS = SubCommandSpecs(
@@ -168,7 +168,7 @@ SELL_SPECS = SubCommandSpecs(
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewSellResponse,
     transaction_id_field = "device_transaction_id",
-    possible_fields = ["trader_email", "in_currency", "in_amount", "in_address", "out_currency", "out_amount"],
+    possible_fields = ["trader_email", "in_currency", "in_amount", "in_address", "in_extra_id", "out_currency", "out_amount"],
 )
 
 FUND_NG_SPECS = SubCommandSpecs(
@@ -178,7 +178,7 @@ FUND_NG_SPECS = SubCommandSpecs(
     signature_encoding = SignatureEncoding.PLAIN_R_S,
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewFundResponse,
-    possible_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
+    possible_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address", "in_extra_id"],
     transaction_id_field = "device_transaction_id",
 )
 
@@ -189,7 +189,7 @@ FUND_SPECS = SubCommandSpecs(
     signature_encoding = SignatureEncoding.DER,
     payload_encoding = PayloadEncoding.BASE_64_URL,
     transaction_type = NewFundResponse,
-    possible_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address"],
+    possible_fields = ["user_id", "account_name", "in_currency", "in_amount", "in_address", "in_extra_id"],
     transaction_id_field = "device_transaction_id",
 )
 
