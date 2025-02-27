@@ -65,14 +65,12 @@ class AptosCommandSender:
     def __init__(self, backend) -> None:
         self.backend = backend
 
-    def sign_tx(self, send_amount : int, transmitter : str, destination : str) -> List[RAPDU]:
+    def sign_tx(self, send_amount : int, fees : int, max_gas_amount : int , transmitter : str, destination : str) -> List[RAPDU]:
         sender = AccountAddress.from_str(transmitter)
         receiver =  AccountAddress.from_str(destination)
 
         # Transaction parameters
         sequence_number = 0
-        gas_unit_price = 100
-        max_gas_amount = 1000
         expiration_timestamp = 0
         payload = EntryFunction.natural(
             "0x1::aptos_account",
@@ -85,6 +83,7 @@ class AptosCommandSender:
         )
 
         # Create the raw transaction (TX_RAW)
+        gas_unit_price = int(fees/max_gas_amount)
         txn = RawTransaction(
             sender=sender,
             sequence_number=sequence_number,
@@ -126,4 +125,3 @@ class AptosCommandSender:
 
     def get_async_response(self) -> Optional[RAPDU]:
         return self.backend.last_async_response
-

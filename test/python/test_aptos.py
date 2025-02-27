@@ -1,12 +1,12 @@
 import pytest
-import os
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
+from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
 from .apps import cal as cal
 from .apps.aptos import AptosCommandSender, Errors
 
-# ExchangeTestRunner implementation for Ton
+# ExchangeTestRunner implementation for Aptos
 class AptosTests(ExchangeTestRunner):
+    max_gas_amount = 100
     currency_configuration = cal.APTOS_CURRENCY_CONFIGURATION
     valid_destination_1 = "0x8F13f355F3aF444BD356ADEAAAF01235A7817D6A4417F5c9FA3D74A68F7b7AFD"
     valid_destination_memo_1 = ""
@@ -16,8 +16,8 @@ class AptosTests(ExchangeTestRunner):
     valid_refund_memo = ""
     valid_send_amount_1 = 42
     valid_send_amount_2 = 446739662
-    valid_fees_1 = 0
-    valid_fees_2 = 1
+    valid_fees_1 = 6 * max_gas_amount
+    valid_fees_2 = 42 * max_gas_amount
     fake_refund = "abcdabcd"
     fake_refund_memo = "1"
     fake_payout = "abcdabcd"
@@ -27,14 +27,12 @@ class AptosTests(ExchangeTestRunner):
     wrong_destination_error_code = Errors.SW_SWAP_CHECKING_FAIL
     wrong_amount_error_code = Errors.SW_SWAP_CHECKING_FAIL
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        print("perform_final_tx")
-        print(destination)
-        AptosCommandSender(self.backend).sign_tx(send_amount=send_amount,transmitter=self.valid_refund,destination=destination)
+        AptosCommandSender(self.backend).sign_tx(send_amount=send_amount,fees=fees, max_gas_amount=self.max_gas_amount, transmitter=self.valid_refund,destination=destination)
             
 
 # Use a class to reuse the same Speculos instance
 class TestsAptos:
 
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
     def test_aptos(self, backend, exchange_navigation_helper, test_to_run):
         AptosTests(backend, exchange_navigation_helper).run_test(test_to_run)
