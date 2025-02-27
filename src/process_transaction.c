@@ -184,13 +184,6 @@ static bool deserialize_protobuf_payload(buf_t payload,
         return false;
     }
 
-    // Field not received from protobuf
-    if (subcommand == SELL || subcommand == SELL_NG) {
-        G_swap_ctx.sell_transaction_extra_id[0] = '\0';
-    } else if (subcommand == FUND || subcommand == FUND_NG) {
-        G_swap_ctx.fund_transaction_extra_id[0] = '\0';
-    }
-
     return true;
 }
 

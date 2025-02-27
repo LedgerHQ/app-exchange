@@ -47,16 +47,14 @@ int start_signing_transaction(const command_t *cmd) {
         lib_in_out_params.amount = G_swap_ctx.sell_transaction.in_amount.bytes;
         lib_in_out_params.amount_length = G_swap_ctx.sell_transaction.in_amount.size;
         lib_in_out_params.destination_address = G_swap_ctx.sell_transaction.in_address;
-        // Empty string, needed by application library API but does not have sense in SELL context
-        lib_in_out_params.destination_address_extra_id = G_swap_ctx.sell_transaction_extra_id;
+        lib_in_out_params.destination_address_extra_id = G_swap_ctx.sell_transaction.in_extra_id;
     }
 
     if (cmd->subcommand == FUND || cmd->subcommand == FUND_NG) {
         lib_in_out_params.amount = G_swap_ctx.fund_transaction.in_amount.bytes;
         lib_in_out_params.amount_length = G_swap_ctx.fund_transaction.in_amount.size;
         lib_in_out_params.destination_address = G_swap_ctx.fund_transaction.in_address;
-        // Empty string, needed by application library API but does not have sense in FUND context
-        lib_in_out_params.destination_address_extra_id = G_swap_ctx.fund_transaction_extra_id;
+        lib_in_out_params.destination_address_extra_id = G_swap_ctx.fund_transaction.in_extra_id;
     }
 
     create_payin_transaction(&lib_in_out_params);

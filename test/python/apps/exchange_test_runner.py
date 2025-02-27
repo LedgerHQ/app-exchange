@@ -189,23 +189,25 @@ class ExchangeTestRunner:
         }
         self._perform_valid_exchange(SubCommand.SWAP_NG, tx_infos, cal.ETH_CURRENCY_CONFIGURATION, self.currency_configuration, fees, ui_validation=ui_validation)
 
-    def perform_valid_fund_from_custom(self, destination, send_amount, fees):
+    def perform_valid_fund_from_custom(self, destination, send_amount, fees, destination_memo):
         tx_infos = {
             "user_id": self.fund_user_id,
             "account_name": self.fund_account_name,
             "in_currency": self.currency_configuration.ticker,
             "in_amount": int_to_minimally_sized_bytes(send_amount),
+            "in_extra_id": destination_memo,
             "in_address": destination,
         }
         self._perform_valid_exchange(SubCommand.FUND_NG, tx_infos, self.currency_configuration, None, fees, ui_validation=True)
 
-    def perform_valid_sell_from_custom(self, destination, send_amount, fees):
+    def perform_valid_sell_from_custom(self, destination, send_amount, fees, destination_memo):
         tx_infos = {
             "trader_email": self.sell_trader_email,
             "out_currency": self.sell_out_currency,
             "out_amount": self.sell_out_amount,
             "in_currency": self.currency_configuration.ticker,
             "in_amount": int_to_minimally_sized_bytes(send_amount),
+            "in_extra_id": destination_memo,
             "in_address": destination,
         }
         self._perform_valid_exchange(SubCommand.SELL_NG, tx_infos, self.currency_configuration, None, fees, ui_validation=True)
@@ -357,20 +359,20 @@ class ExchangeTestRunner:
 
     # The absolute standard fund, using default values, user accepts on UI
     def perform_test_fund_valid_1(self):
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         self.assert_exchange_is_started()
 
     # The second standard fund, using alternate default values, user accepts on UI
     def perform_test_fund_valid_2(self):
-        self.perform_valid_fund_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2)
+        self.perform_valid_fund_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
         self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
         self.assert_exchange_is_started()
 
     # Test fund with a malicious TX with tampered fees
     def perform_test_fund_wrong_fees(self):
         assert self.valid_fees_1 != self.valid_fees_2, "This test won't work if the values are the same"
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, "")
         assert e.value.status == self.wrong_fees_error_code
@@ -378,16 +380,18 @@ class ExchangeTestRunner:
 
     # Test fund with a malicious TX with tampered memo
     def perform_test_fund_wrong_memo(self):
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        if self.valid_destination_memo_1 == self.valid_destination_memo_2:
+            pytest.skip("This test won't work if the values are the same")
+        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
         with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "no memo expected")
+            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_2)
         assert e.value.status == self.wrong_memo_error_code
         self.assert_exchange_is_started()
 
     # Test fund with a malicious TX with tampered destination
     def perform_test_fund_wrong_destination(self):
         assert self.valid_destination_1 != self.valid_destination_2, "This test won't work if the values are the same"
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, "")
         assert e.value.status == self.wrong_destination_error_code
@@ -396,7 +400,7 @@ class ExchangeTestRunner:
     # Test fund with a malicious TX with tampered amount
     def perform_test_fund_wrong_amount(self):
         assert self.valid_send_amount_1 != self.valid_send_amount_2, "This test won't work if the values are the same"
-        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
         assert e.value.status == self.wrong_amount_error_code
@@ -408,20 +412,20 @@ class ExchangeTestRunner:
 
     # The absolute standard sell, using default values, user accepts on UI
     def perform_test_sell_valid_1(self):
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         self.assert_exchange_is_started()
 
     # The second standard sell, using alternate default values, user accepts on UI
     def perform_test_sell_valid_2(self):
-        self.perform_valid_sell_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2)
+        self.perform_valid_sell_from_custom(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
         self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_2, self.valid_fees_2, "")
         self.assert_exchange_is_started()
 
     # Test sell with a malicious TX with tampered fees
     def perform_test_sell_wrong_fees(self):
         assert self.valid_fees_1 != self.valid_fees_2, "This test won't work if the values are the same"
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_2, "")
         assert e.value.status == self.wrong_fees_error_code
@@ -429,16 +433,18 @@ class ExchangeTestRunner:
 
     # Test sell with a malicious TX with tampered memo
     def perform_test_sell_wrong_memo(self):
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        if self.valid_destination_memo_1 == self.valid_destination_memo_2:
+            pytest.skip("This test won't work if the values are the same")
+        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1)
         with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "no memo expected")
+            self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_2)
         assert e.value.status == self.wrong_memo_error_code
         self.assert_exchange_is_started()
 
     # Test sell with a malicious TX with tampered destination
     def perform_test_sell_wrong_destination(self):
         assert self.valid_destination_1 != self.valid_destination_2, "This test won't work if the values are the same"
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_2, self.valid_send_amount_1, self.valid_fees_1, "")
         assert e.value.status == self.wrong_destination_error_code
@@ -447,7 +453,7 @@ class ExchangeTestRunner:
     # Test sell with a malicious TX with tampered amount
     def perform_test_sell_wrong_amount(self):
         assert self.valid_send_amount_1 != self.valid_send_amount_2, "This test won't work if the values are the same"
-        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1)
+        self.perform_valid_sell_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_2, self.valid_fees_1, "")
         assert e.value.status == self.wrong_amount_error_code

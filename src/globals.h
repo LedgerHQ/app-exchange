@@ -67,13 +67,9 @@ typedef struct swap_app_context_s {
         ledger_swap_NewTransactionResponse swap_transaction;
         struct {
             ledger_swap_NewSellResponse sell_transaction;
-            // Field not received from protobuf but needed by the application called as lib
-            char sell_transaction_extra_id[1];
         };
         struct {
             ledger_swap_NewFundResponse fund_transaction;
-            // Field not received from protobuf but needed by the application called as lib
-            char fund_transaction_extra_id[1];
         };
     };
 
