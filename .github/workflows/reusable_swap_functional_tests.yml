@@ -5,154 +5,154 @@ on:
     inputs:
       branch_for_exchange:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_exchange:
         required: false
-        default: 'LedgerHQ/app-exchange'
+        default: "LedgerHQ/app-exchange"
         type: string
 
       branch_for_stellar:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_stellar:
         required: false
-        default: 'LedgerHQ/app-stellar'
+        default: "LedgerHQ/app-stellar"
         type: string
 
       branch_for_tezos:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_tezos:
         required: false
-        default: 'LedgerHQ/app-tezos'
+        default: "LedgerHQ/app-tezos"
         type: string
 
       branch_for_xrp:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_xrp:
         required: false
-        default: 'LedgerHQ/app-xrp'
+        default: "LedgerHQ/app-xrp"
         type: string
 
       branch_for_ethereum:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_ethereum:
         required: false
-        default: 'LedgerHQ/app-ethereum'
+        default: "LedgerHQ/app-ethereum"
         type: string
 
       branch_for_bitcoin_legacy:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_bitcoin_legacy:
         required: false
-        default: 'LedgerHQ/app-bitcoin'
+        default: "LedgerHQ/app-bitcoin"
         type: string
 
       branch_for_bitcoin:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       branch_for_bitcoin_nanos:
         required: false
-        default: 'nanos'
+        default: "nanos"
         type: string
       repo_for_bitcoin:
         required: false
-        default: 'LedgerHQ/app-bitcoin-new'
+        default: "LedgerHQ/app-bitcoin-new"
         type: string
 
       branch_for_solana:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       branch_for_solana_nanos:
         required: false
-        default: 'nanos'
+        default: "nanos"
         type: string
       repo_for_solana:
         required: false
-        default: 'LedgerHQ/app-solana'
+        default: "LedgerHQ/app-solana"
         type: string
 
       branch_for_polkadot:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_polkadot:
         required: false
-        default: 'LedgerHQ/app-polkadot'
+        default: "LedgerHQ/app-polkadot"
         type: string
 
       branch_for_tron:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_tron:
         required: false
-        default: 'LedgerHQ/app-tron'
+        default: "LedgerHQ/app-tron"
         type: string
 
       branch_for_near:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_near:
         required: false
-        default: 'LedgerHQ/app-near'
+        default: "LedgerHQ/app-near"
         type: string
 
       branch_for_ton:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_ton:
         required: false
-        default: 'LedgerHQ/app-ton-new'
+        default: "LedgerHQ/app-ton-new"
         type: string
 
       branch_for_cardano:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_cardano:
         required: false
-        default: 'LedgerHQ/app-cardano'
+        default: "LedgerHQ/app-cardano"
         type: string
 
       branch_for_cosmos:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_cosmos:
         required: false
-        default: 'LedgerHQ/app-cosmos'
+        default: "LedgerHQ/app-cosmos"
         type: string
 
       branch_for_sui:
         required: false
-        default: 'develop'
+        default: "develop"
         type: string
       repo_for_sui:
         required: false
-        default: 'LedgerHQ/app-sui'
+        default: "LedgerHQ/app-sui"
         type: string
 
       branch_for_aptos:
         required: false
-        default: 'develop'
+        default: "swap/add-fee-to-validate"
         type: string
       repo_for_aptos:
         required: false
-        default: 'LedgerHQ/app-aptos'
+        default: "LedgerHQ/app-aptos"
         type: string
 
       test_filter:
@@ -160,7 +160,7 @@ on:
         default: '""'
         type: string
       regenerate_snapshots:
-        description: 'Clean snapshots, regenerate them, commit the changes in a branch, and open a PR'
+        description: "Clean snapshots, regenerate them, commit the changes in a branch, and open a PR"
         required: false
         default: false
         type: boolean
@@ -172,63 +172,63 @@ jobs:
       fail-fast: false
       matrix:
         coin:
-        - name: stellar
-          repo: ${{ inputs.repo_for_stellar }}
-          branch: ${{ inputs.branch_for_stellar }}
-        - name: tezos
-          repo: ${{ inputs.repo_for_tezos }}
-          branch: ${{ inputs.branch_for_tezos }}
-        - name: xrp
-          repo: ${{ inputs.repo_for_xrp }}
-          branch: ${{ inputs.branch_for_xrp }}
-        - name: ethereum
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
-        - name: ethereum_classic
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
-        - name: litecoin
-          repo: ${{ inputs.repo_for_bitcoin_legacy }}
-          branch: ${{ inputs.branch_for_bitcoin_legacy }}
-        - name: bitcoin_legacy
-          repo: ${{ inputs.repo_for_bitcoin_legacy }}
-          branch: ${{ inputs.branch_for_bitcoin_legacy }}
-        - name: bitcoin
-          repo: ${{ inputs.repo_for_bitcoin }}
-          branch: ${{ inputs.branch_for_bitcoin }}
-        - name: bitcoin
-          repo: ${{ inputs.repo_for_bitcoin }}
-          branch: ${{ inputs.branch_for_bitcoin_nanos }}
-        - name: solana
-          repo: ${{ inputs.repo_for_solana }}
-          branch: ${{ inputs.branch_for_solana }}
-        - name: solana
-          repo: ${{ inputs.repo_for_solana }}
-          branch: ${{ inputs.branch_for_solana_nanos }}
-        - name: DOT
-          repo: ${{ inputs.repo_for_polkadot }}
-          branch: ${{ inputs.branch_for_polkadot }}
-        - name: tron
-          repo: ${{ inputs.repo_for_tron }}
-          branch: ${{ inputs.branch_for_tron }}
-        - name: ton
-          repo: ${{ inputs.repo_for_ton }}
-          branch: ${{ inputs.branch_for_ton }}
-        - name: cardano
-          repo: ${{ inputs.repo_for_cardano }}
-          branch: ${{ inputs.branch_for_cardano }}
-        - name: near
-          repo: ${{ inputs.repo_for_near }}
-          branch: ${{ inputs.branch_for_near }}
-        - name: ATOM
-          repo: ${{ inputs.repo_for_cosmos }}
-          branch: ${{ inputs.branch_for_cosmos }}
-        - name: sui
-          repo: ${{ inputs.repo_for_sui }}
-          branch: ${{ inputs.branch_for_sui }}
-        - name: APTOS
-          repo: ${{ inputs.repo_for_aptos }}
-          branch: ${{ inputs.branch_for_aptos }}
+          - name: stellar
+            repo: ${{ inputs.repo_for_stellar }}
+            branch: ${{ inputs.branch_for_stellar }}
+          - name: tezos
+            repo: ${{ inputs.repo_for_tezos }}
+            branch: ${{ inputs.branch_for_tezos }}
+          - name: xrp
+            repo: ${{ inputs.repo_for_xrp }}
+            branch: ${{ inputs.branch_for_xrp }}
+          - name: ethereum
+            repo: ${{ inputs.repo_for_ethereum }}
+            branch: ${{ inputs.branch_for_ethereum }}
+          - name: ethereum_classic
+            repo: ${{ inputs.repo_for_ethereum }}
+            branch: ${{ inputs.branch_for_ethereum }}
+          - name: litecoin
+            repo: ${{ inputs.repo_for_bitcoin_legacy }}
+            branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          - name: bitcoin_legacy
+            repo: ${{ inputs.repo_for_bitcoin_legacy }}
+            branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          - name: bitcoin
+            repo: ${{ inputs.repo_for_bitcoin }}
+            branch: ${{ inputs.branch_for_bitcoin }}
+          - name: bitcoin
+            repo: ${{ inputs.repo_for_bitcoin }}
+            branch: ${{ inputs.branch_for_bitcoin_nanos }}
+          - name: solana
+            repo: ${{ inputs.repo_for_solana }}
+            branch: ${{ inputs.branch_for_solana }}
+          - name: solana
+            repo: ${{ inputs.repo_for_solana }}
+            branch: ${{ inputs.branch_for_solana_nanos }}
+          - name: DOT
+            repo: ${{ inputs.repo_for_polkadot }}
+            branch: ${{ inputs.branch_for_polkadot }}
+          - name: tron
+            repo: ${{ inputs.repo_for_tron }}
+            branch: ${{ inputs.branch_for_tron }}
+          - name: ton
+            repo: ${{ inputs.repo_for_ton }}
+            branch: ${{ inputs.branch_for_ton }}
+          - name: cardano
+            repo: ${{ inputs.repo_for_cardano }}
+            branch: ${{ inputs.branch_for_cardano }}
+          - name: near
+            repo: ${{ inputs.repo_for_near }}
+            branch: ${{ inputs.branch_for_near }}
+          - name: ATOM
+            repo: ${{ inputs.repo_for_cosmos }}
+            branch: ${{ inputs.branch_for_cosmos }}
+          - name: sui
+            repo: ${{ inputs.repo_for_sui }}
+            branch: ${{ inputs.branch_for_sui }}
+          - name: APTOS
+            repo: ${{ inputs.repo_for_aptos }}
+            branch: ${{ inputs.branch_for_aptos }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
