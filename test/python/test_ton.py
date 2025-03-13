@@ -7,7 +7,11 @@ from .apps.ton_application_client.ton_command_sender import BoilerplateCommandSe
 from .apps.ton_application_client.ton_response_unpacker import unpack_sign_tx_response
 from .apps.ton_utils import check_signature_validity
 
-from tonsdk.utils import Address
+# XXX:
+#   tonsdk seems not te be maintained anymore, python package describe by official TON documentation
+#   is pytoniq-core (offline part) and pytoniq (oneline part).
+#   tonsdk.boc.Cell cannot handle exotic cell but this is required in order to compute jetton wallet address.
+from pytoniq_core import Address, Cell, begin_cell
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
 from .apps.ton import DEVICE_PUBLIC_KEY, Bounceability, WorkchainID, craft_address, SW_SWAP_FAILURE, TON_DERIVATION_PATH
@@ -78,18 +82,38 @@ class TonTests(ExchangeTestRunner):
         assert check_signature_validity(pubkey, sig, hash_b)
 
 class TonUSDTTests(TonTests):
+    jetton_master_address = Address("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs")
+    code_cell = Cell.one_from_boc(
+        "b5ee9c72010101010023000842028f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68"
+    )
+
     currency_configuration = cal.TON_USDT_CURRENCY_CONFIGURATION
-    valid_destination_1 = "UQDWey_FGPhd3phmerdVXi-zUIujfyO4-29y_VT1yD0meY1n"
-    valid_destination_2 = "EQANxfGN1EgFPawYB1fhPqebKe1Nb6FIsaiekEecJ6R-3kYF"
-    # user jetton wallet address
-    valid_refund = "EQD0sKn8DbS12U015TWOSpYmyJYYDC_7sxg1upaMxnBvTiX8"
-    fake_refund = "UQDWey_FGPhd3phmerdVXi-zUIujfyO4-29y_VT1yD0meY1n"
-    fake_payout = "UQDWey_FGPhd3phmerdVXi-zUIujfyO4-29y_VT1yD0meY1n"
+
+    def get_jetton_wallet_address(self, owner: Address) -> Address:
+        data_cell = (
+            begin_cell()
+            .store_uint(0, 4)
+            .store_coins(0)
+            .store_address(owner)
+            .store_address(self.jetton_master_address)
+            .end_cell()
+        )
+        state_init = (
+            begin_cell()
+            .store_uint(0, 2)
+            .store_maybe_ref(self.code_cell)
+            .store_maybe_ref(data_cell)
+            .store_uint(0, 1)
+            .end_cell()
+        )
+        state_init_hex = state_init.hash.hex()
+        return Address(f"0:{state_init_hex}")
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         # Use the app interface instead of raw interface
         client = BoilerplateCommandSender(self.backend)
-        dest_address = Address(destination)
+        dest_address = self.get_jetton_wallet_address(Address(destination))
+        from_address = self.get_jetton_wallet_address(Address(self.valid_refund))
 
         # First we need to get the public key of the device in order to build the transaction
         pubkey = client.get_public_key(path=TON_DERIVATION_PATH).data
@@ -99,7 +123,7 @@ class TonUSDTTests(TonTests):
         # transaction for Jetton transfer are sent to the owned jetton wallet
         # destination address is serialized in Jetton Transfer Payload
         tx = Transaction(
-            Address(self.valid_refund),
+            from_address,
             SendMode.PAY_GAS_SEPARATLY,
             seqno=0,
             timeout=1686176000,
