@@ -1,7 +1,8 @@
-# Protocol to speak with EXCHANGE application
+# EXCHANGE application protocol API
 
 Communication is done through a series of request-response exchanges (APDU / RAPDU).
 
+Please look at the [sequence diagram](./diagram.md) to know more about the APDUs used here.
 
 ## Request:
 
@@ -56,9 +57,10 @@ The COMMANDS must be sent to the application in the correct order, this order de
 
 #### Notes on COMMANDS:
 
-- Command START_SIGNING_TRANSACTION requires that a UI review by the user has happened. \
-    Either through a CHECK_X_AND_DISPLAY (legacy method), or through the dedicated PROMPT_UI_DISPLAY command. \
-- It is always possible to restart the flow by sending a START_NEW_TRANSACTION command, except when the UI review screen is being displayed. \
+- Command START_SIGNING_TRANSACTION requires that a UI review by the user has happened, either through a CHECK_X_AND_DISPLAY (legacy method), or through the dedicated PROMPT_UI_DISPLAY command.
+
+- It is always possible to restart the flow by sending a START_NEW_TRANSACTION command, except when the UI review screen is being displayed.
+
 - The command START_SIGNING_TRANSACTION will start the library application, the current application will not be EXCHANGE anymore.
 
 ### RATE_TYPE:
@@ -73,7 +75,8 @@ Different possible rates for the transaction. The rate is sent to the app as P1 
 
 ### TYPE:
 
-Different exchange types are possible for the app. The type is sent to the app as the lowest 4 bits of the P2 byte of the APDU. \
+Different exchange types are possible for the app. The type is sent to the app as the lowest 4 bits of the P2 byte of the APDU.
+
 Changing the subcommand after an exchange flow is started will result in an error response and the APDU is ignored.
 
 | Name        | Value | Description                                                                                                       |
@@ -88,14 +91,19 @@ Changing the subcommand after an exchange flow is started will result in an erro
 
 ### EXTENSION:
 
-This feature is only available in a PROCESS_TRANSACTION_RESPONSE command in a SWAP_NEW, SELL_NEW, or FUND_NEW flow.\
-In Legacy flows the extension must be P2_NONE. \
+This feature is only available in a PROCESS_TRANSACTION_RESPONSE command in a SWAP_NEW, SELL_NEW, or FUND_NEW flow.
+
+In Legacy flows the extension must be P2_NONE.
+
 The extension is sent to the app as the upper 4 bits of the P2 byte of the APDU.
 
 The maximum DATA in a single APDU is 255 bytes, in case it is not sufficient for a command,
-it is possible to use the EXTENSION feature to send the command in several parts. \
-To use the EXTENSION feature, craft the data of the command you want to send and split it in 255 bytes chunks. \
-Then send this chunks to the app using a combination of P2_EXTEND and P2_MORE in each APDU header. \
+it is possible to use the EXTENSION feature to send the command in several parts.
+
+To use the EXTENSION feature, craft the data of the command you want to send and split it in 255 bytes chunks.
+
+Then send this chunks to the app using a combination of P2_EXTEND and P2_MORE in each APDU header.
+
 The application will reconstruct the DATA by concatenating the received APDUs.
 
 The application will refuse to reconstruct more than 512 bytes.
@@ -178,10 +186,12 @@ The DATA of this command may exceed the capacity of a single APDU (255 bytes), i
 | -------- | ------------------------------------------------------------- |
 | LC bytes | Signature of the computed transaction proposed by the partner |
 
-For SWAP_LEGACY TYPE, the signature is computed on the transaction proposal. \
+For SWAP_LEGACY TYPE, the signature is computed on the transaction proposal.
+
 For SELL_LEGACY and FUND_LEGACY the signature is computed on the transaction proposal prefixed with a DOT ('.').
 
-For SWAP_LEGACY and FUND_LEGACY, the signature is in DER format. \
+For SWAP_LEGACY and FUND_LEGACY, the signature is in DER format.
+
 For SELL_LEGACY the signature is in (R,S) format.
 
 ##### For all UNIFIED TYPES, the data for this command is:
@@ -198,16 +208,17 @@ With the possible values for the format of the signature itself being 0x00 for D
 
 #### CHECK_ASSET_IN_LEGACY_AND_DISPLAY
 
-This command is DEPRECATED. \
+This command is DEPRECATED.
+
 Please refer to CHECK_ASSET_IN_AND_DISPLAY (strict equivalent but discouraged) or CHECK_ASSET_IN_NO_DISPLAY + PROMPT_UI_DISPLAY
 
-This command works only for the SELL_LEGACY and FUND_LEGACY TYPES, the data content is the same as CHECK_ASSET_IN_AND_DISPLAY, \
-only the INS byte is different (and does not collide with CHECK_PAYOUT_ADDRESS).
+This command works only for the SELL_LEGACY and FUND_LEGACY TYPES, the data content is the same as CHECK_ASSET_IN_AND_DISPLAY only the INS byte is different (and does not collide with CHECK_PAYOUT_ADDRESS).
 
 #### CHECK_ASSET_IN_AND_DISPLAY
 
-This command is the same as CHECK_ASSET_IN_NO_DISPLAY except that the application will prompt the UI review if the check is successful. \
-Usage of this command is discouraged, pease use CHECK_ASSET_IN_NO_DISPLAY + PROMPT_UI_DISPLAY instead.
+This command is the same as CHECK_ASSET_IN_NO_DISPLAY except that the application will prompt the UI review if the check is successful.
+
+Usage of this command is discouraged, please use CHECK_ASSET_IN_NO_DISPLAY + PROMPT_UI_DISPLAY instead.
 
 #### CHECK_ASSET_IN_NO_DISPLAY
 
@@ -245,12 +256,14 @@ This command is used only in the SWAP_LEGACY and SWAP_NEW TYPES.
 
 #### CHECK_REFUND_ADDRESS_AND_DISPLAY
 
-This command is the same as CHECK_REFUND_ADDRESS_NO_DISPLAY except that the application will prompt the UI review if the check is successful. \
-Usage of this command is discouraged, pease use CHECK_REFUND_ADDRESS_NO_DISPLAY + PROMPT_UI_DISPLAY instead.
+This command is the same as CHECK_REFUND_ADDRESS_NO_DISPLAY except that the application will prompt the UI review if the check is successful.
+
+Usage of this command is discouraged, please use CHECK_REFUND_ADDRESS_NO_DISPLAY + PROMPT_UI_DISPLAY instead.
 
 #### CHECK_REFUND_ADDRESS_NO_DISPLAY
 
 This command is used only in the SWAP_LEGACY and SWAP_NEW TYPES.
+<!-- --8<-- [start:coin_configuration] -->
 
 | Bytes   | Description                                                                                                    |
 | ------- | -------------------------------------------------------------------------------------------------------------- |
@@ -264,6 +277,7 @@ This command is used only in the SWAP_LEGACY and SWAP_NEW TYPES.
 | S bytes | Signature of the coin configuration by the Ledger key in DER format, curve secp256k1 hashfunc sha256           |
 | 1 byte  | Packed derivation path length T                                                                                |
 | T bytes | Packed derivation path used for the FROM coin                                                                  |
+<!-- --8<-- [end:coin_configuration] -->
 
 #### PROMPT_UI_DISPLAY
 
@@ -291,8 +305,10 @@ In case of success, this command will return the application version in format {
 
 #### START_NEW_TRANSACTION
 
-In case of success, this command will return a nonce called "device transaction id" used for the initiated flow. \
-For TYPE SWAP_LEGACY, the format of this nonce is a 10 char array. \
+In case of success, this command will return a nonce called "device transaction id" used for the initiated flow.
+
+For TYPE SWAP_LEGACY, the format of this nonce is a 10 char array.
+
 For all other TYPES, the format of this nonce is a 32 bytes array.
 
 ### Return code
