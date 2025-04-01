@@ -273,7 +273,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
 
         // Save the rate. We could have saved it at the first command and then checked at each ŝtep
         // that it did not change, but it is not certain that the Live sends it right from the
-        // begining and we won't risk regressions for something that is not a security issue.
+        // beginning and we won't risk regressions for something that is not a security issue.
         G_swap_ctx.rate = cmd->rate;
     }
 
