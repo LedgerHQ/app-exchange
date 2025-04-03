@@ -1,0 +1,46 @@
+---
+name: Publish docs via GitHub Pages
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Deploy docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout solana
+        uses: actions/checkout@v4
+        with:
+          path: ./docs/deps/
+          repository: LedgerHQ/app-solana
+          ref: develop
+
+      - name: Checkout sdk
+        uses: actions/checkout@v4
+        with:
+          path: ./docs/deps/
+          repository: LedgerHQ/ledger-secure-sdk
+          ref: master
+
+      - name: Configure Git Credentials
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Install requirements
+        run: pip install -r docs/requirements.txt
+
+      - name: Deploy docs
+        run: |
+          mkdocs gh-deploy --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

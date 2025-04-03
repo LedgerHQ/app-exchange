@@ -14,10 +14,12 @@ from .apps.exchange_navigation_helper import ExchangeNavigationHelper
 configuration.OPTIONAL.ALLOWED_SETUPS = ["default", "prod_build"]
 configuration.OPTIONAL.BACKEND_SCOPE = "class"
 
+# --8<-- [start:sideloaded_applications]
 def pytest_configure(config):
     current_setup = config.getoption("--setup")
     # We don't need any lib dependency for the prod_build test
     if current_setup == "default":
+        # List of sideloaded applications under the format <VARIANT_VALUES>:<APPNAME>
         configuration.OPTIONAL.SIDELOADED_APPS = {
             "APTOS": "Aptos",
             "bitcoin": "Bitcoin",
@@ -39,6 +41,7 @@ def pytest_configure(config):
         }
 
         configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
+# --8<-- [end:sideloaded_applications]
 
 
 #########################
