@@ -1,8 +1,11 @@
 ---
-name: Publish docs via GitHub Pages
+name: Publish GitHub Pages documentation
 on:
   workflow_dispatch:
   push:
+    branches:
+      - develop
+  pull_request:
     branches:
       - develop
 
@@ -11,7 +14,7 @@ permissions:
 
 jobs:
   build:
-    name: Deploy docs
+    name: Build and deploy documentation portal
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,27 +23,28 @@ jobs:
       - name: Checkout solana
         uses: actions/checkout@v4
         with:
-          path: ./docs/deps/
           repository: LedgerHQ/app-solana
           ref: develop
+          path: ./docs/deps/app-solana
+          fetch-depth: 1
 
       - name: Checkout sdk
         uses: actions/checkout@v4
         with:
-          path: ./docs/deps/
           repository: LedgerHQ/ledger-secure-sdk
           ref: master
-
-      - name: Configure Git Credentials
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          path: ./docs/deps/ledger-secure-sdk
+          fetch-depth: 1
 
       - name: Install requirements
         run: pip install -r docs/requirements.txt
 
+      # On PR, only checks if docs compile, no deploy
+      - name: Build docs (PR Check)
+        if: github.event_name == 'pull_request'
+        run: mkdocs build
+
+      # On push to develop (merge) OR manual dispatch, build and deploy
       - name: Deploy docs
-        run: |
-          mkdocs gh-deploy --force
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: mkdocs gh-deploy --force
