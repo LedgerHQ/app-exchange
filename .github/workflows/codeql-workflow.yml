@@ -12,6 +12,11 @@ on:
       - '.github/workflows/*.yml'
       - 'tests/*'
 
+# Cancel previous runs on this reference
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyse:
     name: Analyse

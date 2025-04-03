@@ -12,6 +12,11 @@ on:
 permissions:
   contents: write
 
+# Cancel previous runs on this reference
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build and deploy documentation portal
