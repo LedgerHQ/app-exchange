@@ -24,8 +24,10 @@ You can use this test to validate that `swap_handle_check_address()` correctly r
 
 You can now code the [`swap_copy_transaction_parameters()`](../technical_informations/coin_application_api/swap_copy_transaction_parameters.md) handler.
 
-You can now also code the UI bypass in the transaction signature.
+You can now also code the UI bypass in the final transaction signature.
 
 Please refer to the [UI bypass documentation](../technical_informations/coin_application_api/ui_bypass.md) carefully.
+
+Please refer to the [Coin application error codes](../technical_informations/coin_application_api/error_codes.md) to know how to handle the refusal of the final transaction.
 
 All tests should now pass.

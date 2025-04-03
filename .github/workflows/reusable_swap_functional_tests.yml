@@ -172,63 +172,63 @@ jobs:
       fail-fast: false
       matrix:
         coin:
-        - name: stellar
-          repo: ${{ inputs.repo_for_stellar }}
-          branch: ${{ inputs.branch_for_stellar }}
-        - name: tezos
-          repo: ${{ inputs.repo_for_tezos }}
-          branch: ${{ inputs.branch_for_tezos }}
-        - name: xrp
-          repo: ${{ inputs.repo_for_xrp }}
-          branch: ${{ inputs.branch_for_xrp }}
-        - name: ethereum
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
-        - name: ethereum_classic
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
-        - name: litecoin
-          repo: ${{ inputs.repo_for_bitcoin_legacy }}
-          branch: ${{ inputs.branch_for_bitcoin_legacy }}
-        - name: bitcoin_legacy
-          repo: ${{ inputs.repo_for_bitcoin_legacy }}
-          branch: ${{ inputs.branch_for_bitcoin_legacy }}
-        - name: bitcoin
-          repo: ${{ inputs.repo_for_bitcoin }}
-          branch: ${{ inputs.branch_for_bitcoin }}
-        - name: bitcoin
-          repo: ${{ inputs.repo_for_bitcoin }}
-          branch: ${{ inputs.branch_for_bitcoin_nanos }}
-        - name: solana
-          repo: ${{ inputs.repo_for_solana }}
-          branch: ${{ inputs.branch_for_solana }}
-        - name: solana
-          repo: ${{ inputs.repo_for_solana }}
-          branch: ${{ inputs.branch_for_solana_nanos }}
-        - name: DOT
-          repo: ${{ inputs.repo_for_polkadot }}
-          branch: ${{ inputs.branch_for_polkadot }}
-        - name: tron
-          repo: ${{ inputs.repo_for_tron }}
-          branch: ${{ inputs.branch_for_tron }}
-        - name: ton
-          repo: ${{ inputs.repo_for_ton }}
-          branch: ${{ inputs.branch_for_ton }}
-        - name: cardano
-          repo: ${{ inputs.repo_for_cardano }}
-          branch: ${{ inputs.branch_for_cardano }}
-        - name: near
-          repo: ${{ inputs.repo_for_near }}
-          branch: ${{ inputs.branch_for_near }}
-        - name: ATOM
-          repo: ${{ inputs.repo_for_cosmos }}
-          branch: ${{ inputs.branch_for_cosmos }}
-        - name: sui
-          repo: ${{ inputs.repo_for_sui }}
-          branch: ${{ inputs.branch_for_sui }}
-        - name: APTOS
-          repo: ${{ inputs.repo_for_aptos }}
-          branch: ${{ inputs.branch_for_aptos }}
+          - name: stellar
+            repo: ${{ inputs.repo_for_stellar }}
+            branch: ${{ inputs.branch_for_stellar }}
+          - name: tezos
+            repo: ${{ inputs.repo_for_tezos }}
+            branch: ${{ inputs.branch_for_tezos }}
+          - name: xrp
+            repo: ${{ inputs.repo_for_xrp }}
+            branch: ${{ inputs.branch_for_xrp }}
+          - name: ethereum
+            repo: ${{ inputs.repo_for_ethereum }}
+            branch: ${{ inputs.branch_for_ethereum }}
+          - name: ethereum_classic
+            repo: ${{ inputs.repo_for_ethereum }}
+            branch: ${{ inputs.branch_for_ethereum }}
+          - name: litecoin
+            repo: ${{ inputs.repo_for_bitcoin_legacy }}
+            branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          - name: bitcoin_legacy
+            repo: ${{ inputs.repo_for_bitcoin_legacy }}
+            branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          - name: bitcoin
+            repo: ${{ inputs.repo_for_bitcoin }}
+            branch: ${{ inputs.branch_for_bitcoin }}
+          - name: bitcoin
+            repo: ${{ inputs.repo_for_bitcoin }}
+            branch: ${{ inputs.branch_for_bitcoin_nanos }}
+          - name: solana
+            repo: ${{ inputs.repo_for_solana }}
+            branch: ${{ inputs.branch_for_solana }}
+          - name: solana
+            repo: ${{ inputs.repo_for_solana }}
+            branch: ${{ inputs.branch_for_solana_nanos }}
+          - name: DOT
+            repo: ${{ inputs.repo_for_polkadot }}
+            branch: ${{ inputs.branch_for_polkadot }}
+          - name: tron
+            repo: ${{ inputs.repo_for_tron }}
+            branch: ${{ inputs.branch_for_tron }}
+          - name: ton
+            repo: ${{ inputs.repo_for_ton }}
+            branch: ${{ inputs.branch_for_ton }}
+          - name: cardano
+            repo: ${{ inputs.repo_for_cardano }}
+            branch: ${{ inputs.branch_for_cardano }}
+          - name: near
+            repo: ${{ inputs.repo_for_near }}
+            branch: ${{ inputs.branch_for_near }}
+          - name: ATOM
+            repo: ${{ inputs.repo_for_cosmos }}
+            branch: ${{ inputs.branch_for_cosmos }}
+          - name: sui
+            repo: ${{ inputs.repo_for_sui }}
+            branch: ${{ inputs.branch_for_sui }}
+          - name: APTOS
+            repo: ${{ inputs.repo_for_aptos }}
+            branch: ${{ inputs.branch_for_aptos }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:

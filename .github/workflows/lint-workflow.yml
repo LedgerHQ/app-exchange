@@ -1,11 +1,19 @@
+---
 name: Code style check
+
+# This workflow will run linting checks to ensure a level of uniformization among all Ledger applications.
+#
+# The presence of this workflow is mandatory as a minimal level of linting is required.
+# You are however free to modify the content of the .clang-format file and thus the coding style of your application.
+# We simply ask you to not diverge too much from the linting of the Boilerplate application.
 
 on:
   workflow_dispatch:
   push:
     branches:
-    - master
-    - develop
+      - master
+      - main
+      - develop
   pull_request:
 
 jobs:
@@ -16,3 +24,10 @@ jobs:
       source: './src'
       extensions: 'h,c'
       version: 12
+
+  yamllint:
+    name: Check yaml files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: yamllint .
