@@ -1,3 +1,4 @@
+---
 site_name: Ledger Swap documentation
 # site_url: https://ethereum-plugin-sdk.ledger.com
 site_description: Documentation for Ledger Swap
@@ -44,25 +45,25 @@ markdown_extensions:
 nav:
   - Introduction: index.md
   - Enabling the SWAP on your application:
-    - Enabling the SWAP on your application: walkthrough/index.md
-    - Prerequisite: walkthrough/prerequisite.md
-    - Running an existing SWAP test: walkthrough/run_first_test.md
-    - First compilation with the standard SWAP: walkthrough/enable_the_swap_compilation.md
-    - Creating a basic SWAP test for you coin: walkthrough/enable_standard_app.md
-    - Code the handlers: walkthrough/code_the_handlers.md
+      - Enabling the SWAP on your application: walkthrough/index.md
+      - Prerequisite: walkthrough/prerequisite.md
+      - Running an existing SWAP test: walkthrough/run_first_test.md
+      - First compilation with the standard SWAP: walkthrough/enable_the_swap_compilation.md
+      - Creating a basic SWAP test for you coin: walkthrough/enable_standard_app.md
+      - Code the handlers: walkthrough/code_the_handlers.md
   - Technical Informations:
-    - Technical Informations: technical_informations/index.md
-    - Sequence diagram: technical_informations/diagram.md
-    - Exchange Protocol API: technical_informations/protocol.md
-    - Crypto Asset List (CAL): technical_informations/cal.md
-    - Coin Application API:
-      - Coin Application API: technical_informations/coin_application_api/index.md
-      - handle_check_address(): technical_informations/coin_application_api/swap_handle_check_address.md
-      - handle_get_printable_amount(): technical_informations/coin_application_api/swap_handle_get_printable_amount.md
-      - copy_transaction_parameters(): technical_informations/coin_application_api/swap_copy_transaction_parameters.md
-      - UI bypass: technical_informations/coin_application_api/ui_bypass.md
-      - Error codes: technical_informations/coin_application_api/error_codes.md
-    - The DALE tool: technical_informations/dale.md
+      - Technical Informations: technical_informations/index.md
+      - Sequence diagram: technical_informations/diagram.md
+      - Exchange Protocol API: technical_informations/protocol.md
+      - Crypto Asset List (CAL): technical_informations/cal.md
+      - Coin Application API:
+          - Coin Application API: technical_informations/coin_application_api/index.md
+          - handle_check_address(): technical_informations/coin_application_api/swap_handle_check_address.md
+          - handle_get_printable_amount(): technical_informations/coin_application_api/swap_handle_get_printable_amount.md
+          - copy_transaction_parameters(): technical_informations/coin_application_api/swap_copy_transaction_parameters.md
+          - UI bypass: technical_informations/coin_application_api/ui_bypass.md
+          - Error codes: technical_informations/coin_application_api/error_codes.md
+      - The DALE tool: technical_informations/dale.md
 
 watch:
   - mkdocs.yml
