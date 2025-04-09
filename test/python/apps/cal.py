@@ -28,6 +28,7 @@ from .cosmos import COSMOS_PACKED_DERIVATION_PATH, COSMOS_CONF
 from .cardano import ADA_BYRON_PACKED_DERIVATION_PATH, ADA_SHELLEY_PACKED_DERIVATION_PATH, ADA_CONF
 from .near import NEAR_PACKED_DERIVATION_PATH, NEAR_CONF
 from .aptos import APTOS_PACKED_DERIVATION_PATH, APTOS_CONF
+from .hedera import HEDERA_PACKED_DERIVATION_PATH, HEDERA_CONF
 
 @dataclass
 class CurrencyConfiguration:
@@ -69,6 +70,7 @@ ADA_SHELLEY_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=AD
 NEAR_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="NEAR", conf=NEAR_CONF, packed_derivation_path=NEAR_PACKED_DERIVATION_PATH)
 SUI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SUI", conf=SUI_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
 APTOS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="APT", conf=APTOS_CONF, packed_derivation_path=APTOS_PACKED_DERIVATION_PATH)
+HEDERA_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="HBAR", conf=HEDERA_CONF, packed_derivation_path=HEDERA_PACKED_DERIVATION_PATH)
 
 # Helper that can be called from outside if we want to generate errors easily
 def sign_currency_conf(currency_conf: bytes, overload_signer: Optional[SigningAuthority]=None) -> bytes:

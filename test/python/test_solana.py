@@ -147,7 +147,9 @@ class SPLTokenTests(GenericSolanaTests):
         message_data = tx.message_data()
 
         sol = SolanaClient(self.backend)
+        print("aaaaaaaaaaaax")
         challenge = sol.get_challenge()
+        print("aaaaaaaaaaaaz")
         sol.provide_trusted_name(source_contract=SOL.USDC_MINT_ADDRESS,
                                  trusted_name=destination_ata.encode('utf-8'),
                                  address=destination.encode('utf-8'),
