@@ -361,7 +361,6 @@ class ExchangeTestRunner:
     def perform_test_fund_valid_1(self):
         self.perform_valid_fund_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
         self.perform_coin_specific_final_tx(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, "")
-        print("last step")
         self.assert_exchange_is_started()
 
     # The second standard fund, using alternate default values, user accepts on UI
