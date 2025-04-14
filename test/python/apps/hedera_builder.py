@@ -34,10 +34,6 @@ def hedera_transaction(
         **conf
     )
 
-
-    print("Transaction")
-    print(transaction.SerializeToString())
-
     return transaction.SerializeToString()
 
 

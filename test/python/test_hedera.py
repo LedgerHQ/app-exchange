@@ -38,11 +38,6 @@ class HederaTests(ExchangeTestRunner):
     wrong_fees_error_code = 0x6980
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        print("perform_final_tx")
-        print(destination)
-        print(send_amount)
-        print(fees)
-
         hedera = HederaClient(self.backend)
 
         conf = crypto_transfer_hbar_conf(
@@ -54,8 +49,6 @@ class HederaTests(ExchangeTestRunner):
             recipient_accountNum=int(destination.split(".")[2]),
             amount=send_amount,
         )
-
-        print("aaaaaaaaaaaax")
         with hedera.send_sign_transaction(
             index=0,
             operator_shard_num=1,
@@ -66,9 +59,6 @@ class HederaTests(ExchangeTestRunner):
             conf=conf,
         ):
             pass
-        print("aaaaaaaaaaaaz")
-
-        print("send_sign_transaction")
 
 class TestsHedera:
 
