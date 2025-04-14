@@ -1,4 +1,6 @@
 import pytest
+import struct
+from ragger.error import ExceptionRAPDU
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
 from .apps.solana import SolanaClient, ErrorType
@@ -14,8 +16,7 @@ from solders.hash import Hash
 from solders.message import Message
 from spl.token.constants import TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID
 from spl.token.instructions import TransferCheckedParams, transfer_checked, get_associated_token_address, create_associated_token_account
-
-SOL.CHAIN_ID = 101
+from solders.instruction import Instruction, AccountMeta
 
 # A bit hacky but way less hassle than actually writing an actual address decoder
 SOLANA_ADDRESS_DECODER = {
@@ -28,6 +29,10 @@ FEES_BYTES = lamports_to_bytes(FEES)
 
 FEES_2 = sol_to_lamports(0.005543)
 FEES_2_BYTES = lamports_to_bytes(FEES_2)
+
+TRANSFER_FEE_EXTENSION = 26
+TRANSFER_CHECKED_WITH_FEE = 1
+TRANSFER_CHECKED = 12
 
 # ExchangeTestRunner implementation for Solana
 class GenericSolanaTests(ExchangeTestRunner):
@@ -86,6 +91,23 @@ class TestsSolanaPriorityFees:
     def test_solana_priority_fees(self, backend, exchange_navigation_helper, test_to_run):
         SolanaPriorityFeesTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
+
+def enroll_ata(sol, destination_ata, destination_address):
+    challenge = sol.get_challenge()
+    sol.provide_trusted_name(SOL.USDC_MINT_ADDRESS_STR,
+                             destination_ata,
+                             destination_address,
+                             SOL.CHAIN_ID,
+                             challenge=challenge)
+
+def craft_tx(instructions, sender_public_key):
+    blockhash = Hash.default()
+    message = Message.new_with_blockhash(instructions, sender_public_key, blockhash)
+    tx = Transaction.new_unsigned(message)
+    print(tx)
+    return tx.message_data()
+
+
 class SPLTokenTests(GenericSolanaTests):
     currency_configuration = cal.SOL_USDC_CURRENCY_CONFIGURATION
 
@@ -105,7 +127,6 @@ class SPLTokenTests(GenericSolanaTests):
     fake_refund = SOL.FOREIGN_ADDRESS_STR
     fake_payout = SOL.FOREIGN_ADDRESS_STR
     signature_refusal_error_code = ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
-
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         destination_ata = str(
@@ -139,21 +160,10 @@ class SPLTokenTests(GenericSolanaTests):
             )
         )
 
-        blockhash = Hash.default()
-        message = Message.new_with_blockhash([create_instruction, transfer_instruction], sender_public_key, blockhash)
-        tx = Transaction.new_unsigned(message)
-
-        # Dump the message embedded in the transaction
-        message_data = tx.message_data()
+        message_data = craft_tx([create_instruction, transfer_instruction], sender_public_key)
 
         sol = SolanaClient(self.backend)
-        challenge = sol.get_challenge()
-        sol.provide_trusted_name(source_contract=SOL.USDC_MINT_ADDRESS,
-                                 trusted_name=destination_ata.encode('utf-8'),
-                                 address=destination.encode('utf-8'),
-                                 chain_id=SOL.CHAIN_ID,
-                                 challenge=challenge)
-        # self.backend.exchange_raw(bytes.fromhex("e0210000ed010103020102700106710106202c45343655536245523467374d4b486d7676457a4667525043646b6b34617731353353435a4b566a4c5871677a230165222c4a41327a4447556a434a65507842576257383935724d50555342505055313551355562717370657a537a7746732c45506a465764643541756671535371654d32714e31787a7962617043384734774547476b5a77795444743176120400000000130107140101154630440220254dfe6dae4d1303ecefce1fe491bac73f2aa31fc9597db2c1b2e95f6e130eaf0220355b0efbf76f462087e9f04acf10c375d072515bc436070a49e501817e48da9b"))
+        enroll_ata(sol, destination_ata.encode('utf-8'), destination.encode('utf-8'))
         with sol.send_async_sign_message(SOL.SOL_PACKED_DERIVATION_PATH, message_data):
             pass
         signature: bytes = sol.get_async_response().data
@@ -166,27 +176,7 @@ class TestsSPLToken:
         SPLTokenTests(backend, exchange_navigation_helper).run_test(test_to_run)
         # message: bytes = bytes.fromhex("0100030621a36fe74e1234c35e62bfd700fd247b92c4d4e0e538401ac51f5c4ae97657a7276497ba0bb8659172b72edd8c66e18f561764d9c86a610a3a7e0f79c0baf9dbc71573813ea96479a79e579af14646413602b9b3dcbdc51cbf8e064b5685ed120479d9c7cc1035de7211f99eb48c09d70b2bdf5bdf9e2e56b8a1fbb5a2ea332706ddf6e1d765a193d9cbe146ceeb79ac1cb485ed5f5b37913a8cf5857eff00a938b19525b109c0e2517df8786389e33365afe2dc6bfabeb65458fd24a1ab5b13000000000000000000000000000000000000000000000000000000000000000001040501030205000a0c020000000000000006")
 
-class SPLToken2022Tests(GenericSolanaTests):
-    currency_configuration = cal.SOL_USDC_CURRENCY_CONFIGURATION
-
-    valid_destination_1 = "JA2zDGUjCJePxBWbW895rMPUSBPPU15Q5UbqspezSzwF"
-    valid_destination_2 = str(
-        get_associated_token_address(
-            Pubkey.from_string(SOL.FOREIGN_ADDRESS_2_STR),
-            Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR)
-        )
-    )
-    valid_refund = SOL.OWNED_ADDRESS
-
-    valid_send_amount_1 = SOL.AMOUNT
-    valid_send_amount_2 = SOL.AMOUNT_2
-    valid_fees_1 = FEES
-    valid_fees_2 = FEES_2
-    fake_refund = SOL.FOREIGN_ADDRESS_STR
-    fake_payout = SOL.FOREIGN_ADDRESS_STR
-    signature_refusal_error_code = ErrorType.SOLANA_SUMMARY_FINALIZE_FAILED
-
-
+class SPLToken2022Tests(SPLTokenTests):
     def perform_final_tx(self, destination, send_amount, fees, memo):
         destination_ata = str(
             get_associated_token_address(
@@ -205,14 +195,84 @@ class SPLToken2022Tests(GenericSolanaTests):
             token_program_id=TOKEN_2022_PROGRAM_ID,
         )
 
-        # Create the transaction
+        accounts = [
+            AccountMeta(pubkey=sender_ata, is_signer=False, is_writable=True),
+            AccountMeta(pubkey=Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR), is_signer=False, is_writable=False),
+            AccountMeta(pubkey=Pubkey.from_string(destination_ata), is_signer=False, is_writable=True),
+            AccountMeta(pubkey=sender_public_key, is_signer=True, is_writable=False),
+        ]
+        transfer_instruction = Instruction(
+            program_id=TOKEN_2022_PROGRAM_ID,
+            accounts=accounts,
+            data=struct.pack("<BBQBQ", TRANSFER_FEE_EXTENSION, TRANSFER_CHECKED_WITH_FEE, send_amount, 6, 0)
+        )
 
-        create_instruction = create_associated_token_account(
-            payer=sender_ata,
-            owner=Pubkey.from_string(destination),
-            mint=Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR),
+        message_data = craft_tx([transfer_instruction], sender_public_key)
+
+        sol = SolanaClient(self.backend)
+        enroll_ata(sol, destination_ata.encode('utf-8'), destination.encode('utf-8'))
+        with sol.send_async_sign_message(SOL.SOL_PACKED_DERIVATION_PATH, message_data):
+            pass
+        signature: bytes = sol.get_async_response().data
+        verify_signature(SOL.OWNED_PUBLIC_KEY, message_data, signature)
+
+    def perform_final_tx_with_transfer_fees(self, destination, send_amount, fees, memo):
+        destination_ata = str(
+            get_associated_token_address(
+                Pubkey.from_string(destination),
+                Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR),
+                token_program_id=TOKEN_2022_PROGRAM_ID,
+            )
+        )
+        # Get the sender public key
+        sender_public_key = Pubkey.from_string(SOL.OWNED_ADDRESS_STR)
+
+        # Get the associated token addresses for the sender
+        sender_ata = get_associated_token_address(
+            sender_public_key,
+            Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR),
             token_program_id=TOKEN_2022_PROGRAM_ID,
         )
+
+        accounts = [
+            AccountMeta(pubkey=sender_ata, is_signer=False, is_writable=True),
+            AccountMeta(pubkey=Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR), is_signer=False, is_writable=False),
+            AccountMeta(pubkey=Pubkey.from_string(destination_ata), is_signer=False, is_writable=True),
+            AccountMeta(pubkey=sender_public_key, is_signer=True, is_writable=False),
+        ]
+        transfer_instruction = Instruction(
+            program_id=TOKEN_2022_PROGRAM_ID,
+            accounts=accounts,
+            data=struct.pack("<BBQBQ", TRANSFER_FEE_EXTENSION, TRANSFER_CHECKED_WITH_FEE, send_amount, 6, 767)
+        )
+        message_data = craft_tx([transfer_instruction], sender_public_key)
+
+        sol = SolanaClient(self.backend)
+        enroll_ata(sol, destination_ata.encode('utf-8'), destination.encode('utf-8'))
+        with sol.send_async_sign_message(SOL.SOL_PACKED_DERIVATION_PATH, message_data):
+            pass
+        signature: bytes = sol.get_async_response().data
+        verify_signature(SOL.OWNED_PUBLIC_KEY, message_data, signature)
+
+    def perform_final_tx_with_unknown_transfer_fees(self, destination, send_amount, fees, memo):
+        destination_ata = str(
+            get_associated_token_address(
+                Pubkey.from_string(destination),
+                Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR),
+                token_program_id=TOKEN_2022_PROGRAM_ID,
+            )
+        )
+        # Get the sender public key
+        sender_public_key = Pubkey.from_string(SOL.OWNED_ADDRESS_STR)
+
+        # Get the associated token addresses for the sender
+        sender_ata = get_associated_token_address(
+            sender_public_key,
+            Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR),
+            token_program_id=TOKEN_2022_PROGRAM_ID,
+        )
+
+        # Create the transaction
         transfer_instruction = transfer_checked(
             TransferCheckedParams(
                 program_id=TOKEN_2022_PROGRAM_ID,
@@ -224,22 +284,50 @@ class SPLToken2022Tests(GenericSolanaTests):
                 decimals=6  # Number of decimals for USDC token
             )
         )
-
-        blockhash = Hash.default()
-        message = Message.new_with_blockhash([create_instruction, transfer_instruction], sender_public_key, blockhash)
-        tx = Transaction.new_unsigned(message)
-
-        # Dump the message embedded in the transaction
-        message_data = tx.message_data()
+        message_data = craft_tx([transfer_instruction], sender_public_key)
 
         sol = SolanaClient(self.backend)
-        challenge = sol.get_challenge()
-        sol.provide_trusted_name(source_contract=SOL.USDC_MINT_ADDRESS,
-                                 trusted_name=destination_ata.encode('utf-8'),
-                                 address=destination.encode('utf-8'),
-                                 chain_id=SOL.CHAIN_ID,
-                                 challenge=challenge)
-        # self.backend.exchange_raw(bytes.fromhex("e0210000ed010103020102700106710106202c45343655536245523467374d4b486d7676457a4667525043646b6b34617731353353435a4b566a4c5871677a230165222c4a41327a4447556a434a65507842576257383935724d50555342505055313551355562717370657a537a7746732c45506a465764643541756671535371654d32714e31787a7962617043384734774547476b5a77795444743176120400000000130107140101154630440220254dfe6dae4d1303ecefce1fe491bac73f2aa31fc9597db2c1b2e95f6e130eaf0220355b0efbf76f462087e9f04acf10c375d072515bc436070a49e501817e48da9b"))
+        enroll_ata(sol, destination_ata.encode('utf-8'), destination.encode('utf-8'))
+        with sol.send_async_sign_message(SOL.SOL_PACKED_DERIVATION_PATH, message_data):
+            pass
+        signature: bytes = sol.get_async_response().data
+        verify_signature(SOL.OWNED_PUBLIC_KEY, message_data, signature)
+
+    def perform_final_tx_with_transfer_hook(self, destination, send_amount, fees, memo):
+        destination_ata = str(
+            get_associated_token_address(
+                Pubkey.from_string(destination),
+                Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR),
+                token_program_id=TOKEN_2022_PROGRAM_ID,
+            )
+        )
+        # Get the sender public key
+        sender_public_key = Pubkey.from_string(SOL.OWNED_ADDRESS_STR)
+
+        # Get the associated token addresses for the sender
+        sender_ata = get_associated_token_address(
+            sender_public_key,
+            Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR),
+            token_program_id=TOKEN_2022_PROGRAM_ID,
+        )
+        hook_account = Pubkey.from_string("FcheSyMboM2FKxieZPsT7r69s5UunZiK8tNSmSKts92i")
+
+        accounts = [
+            AccountMeta(pubkey=sender_ata, is_signer=False, is_writable=True),
+            AccountMeta(pubkey=Pubkey.from_string(SOL.USDC_MINT_ADDRESS_STR), is_signer=False, is_writable=False),
+            AccountMeta(pubkey=Pubkey.from_string(destination_ata), is_signer=False, is_writable=True),
+            AccountMeta(pubkey=sender_public_key, is_signer=True, is_writable=False),
+            AccountMeta(pubkey=hook_account, is_signer=False, is_writable=True),
+        ]
+        transfer_instruction = Instruction(
+            program_id=TOKEN_2022_PROGRAM_ID,
+            accounts=accounts,
+            data=struct.pack("<BBQBQ", TRANSFER_FEE_EXTENSION, TRANSFER_CHECKED_WITH_FEE, send_amount, 6, 0)
+        )
+        message_data = craft_tx([transfer_instruction], sender_public_key)
+
+        sol = SolanaClient(self.backend)
+        enroll_ata(sol, destination_ata.encode('utf-8'), destination.encode('utf-8'))
         with sol.send_async_sign_message(SOL.SOL_PACKED_DERIVATION_PATH, message_data):
             pass
         signature: bytes = sol.get_async_response().data
@@ -250,3 +338,24 @@ class TestsSPLToken2022:
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
     def test_solana_spl_token_2022(self, backend, exchange_navigation_helper, test_to_run):
         SPLToken2022Tests(backend, exchange_navigation_helper).run_test(test_to_run)
+
+    def test_solana_spl_token_2022_token_fees(self, backend, exchange_navigation_helper):
+        with pytest.raises(ExceptionRAPDU) as e:
+            test_class = SPLToken2022Tests(backend, exchange_navigation_helper)
+            test_class.perform_final_tx = test_class.perform_final_tx_with_transfer_fees
+            test_class.run_test("swap_valid_1")
+        assert e.value.status == test_class.signature_refusal_error_code
+
+    def test_solana_spl_token_2022_unknown_token_fees(self, backend, exchange_navigation_helper):
+        with pytest.raises(ExceptionRAPDU) as e:
+            test_class = SPLToken2022Tests(backend, exchange_navigation_helper)
+            test_class.perform_final_tx = test_class.perform_final_tx_with_unknown_transfer_fees
+            test_class.run_test("swap_valid_1")
+        assert e.value.status == test_class.signature_refusal_error_code
+
+    def test_solana_spl_token_2022_token_hook(self, backend, exchange_navigation_helper):
+        with pytest.raises(ExceptionRAPDU) as e:
+            test_class = SPLToken2022Tests(backend, exchange_navigation_helper)
+            test_class.perform_final_tx = test_class.perform_final_tx_with_transfer_hook
+            test_class.run_test("swap_valid_1")
+        assert e.value.status == test_class.signature_refusal_error_code
