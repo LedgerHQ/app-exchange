@@ -11,33 +11,33 @@ from .apps.exchange_navigation_helper import ExchangeNavigationHelper
 # You can configure optional parameters by overriding the value of ragger.configuration.OPTIONAL_CONFIGURATION
 # Please refer to ragger/conftest/configuration.py for their descriptions and accepted values
 
-# configuration.OPTIONAL.ALLOWED_SETUPS = ["default", "prod_build"]
+configuration.OPTIONAL.ALLOWED_SETUPS = ["default", "prod_build"]
 configuration.OPTIONAL.BACKEND_SCOPE = "class"
 
 def pytest_configure(config):
-    # current_setup = config.getoption("--setup")
+    current_setup = config.getoption("--setup")
     # We don't need any lib dependency for the prod_build test
-    # if current_setup == "default":
-    configuration.OPTIONAL.SIDELOADED_APPS = {
-            "APTOS": "Aptos",
-            "bitcoin": "Bitcoin",
-            "bitcoin_legacy": "Bitcoin Legacy",
-            "ethereum": "Ethereum",
-            "ethereum_classic": "Ethereum Classic",
-            "tezos": "Tezos Wallet",
-            "xrp": "XRP",
-            "litecoin": "Litecoin",
-            "stellar": "Stellar",
-            "solana": "Solana",
-            "DOT": "Polkadot" ,
-            "tron": "Tron",
-            "ton": "TON",
-            "ATOM": "Cosmos",
-            "cardano": "Cardano ADA",
-            "near": "NEAR",
-            "sui": "Sui",
-            "hedera": "Hedera",
-    }
+    if current_setup == "default":
+        configuration.OPTIONAL.SIDELOADED_APPS = {
+                "APTOS": "Aptos",
+                "bitcoin": "Bitcoin",
+                "bitcoin_legacy": "Bitcoin Legacy",
+                "ethereum": "Ethereum",
+                "ethereum_classic": "Ethereum Classic",
+                "tezos": "Tezos Wallet",
+                "xrp": "XRP",
+                "litecoin": "Litecoin",
+                "stellar": "Stellar",
+                "solana": "Solana",
+                "DOT": "Polkadot",
+                "tron": "Tron",
+                "ton": "TON",
+                "ATOM": "Cosmos",
+                "cardano": "Cardano ADA",
+                "near": "NEAR",
+                "sui": "Sui",
+                "hedera": "Hedera",
+        }
     configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
 
 
