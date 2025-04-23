@@ -28,7 +28,7 @@ class GenericSuiTests(ExchangeTestRunner):
     def perform_final_tx(self, destination, send_amount, fees, _memo):
         sui = SuiClient(self.backend, verbose=False)
         tx = sui.build_simple_transaction(SUI.OWNED_ADDRESS, destination, send_amount, fees)
-        signature = sui.sign_transaction(SUI.SUI_PACKED_DERIVATION_PATH, tx)
+        signature = sui.sign_transaction(SUI.SUI_PACKED_DERIVATION_PATH_LE, tx)
 
         public_key_bytes = bytes.fromhex(SUI.OWNED_PUBLIC_KEY)
         verify_signature(public_key_bytes, blake2b(tx, digest_size=32).digest(), signature)
