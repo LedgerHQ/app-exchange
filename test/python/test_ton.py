@@ -112,13 +112,12 @@ class TonUSDTTests(TonTests):
     def perform_final_tx(self, destination, send_amount, fees, memo):
         # Use the app interface instead of raw interface
         client = BoilerplateCommandSender(self.backend)
-        dest_address = self.get_jetton_wallet_address(Address(destination))
         from_address = self.get_jetton_wallet_address(Address(self.valid_refund))
 
         # First we need to get the public key of the device in order to build the transaction
         pubkey = client.get_public_key(path=TON_DERIVATION_PATH).data
 
-        payload = JettonTransferPayload(fees, dest_address, jetton_id=0, forward_amount=1)
+        payload = JettonTransferPayload(send_amount, Address(destination), jetton_id=0, forward_amount=1)
 
         # transaction for Jetton transfer are sent to the owned jetton wallet
         # destination address is serialized in Jetton Transfer Payload
@@ -127,8 +126,8 @@ class TonUSDTTests(TonTests):
             SendMode.PAY_GAS_SEPARATLY,
             seqno=0,
             timeout=1686176000,
-            bounce=dest_address.is_bounceable,
-            amount=send_amount,
+            bounce=Address(destination).is_bounceable,
+            amount=fees,
             payload=payload,
         )
         tx_bytes = tx.to_request_bytes()
