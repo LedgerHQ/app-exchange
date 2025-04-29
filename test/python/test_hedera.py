@@ -23,9 +23,9 @@ class HederaTests(ExchangeTestRunner):
     currency_configuration = cal.HEDERA_CURRENCY_CONFIGURATION
     valid_destination_1 = "100.101.110"
     valid_destination_2 = "100.101.103"
-    valid_refund = "2d9454e5131fff8a27e6f585798dfe48dd890e8f9691b3b41e1775682a444ef4"
+    valid_refund = "0x698f0bad5c0c043a5f09cdcbb4c48ddcf6fb2886fa006df26298003fd59dc7c9"
     valid_refund_memo = ""
-    valid_send_amount_1 = 42
+    valid_send_amount_1 = 42*100000000 # 42 HBAR
     valid_send_amount_2 = 446
     valid_fees_1 = 6
     valid_fees_2 = 42
