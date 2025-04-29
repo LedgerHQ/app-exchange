@@ -5,8 +5,10 @@ import struct
 
 from ragger.firmware import Firmware
 from ragger.navigator import NavInsID, NavIns
+# --8<-- [start:solana_coin_conf_includes]
 from ragger.utils import create_currency_config
 from ragger.bip import pack_derivation_path
+# --8<-- [end:solana_coin_conf_includes]
 
 ROOT_SCREENSHOT_PATH = Path(__file__).parent.parent.resolve()
 
@@ -54,21 +56,24 @@ OWNED_ADDRESS       = OWNED_ADDRESS_STR.encode('utf-8')
 OWNED_PUBLIC_KEY    = base58.b58decode(OWNED_ADDRESS)
 
 
+# --8<-- [start:solana_coin_conf]
 ### Proposed Solana derivation paths for tests ###
 
 SOL_PACKED_DERIVATION_PATH      = pack_derivation_path("m/44'/501'/12345'")
 SOL_PACKED_DERIVATION_PATH_2    = pack_derivation_path("m/44'/501'/0'/0'")
 
-
 ### Package this currency configuration in exchange format ###
 
+# Simple native currency configuration: Ticker + Appname
 SOL_CONF = create_currency_config("SOL", "Solana")
 
+# Standard coin configuration for a token: Ticker + Appname + (Ticker + decimal)
 JUP_CONF = create_currency_config("JUP", "Solana", ("JUP", 6))
 JUP_PACKED_DERIVATION_PATH = SOL_PACKED_DERIVATION_PATH
 
 SOL_USDC_CONF = create_currency_config("USDC", "Solana", ("USDC", 6))
 SOL_USDC_PACKED_DERIVATION_PATH = SOL_PACKED_DERIVATION_PATH
+# --8<-- [end:solana_coin_conf]
 
 JUP_MINT_ADDRESS_STR = "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN"
 JUP_MINT_ADDRESS     = JUP_MINT_ADDRESS_STR.encode('utf-8')

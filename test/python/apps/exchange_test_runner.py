@@ -90,7 +90,7 @@ class ExchangeTestRunner:
         self.exchange_navigation_helper.set_test_name_suffix("_" + function_to_test)
         getattr(self, TEST_METHOD_PREFIX + function_to_test)()
 
-    def _perform_valid_exchange(self, subcommand, tx_infos, from_currency_configuration, to_currency_configuration, fees, ui_validation):
+    def _perform_valid_exchange(self, subcommand, tx_infos, from_currency_configuration, to_currency_configuration, fees, ui_validation, start_application):
         # Initialize the exchange client plugin that will format and send the APDUs to the device
         ex = ExchangeClient(self.backend, Rate.FIXED, subcommand)
 
@@ -135,13 +135,14 @@ class ExchangeTestRunner:
 
         self.exchange_navigation_helper.wait_for_exchange_spinner()
 
-        # Ask exchange to start the library application to sign the actual outgoing transaction
-        ex.start_signing_transaction()
+        if start_application:
+            # Ask exchange to start the library application to sign the actual outgoing transaction
+            ex.start_signing_transaction()
 
-        self.exchange_navigation_helper.wait_for_library_spinner()
+            self.exchange_navigation_helper.wait_for_library_spinner()
 
-    def perform_valid_swap_from_custom(self, destination, send_amount, fees, destination_memo, refund_address=None, refund_memo=None, ui_validation=True):
-        # Refund data is almost always 'valid', make it optionnal to specify it
+    def perform_valid_swap_from_custom(self, destination, send_amount, fees, destination_memo, refund_address=None, refund_memo=None, ui_validation=True, start_application=True):
+        # Refund data is almost always 'valid', make it optional to specify it
         refund_address = self.valid_refund if refund_address is None else refund_address
         refund_memo = self.valid_refund_memo if refund_memo is None else refund_memo
         tx_infos = {
@@ -156,7 +157,13 @@ class ExchangeTestRunner:
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
-        self._perform_valid_exchange(SubCommand.SWAP_NG, tx_infos, self.currency_configuration, cal.ETH_CURRENCY_CONFIGURATION, fees, ui_validation=ui_validation)
+        self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
+                                     tx_infos=tx_infos,
+                                     from_currency_configuration=self.currency_configuration,
+                                     to_currency_configuration=cal.ETH_CURRENCY_CONFIGURATION,
+                                     fees=fees,
+                                     ui_validation=ui_validation,
+                                     start_application=start_application)
 
     def perform_valid_thorswap_from_custom(self, destination, send_amount, fees, payin_extra_data, refund_address=None, ui_validation=True):
         refund_address = self.valid_refund if refund_address is None else refund_address
@@ -172,7 +179,13 @@ class ExchangeTestRunner:
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
-        self._perform_valid_exchange(SubCommand.SWAP_NG, tx_infos, self.currency_configuration, cal.ETH_CURRENCY_CONFIGURATION, fees, ui_validation=ui_validation)
+        self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
+                                     tx_infos=tx_infos,
+                                     from_currency_configuration=self.currency_configuration,
+                                     to_currency_configuration=cal.ETH_CURRENCY_CONFIGURATION,
+                                     fees=fees,
+                                     ui_validation=ui_validation,
+                                     start_application=True)
 
     def perform_valid_swap_to_custom(self, destination, send_amount, fees, destination_memo, ui_validation=True):
         tx_infos = {
@@ -187,7 +200,13 @@ class ExchangeTestRunner:
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
-        self._perform_valid_exchange(SubCommand.SWAP_NG, tx_infos, cal.ETH_CURRENCY_CONFIGURATION, self.currency_configuration, fees, ui_validation=ui_validation)
+        self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
+                                     tx_infos=tx_infos,
+                                     from_currency_configuration=cal.ETH_CURRENCY_CONFIGURATION,
+                                     to_currency_configuration=self.currency_configuration,
+                                     fees=fees,
+                                     ui_validation=ui_validation,
+                                     start_application=True)
 
     def perform_valid_fund_from_custom(self, destination, send_amount, fees, destination_memo):
         tx_infos = {
@@ -198,7 +217,13 @@ class ExchangeTestRunner:
             "in_extra_id": destination_memo,
             "in_address": destination,
         }
-        self._perform_valid_exchange(SubCommand.FUND_NG, tx_infos, self.currency_configuration, None, fees, ui_validation=True)
+        self._perform_valid_exchange(subcommand=SubCommand.FUND_NG,
+                                     tx_infos=tx_infos,
+                                     from_currency_configuration=self.currency_configuration,
+                                     to_currency_configuration=None,
+                                     fees=fees,
+                                     ui_validation=True,
+                                     start_application=True)
 
     def perform_valid_sell_from_custom(self, destination, send_amount, fees, destination_memo):
         tx_infos = {
@@ -210,7 +235,13 @@ class ExchangeTestRunner:
             "in_extra_id": destination_memo,
             "in_address": destination,
         }
-        self._perform_valid_exchange(SubCommand.SELL_NG, tx_infos, self.currency_configuration, None, fees, ui_validation=True)
+        self._perform_valid_exchange(subcommand=SubCommand.SELL_NG,
+                                     tx_infos=tx_infos,
+                                     from_currency_configuration=self.currency_configuration,
+                                     to_currency_configuration=None,
+                                     fees=fees,
+                                     ui_validation=True,
+                                     start_application=True)
 
     # Implement this function for each tested coin
     def perform_final_tx(self, destination, send_amount, fees, memo):
@@ -255,6 +286,10 @@ class ExchangeTestRunner:
         with pytest.raises(ExceptionRAPDU) as e:
             self.perform_valid_swap_to_custom(self.fake_payout, self.valid_send_amount_1, self.valid_fees_1, self.fake_payout_memo, ui_validation=False)
         assert e.value.status == Errors.INVALID_ADDRESS
+
+    # Swap test stopping after the UI prompt, useful for debugging purposes
+    def perform_test_swap_ui_only(self):
+        self.perform_valid_swap_from_custom(self.valid_destination_1, self.valid_send_amount_1, self.valid_fees_1, self.valid_destination_memo_1, start_application=False)
 
     # The absolute standard swap, using default values, user accepts on UI
     def perform_test_swap_valid_1(self):

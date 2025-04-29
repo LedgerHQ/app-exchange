@@ -51,7 +51,7 @@ class CardanoShelleyClientTests(ExchangeTestRunner):
     currency_configuration = cal.ADA_SHELLEY_CURRENCY_CONFIGURATION
     valid_destination_1 = SHELLEY_DESTINATION["valid_1"]["addr"]
     valid_destination_2 = SHELLEY_DESTINATION["valid_2"]["addr"]
-    # Refund adress corresponds to the derivation path "m/1852'/1815'/0'/0/0" and "m/1852'/1815'/0'/2/0"
+    # Refund address corresponds to the derivation path "m/1852'/1815'/0'/0/0" and "m/1852'/1815'/0'/2/0"
     valid_refund = "addr1q9kl5z2zd9vakyprvw0g68c8hv0y0rnj93htc82hh2rs8wwmyx0wtn56wnuclkku9hsnal8dtg25a7x56svjn4dlnlmq7quz6p"
     valid_send_amount_1 = 4671693
     valid_send_amount_2 = 446739662

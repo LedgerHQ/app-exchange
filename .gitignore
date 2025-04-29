@@ -45,3 +45,8 @@ __pycache__
 
 # Manually ignore this file. It is a helper to replay apdus quickly.
 test/python/test_raw.py
+
+# Ignore mkdocs build
+site/
+docs/deps/*
+!docs/deps/.doc_dependencies

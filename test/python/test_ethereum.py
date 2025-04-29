@@ -142,7 +142,7 @@ class DAITests(GenericEthereumNetworkTests):
                                     "gas": fees,
                                     "to": self.contract.address,
                                     "chainId": 1,
-                                    "data": self.contract.encodeABI("transfer", [destination, send_amount]),
+                                    "data": self.contract.encode_abi("transfer", [destination, send_amount]),
                                  }):
                 pass
         else:

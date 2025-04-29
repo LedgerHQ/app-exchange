@@ -94,7 +94,7 @@ class SuiClient:
         tx += intent_bsc
 
         amount_bytes = list(send_amount.to_bytes(8, byteorder='little'))
-        recepient_addr = list(bytes.fromhex(destination))
+        recepient_addr = list(bytes.fromhex(destination[2:]))
         recepient_idx = 1
 
         tx_data_v1 = TransactionDataV1(
@@ -120,14 +120,14 @@ class SuiClient:
                     ],
                 ),
             ),
-            Sender = Address.from_str("0x" + sender_addr),
+            Sender = Address.from_str(sender_addr),
             GasData = GasData(
                 Payment = [ObjectReference(
                     ObjectID = Address.from_str("0xFEEE"),
                     SequenceNumber = 6666,
                     ObjectDigest = Digest.from_bytes(bytes(_DIGEST_LENGTH)),
                 )],
-                Owner = Address.from_str("0x" + sender_addr),
+                Owner = Address.from_str(sender_addr),
                 Price = 1,
                 Budget = gas_budget,
             ),

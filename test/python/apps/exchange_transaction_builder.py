@@ -72,7 +72,7 @@ class SubCommandSpecs:
         return (2 if self.is_ng else 1)
 
     def check_conf(self, conf: Dict) -> bool:
-        # No unknow memmbers in the Dict
+        # No unknown memmbers in the Dict
         # We accept crafting pb with missing fields
         return all(key in self.possible_fields for key in conf)
 

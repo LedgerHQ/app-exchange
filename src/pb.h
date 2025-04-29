@@ -617,7 +617,7 @@ struct pb_extension_s {
  * creating an input stream. It helps tracking the level of the
  * call stack when instrumentation is enabled
  * (set `INTRUMENT_FUNCTION += -finstrument-functions` in your
- * Makfile to do so)
+ * Makefile to do so)
  */
 extern int G_depth;
 

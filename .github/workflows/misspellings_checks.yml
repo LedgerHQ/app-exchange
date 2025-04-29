@@ -18,13 +18,13 @@ jobs:
     name: Check misspellings
     runs-on: ubuntu-latest
     steps:
-    - name: Clone
-      uses: actions/checkout@v4
+      - name: Clone
+        uses: actions/checkout@v4
 
-    - name: Check misspellings
-      uses: codespell-project/actions-codespell@v1
-      with:
-        builtin: clear,rare
-        check_filenames: true
-        ignore_words_file: .codespellignore
-        path: src/,test/python/,protocol.md,Makefile,README.md
+      - name: Check misspellings
+        uses: codespell-project/actions-codespell@v1
+        with:
+          builtin: clear,rare
+          check_filenames: true
+          ignore_words_file: .codespellignore
+          path: src/,test/,Makefile,README.md,docs/
