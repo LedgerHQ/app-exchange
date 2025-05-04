@@ -33,46 +33,43 @@ static bool parse_der_signature(uint8_t *in, uint16_t in_size, buf_t *der, uint1
 //    C bytes
 // 1 byte length Y of address parameters                1 + X + D
 // Y bytes of address parameters                        2 + X + D
-int parse_check_address_message(const command_t *cmd,
-                                buf_t *config,
-                                buf_t *der,
-                                buf_t *address_parameters) {
+bool parse_check_address_message(buf_t data, buf_t *config, buf_t *der, buf_t *address_parameters) {
     uint16_t read = 0;
 
     // Read currency configuration
-    if (!parse_to_sized_buffer(cmd->data.bytes, cmd->data.size, 1, config, &read)) {
+    if (!parse_to_sized_buffer(data.bytes, data.size, 1, config, &read)) {
         PRINTF("Cannot read the config\n");
-        return 0;
+        return false;
     }
     if (config->size < 1) {
         PRINTF("Invalid config size %d\n", config->size);
-        return 0;
+        return false;
     }
 
-    if (!parse_der_signature(cmd->data.bytes, cmd->data.size, der, &read)) {
+    if (!parse_der_signature(data.bytes, data.size, der, &read)) {
         PRINTF("Cannot parse the DER signature\n");
-        return 0;
+        return false;
     }
     if (!check_der_signature_length(der)) {
         PRINTF("Invalid DER signature size %d\n");
-        return 0;
+        return false;
     }
 
     // Read address parameters
-    if (!parse_to_sized_buffer(cmd->data.bytes, cmd->data.size, 1, address_parameters, &read)) {
+    if (!parse_to_sized_buffer(data.bytes, data.size, 1, address_parameters, &read)) {
         PRINTF("Cannot read the address_parameters\n");
-        return 0;
+        return false;
     }
     if (address_parameters->size < 1) {
         PRINTF("Invalid address_parameters size %d\n", address_parameters->size);
-        return 0;
+        return false;
     }
 
     // Check that there is nothing else to read
-    if (cmd->data.size != read) {
-        PRINTF("Bytes to read: %d, bytes read: %d\n", cmd->data.size, read);
-        return 0;
+    if (data.size != read) {
+        PRINTF("Bytes to read: %d, bytes read: %d\n", data.size, read);
+        return false;
     }
 
-    return 1;
+    return true;
 }

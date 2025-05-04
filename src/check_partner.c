@@ -15,7 +15,7 @@ int check_partner(const command_t *cmd) {
         return reply_error(INCORRECT_COMMAND_DATA);
     }
 
-    if (!cx_ecdsa_verify_no_throw(&(G_swap_ctx.ledger_public_key),
+    if (!cx_ecdsa_verify_no_throw(&(G_ledger_public_key),
                                   G_swap_ctx.sha256_digest_no_prefix,
                                   CURVE_SIZE_BYTES,
                                   cmd->data.bytes,

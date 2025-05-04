@@ -123,6 +123,12 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
             allowed_during_waiting_for_signing = true;
             check_subcommand_context = true;
             break;
+#ifdef DIRECT_CALLS_API
+        case DIRECT_CHECK_ADDRESS:
+            break;
+        case DIRECT_FORMAT_AMOUNT:
+            break;
+#endif
         default:
             PRINTF("Received unknown instruction %d\n", instruction);
             return INVALID_INSTRUCTION;

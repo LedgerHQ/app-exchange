@@ -243,4 +243,47 @@ void ui_validate_amounts(void) {
                        review_choice);
 }
 
+/**********************
+ *    DIRECT CALLS    *
+ **********************/
+
+#ifdef DIRECT_CALLS_API
+static void review_direct_amount_choice(bool confirm) {
+    if (confirm) {
+        reply_success();
+        nbgl_useCaseStatus("SUCCESS", true, ui_idle);
+    } else {
+        reply_error(USER_REFUSED);
+        nbgl_useCaseStatus("FAILURE", false, ui_idle);
+    }
+}
+
+char G_application_name[BOLOS_APPNAME_MAX_SIZE_B + 1];
+char G_to_print[sizeof(G_swap_ctx.printable_send_amount)] = {0};
+char G_to_print_fees[sizeof(G_swap_ctx.printable_send_amount)] = {0};
+void direct_amount_review(const char *application_name,
+                          const char *to_print,
+                          const char *to_print_as_fees) {
+    memcpy(G_application_name, application_name, sizeof(G_application_name));
+    memcpy(G_to_print, to_print, sizeof(G_to_print));
+    memcpy(G_to_print_fees, to_print_as_fees, sizeof(G_to_print_fees));
+    pairs[0].item = "Testing application";
+    pairs[0].value = G_application_name;
+    pairs[1].item = "Amount displayed:";
+    pairs[1].value = G_to_print;
+    pairs[2].item = "Amount displayed as fees:";
+    pairs[2].value = G_to_print_fees;
+    pair_list.nbMaxLinesForValue = 0;
+    pair_list.nbPairs = 3;
+    pair_list.pairs = pairs;
+    nbgl_useCaseReview(TYPE_TRANSACTION,
+                       &pair_list,
+                       &C_icon_exchange_64x64,
+                       "Testing amount",
+                       NULL,
+                       "Confirm good formatting\n(not signing anything)",
+                       review_direct_amount_choice);
+}
+#endif  // DIRECT_CALLS_API
+
 #endif  // HAVE_NBGL

@@ -12,6 +12,7 @@
 #include "start_signing_transaction.h"
 #include "check_addresses_and_amounts.h"
 #include "prompt_ui_display.h"
+#include "direct_calls_api.h"
 
 #include "io.h"
 
@@ -55,7 +56,16 @@ int dispatch_command(const command_t *cmd) {
         case START_SIGNING_TRANSACTION:
             ret = start_signing_transaction(cmd);
             break;
+#ifdef DIRECT_CALLS_API
+        case DIRECT_CHECK_ADDRESS:
+            ret = direct_check_address(cmd);
+            break;
+        case DIRECT_FORMAT_AMOUNT:
+            ret = direct_format_amount(cmd);
+            break;
+#endif
         default:
+            PRINTF("Failed to dispatch validated command. Fatal. %d\n");
             __builtin_trap();
             break;
     }

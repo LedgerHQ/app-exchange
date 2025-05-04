@@ -18,10 +18,8 @@ int start_new_transaction(const command_t *cmd) {
         ui_idle();
     }
 
-    if (init_application_context() != 0) {
-        PRINTF("Error: init_application_context failed\n");
-        return reply_error(INTERNAL_ERROR);
-    }
+    memset(&G_swap_ctx, 0, sizeof(G_swap_ctx));
+    G_swap_ctx.state = INITIAL_STATE;
 
     // Legacy swap flow : 10 char 'string' (not '\0' terminated)
     if (cmd->subcommand == SWAP) {
