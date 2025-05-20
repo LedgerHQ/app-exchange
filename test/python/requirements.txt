@@ -8,6 +8,7 @@ bip32
 embit
 fastcrc
 ledger_app_clients.ethereum
+pytoniq-core
 tonsdk
 solders
 solana

@@ -116,7 +116,7 @@ on:
         type: string
       repo_for_ton:
         required: false
-        default: 'LedgerHQ/app-ton-new'
+        default: 'LedgerHQ/app-ton'
         type: string
 
       branch_for_cardano:
