@@ -7,7 +7,11 @@ from .apps.ton_application_client.ton_command_sender import BoilerplateCommandSe
 from .apps.ton_application_client.ton_response_unpacker import unpack_sign_tx_response
 from .apps.ton_utils import check_signature_validity
 
-from tonsdk.utils import Address
+# XXX:
+#   tonsdk seems not te be maintained anymore, python package describe by official TON documentation
+#   is pytoniq-core (offline part) and pytoniq (oneline part).
+#   tonsdk.boc.Cell cannot handle exotic cell but this is required in order to compute jetton wallet address.
+from pytoniq_core import Address, Cell, begin_cell
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
 from .apps.ton import DEVICE_PUBLIC_KEY, Bounceability, WorkchainID, craft_address, SW_SWAP_FAILURE, TON_DERIVATION_PATH
@@ -66,6 +70,68 @@ class TonTests(ExchangeTestRunner):
         tx_bytes = tx.to_request_bytes()
 
         # Send the sign device instruction.
+        # As it requires on-screen validation, the function is asynchronous.
+        # It will yield the result when the navigation is done
+        with client.sign_tx(path=TON_DERIVATION_PATH, transaction=tx_bytes):
+            pass
+
+        # The device as yielded the result, parse it and ensure that the signature is correct
+        response = client.get_async_response().data
+        sig, hash_b = unpack_sign_tx_response(response)
+        assert hash_b == tx.transfer_cell().bytes_hash()
+        assert check_signature_validity(pubkey, sig, hash_b)
+
+class TonUSDTTests(TonTests):
+    jetton_master_address = Address("EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs")
+    code_cell = Cell.one_from_boc(
+        "b5ee9c72010101010023000842028f452d7a4dfd74066b682365177259ed05734435be76b5fd4bd5d8af2b7c3d68"
+    )
+
+    currency_configuration = cal.TON_USDT_CURRENCY_CONFIGURATION
+
+    def get_jetton_wallet_address(self, owner: Address) -> Address:
+        data_cell = (
+            begin_cell()
+            .store_uint(0, 4)
+            .store_coins(0)
+            .store_address(owner)
+            .store_address(self.jetton_master_address)
+            .end_cell()
+        )
+        state_init = (
+            begin_cell()
+            .store_uint(0, 2)
+            .store_maybe_ref(self.code_cell)
+            .store_maybe_ref(data_cell)
+            .store_uint(0, 1)
+            .end_cell()
+        )
+        state_init_hex = state_init.hash.hex()
+        return Address(f"0:{state_init_hex}")
+
+    def perform_final_tx(self, destination, send_amount, fees, memo):
+        # Use the app interface instead of raw interface
+        client = BoilerplateCommandSender(self.backend)
+        from_address = self.get_jetton_wallet_address(Address(self.valid_refund))
+
+        # First we need to get the public key of the device in order to build the transaction
+        pubkey = client.get_public_key(path=TON_DERIVATION_PATH).data
+
+        payload = JettonTransferPayload(send_amount, Address(destination), jetton_id=0, forward_amount=1)
+
+        # transaction for Jetton transfer are sent to the owned jetton wallet
+        # destination address is serialized in Jetton Transfer Payload
+        tx = Transaction(
+            from_address,
+            SendMode.PAY_GAS_SEPARATLY,
+            seqno=0,
+            timeout=1686176000,
+            bounce=Address(destination).is_bounceable,
+            amount=fees,
+            payload=payload,
+        )
+        tx_bytes = tx.to_request_bytes()
+
         with client.sign_tx(path=TON_DERIVATION_PATH, transaction=tx_bytes):
             # As there is no display inside the TON call when using the application through
             # Exchange, we simply end the asynchronism.
@@ -85,36 +151,11 @@ class TestsTon:
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
     def test_ton(self, backend, exchange_navigation_helper, test_to_run):
         if backend.firmware.device == "nanos":
-            pytest.skip("TON swap is not supported on NanoS device")
-
-        # Forward to the ExchangeTestRunner the parametrized test to run
+            pytest.skip("Ton swap is not supported on NanoS device")
         TonTests(backend, exchange_navigation_helper).run_test(test_to_run)
-# --8<-- [end:native_test]
 
-# class TonUSDTTests(TonTests):
-#     currency_configuration = cal.TON_CURRENCY_CONFIGURATION
-#     def perform_final_tx(self, destination, send_amount, fees, memo):
-#         # Use the app interface instead of raw interface
-#         client = BoilerplateCommandSender(self.backend)
-
-#         # First we need to get the public key of the device in order to build the transaction
-#         pubkey = client.get_public_key(path=TON_DERIVATION_PATH).data
-
-#         payload = JettonTransferPayload(100, Address("0:" + "0" * 64), forward_amount=1)
-
-#         tx = Transaction(Address("0:" + "0" * 64), SendMode.PAY_GAS_SEPARATLY, 0, 1686176000, True, 100000000, payload=payload)
-#         tx_bytes = tx.to_request_bytes()
-
-#         with client.sign_tx(path=TON_DERIVATION_PATH, transaction=tx_bytes):
-#             pass
-
-#         # The device as yielded the result, parse it and ensure that the signature is correct
-#         response = client.get_async_response().data
-#         sig, hash_b = unpack_sign_tx_response(response)
-#         assert hash_b == tx.transfer_cell().bytes_hash()
-#         assert check_signature_validity(pubkey, sig, hash_b)
-
-# class TestsTonUSDT:
-#     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
-#     def test_ton_usdt(self, backend, exchange_navigation_helper, test_to_run):
-#         TonUSDTTests(backend, exchange_navigation_helper).run_test(test_to_run)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
+    def test_ton_usdt(self, backend, exchange_navigation_helper, test_to_run):
+        if backend.firmware.device == "nanos":
+            pytest.skip("Ton swap is not supported on NanoS device")
+        TonUSDTTests(backend, exchange_navigation_helper).run_test(test_to_run)
