@@ -50,7 +50,7 @@ class HederaTests(ExchangeTestRunner):
             amount=send_amount,
         )
         with hedera.send_sign_transaction(
-            index=0,
+            index=123321,
             operator_shard_num=1,
             operator_realm_num=2,
             operator_account_num=3,
