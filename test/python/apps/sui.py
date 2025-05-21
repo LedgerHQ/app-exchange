@@ -89,8 +89,9 @@ class SuiClient:
         tx = b''
         gas_budget = fees
 
-        # Intent message
-        intent_bsc = Intent.encode(Intent.from_list([1,2,3]))
+        # Intent message,
+        # only valid version = 0, scope = 0, app_id = 0 for TransactionData
+        intent_bsc = Intent.encode(Intent.from_list([0,0,0]))
         tx += intent_bsc
 
         amount_bytes = list(send_amount.to_bytes(8, byteorder='little'))
