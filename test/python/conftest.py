@@ -14,31 +14,36 @@ from .apps.exchange_navigation_helper import ExchangeNavigationHelper
 configuration.OPTIONAL.ALLOWED_SETUPS = ["default", "prod_build"]
 configuration.OPTIONAL.BACKEND_SCOPE = "class"
 
+# --8<-- [start:sideloaded_applications]
 def pytest_configure(config):
     current_setup = config.getoption("--setup")
     # We don't need any lib dependency for the prod_build test
     if current_setup == "default":
+        # List of sideloaded applications under the format <VARIANT_VALUES>:<APPNAME>
         configuration.OPTIONAL.SIDELOADED_APPS = {
-                "APTOS": "Aptos",
-                "bitcoin": "Bitcoin",
-                "bitcoin_legacy": "Bitcoin Legacy",
-                "ethereum": "Ethereum",
-                "ethereum_classic": "Ethereum Classic",
-                "tezos": "Tezos Wallet",
-                "xrp": "XRP",
-                "litecoin": "Litecoin",
-                "stellar": "Stellar",
-                "solana": "Solana",
-                "DOT": "Polkadot",
-                "tron": "Tron",
-                "ton": "TON",
-                "ATOM": "Cosmos",
-                "cardano": "Cardano ADA",
-                "near": "NEAR",
-                "sui": "Sui",
-                "hedera": "Hedera",
+            "APTOS": "Aptos",
+            "bitcoin": "Bitcoin",
+            "bitcoin_legacy": "Bitcoin Legacy",
+            "ethereum": "Ethereum",
+            "ethereum_classic": "Ethereum Classic",
+            "tezos": "Tezos Wallet",
+            "xrp": "XRP",
+            "litecoin": "Litecoin",
+            "stellar": "Stellar",
+            "solana": "Solana",
+            "DOT": "Polkadot",
+            "tron": "Tron",
+            "ton": "TON",
+            "ATOM": "Cosmos",
+            "cardano": "Cardano ADA",
+            "near": "NEAR",
+            "sui": "Sui",
+            "boilerplate": "Boilerplate",
+            "hedera": "Hedera"
         }
-    configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
+
+        configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
+# --8<-- [end:sideloaded_applications]
 
 
 #########################
