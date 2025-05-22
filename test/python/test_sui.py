@@ -1,7 +1,7 @@
 import pytest
 from hashlib import blake2b
 
-from .apps.exchange_test_runner import ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP, ExchangeTestRunner
+from .ledger_app_clients.exchange.test_runner import ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP, ExchangeTestRunner
 from .apps.sui import SuiClient, ErrorType
 from .apps import cal as cal
 from .apps import sui_utils as SUI

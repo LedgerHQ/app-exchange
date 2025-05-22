@@ -2,8 +2,8 @@ import pytest
 
 from ragger.error import ExceptionRAPDU
 
-from .apps.exchange_test_runner import ExchangeTestRunner
-from .apps.exchange_test_runner import VALID_TESTS_EXCEPT_THORSWAP, ALL_TESTS_EXCEPT_THORSWAP_AND_FEES
+from .ledger_app_clients.exchange.test_runner import ExchangeTestRunner
+from .ledger_app_clients.exchange.test_runner import VALID_TESTS_EXCEPT_THORSWAP, ALL_TESTS_EXCEPT_THORSWAP_AND_FEES
 from .apps.tron import TronClient, TronErrors
 from .apps import cal as cal
 
