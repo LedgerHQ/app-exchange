@@ -41,6 +41,7 @@ def pytest_configure(config):
             "near": "NEAR",
             "sui": "Sui",
             "boilerplate": "Boilerplate",
+            "kaspa": "Kaspa",
             "hedera": "Hedera"
         }
 
