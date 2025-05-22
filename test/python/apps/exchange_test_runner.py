@@ -68,6 +68,10 @@ class ExchangeTestRunner:
     wrong_destination_error_code = None
     wrong_amount_error_code = None
 
+    alias_address: Optional[bytes] = None
+    _alias_refund_address: Optional[bytes] = None
+    _alias_payout_address: Optional[bytes] = None
+
     def __init__(self, backend, exchange_navigation_helper):
         self.backend = backend
         self.exchange_navigation_helper = exchange_navigation_helper
@@ -116,6 +120,13 @@ class ExchangeTestRunner:
         from_configuration = from_currency_configuration.get_conf_for_ticker()
 
         if subcommand == SubCommand.SWAP_NG:
+            if self._alias_refund_address is not None:
+                challenge = ex.get_challenge().data
+                ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, trusted_name=tx_infos["refund_address"], address=self._alias_refund_address)
+            if self._alias_payout_address is not None:
+                challenge = ex.get_challenge().data
+                ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, trusted_name=tx_infos["payout_address"], address=self._alias_payout_address)
+
             to_configuration = to_currency_configuration.get_conf_for_ticker()
             ex.check_payout_address(to_configuration)
 
@@ -141,7 +152,7 @@ class ExchangeTestRunner:
 
             self.exchange_navigation_helper.wait_for_library_spinner()
 
-    def perform_valid_swap_from_custom(self, destination, send_amount, fees, destination_memo, refund_address=None, refund_memo=None, ui_validation=True, start_application=True):
+    def perform_valid_swap_from_custom(self, destination, send_amount, fees, destination_memo, refund_address=None, refund_memo=None, ui_validation=True, allow_alias=True, start_application=True):
         # Refund data is almost always 'valid', make it optional to specify it
         refund_address = self.valid_refund if refund_address is None else refund_address
         refund_memo = self.valid_refund_memo if refund_memo is None else refund_memo
@@ -157,6 +168,8 @@ class ExchangeTestRunner:
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
+        if allow_alias:
+            self._alias_refund_address = self.alias_address
         self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
                                      tx_infos=tx_infos,
                                      from_currency_configuration=self.currency_configuration,
@@ -165,7 +178,7 @@ class ExchangeTestRunner:
                                      ui_validation=ui_validation,
                                      start_application=start_application)
 
-    def perform_valid_thorswap_from_custom(self, destination, send_amount, fees, payin_extra_data, refund_address=None, ui_validation=True):
+    def perform_valid_thorswap_from_custom(self, destination, send_amount, fees, payin_extra_data, refund_address=None, ui_validation=True, allow_alias=True):
         refund_address = self.valid_refund if refund_address is None else refund_address
         tx_infos = {
             "payin_address": destination,
@@ -179,6 +192,8 @@ class ExchangeTestRunner:
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
+        if allow_alias:
+            self._alias_refund_address = self.alias_address
         self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
                                      tx_infos=tx_infos,
                                      from_currency_configuration=self.currency_configuration,
@@ -187,7 +202,7 @@ class ExchangeTestRunner:
                                      ui_validation=ui_validation,
                                      start_application=True)
 
-    def perform_valid_swap_to_custom(self, destination, send_amount, fees, destination_memo, ui_validation=True):
+    def perform_valid_swap_to_custom(self, destination, send_amount, fees, destination_memo, ui_validation=True, allow_alias=True):
         tx_infos = {
             "payin_address": "0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
             "payin_extra_id": "", # Default
@@ -200,6 +215,8 @@ class ExchangeTestRunner:
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
+        if allow_alias:
+            self._alias_payout_address = self.alias_address
         self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
                                      tx_infos=tx_infos,
                                      from_currency_configuration=cal.ETH_CURRENCY_CONFIGURATION,
@@ -278,13 +295,19 @@ class ExchangeTestRunner:
                                                 self.valid_destination_memo_1,
                                                 refund_address=self.fake_refund,
                                                 refund_memo=self.fake_refund_memo,
-                                                ui_validation=False)
+                                                ui_validation=False,
+                                                allow_alias=False)
         assert e.value.status == Errors.INVALID_ADDRESS
 
     # We test that the currency app returns a fail when checking an incorrect payout address
     def perform_test_swap_wrong_payout(self):
         with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_valid_swap_to_custom(self.fake_payout, self.valid_send_amount_1, self.valid_fees_1, self.fake_payout_memo, ui_validation=False)
+            self.perform_valid_swap_to_custom(self.fake_payout,
+                                              self.valid_send_amount_1,
+                                              self.valid_fees_1,
+                                              self.fake_payout_memo,
+                                              ui_validation=False,
+                                              allow_alias=False)
         assert e.value.status == Errors.INVALID_ADDRESS
 
     # Swap test stopping after the UI prompt, useful for debugging purposes
