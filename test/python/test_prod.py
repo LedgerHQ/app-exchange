@@ -4,14 +4,13 @@ from pathlib import Path
 from ragger.navigator import NavInsID, NavIns
 from ragger.error import ExceptionRAPDU
 
-from ledger_app_clients.exchange.navigation_helper import ROOT_SCREENSHOT_PATH
 from ledger_app_clients.exchange.client import ExchangeClient, Rate, Errors
 from ledger_app_clients.exchange.transaction_builder import get_partner_curve, ALL_SUBCOMMANDS, get_credentials
 from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
 
 # Navigate in the main menu
 @pytest.mark.needs_setup('prod_build')
-def test_menu(firmware, navigator, test_name):
+def test_menu(firmware, navigator, test_name, default_screenshot_path):
     if firmware.device.startswith("nano"):
         instructions = [
             NavInsID.RIGHT_CLICK,
@@ -23,7 +22,7 @@ def test_menu(firmware, navigator, test_name):
             NavInsID.USE_CASE_HOME_SETTINGS,
             NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT,
         ]
-    navigator.navigate_and_compare(ROOT_SCREENSHOT_PATH,
+    navigator.navigate_and_compare(default_screenshot_path,
 								   test_name,
 								   instructions,
                                    screen_change_before_first_instruction=False)

@@ -53,8 +53,8 @@ def pytest_configure(config):
 pytest_plugins = ("ragger.conftest.base_conftest", )
 
 @pytest.fixture(scope="function")
-def exchange_navigation_helper(backend, navigator, test_name):
-    return ExchangeNavigationHelper(backend=backend, navigator=navigator, test_name=test_name)
+def exchange_navigation_helper(backend, navigator, default_screenshot_path, test_name):
+    return ExchangeNavigationHelper(backend=backend, navigator=navigator, snapshots_path=default_screenshot_path, test_name=test_name)
 
 # Pytest is trying to do "smart" stuff and reorders tests using parametrize by alphabetical order of parameter
 # This breaks the backend scope optim. We disable this
