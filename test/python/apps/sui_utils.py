@@ -8,7 +8,6 @@ from nacl.signing import VerifyKey
 def sui_to_mist(sui_amount: int) -> int:
     return round(sui_amount * 10**9)
 
-
 def mist_to_bytes(mists: int) -> str:
     hex:str = '{:x}'.format(mists)
     if (len(hex) % 2 != 0):
@@ -23,6 +22,27 @@ AMOUNT_BYTES    = mist_to_bytes(AMOUNT)
 
 AMOUNT_2        = sui_to_mist(101.000001234)
 AMOUNT_2_BYTES  = mist_to_bytes(AMOUNT_2)
+
+USDC_AMOUNT       = 100023 #0.100023 USDC
+USDC_AMOUNT_2     = 123393 #0.123393 USDC
+
+# Balances of objects used in these tests
+USDC_OBJECTS_BY_AMOUNT = {
+    # 0xd3baa97a46a20d65f1be60cbaa160856e6aae5078e16545071e2fd3e314105b9 USDC  100023 (0.100023 USDC)
+    100023: {
+        'obj': 'AAMH26NGcuMMsGWx+T46tVMYdo/W/vZsFZQsn3y4RuL5AOcEdXNkYwRVU0RDAAF2L6QdAAAAACjTuql6RqINZfG+YMuqFghW5qrlB44WVFBx4v0+MUEFubeGAQAAAAAAAA8vjdSeJp2gZvN2JNM6i07RsmLWpf3ytzW+OfjXxaz1ICV9oiz28QN2+VFgs3VVcob35zoaZgQf5WcAe9gWdNyWoC0UAAAAAAA=',
+        'object_id': '0xd3baa97a46a20d65f1be60cbaa160856e6aae5078e16545071e2fd3e314105b9',
+        'version': 497299318,
+        'digest': 'BWyUBdTBr7uMyQ1nRsQkkB5RXLNL6QWprGaqJ7atMJTC'
+    },
+    # 0x8ba6495be346c1be89e5c35cdabab145ea18990f48f2b0629ff016024c9ded45 USDC  123393 (0.123393 USDC)
+    123393: {
+        'obj': 'AAMH26NGcuMMsGWx+T46tVMYdo/W/vZsFZQsn3y4RuL5AOcEdXNkYwRVU0RDAAE1MqYdAAAAACiLpklb40bBvonlw1zaurFF6hiZD0jysGKf8BYCTJ3tRQHiAQAAAAAAAA8vjdSeJp2gZvN2JNM6i07RsmLWpf3ytzW+OfjXxaz1IOV7R/YfpK7xICsKift4S9G6tE2+t4MyPAX4gSGmkRIYoC0UAAAAAAA=',
+        'object_id': '0x8ba6495be346c1be89e5c35cdabab145ea18990f48f2b0629ff016024c9ded45',
+        'version': 497431093,
+        'digest': '5DEmU82eeP1wJ6L7q8V7bLbAr4Vbjat2XkT3nbf5NmSN'
+    }
+}
 
 FEES            = sui_to_mist(0.00000564)
 FEES_BYTES      = mist_to_bytes(FEES)
@@ -77,3 +97,4 @@ SUI_PACKED_DERIVATION_PATH = pack_derivation_path("m/44'/784'/12345'")
 ### Package this currency configuration in exchange format ###
 
 SUI_CONF = create_currency_config("SUI", "Sui")
+SUI_USDC_CONF = create_currency_config("USDC", "Sui", ("USDC", 6))

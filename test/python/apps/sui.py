@@ -1,10 +1,12 @@
+import base64
 import struct
 import hashlib
 
 from enum import IntEnum
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 from pysui_tx.bcs import Intent, TransactionData, Address, TransactionDataV1, GasData, TransactionExpiration, ObjectReference, Digest
-from pysui_tx.bcs import ProgrammableTransaction, CallArg, Command, SplitCoin, TransferObjects, TransactionKind, Argument, _DIGEST_LENGTH
+from pysui_tx.bcs import ProgrammableTransaction, CallArg, Command, SplitCoin, TransferObjects, TransactionKind, Argument, _DIGEST_LENGTH, ObjectArg
+from apps.sui_utils import USDC_OBJECTS_BY_AMOUNT
 
 from ragger.backend.interface import BackendInterface
 from ragger.logger import get_default_logger
@@ -139,8 +141,77 @@ class SuiClient:
         tx += TransactionData.encode(tx_data)
 
         return tx
+    
+    # Builds a simple transaction for USDC on Sui and returns the raw transaction bytes + object list
+    def build_simple_transaction_with_object_list(self, sender_addr: str, destination: str, send_amount: int, fees: int) -> [bytes, [bytes]]:
+        tx = b''
+        gas_budget = fees
 
-    def sign_transaction(self, path: bytes, txn: Union[str, bytes, bytearray]) -> bytes:
+        # Intent message,
+        # only valid version = 0, scope = 0, app_id = 0 for TransactionData
+        intent_bsc = Intent.encode(Intent.from_list([0,0,0]))
+        tx += intent_bsc
+
+        amount_bytes = list(send_amount.to_bytes(8, byteorder='little'))
+        recepient_addr = list(bytes.fromhex(destination[2:]))
+
+        # Referenced in tx inputs coin object
+        obj_info = USDC_OBJECTS_BY_AMOUNT[send_amount]
+        object_list = [
+            base64.b64decode(obj_info['obj'])
+        ]
+
+        tx_data_v1 = TransactionDataV1(
+            TransactionKind = TransactionKind(
+                "ProgrammableTransaction", ProgrammableTransaction(
+                    Inputs = [
+                        CallArg("Object", ObjectArg(
+                            "ImmOrOwnedObject",  ObjectReference(
+                                ObjectID = Address.from_str(obj_info['object_id']),
+                                SequenceNumber = obj_info['version'],
+                                ObjectDigest = Digest.from_str(obj_info['digest']),
+                            )
+                        )),
+                        CallArg("Pure", amount_bytes),
+                        CallArg("Pure", recepient_addr),
+                    ],
+                    Command = [
+                        Command(
+                            "SplitCoin", SplitCoin(
+                                FromCoin = Argument("Input", 0),
+                                Amount = [Argument("Input", 1)],
+                            ),
+                        ),
+                        Command(
+                            "TransferObjects", TransferObjects(
+                                Objects = [Argument("Result", 0)],
+                                Address = Argument("Input", 2),
+                            ),
+                        ),
+                    ],
+                ),
+            ),
+            Sender = Address.from_str(sender_addr),
+            GasData = GasData(
+                Payment = [ObjectReference(
+                    ObjectID = Address.from_str("0xFEEE"),
+                    SequenceNumber = 6666,
+                    ObjectDigest = Digest.from_bytes(bytes(_DIGEST_LENGTH)),
+                )],
+                Owner = Address.from_str(sender_addr),
+                Price = 1,
+                Budget = gas_budget,
+            ),
+            TransactionExpiration = TransactionExpiration("None"),
+        )
+
+        tx_data = TransactionData("V1", tx_data_v1)
+        tx += TransactionData.encode(tx_data)
+
+        return [tx, object_list]
+
+
+    def sign_transaction(self, path: bytes, txn: Union[str, bytes, bytearray], object_list: Optional[list[bytes]] = None) -> bytes:
         """
         Sign a transaction with the key at a BIP32 path.
 
@@ -154,6 +225,9 @@ class SuiClient:
         else:
             raw_txn = bytes(txn)
 
+        if object_list is None:
+            object_list = []
+
         # Transaction payload: length (uint32le) + raw transaction bytes
         hash_size = struct.pack("<I", len(raw_txn))
 
@@ -164,8 +238,22 @@ class SuiClient:
         payload_txn = hash_size + raw_txn
         self.log("Payload Txn 0x%s", payload_txn.hex())
 
+        num_items = len(object_list).to_bytes(4, byteorder='little')  # First byte is number of items
+        list_data = bytearray(num_items)
+
+        # Add each item with its length prefix
+        for item in object_list:
+            item_len = len(item).to_bytes(4, byteorder='little')  # Length of each item
+            list_data.extend(item_len)
+            list_data.extend(item)
+
+        if len(object_list) > 0:
+            payload = [payload_txn, bip32_key_payload, bytes(list_data)]
+        else:
+            payload = [payload_txn, bip32_key_payload]
+
         ## Send payloads in blocks
-        signature = self.send_with_blocks(CLA, INS.SIGN_TX, P1, P2, [payload_txn, bip32_key_payload])
+        signature = self.send_with_blocks(CLA, INS.SIGN_TX, P1, P2, payload)
         return signature
 
     def send_with_blocks(
