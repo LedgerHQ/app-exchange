@@ -14,6 +14,7 @@ from .utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes
 # When adding a new test, have it prefixed by this string in order to have it automatically parametrized for currencies tests
 TEST_METHOD_PREFIX="perform_test_"
 
+# Ethereum currency configuration
 from .ethereum import ETH_CONF, ETH_PACKED_DERIVATION_PATH
 ETH_CURRENCY_CONFIGURATION = cal_helper.CurrencyConfiguration(ticker="ETH", conf=ETH_CONF, packed_derivation_path=ETH_PACKED_DERIVATION_PATH)
 
