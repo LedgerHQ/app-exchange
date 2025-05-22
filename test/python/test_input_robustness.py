@@ -1,9 +1,9 @@
 from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.backend import RaisePolicy
 
-from .ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand, Errors, Command
-from .ledger_app_clients.exchange.transaction_builder import get_partner_curve, craft_and_sign_tx
-from .ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
+from ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand, Errors, Command
+from ledger_app_clients.exchange.transaction_builder import get_partner_curve, craft_and_sign_tx
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps.tezos import encode_address
 from .apps import cal as cal
 

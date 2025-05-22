@@ -5,8 +5,8 @@ from ragger.bip import pack_derivation_path
 from ragger.backend import BackendInterface
 from ragger.firmware import Firmware
 
-from .ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
-from .ledger_app_clients.exchange.navigation_helper import ExchangeNavigationHelper
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
+from ledger_app_clients.exchange.navigation_helper import ExchangeNavigationHelper
 from .apps.cardano import CardanoClient, Errors
 from .apps.cardano import ADA_BYRON_DERIVATION_PATH, ADA_SHELLEY_DERIVATION_PATH
 from .apps import cal as cal

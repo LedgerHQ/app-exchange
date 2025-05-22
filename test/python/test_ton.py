@@ -13,7 +13,7 @@ from .apps.ton_utils import check_signature_validity
 #   tonsdk.boc.Cell cannot handle exotic cell but this is required in order to compute jetton wallet address.
 from pytoniq_core import Address, Cell, begin_cell
 
-from .ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
 from .apps.ton import DEVICE_PUBLIC_KEY, Bounceability, WorkchainID, craft_address, SW_SWAP_FAILURE, TON_DERIVATION_PATH
 from .apps import cal as cal
 

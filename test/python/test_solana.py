@@ -2,7 +2,7 @@ import pytest
 import struct
 from ragger.error import ExceptionRAPDU
 
-from .ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
 from .apps.solana import SolanaClient, ErrorType
 from .apps.solana_cmd_builder import SystemInstructionTransfer, ComputeBudgetInstructionSetComputeUnitLimit, ComputeBudgetInstructionSetComputeUnitPrice, verify_signature
 from .apps.solana_cmd_builder import Message as MessageCustom

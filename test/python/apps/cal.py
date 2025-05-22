@@ -1,4 +1,4 @@
-from ..ledger_app_clients.exchange.cal_helper import CurrencyConfiguration 
+from ledger_app_clients.exchange.cal_helper import CurrencyConfiguration 
 
 from .sui_utils import SUI_CONF, SUI_PACKED_DERIVATION_PATH, SUI_USDC_CONF
 

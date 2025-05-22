@@ -1,7 +1,7 @@
 import pytest
 
-from .ledger_app_clients.exchange.client import PayinExtraDataID
-from .ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
+from ledger_app_clients.exchange.client import PayinExtraDataID
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO
 from .apps.bitcoin import BitcoinClient, BitcoinErrors
 from .apps import cal as cal
 from ledger_bitcoin import WalletPolicy

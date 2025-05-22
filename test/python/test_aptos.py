@@ -1,6 +1,6 @@
 import pytest
 
-from .ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
 from .apps import cal as cal
 from .apps.aptos import AptosCommandSender, Errors
 

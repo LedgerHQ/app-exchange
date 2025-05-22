@@ -3,11 +3,11 @@ from ragger.utils import prefix_with_len
 from ragger.utils import RAPDU
 from ragger.error import ExceptionRAPDU
 
-from .ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand, Errors
+from ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand, Errors
 from .apps.litecoin import LitecoinClient
 
-from .ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
-from .ledger_app_clients.exchange.transaction_builder import get_partner_curve, craft_and_sign_tx, SubCommand, get_credentials
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
+from ledger_app_clients.exchange.transaction_builder import get_partner_curve, craft_and_sign_tx, SubCommand, get_credentials
 from .apps import cal as cal
 
 CURRENCY_FROM = cal.ETH_CURRENCY_CONFIGURATION
