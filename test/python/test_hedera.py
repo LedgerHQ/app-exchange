@@ -3,7 +3,7 @@ from ragger.backend import BackendInterface
 
 from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
 from .apps import cal as cal
-from .apps.hedera import HederaClient
+from .apps.hedera import HederaClient, PUBLIC_KEY_LENGTH, HEDERA_PUBLIC_KEY
 from .apps.hedera_builder import crypto_transfer_hbar_conf, crypto_create_account_conf, hedera_transaction
 from time import sleep
 from enum import IntEnum
@@ -40,6 +40,7 @@ class HederaTests(ExchangeTestRunner):
     def perform_final_tx(self, destination, send_amount, fees, memo):
         hedera = HederaClient(self.backend)
 
+        # Create the transaction configuration
         conf = crypto_transfer_hbar_conf(
             sender_shardNum=57,
             sender_realmNum=58,
@@ -49,16 +50,51 @@ class HederaTests(ExchangeTestRunner):
             recipient_accountNum=int(destination.split(".")[2]),
             amount=send_amount,
         )
-        with hedera.send_sign_transaction(
-            index=123321,
-            operator_shard_num=1,
-            operator_realm_num=2,
-            operator_account_num=3,
+        
+        # Use index 12345 for signing
+        index = 12345
+        
+        # The operator parameters for the transaction
+        operator_shard_num = 1
+        operator_realm_num = 2
+        operator_account_num = 3
+        test_memo = "this_is_the_memo"
+        
+
+        public_key = bytes.fromhex(HEDERA_PUBLIC_KEY)
+        
+        # Create the transaction
+        transaction = hedera_transaction(
+            operator_shard_num=operator_shard_num,
+            operator_realm_num=operator_realm_num,
+            operator_account_num=operator_account_num,
             transaction_fee=fees,
-            memo="this_is_the_memo",
+            memo=test_memo,
             conf=conf,
-        ):
-            pass
+        )
+        
+        # Prepare the full payload (index + transaction)
+        transaction_to_sign = index.to_bytes(4, "little") + transaction
+        
+        # Sign the transaction
+        signature = hedera.sign_transaction(
+            index=index,
+            operator_shard_num=operator_shard_num,
+            operator_realm_num=operator_realm_num,
+            operator_account_num=operator_account_num,
+            transaction_fee=fees,
+            memo=test_memo,
+            conf=conf,
+        )
+        
+        if not signature or len(signature) == 0:
+            return
+        
+        # Verify the signature
+        signature_valid = hedera.verify_signature(public_key, transaction_to_sign, signature)
+        assert signature_valid, "Signature verification failed"
+
+
 
 class TestsHedera:
 
