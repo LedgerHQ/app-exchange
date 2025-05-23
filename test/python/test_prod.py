@@ -10,7 +10,7 @@ from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDG
 
 # Navigate in the main menu
 @pytest.mark.needs_setup('prod_build')
-def test_menu(firmware, navigator, test_name, default_screenshot_path):
+def test_menu(firmware, navigator, test_name, snapshots_path):
     if firmware.device.startswith("nano"):
         instructions = [
             NavInsID.RIGHT_CLICK,
@@ -22,7 +22,7 @@ def test_menu(firmware, navigator, test_name, default_screenshot_path):
             NavInsID.USE_CASE_HOME_SETTINGS,
             NavInsID.USE_CASE_SETTINGS_MULTI_PAGE_EXIT,
         ]
-    navigator.navigate_and_compare(default_screenshot_path,
+    navigator.navigate_and_compare(snapshots_path,
 								   test_name,
 								   instructions,
                                    screen_change_before_first_instruction=False)
