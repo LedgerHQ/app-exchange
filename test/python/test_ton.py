@@ -13,7 +13,7 @@ from .apps.ton_utils import check_signature_validity
 #   tonsdk.boc.Cell cannot handle exotic cell but this is required in order to compute jetton wallet address.
 from pytoniq_core import Address, Cell, begin_cell
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
+from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
 from .apps.ton import DEVICE_PUBLIC_KEY, Bounceability, WorkchainID, craft_address, SW_SWAP_FAILURE, TON_DERIVATION_PATH
 from .apps import cal as cal
 
@@ -47,6 +47,7 @@ class TonTests(ExchangeTestRunner):
     wrong_method_error_code = SW_SWAP_FAILURE
     wrong_destination_error_code = SW_SWAP_FAILURE
     wrong_amount_error_code = SW_SWAP_FAILURE
+    wrong_fees_error_code = SW_SWAP_FAILURE
 
     # The perform_final_tx() function will be called by the ExchangeTestRunner class to finalize a
     # TON payment if needed by the test.
@@ -148,13 +149,13 @@ class TonUSDTTests(TonTests):
 class TestsTon:
 
     # Paremetrize the test_ton function with all the ExchangeTestRunner tests to run
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
     def test_ton(self, backend, exchange_navigation_helper, test_to_run):
         if backend.firmware.device == "nanos":
             pytest.skip("Ton swap is not supported on NanoS device")
         TonTests(backend, exchange_navigation_helper).run_test(test_to_run)
 
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
     def test_ton_usdt(self, backend, exchange_navigation_helper, test_to_run):
         if backend.firmware.device == "nanos":
             pytest.skip("Ton swap is not supported on NanoS device")
