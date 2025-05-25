@@ -52,7 +52,7 @@ class TestRejection:
     @pytest.mark.parametrize("subcommand", NEW_SUBCOMMANDS)
     def test_rejection(self, backend, exchange_navigation_helper, subcommand):
         # Add a "_fund" / "_sell" / "_swap" suffix to the snapshot directory
-        suffix = "_" + str(subcommand).split('.')[1].split('_')[0].lower()
+        suffix = "_" + subcommand.name.split('_')[0].lower()
         exchange_navigation_helper.set_test_name_suffix(suffix)
 
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
