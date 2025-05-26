@@ -164,6 +164,15 @@ on:
         default: 'LedgerHQ/app-boilerplate'
         type: string
 
+      branch_for_hedera:
+        required: false
+        default: 'feature/swap'
+        type: string
+      repo_for_hedera:
+        required: false
+        default: 'blockydevs/app-hedera'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -238,6 +247,9 @@ jobs:
           - name: APTOS
             repo: ${{ inputs.repo_for_aptos }}
             branch: ${{ inputs.branch_for_aptos }}
+          - name: hedera
+            repo: ${{ inputs.repo_for_hedera }}
+            branch: ${{ inputs.branch_for_hedera }}
           - name: boilerplate
             repo: ${{ inputs.repo_for_bol }}
             branch: ${{ inputs.branch_for_bol }}
