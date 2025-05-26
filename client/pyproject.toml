@@ -10,3 +10,9 @@ dependencies = [
     "ragger",
     "cryptography"
 ]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"ledger_app_clients.exchange.pki" = ["trusted_name.pem"]
