@@ -1,0 +1,92 @@
+name: Reusable swap functional tests
+
+on:
+  workflow_call:
+    inputs:
+      branch_for_exchange:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_exchange:
+        required: false
+        default: 'LedgerHQ/app-exchange'
+        type: string
+
+      branch_for_ethereum:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_ethereum:
+        required: false
+        default: 'LedgerHQ/app-ethereum'
+        type: string
+      
+      test_filter:
+        required: false
+        default: '""'
+        type: string
+
+      regenerate_snapshots:
+        description: 'Clean snapshots, regenerate them, commit the changes in a branch, and open a PR'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build_sideloaded_ethereum:
+    name: Build Ethereum as a library
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
+    with:
+      app_repository: ${{ inputs.repo_for_ethereum }}
+      app_branch_name: ${{ inputs.branch_for_ethereum }}
+      # Set the coin variant to build with COIN or CHAIN depending on the app + flags for ETH compilation
+      # As a rule of thumb we don't care about giving unexisting flags to other apps, it has no effect
+      flags: "COIN=ethereum CHAIN=ethereum CAL_TEST_KEY=1 DOMAIN_NAME_TEST_KEY=1 SET_PLUGIN_TEST_KEY=1 NFT_TEST_KEY=1 TRUSTED_NAME_TEST_KEY=1"
+      upload_app_binaries_artifact: libraries_binaries-ethereum
+      upload_as_lib_artifact: ethereum
+      builder: ledger-app-builder
+
+  build_sideloaded_application:
+    name: Build coin app as a library
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
+    with:
+      upload_app_binaries_artifact: libraries_binaries-app
+      upload_as_lib_artifact: app
+      builder: ledger-app-builder
+
+
+  merge_libraries_build:
+    name: Merge built libraries
+    needs: 
+      - build_sideloaded_application
+      - build_sideloaded_ethereum
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: libraries_binaries
+          pattern: libraries_binaries-*
+          delete-merged: true
+
+  build_exchange_application:
+    name: Build Exchange
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
+    with:
+      app_repository: ${{ inputs.repo_for_exchange }}
+      app_branch_name: ${{ inputs.branch_for_exchange }}
+      flags: "TESTING=1 TEST_PUBLIC_KEY=1 TRUSTED_NAME_TEST_KEY=1 DEBUG=1"
+      upload_app_binaries_artifact: exchange_binaries
+
+  ragger_tests:
+    name: Run ragger tests
+    needs:
+      - build_exchange_application
+      - merge_libraries_build
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_ragger_tests.yml@v1
+    with:
+      app_repository: ${{ inputs.repo_for_exchange }}
+      app_branch_name: ${{ inputs.branch_for_exchange }}
+      download_app_binaries_artifact: exchange_binaries
+      lib_binaries_artifact: libraries_binaries
+      test_filter: ${{ inputs.test_filter }}
+      regenerate_snapshots: ${{ inputs.regenerate_snapshots }}
