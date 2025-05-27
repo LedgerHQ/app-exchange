@@ -86,21 +86,27 @@ static int trusted_name_descriptor_handler_internal(const command_t *cmd) {
            tlv_output.address.size,
            tlv_output.address.ptr);
 
+    bool applied = false;
     PRINTF("Checking against PAYOUT address %.*H\n",
            sizeof(G_swap_ctx.swap_transaction.payout_address),
            G_swap_ctx.swap_transaction.payout_address);
-    apply_trusted_name(G_swap_ctx.swap_transaction.payout_address,
-                       sizeof(G_swap_ctx.swap_transaction.payout_address),
-                       &tlv_output.trusted_name,
-                       &tlv_output.address);
+    applied |= apply_trusted_name(G_swap_ctx.swap_transaction.payout_address,
+                                  sizeof(G_swap_ctx.swap_transaction.payout_address),
+                                  &tlv_output.trusted_name,
+                                  &tlv_output.address);
 
     PRINTF("Checking against REFUND address %.*H\n",
            sizeof(G_swap_ctx.swap_transaction.refund_address),
            G_swap_ctx.swap_transaction.refund_address);
-    apply_trusted_name(G_swap_ctx.swap_transaction.refund_address,
-                       sizeof(G_swap_ctx.swap_transaction.refund_address),
-                       &tlv_output.trusted_name,
-                       &tlv_output.address);
+    applied |= apply_trusted_name(G_swap_ctx.swap_transaction.refund_address,
+                                  sizeof(G_swap_ctx.swap_transaction.refund_address),
+                                  &tlv_output.trusted_name,
+                                  &tlv_output.address);
+
+    if (!applied) {
+        PRINTF("Error: descriptor has not been applied on either REFUND nor PAYOUT addresses\n");
+        return reply_error(DESCRIPTOR_NOT_USED);
+    }
 
     return reply_success();
 }

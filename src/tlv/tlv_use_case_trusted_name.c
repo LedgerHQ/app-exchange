@@ -244,7 +244,7 @@ static tlv_trusted_name_status_t verify_struct(const tlv_extracted_t *tlv_extrac
                                  TAG_SIGNER_KEY_ID,
                                  TAG_SIGNER_ALGORITHM,
                                  TAG_DER_SIGNATURE)) {
-        PRINTF("Error: missing required fields in struct version 2\n");
+        PRINTF("Error: missing required fields in struct version 3\n");
         return TLV_TRUSTED_NAME_MISSING_TAG;
     }
 
@@ -258,7 +258,7 @@ static tlv_trusted_name_status_t verify_struct(const tlv_extracted_t *tlv_extrac
     tlv_extracted->output->not_valid_after_received =
         TLV_CHECK_RECEIVED_TAGS(tlv_extracted->received_tags, TAG_NOT_VALID_AFTER);
 
-    if (tlv_extracted->output->version == 0 || tlv_extracted->output->version > 2) {
+    if (tlv_extracted->output->version == 0 || tlv_extracted->output->version > 3) {
         PRINTF("Error: unsupported struct version %d\n", tlv_extracted->output->version);
         return TLV_TRUSTED_NAME_UNKNOWN_VERSION;
     }
