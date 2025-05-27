@@ -26,6 +26,8 @@ Please look at the [sequence diagram](./diagram.md) to know more about the APDUs
 | CHECK_PARTNER                     | 0x05  | Check that the credentials of the exchange partner are signed by the Ledger key                     |
 | PROCESS_TRANSACTION_RESPONSE      | 0x06  | Receive the transaction proposal from the exchange partner                                          |
 | CHECK_TRANSACTION_SIGNATURE       | 0x07  | Check that the transaction proposal is signed by the exchange partner                               |
+| GET_CHALLENGE                     | 0x10  | Optional: Retrieve the current challenge value for the TLV trusted descriptor feature               |
+| SEND_TRUSTED_NAME_DESCRIPTOR      | 0x11  | Optional: Provide a TLV trusted descriptor                                                          |
 | CHECK_ASSET_IN_LEGACY_AND_DISPLAY | 0x08  | Format the amounts and fees used and prompts screen review (FUND_LEGACY and SELL_LEGACY flows only) |
 | CHECK_ASSET_IN_AND_DISPLAY        | 0x0B  | Format the amounts and fees used and prompts screen review (FUND based and SELL based flows)        |
 | CHECK_ASSET_IN_NO_DISPLAY         | 0x0D  | Format the amounts and fees used. (FUND based and SELL based flows only)                            |
@@ -178,6 +180,16 @@ With the possible values for the format being 0x00 for Bytes Array (no encoding)
 
 The DATA of this command may exceed the capacity of a single APDU (255 bytes), in this case use the EXTENSION feature.
 
+#### GET_CHALLENGE
+
+Retrieve the current challenge value for the TLV trusted descriptor feature.
+
+It will be regenerated on application side following a SEND_TRUSTED_NAME_DESCRIPTOR command (successful or not).
+
+#### SEND_TRUSTED_NAME_DESCRIPTOR
+
+Provide a TLV trusted descriptor from the CAL to apply a trusted value upon the refund or payout address.
+
 #### CHECK_TRANSACTION_SIGNATURE
 
 ##### For all LEGACY TYPES, the data for this command is:
@@ -311,6 +323,10 @@ For TYPE SWAP_LEGACY, the format of this nonce is a 10 char array.
 
 For all other TYPES, the format of this nonce is a 32 bytes array.
 
+#### GET_CHALLENGE
+
+The current challenge value in u32 format.
+
 ### Return code
 
 Return code can be one of the following values:
@@ -331,10 +347,15 @@ Return code can be one of the following values:
 | 0x6A8B | AMOUNT_FORMATTING_FAILED     | A child application failed to format an amount provided by the partner                  |
 | 0x6A8C | APPLICATION_NOT_INSTALLED    | The requested child application is not installed on the device                          |
 | 0x6A8D | WRONG_EXTRA_ID_OR_EXTRA_DATA | The values given for extra_id (memo) and / or extra_data (Thorswap like) are incorrect  |
+| 0x6A8E | WRONG_TLV_CHALLENGE          | The challenge provided in the descriptor does not match the challenge generated         |
+| 0x6A8F | WRONG_TLV_CONTENT            | The content of the descriptor does not fit the Exchange use case specification          |
+| 0x6A90 | MISSING_TLV_CONTENT          | The descriptor is missing requirement tags                                              |
+| 0x6A91 | WRONG_TRUSTED_NAME_TLV       | The content of the descriptor does not fit the common descriptor specification          |
 | 0x6E00 | CLASS_NOT_SUPPORTED          | The CLASS is not 0xE0                                                                   |
 | 0x6E01 | MALFORMED_APDU               | The APDU header is malformed                                                            |
 | 0x6E02 | INVALID_DATA_LENGTH          | The length of the DATA is refused for this COMMAND                                      |
 | 0x6D00 | INVALID_INSTRUCTION          | COMMAND is not in the "Possible commands" table                                         |
 | 0x6D01 | UNEXPECTED_INSTRUCTION       | COMMAND is in the "Possible commands" table but is refused in the current context       |
+| 0x6D02 | DESCRIPTOR_NOT_USED          | The received descriptor could not be applied to refund nor payout address               |
 | 0x9D1A | SIGN_VERIFICATION_FAIL       | The signature sent by this command does not match the data or the associated public key |
 | 0x9000 | SUCCESS                      | Success code                                                                            |

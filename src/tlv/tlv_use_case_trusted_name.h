@@ -8,7 +8,7 @@
 // SDK implementation of the following specification
 // https://ledgerhq.atlassian.net/wiki/spaces/TrustServices/pages/3736863735/LNS+Arch+Nano+Trusted+Names+Descriptor+Format+APIs#TLV-description
 
-#define TRUSTED_NAME_STRINGS_MAX_SIZE 44
+#define TRUSTED_NAME_STRINGS_MAX_SIZE 64
 #define NFT_ID_SIZE                   32
 
 #define SEMVER_SIZE 3

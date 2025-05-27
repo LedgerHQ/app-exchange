@@ -82,7 +82,7 @@ class TestTrustedName:
 
     @pytest.mark.parametrize("subcommand", [SubCommand.SWAP, SubCommand.SWAP_NG])
     @pytest.mark.parametrize("field_to_test", ["payout_address", "refund_address"])
-    @pytest.mark.parametrize("value", [b"0xcafedeca", b"f" * 44])
+    @pytest.mark.parametrize("value", [b"0xcafedeca", b"f" * 64])
     def test_trusted_name_valid(self, backend, subcommand, field_to_test, value):
         if subcommand == SubCommand.SWAP and len(value) > 50:
             pytest.skip("Can't test max address value on legacy flows")
@@ -106,6 +106,23 @@ class TestTrustedName:
         ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, trusted_name=temp_address, address=actual_address)
         ex.check_payout_address(CURRENCY_TO.get_conf_for_ticker())
         ex.check_refund_address_no_display(CURRENCY_FROM.get_conf_for_ticker())
+
+    def test_trusted_name_no_match(self, backend):
+        ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP_NG)
+        partner = SigningAuthority(curve=get_partner_curve(SubCommand.SWAP_NG), name="Name")
+        transaction_id = ex.init_transaction().data
+        credentials = get_credentials(SubCommand.SWAP_NG, partner)
+        ex.set_partner_key(credentials)
+        ex.check_partner_key(LEDGER_SIGNER.sign(credentials))
+
+        tx, tx_signature = craft_and_sign_tx(SubCommand.SWAP_NG, TX_INFOS[SubCommand.SWAP_NG], transaction_id, FEES, partner)
+        ex.process_transaction(tx)
+        ex.check_transaction_signature(tx_signature)
+
+        challenge = ex.get_challenge().data
+        with pytest.raises(ExceptionRAPDU) as e:
+            ex.send_pki_certificate_and_trusted_name_descriptor(challenge=challenge, trusted_name=b"0xcafedeca", address=b"0xcafedeca")
+        assert e.value.status == Errors.DESCRIPTOR_NOT_USED
 
     @pytest.mark.parametrize("subcommand", [SubCommand.SELL, SubCommand.SELL_NG, SubCommand.FUND, SubCommand.FUND_NG])
     def test_trusted_name_invalid_subcommand(self, backend, subcommand):
