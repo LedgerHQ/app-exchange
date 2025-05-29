@@ -175,7 +175,7 @@ proto:
 	make -C ledger-nanopb/generator/proto
 	protoc --nanopb_out=. src/proto/protocol.proto --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
 	protoc --python_out=. src/proto/protocol.proto
-	mv src/proto/protocol_pb2.py test/python/apps/pb/exchange_pb2.py
+	mv src/proto/protocol_pb2.py client/src/ledger_app_clients/exchange/pb/exchange_pb2.py
 
 ########################################
 
