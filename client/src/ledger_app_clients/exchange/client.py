@@ -72,6 +72,7 @@ class Errors(IntEnum):
     INVALID_DATA_LENGTH          = 0x6E02
     INVALID_INSTRUCTION          = 0x6D00
     UNEXPECTED_INSTRUCTION       = 0x6D01
+    DESCRIPTOR_NOT_USED          = 0x6D02
     SIGN_VERIFICATION_FAIL       = 0x9D1A
     SUCCESS                      = 0x9000
 
@@ -174,7 +175,7 @@ class ExchangeClient:
 
     def send_trusted_name_descriptor(self,
                                      structure_type: Optional[int] = 3,
-                                     version: Optional[int] = 2,
+                                     version: Optional[int] = 3,
                                      trusted_name_type: Optional[int] = 0x06,
                                      trusted_name_source: Optional[int] = 0x06,
                                      trusted_name: Optional[bytes] = b"Whatever",
@@ -221,7 +222,7 @@ class ExchangeClient:
 
     def send_pki_certificate_and_trusted_name_descriptor(self,
                                                          structure_type: Optional[int] = 3,
-                                                         version: Optional[int] = 2,
+                                                         version: Optional[int] = 3,
                                                          trusted_name_type: Optional[int] = 0x06,
                                                          trusted_name_source: Optional[int] = 0x06,
                                                          trusted_name: Optional[bytes] = b"Whatever",
