@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ledger_app_clients.exchange"
 description = "Ledger Exchange Python client"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
     { name = "Ledger", email = "hello@ledger.fr" }
 ]
@@ -23,6 +23,7 @@ Issues = "https://github.com/LedgerHQ/app-exchange/issues"
 
 [tool.setuptools]
 include-package-data = true
+license-files = []
 
 [tool.setuptools.package-data]
 "ledger_app_clients.exchange.pki" = ["trusted_name.pem"]
