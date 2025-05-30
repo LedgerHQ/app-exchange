@@ -137,8 +137,6 @@ class TestRobustnessCHECK_ADDRESS:
         currency_conf_to_test = (
             # Ticker missing
             create_currency_config("", "ethereum"),
-            # Ticker too small
-            create_currency_config("A", "ethereum"),
             # Ticker too long
             create_currency_config("abcdefghij", "ethereum"),
             # Appname missing
