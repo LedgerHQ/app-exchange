@@ -60,14 +60,14 @@ jobs:
               echo "Package '${PIP_VERSION}' and tag '${TAG_VERSION}' versions mismatch!";
               exit 1;
           fi
-          
+
   package_and_deploy:
-      name: Build and deploy the Exchange Python package
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/client-')
-      needs: [build_and_check]
-      uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_pypi_deployment.yml@v1
-      with:
-        package_name: ledger_app_clients.exchange
-        publish: ${{ startsWith(github.ref, 'refs/tags/') }}
+    name: Build and deploy the Exchange Python package
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/client-')
+    needs: [build_and_check]
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_pypi_deployment.yml@v1
+    with:
+      package_name: ledger_app_clients.exchange
+      publish: ${{ startsWith(github.ref, 'refs/tags/') }}
       secrets:
         pypi_token: ${{ secrets.PYPI_PUBLIC_API_TOKEN  }}
