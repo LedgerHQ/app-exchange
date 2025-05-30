@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ledger_app_clients.exchange"
 description = "Ledger Exchange Python client"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
     { name = "Ledger", email = "hello@ledger.fr" }
 ]
