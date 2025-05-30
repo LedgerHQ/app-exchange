@@ -18,8 +18,8 @@ on:
       - .github/workflows/python-client.yml
 
 jobs:
-  package_and_deploy:
-    name: Build and deploy Exchange Client Python package
+  build_and_check:
+    name: Build
     runs-on: ubuntu-latest
     steps:
 
@@ -35,7 +35,7 @@ jobs:
           python -m build;
           pip install .;
 
-      - name: Check version against CHANGELOG
+      - name: Check package version against CHANGELOG
         run: |
           CHANGELOG_VERSION=$(grep -Po '(?<=## \[)(\d+\.)+[^\]]' client/CHANGELOG.md | head -n 1)
           PIP_VERSION=$(pip show ledger_app_clients.exchange | grep Version | awk '{print $2}')
@@ -47,20 +47,27 @@ jobs:
               echo "Package '${PIP_VERSION}' and CHANGELOG '${CHANGELOG_VERSION}' versions mismatch!";
               exit 1;
           fi
-
-      - name: Publish Python package on test.pypi.org
-        if: success() && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/client-')
-          # Check that the tag after "client-" matches CHANGELOG_VERSION
-          # Extract tag version and compare with CHANGELOG_VERSION
+      - name: Check tag version against package version
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/client-')
         run: |
           TAG_VERSION="${GITHUB_REF#refs/tags/client-}"
-          CHANGELOG_VERSION=$(grep -Po '(?<=## \[)(\d+\.)+[^\]]' client/CHANGELOG.md | head -n 1)
-          if [ "$TAG_VERSION" != "$CHANGELOG_VERSION" ]; then
-            echo "Tag version '$TAG_VERSION' does not match CHANGELOG version '$CHANGELOG_VERSION'"
-            exit 1
+          PIP_VERSION=$(pip show ledger_app_clients.exchange | grep Version | awk '{print $2}')
+          if [ "${PIP_VERSION}" == "${TAG_VERSION}" ];
+          then
+              echo 'Package and tag versions match!';
+              exit 0;
+          else
+              echo "Package '${PIP_VERSION}' and tag '${TAG_VERSION}' versions mismatch!";
+              exit 1;
           fi
-          (cd client && python -m twine upload --repository testpypi --verbose dist/*)
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_PUBLIC_API_TOKEN  }}
-          TWINE_NON_INTERACTIVE: 1
+          
+  package_and_deploy:
+      name: Build and deploy the Exchange Python package
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/client-')
+      needs: [build_and_check]
+      uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_pypi_deployment.yml@v1
+      with:
+        package_name: ledger_app_clients.exchange
+        publish: ${{ startsWith(github.ref, 'refs/tags/') }}
+      secrets:
+        pypi_token: ${{ secrets.PYPI_PUBLIC_API_TOKEN  }}
