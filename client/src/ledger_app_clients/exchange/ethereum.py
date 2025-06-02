@@ -1,3 +1,4 @@
+# All swap tests are performed against ETH so we shall define the ETH configuration here.
 from typing import Optional
 import struct
 from ragger.bip import pack_derivation_path

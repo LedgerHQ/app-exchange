@@ -305,6 +305,9 @@ class ExchangeClient:
 
     def assert_exchange_is_started(self):
         # We don't care at all for the subcommand / rate
+        # TO DO: any other way to check that the exchange app is started?
+        # We just check that the status is 0x9000
+        # but any app which supports the same INS may return 0x9000
         status = self.get_version().status
         assert status == int(0x9000)
         
