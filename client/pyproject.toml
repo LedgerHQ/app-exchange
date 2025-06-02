@@ -1,11 +1,11 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ledger_app_clients.exchange"
 description = "Ledger Exchange Python client"
-version = "0.0.3"
+dynamic = ["version"]
 authors = [
     { name = "Ledger", email = "hello@ledger.fr" }
 ]
@@ -23,7 +23,12 @@ Issues = "https://github.com/LedgerHQ/app-exchange/issues"
 
 [tool.setuptools]
 include-package-data = true
-license-files = []
+
+[tool.setuptools_scm]
+local_scheme = "no-local-version"
+root = "../"
+git_describe_command = "git describe --dirty --tags --long --match client-*[0-9]*"
+fallback_version = "0.0.0"
 
 [tool.setuptools.package-data]
 "ledger_app_clients.exchange.pki" = ["trusted_name.pem"]
