@@ -1,13 +1,12 @@
 import pytest
 from ragger.utils import prefix_with_len
 
-from .apps.exchange import ExchangeClient, Rate, SubCommand
+from ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand
 from .apps.litecoin import LitecoinClient
 
-from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
-from .apps.exchange_transaction_builder import get_partner_curve, craft_and_sign_tx, ALL_SUBCOMMANDS, get_credentials
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
+from ledger_app_clients.exchange.transaction_builder import get_partner_curve, craft_and_sign_tx, ALL_SUBCOMMANDS, get_credentials
 from .apps import cal as cal
-from .utils import handle_lib_call_start_or_stop
 
 CURRENCY_FROM = cal.LTC_CURRENCY_CONFIGURATION
 CURRENCY_TO = cal.ETH_CURRENCY_CONFIGURATION
@@ -55,7 +54,7 @@ TX_INFOS = {
 
 @pytest.mark.parametrize("subcommand", ALL_SUBCOMMANDS)
 def test_ltc(backend, exchange_navigation_helper, subcommand):
-    suffix = "_" + str(subcommand).split('.')[1].split('_')[0].lower()
+    suffix = "_" + subcommand.get_operation
     exchange_navigation_helper.set_test_name_suffix(suffix)
 
     ex = ExchangeClient(backend, Rate.FIXED, subcommand)

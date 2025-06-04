@@ -3,18 +3,22 @@ from pathlib import Path
 from ragger.navigator import Navigator, NavInsID
 from ragger.backend import BackendInterface
 
-ROOT_SCREENSHOT_PATH = Path(__file__).parent.parent.resolve()
 
 class ExchangeNavigationHelper:
-    def __init__(self, backend: BackendInterface, navigator: Navigator, test_name: str):
+    def __init__(self, backend: BackendInterface, snapshots_path: Path, navigator: Navigator, test_name: str):
         self._backend = backend
         self._navigator = navigator
+        self._snapshots_path = snapshots_path
         self._test_name = test_name
         self._test_name_suffix = ""
 
     @property
     def snapshots_dir_name(self) -> str:
         return self._test_name + self._test_name_suffix
+
+    @property
+    def snapshots_path(self) -> Path:
+        return self._snapshots_path
 
     def set_test_name_suffix(self, suffix: str):
         self._test_name_suffix = suffix
@@ -43,7 +47,7 @@ class ExchangeNavigationHelper:
         self._navigator.navigate_until_text_and_compare(navigate_instruction=navigate_instruction,
                                                         validation_instructions=validation_instructions,
                                                         text=text,
-                                                        path=ROOT_SCREENSHOT_PATH,
+                                                        path=self._snapshots_path,
                                                         test_case_name=snapshots_dir_name,
                                                         screen_change_after_last_instruction=screen_change_after_last_instruction)
 
@@ -66,7 +70,7 @@ class ExchangeNavigationHelper:
             # Wait for the end of the lib app spinner
             self._backend.wait_for_text_not_on_screen("Signing")
             # We should now be back in exchange with a success or failure modal, check it and dismiss it
-            self._navigator.navigate_and_compare(path=ROOT_SCREENSHOT_PATH,
+            self._navigator.navigate_and_compare(path=self._snapshots_path,
                                                  test_case_name=self.snapshots_dir_name + "/post_sign",
                                                  instructions=[NavInsID.USE_CASE_STATUS_DISMISS],
                                                  screen_change_before_first_instruction=False)

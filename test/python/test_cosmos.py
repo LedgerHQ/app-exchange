@@ -1,6 +1,6 @@
 import pytest
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES, VALID_TESTS_EXCEPT_THORSWAP, ALL_TESTS_EXCEPT_THORSWAP
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES, VALID_TESTS_EXCEPT_THORSWAP, ALL_TESTS_EXCEPT_THORSWAP
 from .apps.cosmos import CosmosClient, Errors
 from .apps import cal as cal
 

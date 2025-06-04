@@ -2,15 +2,14 @@ from base64 import urlsafe_b64encode
 from typing import Optional, Dict, Callable, Iterable, Union
 from enum import Enum, auto, IntEnum
 from dataclasses import dataclass
+
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
-
 from ragger.utils import prefix_with_len
 
 from .pb.exchange_pb2 import NewFundResponse, NewSellResponse, NewTransactionResponse
 from .signing_authority import SigningAuthority
-
-from ..utils import int_to_minimally_sized_bytes, prefix_with_len_custom
+from .utils import int_to_minimally_sized_bytes, prefix_with_len_custom
 
 class SignatureComputation(Enum):
     BINARY_ENCODED_PAYLOAD   = auto()
@@ -36,6 +35,10 @@ class SubCommand(IntEnum):
     SWAP_NG = 0x03
     SELL_NG = 0x04
     FUND_NG = 0x05
+
+    @property
+    def get_operation(self):
+        return self.name.split('_')[0].lower()
 
 SWAP_SUBCOMMANDS = [SubCommand.SWAP, SubCommand.SWAP_NG]
 SELL_SUBCOMMANDS = [SubCommand.SELL, SubCommand.SELL_NG]

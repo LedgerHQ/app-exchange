@@ -50,3 +50,7 @@ test/python/test_raw.py
 site/
 docs/deps/*
 !docs/deps/.doc_dependencies
+
+# Exchange client build artifacts
+client/dist/
+client/src/ledger_app_clients.exchange.egg-info/

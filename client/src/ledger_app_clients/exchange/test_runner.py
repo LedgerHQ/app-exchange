@@ -5,15 +5,18 @@ from ragger.backend import RaisePolicy
 from ragger.utils import RAPDU
 from ragger.error import ExceptionRAPDU
 
-from .exchange import ExchangeClient, Rate, SubCommand, Errors
-from .exchange_transaction_builder import get_partner_curve, get_credentials, craft_and_sign_tx
-from . import cal as cal
+from .client import ExchangeClient, Rate, SubCommand, Errors
+from .transaction_builder import get_partner_curve, get_credentials, craft_and_sign_tx
+from . import cal_helper as cal_helper
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
-
-from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes
+from .utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes
 
 # When adding a new test, have it prefixed by this string in order to have it automatically parametrized for currencies tests
 TEST_METHOD_PREFIX="perform_test_"
+
+# Ethereum currency configuration
+from .ethereum import ETH_CONF, ETH_PACKED_DERIVATION_PATH
+ETH_CURRENCY_CONFIGURATION = cal_helper.CurrencyConfiguration(ticker="ETH", conf=ETH_CONF, packed_derivation_path=ETH_PACKED_DERIVATION_PATH)
 
 # Exchange tests helpers, create a child of this class that define coin-specific elements and call its tests entry points
 class ExchangeTestRunner:
@@ -164,7 +167,7 @@ class ExchangeTestRunner:
             "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
             "payout_extra_id": b"", # Default
             "currency_from": self.currency_configuration.ticker,
-            "currency_to": cal.ETH_CURRENCY_CONFIGURATION.ticker,
+            "currency_to": ETH_CURRENCY_CONFIGURATION.ticker,
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
@@ -173,7 +176,7 @@ class ExchangeTestRunner:
         self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
                                      tx_infos=tx_infos,
                                      from_currency_configuration=self.currency_configuration,
-                                     to_currency_configuration=cal.ETH_CURRENCY_CONFIGURATION,
+                                     to_currency_configuration=ETH_CURRENCY_CONFIGURATION,
                                      fees=fees,
                                      ui_validation=ui_validation,
                                      start_application=start_application)
@@ -188,7 +191,7 @@ class ExchangeTestRunner:
             "payout_address": b"0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
             "payout_extra_id": b"",
             "currency_from": self.currency_configuration.ticker,
-            "currency_to": cal.ETH_CURRENCY_CONFIGURATION.ticker,
+            "currency_to": ETH_CURRENCY_CONFIGURATION.ticker,
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
         }
@@ -197,7 +200,7 @@ class ExchangeTestRunner:
         self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
                                      tx_infos=tx_infos,
                                      from_currency_configuration=self.currency_configuration,
-                                     to_currency_configuration=cal.ETH_CURRENCY_CONFIGURATION,
+                                     to_currency_configuration=ETH_CURRENCY_CONFIGURATION,
                                      fees=fees,
                                      ui_validation=ui_validation,
                                      start_application=True)
@@ -210,7 +213,7 @@ class ExchangeTestRunner:
             "refund_extra_id": "", # Default
             "payout_address": destination,
             "payout_extra_id": destination_memo,
-            "currency_from": cal.ETH_CURRENCY_CONFIGURATION.ticker,
+            "currency_from": ETH_CURRENCY_CONFIGURATION.ticker,
             "currency_to": self.currency_configuration.ticker,
             "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
             "amount_to_wallet": b"\246\333t\233+\330\000", # Default
@@ -219,7 +222,7 @@ class ExchangeTestRunner:
             self._alias_payout_address = self.alias_address
         self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
                                      tx_infos=tx_infos,
-                                     from_currency_configuration=cal.ETH_CURRENCY_CONFIGURATION,
+                                     from_currency_configuration=ETH_CURRENCY_CONFIGURATION,
                                      to_currency_configuration=self.currency_configuration,
                                      fees=fees,
                                      ui_validation=ui_validation,

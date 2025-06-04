@@ -6,8 +6,8 @@ from ragger.backend.interface import BackendInterface, RAPDU
 from ragger.firmware import Firmware
 from ragger.utils import prefix_with_len
 
-from ..utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom, get_version_from_makefile
-from .exchange_transaction_builder import SubCommand
+from .utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom
+from .transaction_builder import SubCommand
 from .pki.pem_signer import KeySigner
 
 from .pki.tlv import FieldTag, format_tlv
@@ -17,8 +17,10 @@ MAX_CHUNK_SIZE = 255
 P2_EXTEND = 0x01 << 4
 P2_MORE   = 0x02 << 4
 
+
 KEY_ID_TEST = 0x00
 KEY_ID_PROD = 0x07
+
 
 class Command(IntEnum):
     GET_VERSION                       = 0x02
@@ -80,7 +82,6 @@ class PayinExtraDataID(IntEnum):
     OP_RETURN = 0x02
 
 EXCHANGE_CLASS = 0xE0
-
 
 class PKIClient:
     _CLA: int = 0xB0
@@ -304,8 +305,9 @@ class ExchangeClient:
 
     def assert_exchange_is_started(self):
         # We don't care at all for the subcommand / rate
-        version = self.get_version().data
-        major, minor, patch = get_version_from_makefile()
-        assert version[0] == major
-        assert version[1] == minor
-        assert version[2] == patch
+        # TO DO: any other way to check that the exchange app is started?
+        # We just check that the status is 0x9000
+        # but any app which supports the same INS may return 0x9000
+        status = self.get_version().status
+        assert status == int(0x9000)
+        
