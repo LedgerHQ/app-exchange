@@ -89,7 +89,7 @@ def try_all_commands_for_subcommand_except(ex: ExchangeClient, s: SubCommand, c:
 def test_wrong_flow_order(backend, subcommand, prompt_ui_separately, exchange_navigation_helper):
     # Mutualize new and legacy snapshots. Eg SubCommand.SWAP_NG => "swap"
     # Also mutualize prompt_ui_separately tests
-    suffix = "_" + subcommand.name.split('_')[0].lower()
+    suffix = "_" + subcommand.get_operation
     exchange_navigation_helper.set_test_name_suffix(suffix)
 
     ex = ExchangeClient(backend, Rate.FIXED, subcommand)

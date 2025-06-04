@@ -36,6 +36,10 @@ class SubCommand(IntEnum):
     SELL_NG = 0x04
     FUND_NG = 0x05
 
+    @property
+    def get_operation(self):
+        return self.name.split('_')[0].lower()
+
 SWAP_SUBCOMMANDS = [SubCommand.SWAP, SubCommand.SWAP_NG]
 SELL_SUBCOMMANDS = [SubCommand.SELL, SubCommand.SELL_NG]
 FUND_SUBCOMMANDS = [SubCommand.FUND, SubCommand.FUND_NG]

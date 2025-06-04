@@ -53,7 +53,7 @@ class TestCheckAddressAndDisplay:
 
     @pytest.mark.parametrize("subcommand", [SubCommand.SELL, SubCommand.FUND])
     def test_check_asset_in_legacy_ok(self, backend, exchange_navigation_helper, subcommand):
-        suffix = "_" + subcommand.name.split('_')[0].lower()
+        suffix = "_" + subcommand.get_operation
         exchange_navigation_helper.set_test_name_suffix(suffix)
 
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
@@ -74,7 +74,7 @@ class TestCheckAddressAndDisplay:
 
     @pytest.mark.parametrize("subcommand", [SubCommand.SELL_NG, SubCommand.FUND_NG])
     def test_check_asset_in_legacy_ko(self, backend, exchange_navigation_helper, subcommand):
-        suffix = "_" + subcommand.name.split('_')[0].lower()
+        suffix = "_" + subcommand.get_operation
         exchange_navigation_helper.set_test_name_suffix(suffix)
 
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)

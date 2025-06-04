@@ -55,7 +55,7 @@ class TestRate:
     @pytest.mark.parametrize("subcommand", ALL_SUBCOMMANDS)
     def test_rate(self, backend, subcommand, exchange_navigation_helper):
         # Mutualize new and legacy snapshots. Eg SubCommand.SWAP_NG => "swap"
-        suffix = "_" + subcommand.name.split('_')[0].lower()
+        suffix = "_" + subcommand.get_operation
         exchange_navigation_helper.set_test_name_suffix(suffix)
 
         # Test only FLOATING, all other tests are using FIXED
