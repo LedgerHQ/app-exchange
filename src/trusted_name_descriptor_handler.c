@@ -17,7 +17,7 @@ static bool apply_trusted_name(char *current_address,
                                size_t current_address_size,
                                const buffer_t *trusted_name,
                                const buffer_t *owner) {
-    uint8_t current_length = strlen(current_address);
+    uint8_t current_length = strnlen(current_address, current_address_size);
     if (trusted_name->size == current_length) {
         PRINTF("Checking against current address %.*H\n", current_length, current_address);
         if (memcmp(trusted_name->ptr, current_address, current_length) == 0) {

@@ -10,8 +10,8 @@ from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDG
 
 # Navigate in the main menu
 @pytest.mark.needs_setup('prod_build')
-def test_menu(firmware, navigator, test_name, snapshots_path):
-    if firmware.device.startswith("nano"):
+def test_menu(device, navigator, test_name, snapshots_path):
+    if device.is_nano:
         instructions = [
             NavInsID.RIGHT_CLICK,
             NavInsID.RIGHT_CLICK,
