@@ -215,6 +215,7 @@ class TezosClient:
         payload += bytes.fromhex("00") # storage limit
         payload += SIGNATURE_TYPE.ED25519.to_bytes(1, byteorder='big')
         payload += device_pk # pubkey of the device
+        payload += bytes.fromhex("00") # no proof
 
         # Operation 2 OPERATION_TAG_BABYLON_TRANSACTION
         payload += OPERATION_TAG.OPERATION_TAG_BABYLON_TRANSACTION.to_bytes(1, byteorder='big')
