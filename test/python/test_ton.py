@@ -12,6 +12,7 @@ from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TEST
 from .apps.ton import DEVICE_PUBLIC_KEY, Bounceability, WorkchainID, craft_address, SW_SWAP_FAILURE, TON_DERIVATION_PATH
 from .apps import cal as cal
 
+# --8<-- [start:native_test]
 # ExchangeTestRunner implementation for Ton
 class TonTests(ExchangeTestRunner):
     currency_configuration = cal.TON_CURRENCY_CONFIGURATION
@@ -84,6 +85,7 @@ class TestsTon:
         if backend.firmware.device == "nanos":
             pytest.skip("Polkadot swap is not supported on NanoS device")
         TonTests(backend, exchange_navigation_helper).run_test(test_to_run)
+# --8<-- [end:native_test]
 
     # @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
     # def test_ton_usdt(self, backend, exchange_navigation_helper, test_to_run):
