@@ -166,7 +166,7 @@ on:
 
       branch_for_hedera:
         required: false
-        default: 'feature/swap'
+        default: 'feature/swap-implementation'
         type: string
       repo_for_hedera:
         required: false
