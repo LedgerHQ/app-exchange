@@ -61,9 +61,12 @@ ETH_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ETH", conf=ETH_CONF, 
 BTC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BTC", conf=BTC_CONF, packed_derivation_path=BTC_PACKED_DERIVATION_PATH)
 LTC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="LTC", conf=LTC_CONF, packed_derivation_path=LTC_PACKED_DERIVATION_PATH)
 XLM_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XLM", conf=XLM_CONF, packed_derivation_path=XLM_PACKED_DERIVATION_PATH)
+# --8<-- [start:sol_conf]
+# Solana and Solana tokens
 SOL_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SOL", conf=SOL_CONF, packed_derivation_path=SOL_PACKED_DERIVATION_PATH)
 JUP_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="JUP", conf=JUP_CONF, packed_derivation_path=JUP_PACKED_DERIVATION_PATH)
 SOL_USDC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDC", conf=SOL_USDC_CONF, packed_derivation_path=SOL_USDC_PACKED_DERIVATION_PATH)
+# --8<-- [end:sol_conf]
 XRP_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XRP", conf=XRP_CONF, packed_derivation_path=XRP_PACKED_DERIVATION_PATH)
 XTZ_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XTZ", conf=XTZ_CONF, packed_derivation_path=XTZ_PACKED_DERIVATION_PATH)
 BNB_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BNB", conf=BSC_CONF, packed_derivation_path=BSC_PACKED_DERIVATION_PATH)
