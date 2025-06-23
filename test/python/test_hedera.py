@@ -1,7 +1,7 @@
 import pytest
 from ragger.backend import BackendInterface
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
 from .apps import cal as cal
 from .apps.hedera import HederaClient, PUBLIC_KEY_LENGTH, HEDERA_PUBLIC_KEY
 from .apps.hedera_builder import crypto_transfer_hbar_conf, crypto_create_account_conf, hedera_transaction

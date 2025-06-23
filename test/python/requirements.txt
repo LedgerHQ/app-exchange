@@ -14,3 +14,4 @@ solana
 pysui_tx @ git+https://github.com/Fingolfin69/pysui_tx@main
 aptos-sdk
 hiero_sdk_python
+./client

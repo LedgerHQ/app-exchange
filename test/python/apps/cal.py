@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from ragger.utils import prefix_with_len
 from .sui_utils import SUI_CONF, SUI_PACKED_DERIVATION_PATH, SUI_USDC_CONF
 
-from .signing_authority import SigningAuthority, LEDGER_SIGNER
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
 
 # Eth family
 from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF

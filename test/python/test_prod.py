@@ -4,10 +4,10 @@ from pathlib import Path
 from ragger.navigator import NavInsID, NavIns
 from ragger.error import ExceptionRAPDU
 
-from .apps.exchange_navigation_helper import ROOT_SCREENSHOT_PATH
-from .apps.exchange import ExchangeClient, Rate, Errors
-from .apps.exchange_transaction_builder import get_partner_curve, ALL_SUBCOMMANDS, get_credentials
-from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
+from .apps.solana_utils import ROOT_SCREENSHOT_PATH
+from ledger_app_clients.exchange.client import ExchangeClient, Rate, Errors
+from ledger_app_clients.exchange.transaction_builder import get_partner_curve, ALL_SUBCOMMANDS, get_credentials
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
 
 # Navigate in the main menu
 @pytest.mark.needs_setup('prod_build')
