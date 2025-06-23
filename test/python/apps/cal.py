@@ -2,7 +2,7 @@ from typing import Optional
 from dataclasses import dataclass
 
 from ragger.utils import prefix_with_len
-from .sui_utils import SUI_CONF, SUI_PACKED_DERIVATION_PATH
+from .sui_utils import SUI_CONF, SUI_PACKED_DERIVATION_PATH, SUI_USDC_CONF
 
 from .signing_authority import SigningAuthority, LEDGER_SIGNER
 
@@ -28,7 +28,20 @@ from .cosmos import COSMOS_PACKED_DERIVATION_PATH, COSMOS_CONF
 from .cardano import ADA_BYRON_PACKED_DERIVATION_PATH, ADA_SHELLEY_PACKED_DERIVATION_PATH, ADA_CONF
 from .near import NEAR_PACKED_DERIVATION_PATH, NEAR_CONF
 from .aptos import APTOS_PACKED_DERIVATION_PATH, APTOS_CONF
+from .boilerplate import BOL_PACKED_DERIVATION_PATH, BOL_CONF
 from .hedera import HEDERA_PACKED_DERIVATION_PATH, HEDERA_CONF
+
+# Helper that can be called from outside if we want to generate signature errors easily
+def sign_currency_conf(currency_conf: bytes, overload_signer: Optional[SigningAuthority]=None) -> bytes:
+    if overload_signer is not None:
+        signer = overload_signer
+    else:
+        signer = LEDGER_SIGNER
+
+    return signer.sign(currency_conf)
+
+# Currency configuration class, it contains coin metadata that will help the coin application
+# display and check addresses for the related currency
 
 @dataclass
 class CurrencyConfiguration:
@@ -69,16 +82,7 @@ ADA_BYRON_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_
 ADA_SHELLEY_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_SHELLEY_PACKED_DERIVATION_PATH)
 NEAR_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="NEAR", conf=NEAR_CONF, packed_derivation_path=NEAR_PACKED_DERIVATION_PATH)
 SUI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SUI", conf=SUI_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
+SUI_USDC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDC", conf=SUI_USDC_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
 APTOS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="APT", conf=APTOS_CONF, packed_derivation_path=APTOS_PACKED_DERIVATION_PATH)
+BOL_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BOL", conf=BOL_CONF, packed_derivation_path=BOL_PACKED_DERIVATION_PATH)
 HEDERA_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="HBAR", conf=HEDERA_CONF, packed_derivation_path=HEDERA_PACKED_DERIVATION_PATH)
-
-# Helper that can be called from outside if we want to generate errors easily
-def sign_currency_conf(currency_conf: bytes, overload_signer: Optional[SigningAuthority]=None) -> bytes:
-    if overload_signer is not None:
-        signer = overload_signer
-    else:
-        signer = LEDGER_SIGNER
-
-    return signer.sign(currency_conf)
-
-
