@@ -166,6 +166,7 @@ on:
 
       branch_for_hedera:
         required: false
+        #Only for testing purposes, to test integration with our hedera implementation
         default: 'feature/swap-implementation'
         type: string
       repo_for_hedera:
