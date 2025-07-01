@@ -66,6 +66,17 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
         return INVALID_INSTRUCTION;
     }
 
+    if (instruction == GET_CHALLENGE && (subcommand != SWAP && subcommand != SWAP_NG)) {
+        PRINTF("Instruction GET_CHALLENGE is only for SWAP based flows\n");
+        return INVALID_INSTRUCTION;
+    }
+
+    if (instruction == SEND_TRUSTED_NAME_DESCRIPTOR &&
+        (subcommand != SWAP && subcommand != SWAP_NG)) {
+        PRINTF("Instruction SEND_TRUSTED_NAME_DESCRIPTOR is only for SWAP based flows\n");
+        return INVALID_INSTRUCTION;
+    }
+
     if ((instruction == CHECK_REFUND_ADDRESS_AND_DISPLAY ||
          instruction == CHECK_REFUND_ADDRESS_NO_DISPLAY) &&
         (subcommand != SWAP && subcommand != SWAP_NG)) {
@@ -101,6 +112,14 @@ static uint16_t check_instruction(uint8_t instruction, uint8_t subcommand) {
             break;
         case CHECK_TRANSACTION_SIGNATURE_COMMAND:
             check_current_state = TRANSACTION_RECEIVED;
+            check_subcommand_context = true;
+            break;
+        case GET_CHALLENGE:
+            check_current_state = SIGNATURE_CHECKED;
+            check_subcommand_context = true;
+            break;
+        case SEND_TRUSTED_NAME_DESCRIPTOR:
+            check_current_state = SIGNATURE_CHECKED;
             check_subcommand_context = true;
             break;
         case CHECK_PAYOUT_ADDRESS:
@@ -222,8 +241,7 @@ uint16_t check_apdu_validity(uint8_t *apdu, size_t apdu_length, command_t *comma
     }
     // Split reception is only for PROCESS_TRANSACTION_RESPONSE_COMMAND
     if (instruction != PROCESS_TRANSACTION_RESPONSE_COMMAND && !is_whole_apdu) {
-        PRINTF("Extension %d refused, only allowed for PROCESS_TRANSACTION_RESPONSE instruction\n",
-               extension);
+        PRINTF("Extension %d refused for instruction %d\n", extension, instruction);
         return WRONG_P2_EXTENSION;
     }
 

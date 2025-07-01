@@ -4,9 +4,9 @@ from typing import List, Union
 from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.error import ExceptionRAPDU
 
-from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command, P2_EXTEND, P2_MORE, EXCHANGE_CLASS
-from .apps.exchange_transaction_builder import get_partner_curve, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, get_credentials, craft_and_sign_tx
-from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
+from ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand, Errors, Command, P2_EXTEND, P2_MORE, EXCHANGE_CLASS
+from ledger_app_clients.exchange.transaction_builder import get_partner_curve, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, get_credentials, craft_and_sign_tx
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps import cal as cal
 
 CURRENCY_FROM = cal.ETH_CURRENCY_CONFIGURATION
@@ -59,6 +59,7 @@ def all_commands_for_subcommand_except(s: SubCommand, cs: List[Command]) -> List
            Command.PROMPT_UI_DISPLAY,
            Command.START_SIGNING_TRANSACTION]
     if s == SubCommand.SWAP or s == SubCommand.SWAP_NG:
+        ret += [Command.GET_CHALLENGE, Command.SEND_TRUSTED_NAME_DESCRIPTOR]
         ret += [Command.CHECK_PAYOUT_ADDRESS, Command.CHECK_REFUND_ADDRESS_AND_DISPLAY, Command.CHECK_REFUND_ADDRESS_NO_DISPLAY]
     else:
         ret += [Command.CHECK_ASSET_IN_AND_DISPLAY, Command.CHECK_ASSET_IN_NO_DISPLAY]
@@ -88,7 +89,7 @@ def try_all_commands_for_subcommand_except(ex: ExchangeClient, s: SubCommand, c:
 def test_wrong_flow_order(backend, subcommand, prompt_ui_separately, exchange_navigation_helper):
     # Mutualize new and legacy snapshots. Eg SubCommand.SWAP_NG => "swap"
     # Also mutualize prompt_ui_separately tests
-    suffix = "_" + str(subcommand).split('.')[1].split('_')[0].lower()
+    suffix = "_" + subcommand.get_operation
     exchange_navigation_helper.set_test_name_suffix(suffix)
 
     ex = ExchangeClient(backend, Rate.FIXED, subcommand)
@@ -113,7 +114,7 @@ def test_wrong_flow_order(backend, subcommand, prompt_ui_separately, exchange_na
     ex.check_transaction_signature(tx_signature)
 
     if subcommand == SubCommand.SWAP or subcommand == SubCommand.SWAP_NG:
-        try_all_commands_for_subcommand_except(ex, subcommand, Command.CHECK_PAYOUT_ADDRESS)
+        try_all_commands_for_subcommand_except(ex, subcommand, [Command.CHECK_PAYOUT_ADDRESS, Command.GET_CHALLENGE, Command.SEND_TRUSTED_NAME_DESCRIPTOR])
         ex.check_payout_address(CURRENCY_TO.get_conf_for_ticker())
 
         if prompt_ui_separately:

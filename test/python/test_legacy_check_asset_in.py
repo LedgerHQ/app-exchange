@@ -3,11 +3,11 @@ from ragger.utils import prefix_with_len
 from ragger.utils import RAPDU
 from ragger.error import ExceptionRAPDU
 
-from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
+from ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand, Errors
 from .apps.litecoin import LitecoinClient
 
-from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
-from .apps.exchange_transaction_builder import get_partner_curve, craft_and_sign_tx, SubCommand, get_credentials
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
+from ledger_app_clients.exchange.transaction_builder import get_partner_curve, craft_and_sign_tx, SubCommand, get_credentials
 from .apps import cal as cal
 
 CURRENCY_FROM = cal.ETH_CURRENCY_CONFIGURATION
@@ -53,7 +53,7 @@ class TestCheckAddressAndDisplay:
 
     @pytest.mark.parametrize("subcommand", [SubCommand.SELL, SubCommand.FUND])
     def test_check_asset_in_legacy_ok(self, backend, exchange_navigation_helper, subcommand):
-        suffix = "_" + str(subcommand).split('.')[1].split('_')[0].lower()
+        suffix = "_" + subcommand.get_operation
         exchange_navigation_helper.set_test_name_suffix(suffix)
 
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)
@@ -74,7 +74,7 @@ class TestCheckAddressAndDisplay:
 
     @pytest.mark.parametrize("subcommand", [SubCommand.SELL_NG, SubCommand.FUND_NG])
     def test_check_asset_in_legacy_ko(self, backend, exchange_navigation_helper, subcommand):
-        suffix = "_" + str(subcommand).split('.')[1].split('_')[0].lower()
+        suffix = "_" + subcommand.get_operation
         exchange_navigation_helper.set_test_name_suffix(suffix)
 
         ex = ExchangeClient(backend, Rate.FIXED, subcommand)

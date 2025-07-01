@@ -4,13 +4,12 @@ from ragger.utils import prefix_with_len
 from ragger.error import ExceptionRAPDU
 from typing import Optional
 
-from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors
+from ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand, Errors
 from .apps.litecoin import LitecoinClient
 
-from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
-from .apps.exchange_transaction_builder import get_partner_curve, craft_and_sign_tx, ALL_SUBCOMMANDS, get_credentials
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
+from ledger_app_clients.exchange.transaction_builder import get_partner_curve, craft_and_sign_tx, ALL_SUBCOMMANDS, get_credentials
 from .apps import cal as cal
-from .utils import handle_lib_call_start_or_stop
 
 CURRENCY_FROM = cal.BTC_CURRENCY_CONFIGURATION
 CURRENCY_TO = cal.ETH_CURRENCY_CONFIGURATION

@@ -25,7 +25,7 @@
 #define SIGNATURE_COMPUTED_ON_TX              0x00
 #define SIGNATURE_COMPUTED_ON_DOT_PREFIXED_TX 0x01
 
-#define TICKER_MIN_SIZE_B  2
+#define TICKER_MIN_SIZE_B  1
 #define TICKER_MAX_SIZE_B  9
 #define APPNAME_MIN_SIZE_B 3
 
@@ -67,13 +67,9 @@ typedef struct swap_app_context_s {
         ledger_swap_NewTransactionResponse swap_transaction;
         struct {
             ledger_swap_NewSellResponse sell_transaction;
-            // Field not received from protobuf but needed by the application called as lib
-            char sell_transaction_extra_id[1];
         };
         struct {
             ledger_swap_NewFundResponse fund_transaction;
-            // Field not received from protobuf but needed by the application called as lib
-            char fund_transaction_extra_id[1];
         };
     };
 

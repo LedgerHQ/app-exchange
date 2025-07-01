@@ -1,6 +1,6 @@
 import pytest
 
-from .apps.exchange_test_runner import ExchangeTestRunner, SWAP_TESTS_EXCEPT_THORSWAP
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, SWAP_TESTS_EXCEPT_THORSWAP
 from .apps.xrp import XRPClient, DEFAULT_PATH, XRP_PACKED_DERIVATION_PATH, RippleErrors
 from .apps import cal as cal
 

@@ -3,9 +3,9 @@ import pytest
 from ragger.utils import RAPDU, prefix_with_len, create_currency_config
 from ragger.error import ExceptionRAPDU
 
-from .apps.exchange import ExchangeClient, Rate, SubCommand, Errors, Command, P2_EXTEND, P2_MORE, EXCHANGE_CLASS
-from .apps.exchange_transaction_builder import get_partner_curve, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, get_credentials, craft_and_sign_tx
-from .apps.signing_authority import SigningAuthority, LEDGER_SIGNER
+from ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand, Errors, Command, P2_EXTEND, P2_MORE, EXCHANGE_CLASS
+from ledger_app_clients.exchange.transaction_builder import get_partner_curve, LEGACY_SUBCOMMANDS, ALL_SUBCOMMANDS, NEW_SUBCOMMANDS, get_credentials, craft_and_sign_tx
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
 from .apps import cal as cal
 
 CURRENCY_FROM = cal.ETH_CURRENCY_CONFIGURATION
@@ -55,7 +55,7 @@ class TestRate:
     @pytest.mark.parametrize("subcommand", ALL_SUBCOMMANDS)
     def test_rate(self, backend, subcommand, exchange_navigation_helper):
         # Mutualize new and legacy snapshots. Eg SubCommand.SWAP_NG => "swap"
-        suffix = "_" + str(subcommand).split('.')[1].split('_')[0].lower()
+        suffix = "_" + subcommand.get_operation
         exchange_navigation_helper.set_test_name_suffix(suffix)
 
         # Test only FLOATING, all other tests are using FIXED

@@ -7,6 +7,10 @@ on:
         required: false
         default: 'develop'
         type: string
+      repo_for_exchange:
+        required: false
+        default: 'LedgerHQ/app-exchange'
+        type: string
 
       branch_for_stellar:
         required: false
@@ -97,13 +101,22 @@ on:
         default: 'LedgerHQ/app-tron'
         type: string
 
+      branch_for_near:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_near:
+        required: false
+        default: 'LedgerHQ/app-near'
+        type: string
+
       branch_for_ton:
         required: false
         default: 'develop'
         type: string
       repo_for_ton:
         required: false
-        default: 'LedgerHQ/app-ton-new'
+        default: 'LedgerHQ/app-ton'
         type: string
 
       branch_for_cardano:
@@ -113,6 +126,42 @@ on:
       repo_for_cardano:
         required: false
         default: 'LedgerHQ/app-cardano'
+        type: string
+
+      branch_for_cosmos:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_cosmos:
+        required: false
+        default: 'LedgerHQ/app-cosmos'
+        type: string
+
+      branch_for_sui:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_sui:
+        required: false
+        default: 'LedgerHQ/app-sui'
+        type: string
+
+      branch_for_aptos:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_aptos:
+        required: false
+        default: 'LedgerHQ/app-aptos'
+        type: string
+
+      branch_for_bol:
+        required: false
+        default: 'master'
+        type: string
+      repo_for_bol:
+        required: false
+        default: 'LedgerHQ/app-boilerplate'
         type: string
 
       test_filter:
@@ -132,51 +181,66 @@ jobs:
       fail-fast: false
       matrix:
         coin:
-        - name: stellar
-          repo: ${{ inputs.repo_for_stellar }}
-          branch: ${{ inputs.branch_for_stellar }}
-        - name: tezos
-          repo: ${{ inputs.repo_for_tezos }}
-          branch: ${{ inputs.branch_for_tezos }}
-        - name: xrp
-          repo: ${{ inputs.repo_for_xrp }}
-          branch: ${{ inputs.branch_for_xrp }}
-        - name: ethereum
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
-        - name: ethereum_classic
-          repo: ${{ inputs.repo_for_ethereum }}
-          branch: ${{ inputs.branch_for_ethereum }}
-        - name: litecoin
-          repo: ${{ inputs.repo_for_bitcoin_legacy }}
-          branch: ${{ inputs.branch_for_bitcoin_legacy }}
-        - name: bitcoin_legacy
-          repo: ${{ inputs.repo_for_bitcoin_legacy }}
-          branch: ${{ inputs.branch_for_bitcoin_legacy }}
-        - name: bitcoin
-          repo: ${{ inputs.repo_for_bitcoin }}
-          branch: ${{ inputs.branch_for_bitcoin }}
-        - name: bitcoin
-          repo: ${{ inputs.repo_for_bitcoin }}
-          branch: ${{ inputs.branch_for_bitcoin_nanos }}
-        - name: solana
-          repo: ${{ inputs.repo_for_solana }}
-          branch: ${{ inputs.branch_for_solana }}
-        - name: solana
-          repo: ${{ inputs.repo_for_solana }}
-          branch: ${{ inputs.branch_for_solana_nanos }}
-        - name: DOT
-          repo: ${{ inputs.repo_for_polkadot }}
-          branch: ${{ inputs.branch_for_polkadot }}
-        - name: tron
-          repo: ${{ inputs.repo_for_tron }}
-          branch: ${{ inputs.branch_for_tron }}
-        - name: ton
-          repo: ${{ inputs.repo_for_ton }}
-          branch: ${{ inputs.branch_for_ton }}
-        - name: cardano
-          repo: ${{ inputs.repo_for_cardano }}
-          branch: ${{ inputs.branch_for_cardano }}
+          - name: stellar
+            repo: ${{ inputs.repo_for_stellar }}
+            branch: ${{ inputs.branch_for_stellar }}
+          - name: tezos
+            repo: ${{ inputs.repo_for_tezos }}
+            branch: ${{ inputs.branch_for_tezos }}
+          - name: xrp
+            repo: ${{ inputs.repo_for_xrp }}
+            branch: ${{ inputs.branch_for_xrp }}
+          - name: ethereum
+            repo: ${{ inputs.repo_for_ethereum }}
+            branch: ${{ inputs.branch_for_ethereum }}
+          - name: ethereum_classic
+            repo: ${{ inputs.repo_for_ethereum }}
+            branch: ${{ inputs.branch_for_ethereum }}
+          - name: litecoin
+            repo: ${{ inputs.repo_for_bitcoin_legacy }}
+            branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          - name: bitcoin_legacy
+            repo: ${{ inputs.repo_for_bitcoin_legacy }}
+            branch: ${{ inputs.branch_for_bitcoin_legacy }}
+          - name: bitcoin
+            repo: ${{ inputs.repo_for_bitcoin }}
+            branch: ${{ inputs.branch_for_bitcoin }}
+          - name: bitcoin
+            repo: ${{ inputs.repo_for_bitcoin }}
+            branch: ${{ inputs.branch_for_bitcoin_nanos }}
+          - name: solana
+            repo: ${{ inputs.repo_for_solana }}
+            branch: ${{ inputs.branch_for_solana }}
+          - name: solana
+            repo: ${{ inputs.repo_for_solana }}
+            branch: ${{ inputs.branch_for_solana_nanos }}
+          - name: DOT
+            repo: ${{ inputs.repo_for_polkadot }}
+            branch: ${{ inputs.branch_for_polkadot }}
+          - name: tron
+            repo: ${{ inputs.repo_for_tron }}
+            branch: ${{ inputs.branch_for_tron }}
+          - name: ton
+            repo: ${{ inputs.repo_for_ton }}
+            branch: ${{ inputs.branch_for_ton }}
+          - name: cardano
+            repo: ${{ inputs.repo_for_cardano }}
+            branch: ${{ inputs.branch_for_cardano }}
+          - name: near
+            repo: ${{ inputs.repo_for_near }}
+            branch: ${{ inputs.branch_for_near }}
+          - name: ATOM
+            repo: ${{ inputs.repo_for_cosmos }}
+            branch: ${{ inputs.branch_for_cosmos }}
+          - name: sui
+            repo: ${{ inputs.repo_for_sui }}
+            branch: ${{ inputs.branch_for_sui }}
+          - name: APTOS
+            repo: ${{ inputs.repo_for_aptos }}
+            branch: ${{ inputs.branch_for_aptos }}
+          - name: boilerplate
+            repo: ${{ inputs.repo_for_bol }}
+            branch: ${{ inputs.branch_for_bol }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
@@ -184,9 +248,10 @@ jobs:
       app_branch_name: ${{ matrix.coin.branch }}
       # Set the coin variant to build with COIN or CHAIN depending on the app + flags for ETH compilation
       # As a rule of thumb we don't care about giving unexisting flags to other apps, it has no effect
-      flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} CAL_TEST_KEY=1 DOMAIN_NAME_TEST_KEY=1 SET_PLUGIN_TEST_KEY=1 NFT_TEST_KEY=1"
+      flags: "COIN=${{ matrix.coin.name }} CHAIN=${{ matrix.coin.name }} CAL_TEST_KEY=1 DOMAIN_NAME_TEST_KEY=1 SET_PLUGIN_TEST_KEY=1 NFT_TEST_KEY=1 TRUSTED_NAME_TEST_KEY=1"
       upload_app_binaries_artifact: libraries_binaries-${{ matrix.coin.name }}-${{ strategy.job-index }}
       upload_as_lib_artifact: ${{ matrix.coin.name }}
+      builder: ledger-app-builder
 
   merge_libraries_build:
     name: Merge built libraries
@@ -203,9 +268,9 @@ jobs:
     name: Build Exchange
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
-      app_repository: LedgerHQ/app-exchange
+      app_repository: ${{ inputs.repo_for_exchange }}
       app_branch_name: ${{ inputs.branch_for_exchange }}
-      flags: "TESTING=1 TEST_PUBLIC_KEY=1"
+      flags: "TESTING=1 TEST_PUBLIC_KEY=1 TRUSTED_NAME_TEST_KEY=1 DEBUG=1"
       upload_app_binaries_artifact: exchange_binaries
 
   ragger_tests:
@@ -215,7 +280,7 @@ jobs:
       - merge_libraries_build
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_ragger_tests.yml@v1
     with:
-      app_repository: LedgerHQ/app-exchange
+      app_repository: ${{ inputs.repo_for_exchange }}
       app_branch_name: ${{ inputs.branch_for_exchange }}
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries

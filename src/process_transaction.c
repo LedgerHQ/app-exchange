@@ -184,13 +184,6 @@ static bool deserialize_protobuf_payload(buf_t payload,
         return false;
     }
 
-    // Field not received from protobuf
-    if (subcommand == SELL || subcommand == SELL_NG) {
-        G_swap_ctx.sell_transaction_extra_id[0] = '\0';
-    } else if (subcommand == FUND || subcommand == FUND_NG) {
-        G_swap_ctx.fund_transaction_extra_id[0] = '\0';
-    }
-
     return true;
 }
 
@@ -374,7 +367,11 @@ int process_transaction(const command_t *cmd) {
     }
 
     if (!check_transaction_id(cmd->subcommand)) {
+#ifndef BYPASS_TRANSACTION_ID_CHECK
+        // Do NOT activate the bypass when using real funds
+        // If you are a Ledger user, do NOT modify this in ANY case
         return reply_error(WRONG_TRANSACTION_ID);
+#endif
     }
 
     normalize_currencies(cmd->subcommand);

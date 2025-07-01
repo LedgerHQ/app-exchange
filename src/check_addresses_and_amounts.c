@@ -72,7 +72,11 @@ static uint16_t check_payout_or_refund_address(command_e ins,
                                  extra_id_to_check);
     if (err != 0) {
         PRINTF("Error: check_address failed\n");
+#ifndef BYPASS_CHECK_ADDRESS
+        // Do NOT activate the bypass when using real funds
+        // If you are a Ledger user, do NOT modify this in ANY case
         return err;
+#endif
     }
     return 0;
 }
@@ -269,7 +273,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
 
         // Save the rate. We could have saved it at the first command and then checked at each ŝtep
         // that it did not change, but it is not certain that the Live sends it right from the
-        // begining and we won't risk regressions for something that is not a security issue.
+        // beginning and we won't risk regressions for something that is not a security issue.
         G_swap_ctx.rate = cmd->rate;
     }
 

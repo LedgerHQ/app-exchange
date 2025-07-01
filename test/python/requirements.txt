@@ -7,5 +7,11 @@ scalecodec
 bip32
 embit
 fastcrc
-ledger_app_clients.ethereum @ https://github.com/LedgerHQ/app-ethereum/archive/develop.zip#subdirectory=client
+ledger_app_clients.ethereum
+pytoniq-core
 tonsdk
+solders
+solana
+pysui_tx @ git+https://github.com/Fingolfin69/pysui_tx@main
+aptos-sdk
+./client

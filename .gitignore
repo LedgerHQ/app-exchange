@@ -28,22 +28,29 @@ obj/
 _ReSharper*/
 [Tt]est[Rr]esult*
 .vs/
-#Nuget packages folder
-packages/
+
 build/
 bin/
 debug/
-
-# Legacy zemu tests
-node_modules
-test/elfs
-test/snapshots-tmp
 
 # Functional tests
 test/python/snapshots-tmp/
 test/python/lib_binaries/*.elf
 test/python/lib_binaries/*.zip
+test/python/lib_binaries/CACHEDIR.TAG
 __pycache__
 .egg
 .pyc
 *~
+
+# Manually ignore this file. It is a helper to replay apdus quickly.
+test/python/test_raw.py
+
+# Ignore mkdocs build
+site/
+docs/deps/*
+!docs/deps/.doc_dependencies
+
+# Exchange client build artifacts
+client/dist/
+client/src/ledger_app_clients.exchange.egg-info/

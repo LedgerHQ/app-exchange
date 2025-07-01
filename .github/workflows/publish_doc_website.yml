@@ -1,0 +1,55 @@
+---
+name: Publish GitHub Pages documentation
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+
+# Cancel previous runs on this reference
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and deploy documentation portal
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout solana
+        uses: actions/checkout@v4
+        with:
+          repository: LedgerHQ/app-solana
+          ref: develop
+          path: ./docs/deps/app-solana
+          fetch-depth: 1
+
+      - name: Checkout sdk
+        uses: actions/checkout@v4
+        with:
+          repository: LedgerHQ/ledger-secure-sdk
+          ref: master
+          path: ./docs/deps/ledger-secure-sdk
+          fetch-depth: 1
+
+      - name: Install requirements
+        run: pip install -r docs/requirements.txt
+
+      # On PR, only checks if docs compile, no deploy
+      - name: Build docs (PR Check)
+        if: github.event_name == 'pull_request'
+        run: mkdocs build
+
+      # On push to develop (merge) OR manual dispatch, build and deploy
+      - name: Deploy docs
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: mkdocs gh-deploy --force

@@ -12,14 +12,19 @@ on:
       - '.github/workflows/*.yml'
       - 'tests/*'
 
+# Cancel previous runs on this reference
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   analyse:
     name: Analyse
     strategy:
       matrix:
-        sdk: [ "$NANOS_SDK", "$NANOX_SDK", "$NANOSP_SDK" ]
-        #'cpp' covers C and C++
-        language: [ 'cpp' ]
+        sdk: ["$NANOX_SDK", "$NANOSP_SDK", "$STAX_SDK", "$FLEX_SDK"]
+        # 'cpp' covers C and C++
+        language: ['cpp']
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder-legacy:latest

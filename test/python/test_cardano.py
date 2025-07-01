@@ -5,8 +5,8 @@ from ragger.bip import pack_derivation_path
 from ragger.backend import BackendInterface
 from ragger.firmware import Firmware
 
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
-from .apps.exchange_navigation_helper import ExchangeNavigationHelper
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
+from ledger_app_clients.exchange.navigation_helper import ExchangeNavigationHelper
 from .apps.cardano import CardanoClient, Errors
 from .apps.cardano import ADA_BYRON_DERIVATION_PATH, ADA_SHELLEY_DERIVATION_PATH
 from .apps import cal as cal
@@ -51,7 +51,7 @@ class CardanoShelleyClientTests(ExchangeTestRunner):
     currency_configuration = cal.ADA_SHELLEY_CURRENCY_CONFIGURATION
     valid_destination_1 = SHELLEY_DESTINATION["valid_1"]["addr"]
     valid_destination_2 = SHELLEY_DESTINATION["valid_2"]["addr"]
-    # Refund adress corresponds to the derivation path "m/1852'/1815'/0'/0/0" and "m/1852'/1815'/0'/2/0"
+    # Refund address corresponds to the derivation path "m/1852'/1815'/0'/0/0" and "m/1852'/1815'/0'/2/0"
     valid_refund = "addr1q9kl5z2zd9vakyprvw0g68c8hv0y0rnj93htc82hh2rs8wwmyx0wtn56wnuclkku9hsnal8dtg25a7x56svjn4dlnlmq7quz6p"
     valid_send_amount_1 = 4671693
     valid_send_amount_2 = 446739662

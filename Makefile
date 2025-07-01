@@ -29,8 +29,8 @@ APPNAME = "Exchange"
 
 # Application version
 APPVERSION_M = 4
-APPVERSION_N = 0
-APPVERSION_P = 0
+APPVERSION_N = 2
+APPVERSION_P = 4
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files
@@ -121,16 +121,51 @@ endif
 ########################################
 #            Testing flags             #
 ########################################
+
+# /!\
+# If you are a Ledger user, do NOT modify this in ANY case
+# /!\
+
 ifdef TESTING
-    $(info [INFO] TESTING enabled)
+    $(warning [WARNING] TESTING enabled)
     DEFINES += TESTING
+    TEST_BUILD = 1
 endif
 
 ifdef TEST_PUBLIC_KEY
-    $(info [INFO] TEST_PUBLIC_KEY enabled)
+    $(warning [WARNING] TEST_PUBLIC_KEY enabled)
     DEFINES += TEST_PUBLIC_KEY
+    TEST_BUILD = 1
 endif
 
+ifdef BYPASS_TRANSACTION_ID_CHECK
+    $(warning [WARNING] BYPASS_TRANSACTION_ID_CHECK enabled)
+    DEFINES += BYPASS_TRANSACTION_ID_CHECK
+    TEST_BUILD = 1
+endif
+
+ifdef BYPASS_CHECK_ADDRESS
+    $(warning [WARNING] BYPASS_CHECK_ADDRESS enabled)
+    DEFINES += BYPASS_CHECK_ADDRESS
+    TEST_BUILD = 1
+endif
+
+ifdef TRUSTED_NAME_TEST_KEY
+    $(info [INFO] TRUSTED_NAME_TEST_KEY enabled)
+    DEFINES += TRUSTED_NAME_TEST_KEY
+endif
+
+ifdef FIXED_TLV_CHALLENGE
+    $(info [INFO] FIXED_TLV_CHALLENGE enabled)
+    DEFINES += FIXED_TLV_CHALLENGE
+endif
+
+ifeq ($(TEST_BUILD),1)
+    $(warning [WARNING] TEST_BUILD enabled)
+	APPNAME = "Exchange TEST"
+	VARIANT_VALUES = "exchangetest"
+	DEFINES += TEST_BUILD
+endif
 
 ########################################
 #      Protobuf files regeneration     #
@@ -140,7 +175,7 @@ proto:
 	make -C ledger-nanopb/generator/proto
 	protoc --nanopb_out=. src/proto/protocol.proto --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
 	protoc --python_out=. src/proto/protocol.proto
-	mv src/proto/protocol_pb2.py test/python/apps/pb/exchange_pb2.py
+	mv src/proto/protocol_pb2.py client/src/ledger_app_clients/exchange/pb/exchange_pb2.py
 
 ########################################
 

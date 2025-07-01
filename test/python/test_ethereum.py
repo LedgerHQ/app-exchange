@@ -3,8 +3,8 @@ import os
 import json
 from web3 import Web3
 
-from .apps.exchange import PayinExtraDataID
-from .apps.exchange_test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
+from ledger_app_clients.exchange.client import PayinExtraDataID
+from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
 from .apps.ethereum import ETH_PATH
 from ledger_app_clients.ethereum.client import EthAppClient
 from .apps import cal as cal
@@ -142,7 +142,7 @@ class DAITests(GenericEthereumNetworkTests):
                                     "gas": fees,
                                     "to": self.contract.address,
                                     "chainId": 1,
-                                    "data": self.contract.encodeABI("transfer", [destination, send_amount]),
+                                    "data": self.contract.encode_abi("transfer", [destination, send_amount]),
                                  }):
                 pass
         else:
