@@ -5,12 +5,11 @@ on:
     inputs:
       branch_for_exchange:
         required: false
-        default: 'feature/swap-implementation'
+        default: 'develop'
         type: string
       repo_for_exchange:
         required: false
-        #Only for testing purposes, to test integration with our hedera implementation
-        default: 'blockydevs/app-exchange'
+        default: 'LedgerHQ/app-exchange'
         type: string
 
       branch_for_stellar:
