@@ -166,11 +166,11 @@ on:
 
       branch_for_hedera:
         required: false
-        default: 'feature/swap-implementation'
+        default: 'develop'
         type: string
       repo_for_hedera:
         required: false
-        default: 'blockydevs/app-hedera'
+        default: 'LedgerHQ/app-hedera'
         type: string
 
       test_filter:
