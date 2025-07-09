@@ -14,4 +14,5 @@ solders
 solana
 pysui_tx @ git+https://github.com/Fingolfin69/pysui_tx@main
 aptos-sdk
+hiero-sdk-python==0.1.2
 ./client

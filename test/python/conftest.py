@@ -40,7 +40,8 @@ def pytest_configure(config):
             "cardano": "Cardano ADA",
             "near": "NEAR",
             "sui": "Sui",
-            "boilerplate": "Boilerplate"
+            "boilerplate": "Boilerplate",
+            "hedera": "Hedera"
         }
 
         configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"

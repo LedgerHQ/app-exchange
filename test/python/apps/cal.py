@@ -25,6 +25,9 @@ from .cardano import ADA_BYRON_PACKED_DERIVATION_PATH, ADA_SHELLEY_PACKED_DERIVA
 from .near import NEAR_PACKED_DERIVATION_PATH, NEAR_CONF
 from .aptos import APTOS_PACKED_DERIVATION_PATH, APTOS_CONF
 from .boilerplate import BOL_PACKED_DERIVATION_PATH, BOL_CONF
+from .hedera import HEDERA_PACKED_DERIVATION_PATH, HEDERA_CONF
+
+
 
 # Define a configuration for each currency used in our tests: native coins and tokens
 
@@ -65,3 +68,4 @@ SUI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SUI", conf=SUI_CONF, 
 SUI_USDC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDC", conf=SUI_USDC_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
 APTOS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="APT", conf=APTOS_CONF, packed_derivation_path=APTOS_PACKED_DERIVATION_PATH)
 BOL_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BOL", conf=BOL_CONF, packed_derivation_path=BOL_PACKED_DERIVATION_PATH)
+HEDERA_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="HBAR", conf=HEDERA_CONF, packed_derivation_path=HEDERA_PACKED_DERIVATION_PATH)
