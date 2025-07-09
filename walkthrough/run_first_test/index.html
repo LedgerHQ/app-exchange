@@ -1,0 +1,1084 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Ledger Swap">
+      
+      
+      
+      
+        <link rel="prev" href="../prerequisite/">
+      
+      
+        <link rel="next" href="../enable_the_swap_compilation/">
+      
+      
+      <link rel="icon" href="../../img/Ledger-logo-696.webp">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
+    
+    
+      
+        <title>Running an existing SWAP test - Ledger Swap documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.342714a4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#running-a-first-exchange-test" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Ledger Swap documentation" class="md-header__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ledger Swap documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Running an existing SWAP test
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Ledger Swap documentation" class="md-nav__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    Ledger Swap documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Introduction
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Enabling the SWAP on your application
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Enabling the SWAP on your application
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../prerequisite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Prerequisite
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Running an existing SWAP test
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Running an existing SWAP test
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-first-exchange-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running a first Exchange test
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running a first Exchange test">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clone-the-exchange-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Clone the Exchange application
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-python-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Install Python dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compile-the-exchange-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compile the Exchange application
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compile-the-coin-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compile the coin applications
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-a-simple-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run a simple test
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../enable_the_swap_compilation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    First compilation with the standard SWAP
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../enable_standard_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Creating a basic SWAP test for you coin
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../code_the_handlers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code the handlers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../technical_informations/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Technical Informations
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Technical Informations
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical_informations/diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Sequence diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical_informations/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Exchange Protocol API
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical_informations/cal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Crypto Asset List (CAL)
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../technical_informations/coin_application_api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    Coin Application API
+    
+  </span>
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            Coin Application API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical_informations/coin_application_api/swap_handle_check_address/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    handle_check_address()
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical_informations/coin_application_api/swap_handle_get_printable_amount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    handle_get_printable_amount()
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical_informations/coin_application_api/swap_copy_transaction_parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    copy_transaction_parameters()
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical_informations/coin_application_api/ui_bypass/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    UI bypass
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical_informations/coin_application_api/error_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Error codes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../technical_informations/dale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    The DALE tool
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-first-exchange-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running a first Exchange test
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running a first Exchange test">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#clone-the-exchange-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Clone the Exchange application
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-python-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Install Python dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compile-the-exchange-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compile the Exchange application
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compile-the-coin-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compile the coin applications
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-a-simple-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run a simple test
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+  <h1>Running an existing SWAP test</h1>
+
+<p>This page provides all the essential setup details to help you get started on enabling the <strong>SWAP</strong> feature in your application.</p>
+<h2 id="running-a-first-exchange-test">Running a first Exchange test</h2>
+<h3 id="clone-the-exchange-application">Clone the Exchange application</h3>
+<p>Clone the <a href="https://github.com/LedgerHQ/app-exchange">Exchange application</a>.</p>
+<p>This application is required for <strong>testing your coin application</strong> but does not need any modifications in the C code.</p>
+<p>The <strong>Exchange test framework</strong> is part of this repository, meaning that all swap-related tests for your coin application must be added <strong>inside the Exchange repository</strong>. This structure will change in the future.</p>
+<h3 id="install-python-dependencies">Install Python dependencies</h3>
+<p>In the Exchange application repository, run the following command to install the required dependencies:<br />
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>test/python/requirements.txt
+</code></pre></div></p>
+<h3 id="compile-the-exchange-application">Compile the Exchange application</h3>
+<p>If using the Ledger VSCode extension, compile the Exchange application using the use_case dbg_use_test_keys. Otherwise, open the <code>ledger_app.toml</code> file, check what flags are associated with the aforementioned use case and build Exchange with this flags set. </p>
+<h3 id="compile-the-coin-applications">Compile the coin applications</h3>
+<p>The Exchange test framework requires all swappable coin libraries to be compiled with the correct flags.</p>
+<p>Compiling them manually is a <strong>long and error-prone process</strong>, so instead, grab a CI artifact output:</p>
+<ol>
+<li>
+<p>Go to the <a href="https://github.com/LedgerHQ/app-exchange/actions/workflows/ci-workflow.yml">official test CI</a></p>
+</li>
+<li>
+<p>Download the <strong>artifact</strong> <code>libraries_binaries.zip</code> from the <strong>latest successful</strong> run targeting the <strong>develop</strong> branch.</p>
+</li>
+<li>
+<p>Extract the archive in <code>test/python/lib_binaries/</code></p>
+</li>
+</ol>
+<p>Example result
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>$&gt;<span class="w"> </span>ls<span class="w"> </span>test/python/lib_binaries/
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>APTOS_flex.elf<span class="w">           </span>bitcoin_legacy_nanos.elf<span class="w">     </span>ethereum_classic_stax.elf<span class="w">  </span>solana_nanos.elf<span class="w">    </span>tezos_stax.elf
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>APTOS_nanos.elf<span class="w">          </span>bitcoin_legacy_nanos2.elf<span class="w">    </span>ethereum_flex.elf<span class="w">          </span>solana_nanos2.elf<span class="w">   </span>ton_flex.elf
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>APTOS_nanos2.elf<span class="w">         </span>bitcoin_legacy_nanox.elf<span class="w">     </span>ethereum_nanos.elf<span class="w">         </span>solana_nanox.elf<span class="w">    </span>ton_nanos.elf
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>APTOS_nanox.elf<span class="w">          </span>bitcoin_legacy_stax.elf<span class="w">      </span>ethereum_nanos2.elf<span class="w">        </span>solana_stax.elf<span class="w">     </span>ton_nanos2.elf
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>APTOS_stax.elf<span class="w">           </span>bitcoin_nanos.elf<span class="w">            </span>ethereum_nanox.elf<span class="w">         </span>stellar_flex.elf<span class="w">    </span>ton_nanox.elf
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>ATOM_flex.elf<span class="w">            </span>bitcoin_nanos2.elf<span class="w">           </span>ethereum_stax.elf<span class="w">          </span>stellar_nanos.elf<span class="w">   </span>ton_stax.elf
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>ATOM_nanos.elf<span class="w">           </span>bitcoin_nanox.elf<span class="w">            </span>libraries_binaries.zip<span class="w">     </span>stellar_nanos2.elf<span class="w">  </span>tron_flex.elf
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>ATOM_nanos2.elf<span class="w">          </span>bitcoin_stax.elf<span class="w">             </span>litecoin_flex.elf<span class="w">          </span>stellar_nanox.elf<span class="w">   </span>tron_nanos.elf
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>ATOM_nanox.elf<span class="w">           </span>cardano_flex.elf<span class="w">             </span>litecoin_nanos.elf<span class="w">         </span>stellar_stax.elf<span class="w">    </span>tron_nanos2.elf
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>ATOM_stax.elf<span class="w">            </span>cardano_nanos.elf<span class="w">            </span>litecoin_nanos2.elf<span class="w">        </span>sui_flex.elf<span class="w">        </span>tron_nanox.elf
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>DOT_flex.elf<span class="w">             </span>cardano_nanos2.elf<span class="w">           </span>litecoin_nanox.elf<span class="w">         </span>sui_nanos2.elf<span class="w">      </span>tron_stax.elf
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>DOT_nanos.elf<span class="w">            </span>cardano_nanox.elf<span class="w">            </span>litecoin_stax.elf<span class="w">          </span>sui_nanox.elf<span class="w">       </span>xrp_flex.elf
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>DOT_nanos2.elf<span class="w">           </span>cardano_stax.elf<span class="w">             </span>near_flex.elf<span class="w">              </span>sui_stax.elf<span class="w">        </span>xrp_nanos.elf
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>DOT_nanox.elf<span class="w">            </span>ethereum_classic_flex.elf<span class="w">    </span>near_nanos2.elf<span class="w">            </span>tezos_flex.elf<span class="w">      </span>xrp_nanos2.elf
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>DOT_stax.elf<span class="w">             </span>ethereum_classic_nanos.elf<span class="w">   </span>near_nanox.elf<span class="w">             </span>tezos_nanos.elf<span class="w">     </span>xrp_nanox.elf
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>bitcoin_flex.elf<span class="w">         </span>ethereum_classic_nanos2.elf<span class="w">  </span>near_stax.elf<span class="w">              </span>tezos_nanos2.elf<span class="w">    </span>xrp_stax.elf
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>bitcoin_legacy_flex.elf<span class="w">  </span>ethereum_classic_nanox.elf<span class="w">   </span>solana_flex.elf<span class="w">            </span>tezos_nanox.elf
+</code></pre></div></p>
+<h3 id="run-a-simple-test">Run a simple test</h3>
+<p>To see all available tests:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pytest<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>test/python/<span class="w"> </span>--device<span class="w"> </span>all<span class="w"> </span>--collect-only
+</code></pre></div></p>
+<p>To list <strong>only Solana tests for Stax</strong>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pytest<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>test/python/<span class="w"> </span>--device<span class="w"> </span>stax<span class="w"> </span>--collect-only<span class="w"> </span>-k<span class="w"> </span>solana
+</code></pre></div></p>
+<p>To run a specific Solana test for Stax:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>pytest<span class="w"> </span>-v<span class="w"> </span>--tb<span class="o">=</span>short<span class="w"> </span>test/python/<span class="w"> </span>--device<span class="w"> </span>stax<span class="w"> </span>-k<span class="w"> </span><span class="s1">&#39;test_solana[stax-swap_valid_1]&#39;</span><span class="w"> </span>-s
+</code></pre></div></p>
+<p>You should remember how to run a single, this will be useful later on.</p>
+<hr />
+<h2 id="next-steps">Next steps</h2>
+<p>Now you know how to setup and run the Exchange tests, you'll be able to add the tests for your own application and run them as you develop the SWAP feature in your application.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.indexes", "navigation.expand"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.56ea9cef.min.js"></script>
+      
+    
+  </body>
+</html>
