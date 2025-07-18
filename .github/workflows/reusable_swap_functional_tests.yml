@@ -296,5 +296,6 @@ jobs:
       app_branch_name: ${{ inputs.branch_for_exchange }}
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
+      lib_binaries_artifact_dir: test/python/lib_binaries/
       test_filter: ${{ inputs.test_filter }}
       regenerate_snapshots: ${{ inputs.regenerate_snapshots }}
