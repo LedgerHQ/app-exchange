@@ -1,0 +1,107 @@
+#*******************************************************************************
+#   Ledger SDK
+#   (c) 2017 Ledger
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#*******************************************************************************
+# Don't allow anymore makefile override of the default placement for glyphs and
+# the generated glyph header/c files
+ifneq ($(GLYPH_SRC_DIR),)
+$(warn GLYPH_SRC_DIR is not supported anymore as it is now automatically computed, please remove it from your Makefile)
+endif
+ifneq ($(GLYPH_PATH),)
+$(warn Setting GLYPH_PATH is not supported anymore, please remove it from your Makefile)
+endif
+GLYPH_SRC_DIR = $(GEN_SRC_DIR)
+
+ifeq ($(BOLOS_SDK),)
+$(error BOLOS_SDK not set)
+endif
+
+GLYPH_DESTC := $(GLYPH_SRC_DIR)/glyphs.c
+GLYPH_DESTH := $(GLYPH_SRC_DIR)/glyphs.h
+
+# search icons (glyphs) in glyphs folder of the app first
+GLYPH_FILES += $(addprefix glyphs/,$(sort $(notdir $(shell find glyphs/))))
+
+ifneq ($(USE_NBGL),0)
+# NBGL glyphs files and generation script
+#
+# search icons (glyphs) in lib_nbgl/glyphs(_nano) folder of the SDK
+
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX TARGET_APEX_P TARGET_APEX_M))
+GLYPH_FILES += $(addprefix $(BOLOS_SDK)/lib_nbgl/glyphs/wallet/,$(sort $(notdir $(shell find $(BOLOS_SDK)/lib_nbgl/glyphs/wallet/))))
+
+ifeq ($(TARGET_NAME),TARGET_STAX)
+GLYPH_FILES += $(addprefix $(BOLOS_SDK)/lib_nbgl/glyphs/64px/,$(sort $(notdir $(shell find $(BOLOS_SDK)/lib_nbgl/glyphs/64px/))))
+GLYPH_FILES += $(addprefix $(BOLOS_SDK)/lib_nbgl/glyphs/32px/,$(sort $(notdir $(shell find $(BOLOS_SDK)/lib_nbgl/glyphs/32px/))))
+endif
+
+ifeq ($(TARGET_NAME),TARGET_FLEX)
+GLYPH_FILES += $(addprefix $(BOLOS_SDK)/lib_nbgl/glyphs/64px/,$(sort $(notdir $(shell find $(BOLOS_SDK)/lib_nbgl/glyphs/64px/))))
+GLYPH_FILES += $(addprefix $(BOLOS_SDK)/lib_nbgl/glyphs/40px/,$(sort $(notdir $(shell find $(BOLOS_SDK)/lib_nbgl/glyphs/40px/))))
+endif
+
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_APEX_P TARGET_APEX_M))
+GLYPH_FILES += $(addprefix $(BOLOS_SDK)/lib_nbgl/glyphs/48px/,$(sort $(notdir $(shell find $(BOLOS_SDK)/lib_nbgl/glyphs/48px/))))
+GLYPH_FILES += $(addprefix $(BOLOS_SDK)/lib_nbgl/glyphs/24px/,$(sort $(notdir $(shell find $(BOLOS_SDK)/lib_nbgl/glyphs/24px/))))
+endif
+
+GLYPH_OPT :=
+else # ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX))
+GLYPH_FILES += $(addprefix $(BOLOS_SDK)/lib_nbgl/glyphs/nano/,$(sort $(notdir $(shell find $(BOLOS_SDK)/lib_nbgl/glyphs/nano/))))
+#inverse B&W for non Stax
+GLYPH_OPT := --reverse
+endif # ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX))
+
+ifneq (,$(wildcard $(ICONNAME)))
+# Do not try to generate app icon glyph, if image does not exist
+GLYPH_FILES += $(ICONNAME)
+endif
+ICON_SCRIPT = $(BOLOS_SDK)/lib_nbgl/tools/icon2glyph.py
+
+else # USE_NBGL
+
+# Nano glyphs files and generation script
+GLYPH_FILES += $(addprefix $(BOLOS_SDK)/lib_ux/glyphs/,$(sort $(notdir $(shell find $(BOLOS_SDK)/lib_ux/glyphs/))))
+GLYPH_OPT :=
+ICON_SCRIPT = $(BOLOS_SDK)/icon3.py
+GENERATE_GLYPHS_CMD = python3 $(ICON_SCRIPT) --factorize --glyphcfile $(GLYPH_FILES)
+endif# USE_NBGL
+
+.DELETE_ON_ERROR:
+
+$(GLYPH_DESTH): $(GLYPH_FILES) $(ICON_SCRIPT)
+	$(L)echo "[GLYPH] Compiling..."
+	$(L)-mkdir -p $(GLYPH_SRC_DIR)
+ifneq ($(USE_NBGL),0)
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_NANOS2))
+ifneq ($(strip $(ICON_HOME_NANO)),)
+ifneq ($(strip $(ICONNAME)),)
+	$(L)echo "[GLYPH] Converting Home Screen icon..."
+	$(L)python3 $(BOLOS_SDK)/lib_nbgl/tools/mask_icon.py --input $(ICONNAME) --output $(ICON_HOME_NANO)
+endif
+endif
+endif
+	$(L)python3 $(ICON_SCRIPT) $(GLYPH_OPT) --glyphcheader $(GLYPH_DESTH) --glyphcfile $(GLYPH_DESTC) $(GLYPH_FILES) $(ICON_HOME_NANO)
+else
+	$(L)rm -f $(GLYPH_DESTC) $(GLYPH_DESTH)
+	@# Use temporary files to prevent issues when build is interrupted
+	$(L)python3 $(ICON_SCRIPT) $(GLYPH_OPT) --glyphcheader $(GLYPH_FILES) > $(GLYPH_DESTH)_tmp
+	$(L)$(GENERATE_GLYPHS_CMD) > $(GLYPH_DESTC)_tmp
+	$(L)mv $(GLYPH_DESTC)_tmp $(GLYPH_DESTC)
+	$(L)mv $(GLYPH_DESTH)_tmp $(GLYPH_DESTH)
+endif
+
+#add dependency for generation
+$(GLYPH_DESTC): $(GLYPH_DESTH)
