@@ -5,11 +5,12 @@ on:
     inputs:
       branch_for_exchange:
         required: false
-        default: 'develop'
+        default: 'swap-integration'
         type: string
       repo_for_exchange:
         required: false
-        default: 'LedgerHQ/app-exchange'
+        # Only for local testing
+        default: 'coderofstuff/app-exchange'
         type: string
 
       branch_for_stellar:
@@ -155,6 +156,15 @@ on:
         default: 'LedgerHQ/app-aptos'
         type: string
 
+      branch_for_kas:
+        required: false
+        default: 'swap-integration'
+        type: string
+      repo_for_kas:
+        required: false
+        default: 'coderofstuff/app-kaspa'
+        type: string
+
       branch_for_bol:
         required: false
         default: 'master'
@@ -253,6 +263,9 @@ jobs:
           - name: boilerplate
             repo: ${{ inputs.repo_for_bol }}
             branch: ${{ inputs.branch_for_bol }}
+          - name: kas
+            repo: ${{ inputs.repo_for_kas }}
+            branch: ${{ inputs.branch_for_kas }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
