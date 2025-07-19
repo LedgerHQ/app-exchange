@@ -157,11 +157,11 @@ on:
 
       branch_for_kas:
         required: false
-        default: 'develop'
+        default: 'swap-integration'
         type: string
       repo_for_kas:
         required: false
-        default: 'LedgerHQ/app-kaspa'
+        default: 'coderofstuff/app-kaspa'
         type: string
 
       branch_for_bol:
