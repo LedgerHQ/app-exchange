@@ -5,11 +5,12 @@ on:
     inputs:
       branch_for_exchange:
         required: false
-        default: 'develop'
+        default: 'swap-integration'
         type: string
       repo_for_exchange:
         required: false
-        default: 'LedgerHQ/app-exchange'
+        # Only for local testing
+        default: 'coderofstuff/app-exchange'
         type: string
 
       branch_for_stellar:
