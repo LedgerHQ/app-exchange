@@ -262,7 +262,7 @@ jobs:
           - name: boilerplate
             repo: ${{ inputs.repo_for_bol }}
             branch: ${{ inputs.branch_for_bol }}
-          - name: kas
+          - name: kaspa
             repo: ${{ inputs.repo_for_kas }}
             branch: ${{ inputs.branch_for_kas }}
 
