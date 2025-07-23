@@ -155,6 +155,15 @@ on:
         default: 'LedgerHQ/app-aptos'
         type: string
 
+      branch_for_kas:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_kas:
+        required: false
+        default: 'LedgerHQ/app-kaspa'
+        type: string
+
       branch_for_bol:
         required: false
         default: 'master'
@@ -253,6 +262,9 @@ jobs:
           - name: boilerplate
             repo: ${{ inputs.repo_for_bol }}
             branch: ${{ inputs.branch_for_bol }}
+          - name: kaspa
+            repo: ${{ inputs.repo_for_kas }}
+            branch: ${{ inputs.branch_for_kas }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
