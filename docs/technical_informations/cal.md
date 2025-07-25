@@ -29,18 +29,20 @@ for more information about the handles please refer to the corresponding section
 
 A standard subconfiguration exists, it is composed of `ticker + decimals`, it is the one used by most of our applications when handling tokens (Ethereum and Solana for example).
 
+### How to craft a coin configuration
+
 The **Ragger** tool provides utilities to craft coin configurations both without and with standard subconfiguration.
 
-As an example, here is the craft of the coin configuration for Solana in our tests:
+The **Exchange client** provides helper classes to insert the coin configuration in our tests.
 
-[test/python/apps/solana_utils.py](https://github.com/LedgerHQ/app-exchange/blob/develop/test/python/apps/solana_utils.py)
+[client/src/ledger_app_clients/exchange/cal_helper.py](https://github.com/LedgerHQ/app-exchange/blob/develop/client/src/ledger_app_clients/exchange/cal_helper.py)
 ```Python
---8<-- "test/python/apps/solana_utils.py:solana_coin_conf_includes"
-
---8<-- "test/python/apps/solana_utils.py:solana_coin_conf"
+--8<-- "client/src/ledger_app_clients/exchange/cal_helper.py"
 ```
 
-[test/python/apps/cal.py](https://github.com/LedgerHQ/app-exchange/blob/develop/test/python/apps/cal.py)
+As an example, here is the craft of the coin configuration for the Boilerplate example application in our tests:
+
+[tests/swap/cal_helper.py](https://github.com/LedgerHQ/app-boilerplate/blob/master/tests/swap/cal_helper.py)
 ```Python
---8<-- "test/python/apps/cal.py:sol_conf"
+--8<-- "docs/deps/app-boilerplate/tests/swap/cal_helper.py"
 ```

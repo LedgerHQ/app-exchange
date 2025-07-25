@@ -6,7 +6,7 @@ from enum import IntEnum
 from typing import Dict, List, Optional, Union
 from pysui_tx.bcs import Intent, TransactionData, Address, TransactionDataV1, GasData, TransactionExpiration, ObjectReference, Digest
 from pysui_tx.bcs import ProgrammableTransaction, CallArg, Command, SplitCoin, TransferObjects, TransactionKind, Argument, _DIGEST_LENGTH, ObjectArg
-from apps.sui_utils import USDC_OBJECTS_BY_AMOUNT
+from .sui_utils import USDC_OBJECTS_BY_AMOUNT
 
 from ragger.backend.interface import BackendInterface
 from ragger.logger import get_default_logger

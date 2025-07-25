@@ -31,7 +31,13 @@ jobs:
           repository: LedgerHQ/app-solana
           ref: develop
           path: ./docs/deps/app-solana
-          fetch-depth: 1
+
+      - name: Checkout boilerplate
+        uses: actions/checkout@v4
+        with:
+          repository: LedgerHQ/app-boilerplate
+          ref: develop
+          path: ./docs/deps/app-boilerplate
 
       - name: Checkout sdk
         uses: actions/checkout@v4
@@ -39,7 +45,6 @@ jobs:
           repository: LedgerHQ/ledger-secure-sdk
           ref: master
           path: ./docs/deps/ledger-secure-sdk
-          fetch-depth: 1
 
       - name: Install requirements
         run: pip install -r docs/requirements.txt

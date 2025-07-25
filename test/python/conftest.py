@@ -32,7 +32,6 @@ def pytest_configure(config):
             "xrp": "XRP",
             "litecoin": "Litecoin",
             "stellar": "Stellar",
-            "solana": "Solana",
             "DOT": "Polkadot",
             "tron": "Tron",
             "ton": "TON",
