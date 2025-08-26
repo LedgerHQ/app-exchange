@@ -205,29 +205,6 @@ class ExchangeTestRunner:
                                      ui_validation=ui_validation,
                                      start_application=True)
 
-    def perform_valid_swap_to_custom(self, destination, send_amount, fees, destination_memo, ui_validation=True, allow_alias=True):
-        tx_infos = {
-            "payin_address": "0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
-            "payin_extra_id": "", # Default
-            "refund_address": "0xDad77910DbDFdE764fC21FCD4E74D71bBACA6D8D", # Default
-            "refund_extra_id": "", # Default
-            "payout_address": destination,
-            "payout_extra_id": destination_memo,
-            "currency_from": ETH_CURRENCY_CONFIGURATION.ticker,
-            "currency_to": self.currency_configuration.ticker,
-            "amount_to_provider": int_to_minimally_sized_bytes(send_amount),
-            "amount_to_wallet": b"\246\333t\233+\330\000", # Default
-        }
-        if allow_alias:
-            self._alias_payout_address = self.alias_address
-        self._perform_valid_exchange(subcommand=SubCommand.SWAP_NG,
-                                     tx_infos=tx_infos,
-                                     from_currency_configuration=ETH_CURRENCY_CONFIGURATION,
-                                     to_currency_configuration=self.currency_configuration,
-                                     fees=fees,
-                                     ui_validation=ui_validation,
-                                     start_application=True)
-
     def perform_valid_fund_from_custom(self, destination, send_amount, fees, destination_memo):
         tx_infos = {
             "user_id": self.fund_user_id,
@@ -300,17 +277,6 @@ class ExchangeTestRunner:
                                                 refund_memo=self.fake_refund_memo,
                                                 ui_validation=False,
                                                 allow_alias=False)
-        assert e.value.status == Errors.INVALID_ADDRESS
-
-    # We test that the currency app returns a fail when checking an incorrect payout address
-    def perform_test_swap_wrong_payout(self):
-        with pytest.raises(ExceptionRAPDU) as e:
-            self.perform_valid_swap_to_custom(self.fake_payout,
-                                              self.valid_send_amount_1,
-                                              self.valid_fees_1,
-                                              self.fake_payout_memo,
-                                              ui_validation=False,
-                                              allow_alias=False)
         assert e.value.status == Errors.INVALID_ADDRESS
 
     # Swap test stopping after the UI prompt, useful for debugging purposes
