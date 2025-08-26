@@ -5,11 +5,10 @@
 #include "glyphs.h"
 #include "menu.h"
 #include "nbgl_use_case.h"
-#include "nbgl_page.h"
-#include "nbgl_layout.h"
 #include "os.h"
 #include "io.h"
 #include "ux.h"
+#include "icons.h"
 
 static void app_quit(void) {
     os_sched_exit(-1);
@@ -28,12 +27,16 @@ static const nbgl_contentInfoList_t infoList = {
 void ui_idle(void) {
     nbgl_useCaseHomeAndSettings(APPNAME,
 #ifndef TEST_BUILD
-                                &C_icon_exchange_64x64,
+                                &ICON_REVIEW,
+#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
+                                "This app enables swapping and selling assets in Ledger Live.",
+#elif defined(TARGET_STAX) || defined(TARGET_FLEX)
                                 "This app enables swapping\nand selling assets\nin Ledger Live.",
-#else
-                                &C_Warning_64px,
+#endif // TARGET
+#else // !TEST_BUILD
+                                &ICON_WARNING,
                                 "DO NOT USE THIS APPLICATION\nWITH REAL FUNDS.\n!! TEST ONLY !!",
-#endif
+#endif // !TEST_BUILD
                                 INIT_HOME_PAGE,
                                 NULL,
                                 &infoList,
