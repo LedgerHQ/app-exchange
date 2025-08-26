@@ -19,8 +19,6 @@ ifeq ($(BOLOS_SDK),)
 $(error Environment variable BOLOS_SDK is not set)
 endif
 
-include $(BOLOS_SDK)/Makefile.defines
-
 ########################################
 #        Mandatory configuration       #
 ########################################
@@ -108,15 +106,12 @@ ENABLE_BLUETOOTH = 1
 DISABLE_STANDARD_SNPRINTF = 1
 DEFINES += HAVE_SPRINTF
 
-# Save some flash size
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-DISABLE_STANDARD_WEBUSB = 1
-endif
-
 #DISABLE_STANDARD_USB = 1
 #DISABLE_STANDARD_BAGL_UX_FLOW = 1
 #DISABLE_DEBUG_LEDGER_ASSERT = 1
 #DISABLE_DEBUG_THROW = 1
+
+ENABLE_NBGL_FOR_NANO_DEVICES = 1
 
 ########################################
 #            Testing flags             #
@@ -168,6 +163,10 @@ ifeq ($(TEST_BUILD),1)
 endif
 
 ########################################
+
+include $(BOLOS_SDK)/Makefile.standard_app
+
+########################################
 #      Protobuf files regeneration     #
 ########################################
 .PHONY: proto
@@ -176,7 +175,3 @@ proto:
 	protoc --nanopb_out=. src/proto/protocol.proto --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
 	protoc --python_out=. src/proto/protocol.proto
 	mv src/proto/protocol_pb2.py client/src/ledger_app_clients/exchange/pb/exchange_pb2.py
-
-########################################
-
-include $(BOLOS_SDK)/Makefile.standard_app
