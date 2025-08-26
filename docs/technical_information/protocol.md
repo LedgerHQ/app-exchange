@@ -337,7 +337,7 @@ Return code can be one of the following values:
 | 0x6A81 | DESERIALIZATION_FAILED       | Can't parse partner transaction proposal                                                |
 | 0x6A82 | WRONG_TRANSACTION_ID         | Transaction ID is not equal to one generated on the START_NEW_TRANSACTION step          |
 | 0x6A83 | INVALID_ADDRESS              | Refund or payout address doesn't belong to us                                           |
-| 0x6A84 | USER_REFUSED                 | User refused the transaction proposal                                                   |
+| 0x6A84 | USER_REFUSED_TRANSACTION     | User refused the transaction proposal                                                   |
 | 0x6A85 | INTERNAL_ERROR               | Internal error of the application                                                       |
 | 0x6A86 | WRONG_P1                     | The P1 value is not a valid RATE                                                        |
 | 0x6A87 | WRONG_P2_SUBCOMMAND          | The P2 lower 4 bits of the P2 byte is not a valid SUBCOMMAND                            |
@@ -351,6 +351,7 @@ Return code can be one of the following values:
 | 0x6A8F | WRONG_TLV_CONTENT            | The content of the descriptor does not fit the Exchange use case specification          |
 | 0x6A90 | MISSING_TLV_CONTENT          | The descriptor is missing requirement tags                                              |
 | 0x6A91 | WRONG_TRUSTED_NAME_TLV       | The content of the descriptor does not fit the common descriptor specification          |
+| 0x6A92 | USER_REFUSED_CROSS_SEED      | User refused the transaction proposal when prompted by the Cross Seed Swap warning      |
 | 0x6E00 | CLASS_NOT_SUPPORTED          | The CLASS is not 0xE0                                                                   |
 | 0x6E01 | MALFORMED_APDU               | The APDU header is malformed                                                            |
 | 0x6E02 | INVALID_DATA_LENGTH          | The length of the DATA is refused for this COMMAND                                      |

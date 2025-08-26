@@ -51,7 +51,7 @@ class Errors(IntEnum):
     DESERIALIZATION_FAILED       = 0x6A81
     WRONG_TRANSACTION_ID         = 0x6A82
     INVALID_ADDRESS              = 0x6A83
-    USER_REFUSED                 = 0x6A84
+    USER_REFUSED_TRANSACTION     = 0x6A84
     INTERNAL_ERROR               = 0x6A85
     WRONG_P1                     = 0x6A86
     WRONG_P2_SUBCOMMAND          = 0x6A87
@@ -66,6 +66,8 @@ class Errors(IntEnum):
     WRONG_TLV_CONTENT            = 0x6A8F
     MISSING_TLV_CONTENT          = 0x6A90
     WRONG_TRUSTED_NAME_TLV       = 0x6A91
+
+    USER_REFUSED_CROSS_SEED      = 0x6A92
 
     CLASS_NOT_SUPPORTED          = 0x6E00
     MALFORMED_APDU               = 0x6E01
