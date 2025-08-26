@@ -30,6 +30,7 @@
 #include "apdu_parser.h"
 #include "sign_result.h"
 #include "get_challenge_handler.h"
+#include "main_std_app.h"
 
 #include "usbd_core.h"
 
@@ -79,17 +80,13 @@ void app_main(void) {
 }
 
 // On Stax, remember some data from the previous cycle if applicable to display a status screen
-#ifdef HAVE_NBGL
 previous_cycle_data_t G_previous_cycle_data;
-#endif
 
 __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
     // exit critical section
     __asm volatile("cpsie i");
 
-#ifdef HAVE_NBGL
     G_previous_cycle_data.had_previous_cycle = false;
-#endif
 
     // ensure exception will work as planned
     os_boot();
@@ -97,38 +94,23 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
     for (;;) {
         // If we are back from a lib app in signing mode, clean our BSS
         if (G_swap_ctx.state == SIGN_FINISHED) {
-#ifdef HAVE_NBGL
             G_previous_cycle_data.had_previous_cycle = true;
             // We have saved some data for the status screen in the BSS
             // Let's avoid them being erased by doing a stack save
             previous_cycle_data_t tmp_previous_cycle_data;
             memcpy(&tmp_previous_cycle_data, &G_previous_cycle_data, sizeof(G_previous_cycle_data));
-#endif
 
             // Fully reset the global space, as it is was corrupted by the signing app
             PRINTF("Exchange new cycle, reset BSS\n");
             os_explicit_zero_BSS_segment();
 
-#ifdef HAVE_NBGL
             memcpy(&G_previous_cycle_data, &tmp_previous_cycle_data, sizeof(G_previous_cycle_data));
-#endif
         }
-
-        UX_INIT();
 
         BEGIN_TRY {
             TRY {
-                io_seproxyhal_init();
+                common_app_init();
 
-#ifdef TARGET_NANOX
-                // grab the current plane mode setting
-                G_io_app.plane_mode = os_setting_get(OS_SETTING_PLANEMODE, NULL, 0);
-#endif  // TARGET_NANOX
-
-                USB_power(0);
-                USB_power(1);
-
-#ifdef HAVE_NBGL
                 // If last cycle had signing related activities,
                 // display it before displaying the main menu.
                 // We can't do it earlier because :
@@ -146,15 +128,6 @@ __attribute__((section(".boot"))) int main(__attribute__((unused)) int arg0) {
                 } else {
                     ui_idle();
                 }
-#else  // HAVE_BAGL
-       // No "Ledger Moment" modal, sad
-                ui_idle();
-#endif
-
-#ifdef HAVE_BLE
-                BLE_power(0, NULL);
-                BLE_power(1, NULL);
-#endif
 
                 // to prevent it from having a fixed value at boot
                 roll_challenge();

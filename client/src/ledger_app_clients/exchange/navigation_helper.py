@@ -31,7 +31,7 @@ class ExchangeNavigationHelper:
         if self._backend.firmware.is_nano:
             navigate_instruction = NavInsID.RIGHT_CLICK
             validation_instructions = [NavInsID.BOTH_CLICK]
-            text = "Accept" if accept else "Reject"
+            text = "Sign transaction" if accept else "Reject transaction"
         else:
             navigate_instruction = NavInsID.USE_CASE_REVIEW_TAP
             text = "Hold to sign"

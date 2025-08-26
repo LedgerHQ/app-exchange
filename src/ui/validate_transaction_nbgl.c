@@ -6,13 +6,12 @@
 #include "menu.h"
 #include "validate_transaction.h"
 #include "nbgl_use_case.h"
-#include "nbgl_page.h"
-#include "nbgl_layout.h"
 #include "os.h"
 #include "io.h"
 #include "io_helpers.h"
 #include "swap_errors.h"
 #include "ux.h"
+#include "icons.h"
 
 /*****************************
  *     TITLE AND CONFIRM     *
@@ -236,7 +235,7 @@ void ui_validate_amounts(void) {
 
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pair_list,
-                       &C_icon_exchange_64x64,
+                       &ICON_REVIEW,
                        review_title_string,
                        NULL,
                        review_confirm_string,
