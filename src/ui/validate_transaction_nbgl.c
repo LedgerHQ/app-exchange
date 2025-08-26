@@ -157,7 +157,7 @@ static inline void prepare_title_and_confirm(void) {
  *     PAIRS LIST     *
  **********************/
 
-static nbgl_layoutTagValue_t pairs[5];
+static nbgl_layoutTagValue_t pairs[6];
 static nbgl_layoutTagValueList_t pair_list;
 
 static inline void prepare_pairs_list(void) {
@@ -202,6 +202,12 @@ static inline void prepare_pairs_list(void) {
     pairs[index].value = G_swap_ctx.printable_fees_amount;
     index++;
 
+    if (G_swap_ctx.other_seed_payout) {
+        pairs[index].item = "Receive address";
+        pairs[index].value = G_swap_ctx.swap_transaction.payout_address;
+        index++;
+    }
+
     // Register the pairs we prepared into the pair list
     pair_list.nbMaxLinesForValue = 0;
     pair_list.nbPairs = index;
@@ -211,6 +217,13 @@ static inline void prepare_pairs_list(void) {
 /********************
  *     CALLBACK     *
  ********************/
+
+static void handle_refusal(uint16_t error_code) {
+    PRINTF("User refused transaction\n");
+    reply_error(error_code);
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_idle);
+    G_swap_ctx.state = INITIAL_STATE;
+}
 
 static void review_choice(bool confirm) {
     if (confirm) {
@@ -227,10 +240,23 @@ static void review_choice(bool confirm) {
         reply_success();
         G_swap_ctx.state = WAITING_SIGNING;
     } else {
-        PRINTF("User refused transaction\n");
-        reply_error(USER_REFUSED);
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_idle);
-        G_swap_ctx.state = INITIAL_STATE;
+        handle_refusal(USER_REFUSED_TRANSACTION);
+    }
+}
+
+static void on_warning_choice(bool confirm) {
+    if (confirm) {
+        PRINTF("User accepted cross seed swap\n");
+        nbgl_useCaseReview(TYPE_TRANSACTION,
+                           &pair_list,
+                           &ICON_REVIEW,
+                           review_title_string,
+                           NULL,
+                           review_confirm_string,
+                           review_choice);
+    } else {
+        PRINTF("User refused cross seed swap\n");
+        handle_refusal(USER_REFUSED_CROSS_SEED);
     }
 }
 
@@ -238,17 +264,21 @@ static void review_choice(bool confirm) {
  *    ENTRY POINT    *
  *********************/
 
+// Only valid and used in SWAP context
 void ui_validate_amounts(void) {
     prepare_title_and_confirm();
     prepare_pairs_list();
 
-    nbgl_useCaseReview(TYPE_TRANSACTION,
-                       &pair_list,
-                       &ICON_REVIEW,
-                       review_title_string,
-                       NULL,
-                       review_confirm_string,
-                       review_choice);
+    if (G_swap_ctx.other_seed_payout) {
+        nbgl_useCaseChoice(&ICON_WARNING,
+                           "Receive address not secured by this Ledger",
+                           "Carefully verify the address belongs to you.",
+                           "I understand",
+                           "Cancel",
+                           on_warning_choice);
+    } else {
+        on_warning_choice(true);
+    }
 }
 
 #endif  // HAVE_NBGL

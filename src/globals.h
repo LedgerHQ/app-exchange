@@ -94,6 +94,10 @@ typedef struct swap_app_context_s {
     };
     char printable_send_amount[MAX_PRINTABLE_AMOUNT_SIZE];
     char printable_fees_amount[MAX_PRINTABLE_AMOUNT_SIZE];
+
+    // If PAYOUT address check, we may be in a cross seed swap.
+    // Prompt a warning to the user before signing.
+    bool other_seed_payout;
 } swap_app_context_t;
 
 extern swap_app_context_t G_swap_ctx;
