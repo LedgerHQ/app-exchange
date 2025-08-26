@@ -6,13 +6,12 @@
 #include "menu.h"
 #include "validate_transaction.h"
 #include "nbgl_use_case.h"
-#include "nbgl_page.h"
-#include "nbgl_layout.h"
 #include "os.h"
 #include "io.h"
 #include "io_helpers.h"
 #include "swap_errors.h"
 #include "ux.h"
+#include "icons.h"
 
 /*****************************
  *     TITLE AND CONFIRM     *
@@ -215,7 +214,14 @@ static inline void prepare_pairs_list(void) {
 
 static void review_choice(bool confirm) {
     if (confirm) {
+#ifdef SCREEN_SIZE_WALLET
+        // The library application will crash if it does not overwrite the spinner.
+        // All swappable applications currently overwrite it with the Signing spinner on Stax and
+        // Flex devices.
+        // However, they do not all overwrite it on NanoX and NanoSP, therefor we can't safely
+        // display the Processing spinner until they've all been ported to latest UI guidelines.
         nbgl_useCaseSpinner("Processing");
+#endif
         reply_success();
         G_swap_ctx.state = WAITING_SIGNING;
     } else {
@@ -236,7 +242,7 @@ void ui_validate_amounts(void) {
 
     nbgl_useCaseReview(TYPE_TRANSACTION,
                        &pair_list,
-                       &C_icon_exchange_64x64,
+                       &ICON_REVIEW,
                        review_title_string,
                        NULL,
                        review_confirm_string,
