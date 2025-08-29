@@ -190,9 +190,9 @@ static inline void prepare_pairs_list(void) {
         index++;
     } else {
         if (G_swap_ctx.rate == FLOATING) {
-            pairs[index].item = "Get estimated";
+            pairs[index].item = "Receive estimated";
         } else {
-            pairs[index].item = "Get";
+            pairs[index].item = "Receive";
         }
         pairs[index].value = G_swap_ctx.printable_get_amount;
         index++;
@@ -271,8 +271,12 @@ void ui_validate_amounts(void) {
 
     if (G_swap_ctx.other_seed_payout) {
         nbgl_useCaseChoice(&ICON_WARNING,
-                           "Receive address not secured by this Ledger",
-                           "Carefully verify the address belongs to you.",
+                           "Receive address does not belong to this Ledger device",
+#ifdef SCREEN_SIZE_WALLET
+                           "Verify the swap receive address belongs to you\nLearn more: ledger.com/e8",
+#else
+                           "Learn more:\nledger.com/e8",
+#endif
                            "I understand",
                            "Cancel",
                            on_warning_choice);
