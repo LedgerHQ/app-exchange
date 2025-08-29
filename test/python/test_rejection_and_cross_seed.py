@@ -128,8 +128,9 @@ class TestRejection:
             ex.start_signing_transaction()
         assert e.value.status == Errors.UNEXPECTED_INSTRUCTION
 
-    def _cross_swap_valid(self, backend, exchange_navigation_helper, payout_address):
-        ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP_NG)
+    def _cross_swap_valid(self, backend, exchange_navigation_helper, payout_address, fixed_rate=True):
+        rate = Rate.FIXED if fixed_rate else Rate.FLOATING
+        ex = ExchangeClient(backend, rate, SubCommand.SWAP_NG)
         self._prepare_swap(ex, exchange_navigation_helper, SubCommand.SWAP_NG, fake_payout_address=payout_address)
 
         # Request the final address check and UI approval request on the device
@@ -166,3 +167,6 @@ class TestRejection:
 
     def test_cross_seed_accept_then_accept_max_length(self, backend, exchange_navigation_helper):
         self._cross_swap_valid(backend, exchange_navigation_helper, b'bc1qqtl9jlrwcr3fsfcjj2du7pu6fcgaxl5dsw2vyg0000bc1qqtl9jlrwcr3fsfcjj2du7pu6fcgaxl5dsw2vyg0000bc1qqtl9jlrwcr3fsfcjj2du7pu6fcgaxl5dsw2vyg0000bc1qqtl9jlrw')
+
+    def test_cross_seed_accept_then_accept_floating(self, backend, exchange_navigation_helper):
+        self._cross_swap_valid(backend, exchange_navigation_helper, b'0xd692Cb1346262F584D17B4B470954501f6715a82', fixed_rate=False)
