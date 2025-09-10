@@ -12,9 +12,9 @@
 
 ---
 
-# Example of handle implementation in Solana
+# Example of handle implementation in Boilerplate
 
-[`app-solana/src/swap/handle_check_address.c`](https://github.com/LedgerHQ/app-solana/blob/develop/src/swap/handle_check_address.c)
+[`app-boilerplate/src/swap/handle_check_address.c`](https://github.com/LedgerHQ/app-boilerplate/blob/master/src/swap/handle_check_address.c)
 ```C
---8<-- "docs/deps/app-solana/src/swap/handle_check_address.c:file"
+--8<-- "docs/deps/app-boilerplate/src/swap/handle_check_address.c"
 ```

@@ -12,9 +12,9 @@
 
 ---
 
-# Example of handle implementation in Solana
+# Example of handle implementation in Boilerplate
 
-[`app-solana/src/swap/handle_swap_sign_transaction.c`](https://github.com/LedgerHQ/app-solana/blob/develop/src/swap/handle_swap_sign_transaction.c)
+[`app-boilerplate/src/swap/handle_swap_sign_transaction.c`](https://github.com/LedgerHQ/app-boilerplate/blob/master/src/swap/handle_swap_sign_transaction.c)
 ```C
---8<-- "docs/deps/app-solana/src/swap/handle_swap_sign_transaction.c:copy_transaction_parameters"
+--8<-- "docs/deps/app-boilerplate/src/swap/handle_swap_sign_transaction.c:swap_copy_transaction_parameters"
 ```

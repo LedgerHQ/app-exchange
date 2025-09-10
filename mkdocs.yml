@@ -55,6 +55,7 @@ nav:
       - Technical Informations: technical_informations/index.md
       - Sequence diagram: technical_informations/diagram.md
       - Exchange Protocol API: technical_informations/protocol.md
+      - FUND and SELL flows: technical_informations/fund_and_sell.md
       - Crypto Asset List (CAL): technical_informations/cal.md
       - Coin Application API:
           - Coin Application API: technical_informations/coin_application_api/index.md
