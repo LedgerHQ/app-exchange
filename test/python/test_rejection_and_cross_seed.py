@@ -112,6 +112,8 @@ class TestRejection:
         assert e.value.status == Errors.UNEXPECTED_INSTRUCTION
 
     def test_cross_seed_accept_then_reject(self, backend, exchange_navigation_helper):
+        if backend.firmware.is_nano:
+            pytest.skip("No warning on Nano devices")
         ex = ExchangeClient(backend, Rate.FIXED, SubCommand.SWAP_NG)
         self._prepare_swap(ex, exchange_navigation_helper, SubCommand.SWAP_NG, fake_payout_address=b'bc1qqtl9jlrwcr3fsfcjj2du7pu6fcgaxl5dsw2vyg0000')
 
@@ -136,7 +138,9 @@ class TestRejection:
         # Request the final address check and UI approval request on the device
         with ex.prompt_ui_display():
             exchange_navigation_helper.cross_seed_accept()
-            exchange_navigation_helper.simple_accept()
+            if not backend.firmware.is_nano:
+                # On Nano devices we have only one review
+                exchange_navigation_helper.simple_accept()
 
         exchange_navigation_helper.wait_for_exchange_spinner()
         ex.start_signing_transaction()
