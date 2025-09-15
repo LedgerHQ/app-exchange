@@ -6,7 +6,9 @@
 --8<-- "docs/deps/ledger-secure-sdk/lib_standard_app/swap_error_code_helpers.h:helpers"
 ```
 
-Here is an example of usage of the error code SDK API in the Boilerplate application:
+---
+
+## Example of API usage in Boilerplate
 
 [`app-boilerplate/src/swap/handle_swap_sign_transaction.c`](https://github.com/LedgerHQ/app-boilerplate/blob/master/src/swap/handle_swap_sign_transaction.c)
 ```C

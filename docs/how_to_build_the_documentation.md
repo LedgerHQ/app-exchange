@@ -1,15 +1,17 @@
-How to build the documentation portal on local
+# How to build the documentation portal locally
+
+This document is intended at developers or reviewers of the documentation, it is not included in the documentation portal itself.
 
 #### Install python dependencies
 
 ```sh
-pip install -Ur requirements.txt
+pip install -Ur docs/requirements.txt
 ```
 
 #### Clone dependencies repositories
 
 ```sh
-python clone_dependencies.py
+python docs/clone_dependencies.py
 ```
 
 #### Run the documentation builder server

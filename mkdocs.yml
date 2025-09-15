@@ -51,20 +51,20 @@ nav:
       - First compilation with the standard SWAP: walkthrough/enable_the_swap_compilation.md
       - Creating a basic SWAP test for you coin: walkthrough/enable_standard_app.md
       - Code the handlers: walkthrough/code_the_handlers.md
-  - Technical Informations:
-      - Technical Informations: technical_informations/index.md
-      - Sequence diagram: technical_informations/diagram.md
-      - Exchange Protocol API: technical_informations/protocol.md
-      - FUND and SELL flows: technical_informations/fund_and_sell.md
-      - Crypto Asset List (CAL): technical_informations/cal.md
+  - Technical Information:
+      - Technical Information: technical_information/index.md
+      - Sequence diagram: technical_information/diagram.md
+      - Exchange Protocol API: technical_information/protocol.md
+      - FUND and SELL flows: technical_information/fund_and_sell.md
+      - Crypto Asset List (CAL): technical_information/cal.md
       - Coin Application API:
-          - Coin Application API: technical_informations/coin_application_api/index.md
-          - handle_check_address(): technical_informations/coin_application_api/swap_handle_check_address.md
-          - handle_get_printable_amount(): technical_informations/coin_application_api/swap_handle_get_printable_amount.md
-          - copy_transaction_parameters(): technical_informations/coin_application_api/swap_copy_transaction_parameters.md
-          - UI bypass: technical_informations/coin_application_api/ui_bypass.md
-          - Error codes: technical_informations/coin_application_api/error_codes.md
-      - The DALE tool: technical_informations/dale.md
+          - Coin Application API: technical_information/coin_application_api/index.md
+          - handle_check_address(): technical_information/coin_application_api/swap_handle_check_address.md
+          - handle_get_printable_amount(): technical_information/coin_application_api/swap_handle_get_printable_amount.md
+          - copy_transaction_parameters(): technical_information/coin_application_api/swap_copy_transaction_parameters.md
+          - UI bypass: technical_information/coin_application_api/ui_bypass.md
+          - Error codes: technical_information/coin_application_api/error_codes.md
+      - The DALE tool: technical_information/dale.md
 
 watch:
   - mkdocs.yml
