@@ -56,7 +56,7 @@ class ExchangeNavigationHelper:
         else:
             navigate_instruction = NavInsID.USE_CASE_REVIEW_TAP
             if accept:
-                text = "Continue to verify"
+                text = "Continue anyway"
                 validation_instructions = [NavInsID.USE_CASE_CHOICE_CONFIRM]
             else:
                 text = "Cancel"

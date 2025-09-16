@@ -314,10 +314,10 @@ void ui_validate_amounts(void) {
     if (G_swap_ctx.other_seed_payout) {
 #ifdef SCREEN_SIZE_WALLET
         nbgl_useCaseChoice(
-            &ICON_WARNING,
+            &IMPORTANT_CIRCLE_ICON,
             "Receive address does not belong to this Ledger device",
-            "Verify the swap receive address belongs to you.\nLearn more at: ledger.com/e13",
-            "Continue to verify",
+            "Carefully verify that the receive address is correct.\nLearn more: ledger.com/e13",
+            "Continue anyway",
             "Cancel",
             on_warning_choice);
 #else
