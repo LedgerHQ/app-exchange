@@ -20,7 +20,7 @@ class AptosTests(ExchangeTestRunner):
     valid_fees_2 = 42 * max_gas_amount
     fake_refund = "abcdabcd"
     fake_refund_memo = "1"
-    fake_payout = "abcdabcd"
+    fake_payout = "0x7be51d04d3a482fa056bc094bc5eadad005aaf823a95269410f08730f0d03cb47be51d04d3a482fa056bc094bc5eadad005aaf823a95269410f7be51d04d3a482fa056bc094bceadad00"
     fake_payout_memo = "1"
     signature_refusal_error_code = Errors.SW_SWAP_CHECKING_FAIL
     wrong_method_error_code = Errors.SW_SWAP_CHECKING_FAIL
@@ -28,7 +28,7 @@ class AptosTests(ExchangeTestRunner):
     wrong_amount_error_code = Errors.SW_SWAP_CHECKING_FAIL
     def perform_final_tx(self, destination, send_amount, fees, memo):
         AptosCommandSender(self.backend).sign_tx(send_amount=send_amount,fees=fees, max_gas_amount=self.max_gas_amount, transmitter=self.valid_refund,destination=destination)
-            
+
 
 # Use a class to reuse the same Speculos instance
 class TestsAptos:

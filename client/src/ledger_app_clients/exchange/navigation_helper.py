@@ -25,7 +25,6 @@ class ExchangeNavigationHelper:
         self._test_name_suffix = suffix
 
     def _navigate_and_compare(self, accept: bool):
-
         if self._backend.firmware.is_nano:
             navigate_instruction = NavInsID.RIGHT_CLICK
             validation_instructions = [NavInsID.BOTH_CLICK]
@@ -42,7 +41,6 @@ class ExchangeNavigationHelper:
             # Don't try to assert the "Processing" spinner if not validated
             screen_change_after_last_instruction = not accept
 
-
         self._navigator.navigate_until_text_and_compare(navigate_instruction=navigate_instruction,
                                                         validation_instructions=validation_instructions,
                                                         text=text,
@@ -50,11 +48,41 @@ class ExchangeNavigationHelper:
                                                         test_case_name=self.snapshots_dir_name + "/review",
                                                         screen_change_after_last_instruction=screen_change_after_last_instruction)
 
+    def _cross_seed_navigate_and_compare(self, accept: bool):
+        if self._backend.firmware.is_nano:
+            text = "Sign transaction" if accept else "Reject transaction"
+            navigate_instruction = NavInsID.RIGHT_CLICK
+            validation_instructions = [NavInsID.BOTH_CLICK]
+        else:
+            navigate_instruction = NavInsID.USE_CASE_REVIEW_TAP
+            if accept:
+                text = "Continue anyway"
+                validation_instructions = [NavInsID.USE_CASE_CHOICE_CONFIRM]
+            else:
+                text = "Cancel"
+                validation_instructions = [NavInsID.USE_CASE_CHOICE_REJECT]
+
+        # Don't try to assert the first screen of the actual review
+        screen_change_after_last_instruction = not accept
+
+        self._navigator.navigate_until_text_and_compare(navigate_instruction=navigate_instruction,
+                                                        validation_instructions=validation_instructions,
+                                                        text=text,
+                                                        path=self._snapshots_path,
+                                                        test_case_name=self.snapshots_dir_name + "/cross_seed_review",
+                                                        screen_change_after_last_instruction=screen_change_after_last_instruction)
+
     def simple_accept(self):
         self._navigate_and_compare(True)
 
     def simple_reject(self):
         self._navigate_and_compare(False)
+
+    def cross_seed_accept(self):
+        self._cross_seed_navigate_and_compare(True)
+
+    def cross_seed_reject(self):
+        self._cross_seed_navigate_and_compare(False)
 
     def wait_for_exchange_spinner(self):
         if not self._backend.firmware.is_nano:
