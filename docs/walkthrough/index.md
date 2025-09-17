@@ -1,3 +1,5 @@
-This guide will help you add the SWAP compatibility to your application.
+This guide will help you add SWAP compatibility to your application.
 
-This guide uses a Test Driven approach.
+It follows a Test-Driven approach.
+
+Do not hesitate to refer to the [Technical Information](../technical_information/index.md) section.

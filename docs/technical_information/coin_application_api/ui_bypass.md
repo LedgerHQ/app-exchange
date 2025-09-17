@@ -18,9 +18,17 @@ The Exchange application will handle the refusal screen display.
 
 Here is an example of the high level detection of the UI bypass.
 
-[`app-solana/src/handle_sign_message.c`](https://github.com/LedgerHQ/app-solana/blob/develop/src/handle_sign_message.c)
+[`app-boilerplate/src/handler/sign_tx.c`](https://github.com/LedgerHQ/app-boilerplate/blob/master/src/handler/sign_tx.c)
 ```C
---8<-- "docs/deps/app-solana/src/handle_sign_message.c:handle_sign_message_ui"
+--8<-- "docs/deps/app-boilerplate/src/handler/sign_tx.c:ui_bypass"
 ```
 
-The content of the `check_swap_validity()` function can also be found in the linked file for more information.
+Here is the function `swap_check_validity()` called for checking the content of the received TX against the data validated in the Exchange application, 
+
+[`app-boilerplate/src/swap/handle_swap_sign_transaction.c`](https://github.com/LedgerHQ/app-boilerplate/blob/master/src/swap/handle_swap_sign_transaction.c)
+```C
+--8<-- "docs/deps/app-boilerplate/src/swap/handle_swap_sign_transaction.c:swap_check_validity"
+```
+
+The Boilerplate does not have tokens, as a result there is no check on the type of currency signed.
+If your application is able to handle multiple currencies, this is a check that you must add.

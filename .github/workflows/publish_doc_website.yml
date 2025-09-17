@@ -33,6 +33,14 @@ jobs:
           path: ./docs/deps/app-solana
           fetch-depth: 1
 
+      - name: Checkout boilerplate
+        uses: actions/checkout@v4
+        with:
+          repository: LedgerHQ/app-boilerplate
+          ref: master
+          path: ./docs/deps/app-boilerplate
+          fetch-depth: 1
+
       - name: Checkout sdk
         uses: actions/checkout@v4
         with:

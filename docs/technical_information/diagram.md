@@ -3,7 +3,7 @@
 This diagram showcases:
 
 - The APDU and RAPDU exchanged between the Ledger Live and the Exchange application during a SWAP.
-- The os_lib_calls commands made by the Exchange application to the involved Coin applications. 
+- The `os_lib_calls` commands made by the Exchange application to the involved Coin applications. 
 
 
 Please look at the [protocol documentation](./protocol.md) to know more about how the APDUs content.
