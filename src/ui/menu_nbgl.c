@@ -16,7 +16,7 @@ static void app_quit(void) {
 
 #define SETTING_INFO_NB 2
 static const char* const INFO_TYPES[SETTING_INFO_NB] = {"Version", "Exchange App"};
-static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION, "(c) 2024 Ledger"};
+static const char* const INFO_CONTENTS[SETTING_INFO_NB] = {APPVERSION, "(c) 2025 Ledger"};
 
 static const nbgl_contentInfoList_t infoList = {
     .nbInfos = SETTING_INFO_NB,
