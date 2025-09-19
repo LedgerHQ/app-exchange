@@ -28,10 +28,10 @@ void ui_idle(void) {
     nbgl_useCaseHomeAndSettings(APPNAME,
 #ifndef TEST_BUILD
                                 &ICON_REVIEW,
-#if defined(TARGET_NANOX) || defined(TARGET_NANOS2)
-                                "This app enables swapping and selling assets in Ledger Live.",
-#elif defined(TARGET_STAX) || defined(TARGET_FLEX)
+#if defined(SCREEN_SIZE_WALLET)
                                 "This app enables swapping\nand selling assets\nin Ledger Live.",
+#else   // !SCREEN_SIZE_WALLET
+                                "This app enables swapping and selling assets in Ledger Live.",
 #endif  // TARGET
 #else   // !TEST_BUILD
                                 &ICON_WARNING,

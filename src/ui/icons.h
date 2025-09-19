@@ -5,5 +5,8 @@
 #define ICON_WARNING C_icon_warning
 #elif defined(TARGET_STAX) || defined(TARGET_FLEX)
 #define ICON_REVIEW  C_icon_exchange_64x64
-#define ICON_WARNING C_Warning_64px
+#define ICON_WARNING LARGE_WARNING_ICON
+#elif defined(TARGET_APEX_P)
+#define ICON_REVIEW  C_icon_exchange_48x48
+#define ICON_WARNING LARGE_WARNING_ICON
 #endif
