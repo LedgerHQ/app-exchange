@@ -246,6 +246,7 @@ static inline void prepare_pairs_list(void) {
     pair_list.nbMaxLinesForValue = 0;
     pair_list.nbPairs = index;
     pair_list.pairs = pairs;
+    pair_list.wrapping = true;
 }
 
 /********************
