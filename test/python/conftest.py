@@ -42,7 +42,8 @@ def pytest_configure(config):
             "sui": "Sui",
             "boilerplate": "Boilerplate",
             "kaspa": "Kaspa",
-            "hedera": "Hedera"
+            "hedera": "Hedera",
+            "celo": "Celo",
         }
 
         configuration.OPTIONAL.SIDELOADED_APPS_DIR = "test/python/lib_binaries/"
