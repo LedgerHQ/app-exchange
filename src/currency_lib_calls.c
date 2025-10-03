@@ -189,6 +189,11 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
     char appname[BOLOS_APPNAME_MAX_SIZE_B];
     strlcpy(appname, G_swap_ctx.payin_binary_name, sizeof(appname));
 
+    // Disable all interactivity of the UI before starting the library application.
+    // Not doing this will result in a crash when NBGL attempts to call a callback
+    // for spinner / IO / etc
+    nbgl_screenReset();
+
     // This os_lib_call may not throw SWO_SEC_APP_14 (missing library), as the existence of the
     // application has been enforced through an earlier call to os_lib_call for CHECK_ADDRESS and
     // GET_PRINTABLE_AMOUNT

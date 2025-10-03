@@ -262,16 +262,7 @@ static void handle_refusal(uint16_t error_code) {
 
 static void review_choice(bool confirm) {
     if (confirm) {
-#ifdef SCREEN_SIZE_WALLET
-        // The library application will crash if it does not overwrite the "Processing" spinner
-        // started by Exchange with a UI call of it's own after being started by the os_lib_call .
-        // All swappable applications currently overwrite it with the "Signing" spinner on Stax and
-        // Flex and Apex devices, therefor we have no issue on these devices.
-        // However, they do not all call the "Signing" spinner on NanoX and NanoSP, therefor we
-        // can't safely display the "Processing" spinner until they've all been ported to the
-        // latest UI guidelines.
         nbgl_useCaseSpinner("Processing");
-#endif
         reply_success();
         G_swap_ctx.state = WAITING_SIGNING;
     } else {
