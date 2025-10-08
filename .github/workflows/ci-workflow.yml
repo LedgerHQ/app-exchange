@@ -46,6 +46,7 @@ jobs:
       fail-fast: false
       matrix:
         coin:
+          # this list shall be built dynamically in the future
           - repo: 'LedgerHQ/app-boilerplate'
             branch: 'master'
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_swap_tests.yml@y333/call_swap_from_exchange
