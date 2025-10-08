@@ -23,8 +23,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build_swap_test_exchange:
+    name: Build Exchange app for swap tests using the reusable workflow
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
+    with:
+      app_repository: ${{ github.repository }}
+      app_branch_name: ${{ github.ref }}
+      upload_app_binaries_artifact: "app_exchange_binaries"
+      use_case: 'use_test_keys'
+  build_swap_test_ethereum:
+    name: Build Ethereum app for swap tests using the reusable workflow
+    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
+    with:
+      app_repository: 'LedgerHQ/app-ethereum'
+      app_branch_name: 'develop'
+      upload_app_binaries_artifact: "app_ethereum_binaries"
+      use_case: 'use_test_keys'
   run_coin_swap_tests:
     name: Run swap tests using the reusable workflow
+    needs: [build_swap_test_exchange, build_swap_test_ethereum]
     strategy:
       fail-fast: false
       matrix:
@@ -35,6 +52,8 @@ jobs:
     with:
       app_repository: ${{ matrix.coin.repo }}
       app_branch_name: ${{ matrix.coin.branch }}
+      exchange_build_artifact: "app_exchange_binaries"
+      ethereum_build_artifact: "app_ethereum_binaries"
       regenerate_snapshots: ${{ inputs.golden_run == 'Open a PR' }}
   # job_swap_functional_tests:
   #   name: Build and test
