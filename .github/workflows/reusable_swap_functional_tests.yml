@@ -191,6 +191,196 @@ on:
         required: false
         default: false
         type: boolean
+  workflow_dispatch:
+    inputs:
+      branch_for_exchange:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_exchange:
+        required: false
+        default: 'LedgerHQ/app-exchange'
+        type: string
+
+      branch_for_stellar:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_stellar:
+        required: false
+        default: 'LedgerHQ/app-stellar'
+        type: string
+
+      branch_for_tezos:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_tezos:
+        required: false
+        default: 'LedgerHQ/app-tezos'
+        type: string
+
+      branch_for_xrp:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_xrp:
+        required: false
+        default: 'LedgerHQ/app-xrp'
+        type: string
+
+      branch_for_ethereum:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_ethereum:
+        required: false
+        default: 'LedgerHQ/app-ethereum'
+        type: string
+
+      branch_for_bitcoin_legacy:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_bitcoin_legacy:
+        required: false
+        default: 'LedgerHQ/app-bitcoin'
+        type: string
+
+      branch_for_bitcoin:
+        required: false
+        default: 'develop'
+        type: string
+      branch_for_bitcoin_nanos:
+        required: false
+        default: 'nanos'
+        type: string
+      repo_for_bitcoin:
+        required: false
+        default: 'LedgerHQ/app-bitcoin-new'
+        type: string
+
+      branch_for_solana:
+        required: false
+        default: 'develop'
+        type: string
+      branch_for_solana_nanos:
+        required: false
+        default: 'nanos'
+        type: string
+      repo_for_solana:
+        required: false
+        default: 'LedgerHQ/app-solana'
+        type: string
+
+      branch_for_polkadot:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_polkadot:
+        required: false
+        default: 'LedgerHQ/app-polkadot'
+        type: string
+
+      branch_for_tron:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_tron:
+        required: false
+        default: 'LedgerHQ/app-tron'
+        type: string
+
+      branch_for_near:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_near:
+        required: false
+        default: 'LedgerHQ/app-near'
+        type: string
+
+      branch_for_ton:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_ton:
+        required: false
+        default: 'LedgerHQ/app-ton'
+        type: string
+
+      branch_for_cardano:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_cardano:
+        required: false
+        default: 'LedgerHQ/app-cardano'
+        type: string
+
+      branch_for_cosmos:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_cosmos:
+        required: false
+        default: 'LedgerHQ/app-cosmos'
+        type: string
+
+      branch_for_sui:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_sui:
+        required: false
+        default: 'LedgerHQ/app-sui'
+        type: string
+
+      branch_for_aptos:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_aptos:
+        required: false
+        default: 'LedgerHQ/app-aptos'
+        type: string
+
+      branch_for_kas:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_kas:
+        required: false
+        default: 'LedgerHQ/app-kaspa'
+        type: string
+
+      branch_for_bol:
+        required: false
+        default: 'master'
+        type: string
+      repo_for_bol:
+        required: false
+        default: 'LedgerHQ/app-boilerplate'
+        type: string
+
+      branch_for_hedera:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_hedera:
+        required: false
+        default: 'LedgerHQ/app-hedera'
+        type: string
+
+      test_filter:
+        required: false
+        default: '""'
+        type: string
+      regenerate_snapshots:
+        description: 'Clean snapshots, regenerate them, commit the changes in a branch, and open a PR'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build_sideloaded_applications:
