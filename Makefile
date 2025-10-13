@@ -19,8 +19,6 @@ ifeq ($(BOLOS_SDK),)
 $(error Environment variable BOLOS_SDK is not set)
 endif
 
-include $(BOLOS_SDK)/Makefile.defines
-
 ########################################
 #        Mandatory configuration       #
 ########################################
@@ -29,8 +27,8 @@ APPNAME = "Exchange"
 
 # Application version
 APPVERSION_M = 4
-APPVERSION_N = 2
-APPVERSION_P = 4
+APPVERSION_N = 4
+APPVERSION_P = 1
 APPVERSION = "$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)"
 
 # Application source files
@@ -43,6 +41,7 @@ ICON_NANOX = icons/nanox_app_exchange.gif
 ICON_NANOSP = icons/nanox_app_exchange.gif
 ICON_STAX = icons/stax_app_exchange.gif
 ICON_FLEX = icons/flex_app_exchange.gif
+ICON_APEX_P = icons/apex_app_exchange.png
 
 # Application allowed derivation curves.
 # Possibles curves are: secp256k1, secp256r1, ed25519 and bls12381g1
@@ -108,15 +107,12 @@ ENABLE_BLUETOOTH = 1
 DISABLE_STANDARD_SNPRINTF = 1
 DEFINES += HAVE_SPRINTF
 
-# Save some flash size
-ifeq ($(TARGET_NAME),TARGET_NANOS)
-DISABLE_STANDARD_WEBUSB = 1
-endif
-
 #DISABLE_STANDARD_USB = 1
 #DISABLE_STANDARD_BAGL_UX_FLOW = 1
 #DISABLE_DEBUG_LEDGER_ASSERT = 1
 #DISABLE_DEBUG_THROW = 1
+
+ENABLE_NBGL_FOR_NANO_DEVICES = 1
 
 ########################################
 #            Testing flags             #
@@ -168,6 +164,10 @@ ifeq ($(TEST_BUILD),1)
 endif
 
 ########################################
+
+include $(BOLOS_SDK)/Makefile.standard_app
+
+########################################
 #      Protobuf files regeneration     #
 ########################################
 .PHONY: proto
@@ -176,7 +176,3 @@ proto:
 	protoc --nanopb_out=. src/proto/protocol.proto --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
 	protoc --python_out=. src/proto/protocol.proto
 	mv src/proto/protocol_pb2.py client/src/ledger_app_clients/exchange/pb/exchange_pb2.py
-
-########################################
-
-include $(BOLOS_SDK)/Makefile.standard_app

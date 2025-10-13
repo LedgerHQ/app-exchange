@@ -6,13 +6,12 @@
 #include "menu.h"
 #include "validate_transaction.h"
 #include "nbgl_use_case.h"
-#include "nbgl_page.h"
-#include "nbgl_layout.h"
 #include "os.h"
 #include "io.h"
 #include "io_helpers.h"
 #include "swap_errors.h"
 #include "ux.h"
+#include "icons.h"
 
 /*****************************
  *     TITLE AND CONFIRM     *
@@ -114,6 +113,8 @@ static inline void prepare_title_and_confirm(void) {
             break;
     }
 
+#ifdef SCREEN_SIZE_WALLET
+    // On Stax and Flex, try to have some fancy wrapping
     if ((G_swap_ctx.subcommand == FUND || G_swap_ctx.subcommand == FUND_NG) ||
         (strlen(p4) + strlen(p6) >= 10)) {
         PRINTF("Review title and confirm on 3 lines\n");
@@ -122,6 +123,12 @@ static inline void prepare_title_and_confirm(void) {
         delimitor_2 = ' ';
         delimitor_3 = '\n';
     }
+#else
+    // Rely on default wrapping on Nano, not enough screen size to try to be fancy
+    delimitor_1 = ' ';
+    delimitor_2 = ' ';
+    delimitor_3 = ' ';
+#endif
 
     // Finally let's compute the title and confirm strings prepared above
     // Example
@@ -139,6 +146,8 @@ static inline void prepare_title_and_confirm(void) {
              p5,
              p6);
 
+#ifdef SCREEN_SIZE_WALLET
+    // On Stax and Flex, display full context of the incoming operation
     snprintf(review_confirm_string,
              sizeof(review_confirm_string),
              "%s%c%s%c%s%s%c%s%s%s",
@@ -152,17 +161,41 @@ static inline void prepare_title_and_confirm(void) {
              p5,
              p6,
              REVIEW_P7_CONFIRM);
+#else
+    // On Nano, display a simple "Sign transaction to fund/swap/sell"
+    snprintf(review_confirm_string,
+             sizeof(review_confirm_string),
+             "%s%c%s%c%s",
+             REVIEW_P1_CONFIRM,
+             '\n',
+             REVIEW_P2,
+             ' ',
+             p3);
+#endif
 }
 
 /**********************
  *     PAIRS LIST     *
  **********************/
 
-static nbgl_layoutTagValue_t pairs[5];
+static nbgl_layoutTagValue_t pairs[8];
 static nbgl_layoutTagValueList_t pair_list;
 
 static inline void prepare_pairs_list(void) {
     uint8_t index = 0;
+
+#ifndef SCREEN_SIZE_WALLET
+    // On Nano, the warning is part of the TX items. On Stax/Flex it's a warning before the tx
+    if (G_swap_ctx.other_seed_payout) {
+        pairs[index].item = "Warning";
+        pairs[index].value = "Receive address does not belong to this Ledger device";
+        index++;
+
+        pairs[index].item = "Learn more at";
+        pairs[index].value = "ledger.com/e13";
+        index++;
+    }
+#endif
 
     // Prepare the values to display depending on the FLOW type
     if (G_swap_ctx.subcommand != FUND && G_swap_ctx.subcommand != FUND_NG) {
@@ -191,9 +224,9 @@ static inline void prepare_pairs_list(void) {
         index++;
     } else {
         if (G_swap_ctx.rate == FLOATING) {
-            pairs[index].item = "Get estimated";
+            pairs[index].item = "Receive estimated";
         } else {
-            pairs[index].item = "Get";
+            pairs[index].item = "Receive";
         }
         pairs[index].value = G_swap_ctx.printable_get_amount;
         index++;
@@ -203,15 +236,29 @@ static inline void prepare_pairs_list(void) {
     pairs[index].value = G_swap_ctx.printable_fees_amount;
     index++;
 
+    if (G_swap_ctx.other_seed_payout) {
+        pairs[index].item = "Receive address";
+        pairs[index].value = G_swap_ctx.swap_transaction.payout_address;
+        index++;
+    }
+
     // Register the pairs we prepared into the pair list
     pair_list.nbMaxLinesForValue = 0;
     pair_list.nbPairs = index;
     pair_list.pairs = pairs;
+    pair_list.wrapping = true;
 }
 
 /********************
  *     CALLBACK     *
  ********************/
+
+static void handle_refusal(uint16_t error_code) {
+    PRINTF("User refused transaction\n");
+    reply_error(error_code);
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_idle);
+    G_swap_ctx.state = INITIAL_STATE;
+}
 
 static void review_choice(bool confirm) {
     if (confirm) {
@@ -219,10 +266,31 @@ static void review_choice(bool confirm) {
         reply_success();
         G_swap_ctx.state = WAITING_SIGNING;
     } else {
-        PRINTF("User refused transaction\n");
-        reply_error(USER_REFUSED);
-        nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, ui_idle);
-        G_swap_ctx.state = INITIAL_STATE;
+        uint16_t error_code = USER_REFUSED_TRANSACTION;
+#ifndef SCREEN_SIZE_WALLET
+        // On Nano, we don't have a dedicated warning screen for cross seed swap, therefor we
+        // assume all user refusals are due to involuntary cross seed swaps
+        if (G_swap_ctx.other_seed_payout) {
+            error_code = USER_REFUSED_CROSS_SEED;
+        }
+#endif
+        handle_refusal(error_code);
+    }
+}
+
+static void on_warning_choice(bool confirm) {
+    if (confirm) {
+        PRINTF("User accepted cross seed swap\n");
+        nbgl_useCaseReview(TYPE_TRANSACTION,
+                           &pair_list,
+                           &ICON_REVIEW,
+                           review_title_string,
+                           NULL,
+                           review_confirm_string,
+                           review_choice);
+    } else {
+        PRINTF("User refused cross seed swap\n");
+        handle_refusal(USER_REFUSED_CROSS_SEED);
     }
 }
 
@@ -230,17 +298,27 @@ static void review_choice(bool confirm) {
  *    ENTRY POINT    *
  *********************/
 
+// Only valid and used in SWAP context
 void ui_validate_amounts(void) {
     prepare_title_and_confirm();
     prepare_pairs_list();
 
-    nbgl_useCaseReview(TYPE_TRANSACTION,
-                       &pair_list,
-                       &C_icon_exchange_64x64,
-                       review_title_string,
-                       NULL,
-                       review_confirm_string,
-                       review_choice);
+    if (G_swap_ctx.other_seed_payout) {
+#ifdef SCREEN_SIZE_WALLET
+        nbgl_useCaseChoice(
+            &IMPORTANT_CIRCLE_ICON,
+            "Receive address does not belong to this Ledger device",
+            "Carefully verify that the receive address is correct.\nLearn more: ledger.com/e13",
+            "Continue anyway",
+            "Cancel",
+            on_warning_choice);
+#else
+        // On Nano, the warning is part of the TX items
+        on_warning_choice(true);
+#endif
+    } else {
+        on_warning_choice(true);
+    }
 }
 
 #endif  // HAVE_NBGL

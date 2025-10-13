@@ -226,7 +226,13 @@ int check_addresses_and_amounts(const command_t *cmd) {
                                                       address_parameters,
                                                       application_name);
         if (ret != 0) {
-            return reply_error(ret);
+            if (ret == INVALID_ADDRESS && cmd->ins == CHECK_PAYOUT_ADDRESS) {
+                PRINTF("PAYOUT address does not belong to this device. Will lead to a warning\n");
+                G_swap_ctx.other_seed_payout = true;
+            } else {
+                PRINTF("REFUND address check failed OR PAYOUT address check fatal failed\n");
+                return reply_error(ret);
+            }
         }
     }
 

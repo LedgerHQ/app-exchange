@@ -155,6 +155,15 @@ on:
         default: 'LedgerHQ/app-aptos'
         type: string
 
+      branch_for_kas:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_kas:
+        required: false
+        default: 'LedgerHQ/app-kaspa'
+        type: string
+
       branch_for_bol:
         required: false
         default: 'master'
@@ -162,6 +171,15 @@ on:
       repo_for_bol:
         required: false
         default: 'LedgerHQ/app-boilerplate'
+        type: string
+
+      branch_for_hedera:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_hedera:
+        required: false
+        default: 'LedgerHQ/app-hedera'
         type: string
 
       test_filter:
@@ -238,9 +256,15 @@ jobs:
           - name: APTOS
             repo: ${{ inputs.repo_for_aptos }}
             branch: ${{ inputs.branch_for_aptos }}
+          - name: hedera
+            repo: ${{ inputs.repo_for_hedera }}
+            branch: ${{ inputs.branch_for_hedera }}
           - name: boilerplate
             repo: ${{ inputs.repo_for_bol }}
             branch: ${{ inputs.branch_for_bol }}
+          - name: kaspa
+            repo: ${{ inputs.repo_for_kas }}
+            branch: ${{ inputs.branch_for_kas }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
@@ -284,5 +308,6 @@ jobs:
       app_branch_name: ${{ inputs.branch_for_exchange }}
       download_app_binaries_artifact: exchange_binaries
       lib_binaries_artifact: libraries_binaries
+      lib_binaries_artifact_dir: test/python/lib_binaries/
       test_filter: ${{ inputs.test_filter }}
       regenerate_snapshots: ${{ inputs.regenerate_snapshots }}

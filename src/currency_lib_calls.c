@@ -183,14 +183,16 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
 
     PRINTF("Exchange will call '%s' as library for SIGN_TRANSACTION\n",
            G_swap_ctx.payin_binary_name);
-    USB_power(0);
 
-#ifdef HAVE_NBGL
     // Save appname in stack to keep it from being erased
     // We'll need it later for the failure modale on Stax
     char appname[BOLOS_APPNAME_MAX_SIZE_B];
     strlcpy(appname, G_swap_ctx.payin_binary_name, sizeof(appname));
-#endif
+
+    // Disable all interactivity of the UI before starting the library application.
+    // Not doing this will result in a crash when NBGL attempts to call a callback
+    // for spinner / IO / etc
+    nbgl_screenReset();
 
     // This os_lib_call may not throw SWO_SEC_APP_14 (missing library), as the existence of the
     // application has been enforced through an earlier call to os_lib_call for CHECK_ADDRESS and
@@ -201,14 +203,12 @@ int create_payin_transaction(create_transaction_parameters_t *lib_in_out_params)
     PRINTF("Back in Exchange, the app finished the library command SIGN_TRANSACTION\n");
     PRINTF("Returned code %d\n", lib_in_out_params->result);
 
-#ifdef HAVE_NBGL
     // Retrieve the appname from the stack and put it back in the BSS
     strlcpy(G_previous_cycle_data.appname_last_cycle,
             appname,
             sizeof(G_previous_cycle_data.appname_last_cycle));
     // Remember if this sign was successful
     G_previous_cycle_data.was_successful = (lib_in_out_params->result == 1);
-#endif
 
     return lib_in_out_params->result;
 }

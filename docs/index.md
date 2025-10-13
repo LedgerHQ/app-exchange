@@ -1,6 +1,6 @@
 # Ledger Swap documentation
 
-This documentation is designed to help you understand how the **Ledger Swap** feature works and guide you through modifying your coin application to be compatible with it.
+This documentation is designed to help you understand how the **Ledger Swap** feature works and to guide you through modifying your coin application to be compatible with it.
 
 The **Swap** feature enables users to securely exchange one cryptocurrency for another directly from their Ledger device, within Ledger Live. It uses a trusted, multi-step process to facilitate communication between **Ledger Live**, the **Trade Partner**, the **Exchange application**, and the respective **Coin applications** on the device.
 
@@ -14,7 +14,7 @@ The Swap process involves the following actors:
 - The **Ledger Live**: initiates and manages the transaction flow between the Partner and the Exchange application.
 - The **Exchange Application**: serves as the intermediary between the Ledger Live, the involved coin applications, and the user.
 - The **Coin Applications**: Handle the processing for both the **FROM** and **TO** currencies involved in the swap.
-- The **Ledger Crypto Asset List (CAL)**: Contains HSM signed data of all SWAP compatible currencies that will help the Exchange application display the transaction proposal content on screen. 
+- The **Ledger Crypto Asset List (CAL)**: Contains HSM-signed data of all SWAP-compatible currencies that help the Exchange application display the transaction proposal content on screen. 
 
 ```mermaid
 ---

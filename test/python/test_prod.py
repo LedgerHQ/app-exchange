@@ -13,9 +13,19 @@ from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDG
 def test_menu(device, navigator, test_name, snapshots_path):
     if device.is_nano:
         instructions = [
+            # Main menu
             NavInsID.RIGHT_CLICK,
+            # App info
+            NavInsID.BOTH_CLICK,
+            # Version
             NavInsID.RIGHT_CLICK,
+            # CC
             NavInsID.RIGHT_CLICK,
+            # Back
+            NavInsID.BOTH_CLICK,
+            # App info
+            NavInsID.RIGHT_CLICK,
+            # Quit
         ]
     else:
         instructions = [

@@ -1,30 +1,21 @@
 ## Add the CAL data for your application
 
-Please find more information about what the CAL is and how it is used in the [Crypto Asset List](../technical_informations/cal.md) section.
+You can find more information about what the CAL is and how it is used in the [Crypto Asset List](../technical_information/cal.md) section.
 
-Add the coin configuration for your currency in the [test/python/apps/cal.py](https://github.com/LedgerHQ/app-exchange/blob/develop/test/python/apps/cal.py) file.
+Modify the [cal_helper.py](https://github.com/LedgerHQ/app-boilerplate/blob/master/tests/swap/cal_helper.py) file to craft your coin configuration instead of the Boilerplate one.
 
-Do not use the subconfiguration field for now, you can add it later if you happen to need it, in the meantime the standard configuration will do fine for getting started. 
+Do not use the `sub_coin_config` field for now. You can use it later for tokens if needed; for the time being, the standard configuration is sufficient to get started.
 
 ## Enable the Exchange tests for your application
 
-Exchange tests are written in a factorized way. The core of the tests is done in the [ExchangeTestRunner](https://github.com/LedgerHQ/app-exchange/blob/develop/test/python/apps/exchange_test_runner.py) class.
+The core of the Exchange tests is handled by the [ExchangeTestRunner](https://github.com/LedgerHQ/app-exchange/blob/develop/client/src/ledger_app_clients/exchange/test_runner.py) class in the Exchange test client.
 
-Individual tests import and extend the ExchangeTestRunner class to leverage the test framework written inside. 
+Individual tests import and extend the ExchangeTestRunner class to leverage the test framework it provides.
 
-Write a first draft of the Exchange test for you application, you can take the TON test as an example.
+Write a first draft of the Exchange tests for your application, using the Boilerplate tests as an example:
 
-[test/python/test_ton.py](https://github.com/LedgerHQ/app-exchange/blob/develop/test/python/test_ton.py)
+[tests/swap/test_boilerplate.py](https://github.com/LedgerHQ/app-boilerplate/blob/master/tests/swap/test_boilerplate.py)
 
-The test consists of two parts:
+You can leave the `perform_final_tx()` function empty for now if you prefer.
 
-- a `TonTests` class that extends `ExchangeTestRunner`.
-- a `TestsTon` class that encompasses all `test_ton_*` tests that are expanded by its parametrization.
-
-```Python
---8<-- "test/python/test_ton.py:native_test"
-```
-
-Create a `test_<appname>.py` that follows the same structure. You can leave the function `perform_final_tx()` empty for now if you want.
-
-You can validate this step by running the `swap_ui_only()` test for your coin, it should pass as we coded empty yesmen shells for our tests.
+You can validate this step by running the `swap_ui_only()` test for your coin. It should pass, as we coded empty “yes-man” handlers for our tests in the previous section.
