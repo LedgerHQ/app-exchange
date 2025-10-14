@@ -40,7 +40,6 @@ def pytest_configure(config):
             "cardano": "Cardano ADA",
             "near": "NEAR",
             "sui": "Sui",
-            "boilerplate": "Boilerplate",
             "kaspa": "Kaspa",
             "hedera": "Hedera"
         }
