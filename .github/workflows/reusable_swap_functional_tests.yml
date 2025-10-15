@@ -173,6 +173,15 @@ on:
         default: 'LedgerHQ/app-hedera'
         type: string
 
+      branch_for_celo:
+        required: false
+        default: 'feat-add-swap-support'
+        type: string
+      repo_for_celo:
+        required: false
+        default: 'yldio/app-celo-spender'
+        type: string
+
       test_filter:
         required: false
         default: '""'
@@ -253,6 +262,9 @@ jobs:
           - name: kaspa
             repo: ${{ inputs.repo_for_kas }}
             branch: ${{ inputs.branch_for_kas }}
+          - name: celo
+            repo: ${{ inputs.repo_for_celo }}
+            branch: ${{ inputs.branch_for_celo }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
