@@ -7,7 +7,6 @@ on:
       - master
       - develop
   pull_request:
-    branches:
     paths-ignore:
       - '.github/workflows/*.yml'
       - 'tests/*'
