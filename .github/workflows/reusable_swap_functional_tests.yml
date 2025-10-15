@@ -175,11 +175,11 @@ on:
 
       branch_for_celo:
         required: false
-        default: 'feat-add-swap-support'
+        default: 'develop'
         type: string
       repo_for_celo:
         required: false
-        default: 'yldio/app-celo-spender'
+        default: 'LedgerHQ/app-celo-spender'
         type: string
 
       test_filter:
