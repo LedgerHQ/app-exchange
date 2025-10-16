@@ -17,8 +17,8 @@ class NearTests(ExchangeTestRunner):
     valid_refund_memo = ""
     valid_send_amount_1 = 1234560000000000000000000000
     valid_send_amount_2 = 500000000000000000000000
-    valid_fees_1 = 0
-    valid_fees_2 = 0
+    valid_fees_1 = 45000000000000000000
+    valid_fees_2 = 45000000000000000000
     fake_refund = "abcdabcd"
     fake_refund_memo = "bla"
     fake_payout = "abcdabcd"
