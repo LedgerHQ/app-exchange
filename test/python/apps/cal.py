@@ -7,6 +7,7 @@ from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
 from .ethereum import ETC_PACKED_DERIVATION_PATH, ETC_CONF
 from .ethereum import BSC_PACKED_DERIVATION_PATH, BSC_CONF, BSC_CONF_LEGACY
 from .ethereum import DAI_PACKED_DERIVATION_PATH, DAI_CONF
+from .celo import CELO_CONF, CELO_PACKED_DERIVATION_PATH
 
 from .litecoin import LTC_PACKED_DERIVATION_PATH, LTC_CONF
 from .bitcoin import BTC_PACKED_DERIVATION_PATH, BTC_CONF
@@ -24,7 +25,6 @@ from .cosmos import COSMOS_PACKED_DERIVATION_PATH, COSMOS_CONF
 from .cardano import ADA_BYRON_PACKED_DERIVATION_PATH, ADA_SHELLEY_PACKED_DERIVATION_PATH, ADA_CONF
 from .near import NEAR_PACKED_DERIVATION_PATH, NEAR_CONF
 from .aptos import APTOS_PACKED_DERIVATION_PATH, APTOS_CONF
-from .boilerplate import BOL_PACKED_DERIVATION_PATH, BOL_CONF
 from .kaspa import KAS_PACKED_DERIVATION_PATH, KAS_CONF
 from .hedera import HEDERA_PACKED_DERIVATION_PATH, HEDERA_CONF
 
@@ -38,6 +38,7 @@ ETC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ETC", conf=ETC_CONF, 
 BNB_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BNB", conf=BSC_CONF, packed_derivation_path=BSC_PACKED_DERIVATION_PATH)
 BNB_LEGACY_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BNB", conf=BSC_CONF_LEGACY, packed_derivation_path=BSC_PACKED_DERIVATION_PATH)
 DAI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="DAI", conf=DAI_CONF, packed_derivation_path=DAI_PACKED_DERIVATION_PATH)
+CELO_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="CELO", conf=CELO_CONF, packed_derivation_path=CELO_PACKED_DERIVATION_PATH)
 
 # --8<-- [start:sol_conf]
 # Solana and Solana tokens
@@ -68,6 +69,5 @@ NEAR_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="NEAR", conf=NEAR_CON
 SUI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SUI", conf=SUI_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
 SUI_USDC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDC", conf=SUI_USDC_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
 APTOS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="APT", conf=APTOS_CONF, packed_derivation_path=APTOS_PACKED_DERIVATION_PATH)
-BOL_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BOL", conf=BOL_CONF, packed_derivation_path=BOL_PACKED_DERIVATION_PATH)
 KAS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="KAS", conf=KAS_CONF, packed_derivation_path=KAS_PACKED_DERIVATION_PATH)
 HEDERA_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="HBAR", conf=HEDERA_CONF, packed_derivation_path=HEDERA_PACKED_DERIVATION_PATH)

@@ -164,15 +164,6 @@ on:
         default: 'LedgerHQ/app-kaspa'
         type: string
 
-      branch_for_bol:
-        required: false
-        default: 'master'
-        type: string
-      repo_for_bol:
-        required: false
-        default: 'LedgerHQ/app-boilerplate'
-        type: string
-
       branch_for_hedera:
         required: false
         default: 'develop'
@@ -180,6 +171,15 @@ on:
       repo_for_hedera:
         required: false
         default: 'LedgerHQ/app-hedera'
+        type: string
+
+      branch_for_celo:
+        required: false
+        default: 'develop'
+        type: string
+      repo_for_celo:
+        required: false
+        default: 'LedgerHQ/app-celo-spender'
         type: string
 
       test_filter:
@@ -259,12 +259,12 @@ jobs:
           - name: hedera
             repo: ${{ inputs.repo_for_hedera }}
             branch: ${{ inputs.branch_for_hedera }}
-          - name: boilerplate
-            repo: ${{ inputs.repo_for_bol }}
-            branch: ${{ inputs.branch_for_bol }}
           - name: kaspa
             repo: ${{ inputs.repo_for_kas }}
             branch: ${{ inputs.branch_for_kas }}
+          - name: celo
+            repo: ${{ inputs.repo_for_celo }}
+            branch: ${{ inputs.branch_for_celo }}
 
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_build.yml@v1
     with:
