@@ -15,7 +15,7 @@ class KaspaTests(ExchangeTestRunner):
     valid_destination_memo_1 = ""
     valid_destination_2 = "kaspa:precqv0krj3r6uyyfa36ga7s0u9jct0v4wg8ctsfde2gkrsgwgw8jgxfzfc98"
     valid_destination_memo_2 = ""
-    valid_refund = "kaspa:qqzzu8qx5f4tgnfmpkqpwxqakegfek8mp35eg65337s4ynrmr03c5k3c7yfyh"
+    valid_refund = "kaspa:qqhpcp4zd26y6wcdsqt3s8dk2zwd37cvdx2x4yv059fyc7cmuw9dgz5gl4tav"
     valid_refund_memo = ""
     valid_send_amount_1 = 543210000
     valid_send_amount_2 = 679000000123
