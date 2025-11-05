@@ -1,5 +1,5 @@
 import pytest
-from ledger_app_clients.exchange.test_runner  import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES
+from ledger_app_clients.exchange.test_runner  import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
 from .apps import cal as cal
 
 from .apps.kaspa import KAS_PATH, check_signature_validity
@@ -15,7 +15,7 @@ class KaspaTests(ExchangeTestRunner):
     valid_destination_memo_1 = ""
     valid_destination_2 = "kaspa:precqv0krj3r6uyyfa36ga7s0u9jct0v4wg8ctsfde2gkrsgwgw8jgxfzfc98"
     valid_destination_memo_2 = ""
-    valid_refund = "kaspa:qqzzu8qx5f4tgnfmpkqpwxqakegfek8mp35eg65337s4ynrmr03c5k3c7yfyh"
+    valid_refund = "kaspa:qqhpcp4zd26y6wcdsqt3s8dk2zwd37cvdx2x4yv059fyc7cmuw9dgz5gl4tav"
     valid_refund_memo = ""
     valid_send_amount_1 = 543210000
     valid_send_amount_2 = 679000000123
@@ -26,8 +26,9 @@ class KaspaTests(ExchangeTestRunner):
     fake_payout = "abcdabcd"
     fake_payout_memo = "bla"
     signature_refusal_error_code = KaspaErrors.SW_DENY
-    wrong_amount_error_code = KaspaErrors.SW_WRONG_AMOUNT
-    wrong_destination_error_code = KaspaErrors.SW_WRONG_ADDRESS
+    wrong_fees_error_code = KaspaErrors.SW_SWAP_WRONG_FEES
+    wrong_amount_error_code = KaspaErrors.SW_SWAP_WRONG_AMOUNT
+    wrong_destination_error_code = KaspaErrors.SW_SWAP_WRONG_ADDRESS
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         client = KaspaCommandSender(self.backend)
@@ -88,6 +89,6 @@ class KaspaTests(ExchangeTestRunner):
 # Use a class to reuse the same Speculos instance
 class TestsKaspa:
 
-    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_THORSWAP_AND_FEES)
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP)
     def test_kaspa(self, backend, exchange_navigation_helper, test_to_run):
         KaspaTests(backend, exchange_navigation_helper).run_test(test_to_run)

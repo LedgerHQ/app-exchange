@@ -61,8 +61,9 @@ class Errors(IntEnum):
     SW_MESSAGE_ADDRESS_INDEX_FAIL = 0xB014
     SW_MESSAGE_LEN_PARSING_FAIL   = 0xB015
     SW_MESSAGE_UNEXPECTED         = 0xB016
-    SW_WRONG_AMOUNT            = 0xC000
-    SW_WRONG_ADDRESS           = 0xC000
+    SW_SWAP_WRONG_FEES            = 0xC000
+    SW_SWAP_WRONG_AMOUNT          = 0xC000
+    SW_SWAP_WRONG_ADDRESS         = 0xC000
 
 def split_message(message: bytes, max_size: int) -> List[bytes]:
     return [message[x:x + max_size] for x in range(0, len(message), max_size)]
