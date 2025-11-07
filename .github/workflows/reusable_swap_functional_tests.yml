@@ -70,19 +70,6 @@ on:
         default: 'LedgerHQ/app-bitcoin-new'
         type: string
 
-      branch_for_solana:
-        required: false
-        default: 'develop'
-        type: string
-      branch_for_solana_nanos:
-        required: false
-        default: 'nanos'
-        type: string
-      repo_for_solana:
-        required: false
-        default: 'LedgerHQ/app-solana'
-        type: string
-
       branch_for_polkadot:
         required: false
         default: 'develop'
@@ -226,12 +213,6 @@ jobs:
           - name: bitcoin
             repo: ${{ inputs.repo_for_bitcoin }}
             branch: ${{ inputs.branch_for_bitcoin_nanos }}
-          - name: solana
-            repo: ${{ inputs.repo_for_solana }}
-            branch: ${{ inputs.branch_for_solana }}
-          - name: solana
-            repo: ${{ inputs.repo_for_solana }}
-            branch: ${{ inputs.branch_for_solana_nanos }}
           - name: DOT
             repo: ${{ inputs.repo_for_polkadot }}
             branch: ${{ inputs.branch_for_polkadot }}
