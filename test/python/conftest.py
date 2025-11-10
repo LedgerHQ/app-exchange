@@ -25,7 +25,6 @@ def pytest_configure(config):
         configuration.OPTIONAL.SIDELOADED_APPS = {
             "APTOS": "Aptos",
             "bitcoin": "Bitcoin",
-            "bitcoin_legacy": "Bitcoin Legacy",
             "ethereum": "Ethereum",
             "ethereum_classic": "Ethereum Classic",
             "tezos": "Tezos Wallet",

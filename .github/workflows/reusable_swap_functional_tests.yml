@@ -61,10 +61,6 @@ on:
         required: false
         default: 'develop'
         type: string
-      branch_for_bitcoin_nanos:
-        required: false
-        default: 'nanos'
-        type: string
       repo_for_bitcoin:
         required: false
         default: 'LedgerHQ/app-bitcoin-new'
@@ -204,15 +200,9 @@ jobs:
           - name: litecoin
             repo: ${{ inputs.repo_for_bitcoin_legacy }}
             branch: ${{ inputs.branch_for_bitcoin_legacy }}
-          - name: bitcoin_legacy
-            repo: ${{ inputs.repo_for_bitcoin_legacy }}
-            branch: ${{ inputs.branch_for_bitcoin_legacy }}
           - name: bitcoin
             repo: ${{ inputs.repo_for_bitcoin }}
             branch: ${{ inputs.branch_for_bitcoin }}
-          - name: bitcoin
-            repo: ${{ inputs.repo_for_bitcoin }}
-            branch: ${{ inputs.branch_for_bitcoin_nanos }}
           - name: DOT
             repo: ${{ inputs.repo_for_polkadot }}
             branch: ${{ inputs.branch_for_polkadot }}
