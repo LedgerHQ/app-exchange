@@ -97,7 +97,7 @@ class AptosCommandSender:
         serializer = Serializer()
         txn.serialize(serializer)
         transaction = serializer.output()
-        # This is a salt required by the Nano App to make sure that the payload comes from Ledger Live host
+        # This is a salt required by the Nano App to make sure that the payload comes from Ledger Wallet host
         transaction = bytes.fromhex("b5e97db07fa0bd0e5598aa3643a9bc6f6693bddc1a9fec9e674a461eaa00b193" + transaction.hex())
 
         packed_path = APTOS_PACKED_DERIVATION_PATH
