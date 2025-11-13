@@ -29,9 +29,9 @@ void ui_idle(void) {
 #ifndef TEST_BUILD
                                 &ICON_REVIEW,
 #if defined(SCREEN_SIZE_WALLET)
-                                "This app enables swapping\nand selling assets\nin Ledger Live.",
+                                "This app enables swapping\nand selling assets\nin Ledger Wallet.",
 #else   // !SCREEN_SIZE_WALLET
-                                "This app enables swapping and selling assets in Ledger Live.",
+                                NULL,
 #endif  // TARGET
 #else   // !TEST_BUILD
                                 &ICON_WARNING,

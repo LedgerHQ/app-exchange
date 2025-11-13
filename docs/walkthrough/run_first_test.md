@@ -4,7 +4,7 @@ The [Boilerplate application](https://github.com/LedgerHQ/app-boilerplate) will 
 
 ## Understanding the Exchange test framework
 
-Please look at the [sequence diagram](../technical_information/diagram.md). You will see that, in order to perform a **SWAP**, several communication and authentication steps between Ledger Live (here mocked by Ragger) and the device are required.
+Please look at the [sequence diagram](../technical_information/diagram.md). You will see that, in order to perform a **SWAP**, several communication and authentication steps between Ledger Wallet (here mocked by Ragger) and the device are required.
 
 These steps are outside the scope of testing your application. We provide the [Exchange client](https://pypi.org/project/ledger-app-clients.exchange/), hosted in the [Exchange application repository](https://github.com/LedgerHQ/app-exchange/tree/develop/client), to perform them automatically.
 
