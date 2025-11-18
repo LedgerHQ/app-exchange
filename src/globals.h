@@ -103,10 +103,18 @@ typedef struct swap_app_context_s {
 extern swap_app_context_t G_swap_ctx;
 
 #ifdef HAVE_NBGL
+
+// Boolean like status + a special value
+typedef enum last_cycle_status_e {
+    LAST_CYCLE_ERROR = 0,
+    LAST_CYCLE_SUCCESS = 1,
+    LAST_CYCLE_EXCEPTION = 2,
+} last_cycle_status_t;
+
 // On Stax, remember some data from the previous cycle if applicable to display a status screen
 typedef struct previous_cycle_data_s {
     bool had_previous_cycle;
-    bool was_successful;
+    last_cycle_status_t was_successful;
     char appname_last_cycle[BOLOS_APPNAME_MAX_SIZE_B + 1];
 } previous_cycle_data_t;
 
