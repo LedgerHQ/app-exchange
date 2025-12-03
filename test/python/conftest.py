@@ -39,7 +39,6 @@ def pytest_configure(config):
             "near": "NEAR",
             "sui": "Sui",
             "kaspa": "Kaspa",
-            "hedera": "Hedera",
             "celo": "Celo",
         }
 
