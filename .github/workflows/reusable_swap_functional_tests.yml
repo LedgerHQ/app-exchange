@@ -147,15 +147,6 @@ on:
         default: 'LedgerHQ/app-kaspa'
         type: string
 
-      branch_for_hedera:
-        required: false
-        default: 'develop'
-        type: string
-      repo_for_hedera:
-        required: false
-        default: 'LedgerHQ/app-hedera'
-        type: string
-
       branch_for_celo:
         required: false
         default: 'develop'
@@ -227,9 +218,6 @@ jobs:
           - name: APTOS
             repo: ${{ inputs.repo_for_aptos }}
             branch: ${{ inputs.branch_for_aptos }}
-          - name: hedera
-            repo: ${{ inputs.repo_for_hedera }}
-            branch: ${{ inputs.branch_for_hedera }}
           - name: kaspa
             repo: ${{ inputs.repo_for_kas }}
             branch: ${{ inputs.branch_for_kas }}
