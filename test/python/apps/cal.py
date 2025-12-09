@@ -3,9 +3,9 @@ from ledger_app_clients.exchange.cal_helper import CurrencyConfiguration
 from .sui_utils import SUI_CONF, SUI_PACKED_DERIVATION_PATH, SUI_USDC_CONF
 
 # Eth family
-from .ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
+from ledger_app_clients.exchange.ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
 from .ethereum import ETC_PACKED_DERIVATION_PATH, ETC_CONF
-from .ethereum import BSC_PACKED_DERIVATION_PATH, BSC_CONF, BSC_CONF_LEGACY
+from .ethereum import BSC_PACKED_DERIVATION_PATH, BSC_CONF
 from .ethereum import DAI_PACKED_DERIVATION_PATH, DAI_CONF
 from .celo import CELO_CONF, CELO_PACKED_DERIVATION_PATH
 
@@ -32,7 +32,6 @@ from .kaspa import KAS_PACKED_DERIVATION_PATH, KAS_CONF
 ETH_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ETH", conf=ETH_CONF, packed_derivation_path=ETH_PACKED_DERIVATION_PATH)
 ETC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ETC", conf=ETC_CONF, packed_derivation_path=ETC_PACKED_DERIVATION_PATH)
 BNB_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BNB", conf=BSC_CONF, packed_derivation_path=BSC_PACKED_DERIVATION_PATH)
-BNB_LEGACY_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="BNB", conf=BSC_CONF_LEGACY, packed_derivation_path=BSC_PACKED_DERIVATION_PATH)
 DAI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="DAI", conf=DAI_CONF, packed_derivation_path=DAI_PACKED_DERIVATION_PATH)
 CELO_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="CELO", conf=CELO_CONF, packed_derivation_path=CELO_PACKED_DERIVATION_PATH)
 
