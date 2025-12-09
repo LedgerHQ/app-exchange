@@ -33,11 +33,12 @@ ETH_PACKED_DERIVATION_PATH = pack_derivation_path(ETH_PATH)
 # Use dedicated app (clone)
 BSC_CONF_LEGACY = create_currency_config("BNB", "Binance Smart Chain", get_sub_config("BNB", 18))
 # Use Ethereum app
-BSC_CONF = create_currency_config("BNB", "Ethereum", get_sub_config("BNB", 18, 56))
+BSC_CONF = create_currency_config("BNB", "Ethereum", get_sub_config("BNB", 18, 56, "BNB", 18))
 BSC_PACKED_DERIVATION_PATH = pack_derivation_path(ETH_PATH)
 
-ETC_CONF = create_currency_config("ETC", "Ethereum Classic", get_sub_config("ETC", 18))
+ETC_CONF = create_currency_config("ETC", "Ethereum Classic", get_sub_config("ETC", 18, 61, "ETC", 18))
 ETC_PACKED_DERIVATION_PATH = pack_derivation_path(ETC_PATH)
 
-DAI_CONF = create_currency_config("DAI", "Ethereum", get_sub_config("DAI", 18))
+# DAI configuration without native ticker and decimals to ensure retrocompatibility checks
+DAI_CONF = create_currency_config("DAI", "Ethereum", get_sub_config("DAI", 18, 1))
 DAI_PACKED_DERIVATION_PATH = pack_derivation_path(ETH_PATH)
