@@ -3,6 +3,9 @@ from ragger.bip import pack_derivation_path
 from ledger_app_clients.exchange.ethereum import get_sub_config, create_currency_config
 from ledger_app_clients.exchange.ethereum import ETH_PATH
 
+# Monad (MON) configuration
+MON_CONF = create_currency_config("MON", "Ethereum", get_sub_config("MON", 18, 143, "MON", 18))
+MON_PACKED_DERIVATION_PATH = pack_derivation_path(ETH_PATH)
 
 # Use Ethereum app
 BSC_CONF = create_currency_config("BNB", "Ethereum", get_sub_config("BNB", 18, 56, "BNB", 18))
