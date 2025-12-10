@@ -33,14 +33,14 @@ The **Ragger** tool provides utilities to craft coin configurations both without
 
 As an example, here is the crafting of the coin configuration for Solana in our tests:
 
-[test/python/apps/solana_utils.py](https://github.com/LedgerHQ/app-exchange/blob/develop/test/python/apps/solana_utils.py)
+[app-solana/tests/application_client/solana_utils.py](https://github.com/LedgerHQ/app-solana/blob/develop/tests/application_client/solana_utils.py)
 ```Python
---8<-- "test/python/apps/solana_utils.py:solana_coin_conf_includes"
+--8<-- "docs/deps/app-solana/tests/application_client/solana_utils.py:solana_coin_conf_includes"
 
---8<-- "test/python/apps/solana_utils.py:solana_coin_conf"
+--8<-- "docs/deps/app-solana/tests/application_client/solana_utils.py:solana_coin_conf"
 ```
 
-[test/python/apps/cal.py](https://github.com/LedgerHQ/app-exchange/blob/develop/test/python/apps/cal.py)
+[tests/swap/cal_helper.py](https://github.com/LedgerHQ/app-solana/blob/develop/tests/swap/cal_helper.py)
 ```Python
---8<-- "test/python/apps/cal.py:sol_conf"
+--8<-- "docs/deps/app-solana/tests/swap/cal_helper.py:sol_conf"
 ```

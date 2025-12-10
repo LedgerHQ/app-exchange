@@ -2,7 +2,7 @@
 
 This diagram showcases:
 
-- The APDU and RAPDU exchanged between the Ledger Live and the Exchange application during a SWAP.
+- The APDU and RAPDU exchanged between the Ledger Wallet and the Exchange application during a SWAP.
 - The `os_lib_calls` commands made by the Exchange application to the involved Coin applications. 
 
 
@@ -10,7 +10,7 @@ Please look at the [protocol documentation](./protocol.md) to know more about ho
 
 ```mermaid
 sequenceDiagram
-    participant LL as Ledger Live
+    participant LL as Ledger Wallet
     participant EA as Exchange App
     participant TOCA as TO Coin App
     participant FRCA as FROM Coin App

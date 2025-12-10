@@ -25,14 +25,12 @@ def pytest_configure(config):
         configuration.OPTIONAL.SIDELOADED_APPS = {
             "APTOS": "Aptos",
             "bitcoin": "Bitcoin",
-            "bitcoin_legacy": "Bitcoin Legacy",
             "ethereum": "Ethereum",
             "ethereum_classic": "Ethereum Classic",
             "tezos": "Tezos Wallet",
             "xrp": "XRP",
             "litecoin": "Litecoin",
             "stellar": "Stellar",
-            "solana": "Solana",
             "DOT": "Polkadot",
             "tron": "Tron",
             "ton": "TON",
@@ -41,7 +39,6 @@ def pytest_configure(config):
             "near": "NEAR",
             "sui": "Sui",
             "kaspa": "Kaspa",
-            "hedera": "Hedera",
             "celo": "Celo",
         }
 
