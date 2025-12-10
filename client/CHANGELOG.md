@@ -5,10 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.6] - 2025-12-10
+
+### Change
+
+- Adapt eth client for latest eth binary (Ethereum subconfig contains now the fees ticker & decimal for Dynamic Networks management)
+
 ## [0.0.5] - 2025-09-18
 
 ### Fix
- - Cross-feed support
+
+- Cross-feed support
 
 ## [0.0.4] - 2025-06-04
 
@@ -19,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.0.3] - 2025-05-30
 
 ### Fix
+
 - Fix issue when publishing to PyPi (https://github.com/pypa/twine/issues/1216)
 
 ## [0.0.1] - 2025-05-30
