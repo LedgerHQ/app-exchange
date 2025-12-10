@@ -2,11 +2,14 @@ import pytest
 import os
 import json
 from web3 import Web3
+from ragger.error import ExceptionRAPDU
 
 from ledger_app_clients.exchange.client import PayinExtraDataID
 from ledger_app_clients.exchange.test_runner import ExchangeTestRunner, ALL_TESTS_EXCEPT_MEMO, ALL_TESTS_EXCEPT_MEMO_AND_THORSWAP
 from .apps.ethereum import ETH_PATH
 from ledger_app_clients.ethereum.client import EthAppClient
+from ledger_app_clients.ethereum.dynamic_networks import DynamicNetwork
+
 from .apps import cal as cal
 from hashlib import sha256
 
@@ -83,6 +86,45 @@ class GenericEthereumNetworkTests(ExchangeTestRunner):
                                  }):
                 pass
         # TODO : assert signature validity
+
+
+# ExchangeTestRunner implementation for MON Network
+class MONTests(GenericEthereumNetworkTests):
+    chain_id = 143
+    currency_configuration = cal.MON_CURRENCY_CONFIGURATION
+
+    def perform_final_tx(self, destination, send_amount, fees, memo):
+        # Start by sending Network information (name, ticker, but no icon because useless here)
+        app_client = EthAppClient(self.backend)
+        app_client.provide_network_information(DynamicNetwork("Monad", "MON", self.chain_id))
+        # Then perform normal transaction
+        super().perform_final_tx(destination, send_amount, fees, memo)
+
+    def perform_final_tx_no_conf(self, destination, send_amount, fees, memo):
+        super().perform_final_tx(destination, send_amount, fees, memo)
+
+    def perform_final_tx_bad_ticker(self, destination, send_amount, fees, memo):
+        EthAppClient(self.backend).provide_network_information(DynamicNetwork("Monad", "MO", self.chain_id))
+        super().perform_final_tx(destination, send_amount, fees, memo)
+
+class TestsMON:
+    @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
+    def test_mon(self, backend, exchange_navigation_helper, test_to_run):
+        MONTests(backend, exchange_navigation_helper).run_test(test_to_run)
+
+    def test_mon_no_conf(self, backend, exchange_navigation_helper): 
+        test_class = MONTests(backend, exchange_navigation_helper)
+        test_class.perform_final_tx = test_class.perform_final_tx_no_conf
+        with pytest.raises(ExceptionRAPDU) as e:
+            test_class.run_test("fund_valid_1")
+        assert e.value.status == 0x6001  # Signature refusal error code
+
+    def test_mon_bad_ticker(self, backend, exchange_navigation_helper):
+        test_class = MONTests(backend, exchange_navigation_helper)
+        test_class.perform_final_tx = test_class.perform_final_tx_bad_ticker
+        with pytest.raises(ExceptionRAPDU) as e:
+            test_class.run_test("fund_valid_1")
+        assert e.value.status == 0x6001  # Signature refusal error code
 
 
 

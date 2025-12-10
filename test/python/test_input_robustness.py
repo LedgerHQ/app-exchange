@@ -5,6 +5,8 @@ from ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand,
 from ledger_app_clients.exchange.transaction_builder import get_partner_curve, craft_and_sign_tx
 from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
 from ledger_app_clients.exchange.cal_helper import sign_currency_conf
+from ledger_app_clients.exchange.ethereum import get_sub_config
+from ledger_app_clients.exchange.ethereum import create_currency_config as create_eth_currency_config
 from .apps.tezos import encode_address
 from .apps import cal as cal
 
@@ -161,8 +163,8 @@ class TestRobustnessCHECK_ADDRESS:
 
         # This tickers should be normalized and accepted
         payout_currency_conf_to_test = (
-            create_currency_config("eth", "Ethereum", ("ETH", 18)),
-            create_currency_config("Eth", "Ethereum", ("ETH", 18)),
+            create_eth_currency_config("eth", "Ethereum", get_sub_config("ETH", 18, 1, "ETH", 18)),
+            create_eth_currency_config("Eth", "Ethereum", get_sub_config("ETH", 18, 1, "ETH", 18)),
         )
         refund_currency_conf_to_test = (
             create_currency_config("xlm", "Stellar"),
