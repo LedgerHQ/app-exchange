@@ -1,0 +1,5 @@
+mkdocs
+pymdown-extensions
+mkdocs-material
+mkdocs-mermaid2-plugin
+GitPython

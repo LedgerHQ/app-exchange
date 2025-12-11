@@ -1,0 +1,2168 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Ledger Swap">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../img/Ledger-logo-696.webp">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Solana application : Common Technical Specifications - Ledger Swap documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#solana-application-common-technical-specifications" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../.." title="Ledger Swap documentation" class="md-header__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ledger Swap documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Solana application : Common Technical Specifications
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="Ledger Swap documentation" class="md-nav__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    Ledger Swap documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../walkthrough/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enabling the SWAP on your application
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Enabling the SWAP on your application
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/prerequisite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prerequisite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/run_first_test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running an existing SWAP test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/enable_the_swap_compilation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First compilation with the standard SWAP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/enable_standard_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a basic SWAP test for you coin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/code_the_handlers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code the handlers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../technical_information/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Information
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Technical Information
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exchange Protocol API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/fund_and_sell/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FUND and SELL flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/cal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Crypto Asset List (CAL)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/bss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSS safety in coin applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../technical_information/coin_application_api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coin Application API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Coin Application API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/swap_handle_check_address/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    handle_check_address()
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/swap_handle_get_printable_amount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    handle_get_printable_amount()
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/swap_copy_transaction_parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    copy_transaction_parameters()
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/ui_bypass/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI bypass
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/error_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/dale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The DALE tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#140" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.4.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#131" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3.1
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#130" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3.0
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        About
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#general-purpose-apdus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General purpose APDUs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="General purpose APDUs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-app-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET APP CONFIGURATION
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GET APP CONFIGURATION">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-pubkey" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET PUBKEY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GET PUBKEY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sign-solana-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SIGN SOLANA TRANSACTION
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SIGN SOLANA TRANSACTION">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sign-solana-off-chain-message" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SIGN SOLANA OFF-CHAIN MESSAGE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SIGN SOLANA OFF-CHAIN MESSAGE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET CHALLENGE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GET CHALLENGE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provide-trusted-name-tlv-descriptor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PROVIDE TRUSTED NAME TLV DESCRIPTOR
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PROVIDE TRUSTED NAME TLV DESCRIPTOR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Description">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transport-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transport protocol
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transport protocol">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general-transport-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General transport description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#apdu-command-payload-encoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        APDU Command payload encoding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="APDU Command payload encoding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deprecation-notice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deprecation notice
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#apdu-response-payload-encoding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        APDU Response payload encoding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usb-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        USB mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ble-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BLE mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-words" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Words
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Status Words">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#status-words_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Words
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="solana-application-common-technical-specifications">Solana application : Common Technical Specifications</h1>
+<h2 id="140">1.4.0</h2>
+<ul>
+<li>Add support of Trusted Name descriptor (checked by PKI certificate)</li>
+</ul>
+<h2 id="131">1.3.1</h2>
+<ul>
+<li>Add support for versioned messages</li>
+</ul>
+<h2 id="130">1.3.0</h2>
+<ul>
+<li>Add SIGN SOLANA OFF-CHAIN MESSAGE</li>
+<li>Add compatibility with the Exchange Application to SWAP, FUND, or SELL SOL tokens</li>
+</ul>
+<h2 id="about">About</h2>
+<p>This application describes the APDU messages interface to communicate with the Solana application.</p>
+<p>The application covers the following functionalities :</p>
+<ul>
+<li>Retrieve an address given an account number</li>
+<li>Sign Solana transaction</li>
+<li>Sign off-chain message</li>
+</ul>
+<p>The application interface can be accessed over HID or BLE</p>
+<h2 id="general-purpose-apdus">General purpose APDUs</h2>
+<h3 id="get-app-configuration">GET APP CONFIGURATION</h3>
+<h4 id="description">Description</h4>
+<p><em>This command returns specific application configuration</em></p>
+<h5 id="command">Command</h5>
+<table>
+<thead>
+<tr>
+<th><em>CLA</em></th>
+<th style="text-align: center;"><em>INS</em></th>
+<th style="text-align: right;"><em>P1</em></th>
+<th><em>P2</em></th>
+<th style="text-align: center;"><em>Lc</em></th>
+<th style="text-align: right;"><em>Le</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td style="text-align: center;">04</td>
+<td style="text-align: right;">00</td>
+<td>00</td>
+<td style="text-align: center;">00</td>
+<td style="text-align: right;">04</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data">Input data</h5>
+<p><em>None</em></p>
+<h5 id="output-data">Output data</h5>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dummy setting n°1 value</td>
+<td style="text-align: center;">01</td>
+</tr>
+<tr>
+<td>Dummy setting n°2 value</td>
+<td style="text-align: center;">01</td>
+</tr>
+<tr>
+<td>Application major version</td>
+<td style="text-align: center;">01</td>
+</tr>
+<tr>
+<td>Application minor version</td>
+<td style="text-align: center;">01</td>
+</tr>
+<tr>
+<td>Application patch version</td>
+<td style="text-align: center;">01</td>
+</tr>
+</tbody>
+</table>
+<h3 id="get-pubkey">GET PUBKEY</h3>
+<h4 id="description_1">Description</h4>
+<p><em>This command returns a Solana pubkey for the given BIP 32 path</em></p>
+<h5 id="command_1">Command</h5>
+<table>
+<thead>
+<tr>
+<th><em>CLA</em></th>
+<th style="text-align: center;"><em>INS</em></th>
+<th style="text-align: right;"><em>P1</em></th>
+<th><em>P2</em></th>
+<th style="text-align: center;"><em>Lc</em></th>
+<th style="text-align: right;"><em>Le</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td style="text-align: center;">05</td>
+<td style="text-align: right;">00</td>
+<td>00</td>
+<td style="text-align: center;">variable</td>
+<td style="text-align: right;">variable</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data_1">Input data</h5>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Number of BIP 32 derivations to perform (3 or 4)</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>First derivation index (big endian)</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td>...</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td>Last derivation index (big endian)</td>
+<td style="text-align: center;">4</td>
+</tr>
+</tbody>
+</table>
+<h5 id="output-data_1">Output data</h5>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pubkey</td>
+<td style="text-align: center;">32</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sign-solana-transaction">SIGN SOLANA TRANSACTION</h3>
+<h4 id="description_2">Description</h4>
+<p><em>This command signs a Solana Transaction after having the user validate the transaction-specific parameters:</em></p>
+<h5 id="command_2">Command</h5>
+<table>
+<thead>
+<tr>
+<th><em>CLA</em></th>
+<th style="text-align: center;"><em>INS</em></th>
+<th style="text-align: right;"><em>P1</em></th>
+<th><em>P2</em></th>
+<th style="text-align: center;"><em>Lc</em></th>
+<th style="text-align: right;"><em>Le</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td style="text-align: center;">06</td>
+<td style="text-align: right;">01</td>
+<td>00</td>
+<td style="text-align: center;">variable</td>
+<td style="text-align: right;">variable</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data_2">Input data</h5>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Number of signers (derivation paths) (always 1)</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>Number of BIP 32 derivations to perform (2, 3 or 4)</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>First derivation index (big endian)</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td>...</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td>Last derivation index (big endian)</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td>Serialized transaction</td>
+<td style="text-align: center;">variable</td>
+</tr>
+</tbody>
+</table>
+<h5 id="output-data_2">Output data</h5>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Signature</td>
+<td style="text-align: center;">64</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sign-solana-off-chain-message">SIGN SOLANA OFF-CHAIN MESSAGE</h3>
+<h4 id="description_3">Description</h4>
+<p><em>This command signs a Solana Off-Chain Message after having the user validate the text of ASCII encoded messages, or hash of UTF-8 encoded messages:</em></p>
+<h5 id="command_3">Command</h5>
+<table>
+<thead>
+<tr>
+<th><em>CLA</em></th>
+<th style="text-align: center;"><em>INS</em></th>
+<th style="text-align: right;"><em>P1</em></th>
+<th><em>P2</em></th>
+<th style="text-align: center;"><em>Lc</em></th>
+<th style="text-align: right;"><em>Le</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td style="text-align: center;">07</td>
+<td style="text-align: right;">01</td>
+<td>00</td>
+<td style="text-align: center;">variable</td>
+<td style="text-align: right;">variable</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data_3">Input data</h5>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Number of signers (derivation paths) (always 1)</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>Number of BIP 32 derivations to perform (2, 3 or 4)</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>First derivation index (big endian)</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td>...</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td>Last derivation index (big endian)</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td>Serialized off-chain message</td>
+<td style="text-align: center;">variable</td>
+</tr>
+</tbody>
+</table>
+<h5 id="output-data_3">Output data</h5>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Signature</td>
+<td style="text-align: center;">64</td>
+</tr>
+</tbody>
+</table>
+<h3 id="get-challenge">GET CHALLENGE</h3>
+<h4 id="description_4">Description</h4>
+<p>_This command returns a 32-bit challenge generated by the app</p>
+<h5 id="command_4">Command</h5>
+<table>
+<thead>
+<tr>
+<th><em>CLA</em></th>
+<th style="text-align: center;"><em>INS</em></th>
+<th style="text-align: right;"><em>P1</em></th>
+<th><em>P2</em></th>
+<th style="text-align: center;"><em>Lc</em></th>
+<th style="text-align: right;"><em>Le</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td style="text-align: center;">20</td>
+<td style="text-align: right;">00</td>
+<td>00</td>
+<td style="text-align: center;">00</td>
+<td style="text-align: right;">N/A</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data_4">Input data</h5>
+<p>N/A</p>
+<h5 id="output-data_4">Output data</h5>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Challenge</td>
+<td style="text-align: center;">4</td>
+</tr>
+</tbody>
+</table>
+<h3 id="provide-trusted-name-tlv-descriptor">PROVIDE TRUSTED NAME TLV DESCRIPTOR</h3>
+<h4 id="description_5">Description</h4>
+<p>_This command provides a <a href="https://ledgerhq.atlassian.net/wiki/spaces/BE/pages/5123145859/Solana+token+account+ownership">Solana Trusted Name TLV descriptor</a></p>
+<h5 id="command_5">Command</h5>
+<table>
+<thead>
+<tr>
+<th><em>CLA</em></th>
+<th style="text-align: center;"><em>INS</em></th>
+<th style="text-align: right;"><em>P1</em></th>
+<th><em>P2</em></th>
+<th style="text-align: center;"><em>Lc</em></th>
+<th style="text-align: right;"><em>Le</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td style="text-align: center;">21</td>
+<td style="text-align: right;">00</td>
+<td>00</td>
+<td style="text-align: center;">F7 (max)</td>
+<td style="text-align: right;">variable</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data_5">Input data</h5>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Serialized signed TLV descriptor payload</td>
+<td style="text-align: center;">variable</td>
+</tr>
+</tbody>
+</table>
+<h5 id="output-data_5">Output data</h5>
+<p>N/A</p>
+<h2 id="transport-protocol">Transport protocol</h2>
+<h3 id="general-transport-description">General transport description</h3>
+<p><em>Ledger APDUs requests and responses are encapsulated using a flexible protocol allowing to fragment large payloads over different underlying transport mechanisms.</em></p>
+<p>The common transport header is defined as follows:</p>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Communication channel ID (big endian)</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td>Command tag</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>Packet sequence index (big endian)</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td>Payload</td>
+<td style="text-align: center;">var</td>
+</tr>
+</tbody>
+</table>
+<p>The Communication channel ID allows commands multiplexing over the same physical link. It is not used for the time being, and should be set to 0101 to avoid compatibility issues with implementations ignoring a leading 00 byte.</p>
+<p>The Command tag describes the message content. Use TAG_APDU (0x05) for standard APDU payloads, or TAG_PING (0x02) for a simple link test.</p>
+<p>The Packet sequence index describes the current sequence for fragmented payloads. The first fragment index is 0x00.</p>
+<h3 id="apdu-command-payload-encoding">APDU Command payload encoding</h3>
+<p>APDU Command payloads are encoded as follows :</p>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>APDU length (big endian)</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td>APDU CLA</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>APDU INS</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>APDU P1</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>APDU P2</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>APDU data length</td>
+<td style="text-align: center;">1</td>
+</tr>
+<tr>
+<td>Optional APDU data</td>
+<td style="text-align: center;">var</td>
+</tr>
+</tbody>
+</table>
+<p>APDU payload is encoded according to the APDU case</p>
+<table>
+<thead>
+<tr>
+<th>Case Number</th>
+<th><em>Lc</em></th>
+<th><em>Le</em></th>
+<th>Case description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>No data in either direction - L is set to 00</td>
+</tr>
+<tr>
+<td>2</td>
+<td>0</td>
+<td>!0</td>
+<td>Input Data present, no Output Data - L is set to Lc</td>
+</tr>
+<tr>
+<td>3</td>
+<td>!0</td>
+<td>0</td>
+<td>Output Data present, no Input Data - L is set to Le</td>
+</tr>
+<tr>
+<td>4</td>
+<td>!0</td>
+<td>!0</td>
+<td>Both Input and Output Data are present - L is set to Lc</td>
+</tr>
+</tbody>
+</table>
+<h4 id="deprecation-notice">Deprecation notice</h4>
+<p>The <code>ADPU data length</code> field was formerly serialized as a 16bit unsigned big endian integer. As of version 0.2.0, this has been changed to an 8bit unsigned integer to improve compatibility with client libraries. In doing so, the following instructions have been deprecated.</p>
+<ul>
+<li>0x01 - GET_APP_CONFIGURATION</li>
+<li>0x02 - GET_PUBKEY</li>
+<li>0x03 - SIGN_MESSAGE</li>
+</ul>
+<h3 id="apdu-response-payload-encoding">APDU Response payload encoding</h3>
+<p>APDU Response payloads are encoded as follows :</p>
+<table>
+<thead>
+<tr>
+<th><em>Description</em></th>
+<th style="text-align: center;"><em>Length</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>APDU response length (big endian)</td>
+<td style="text-align: center;">2</td>
+</tr>
+<tr>
+<td>APDU response data and Status Word</td>
+<td style="text-align: center;">var</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usb-mapping">USB mapping</h3>
+<p>Messages are exchanged with the dongle over HID endpoints over interrupt transfers, with each chunk being 64 bytes long. The HID Report ID is ignored.</p>
+<h3 id="ble-mapping">BLE mapping</h3>
+<p>A similar encoding is used over BLE, without the Communication channel ID.</p>
+<p>The application acts as a GATT server defining service UUID D973F2E0-B19E-11E2-9E96-0800200C9A66</p>
+<p>When using this service, the client sends requests to the characteristic D973F2E2-B19E-11E2-9E96-0800200C9A66, and gets notified on the characteristic D973F2E1-B19E-11E2-9E96-0800200C9A66 after registering for it.</p>
+<p>Requests are encoded using the standard BLE 20 bytes MTU size</p>
+<h2 id="status-words">Status Words</h2>
+<p>The following standard Status Words are returned for all APDUs - some specific Status Words can be used for specific commands and are mentioned in the command description.</p>
+<h5 id="status-words_1">Status Words</h5>
+<table>
+<thead>
+<tr>
+<th><em>SW</em></th>
+<th style="text-align: center;"><em>Description</em></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6700</td>
+<td style="text-align: center;">Incorrect length</td>
+</tr>
+<tr>
+<td>6982</td>
+<td style="text-align: center;">Security status not satisfied (Canceled by user)</td>
+</tr>
+<tr>
+<td>6A80</td>
+<td style="text-align: center;">Invalid data</td>
+</tr>
+<tr>
+<td>6A81</td>
+<td style="text-align: center;">Invalid off-chain message header</td>
+</tr>
+<tr>
+<td>6A82</td>
+<td style="text-align: center;">Invalid off-chain message format</td>
+</tr>
+<tr>
+<td>6B00</td>
+<td style="text-align: center;">Incorrect parameter P1 or P2</td>
+</tr>
+<tr>
+<td>6Fxx</td>
+<td style="text-align: center;">Technical problem (Internal error, please report)</td>
+</tr>
+<tr>
+<td>9000</td>
+<td style="text-align: center;">Normal ending of the command</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.indexes", "navigation.expand"], "search": "../../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>

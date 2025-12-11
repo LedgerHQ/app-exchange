@@ -1,0 +1,217 @@
+#*******************************************************************************
+#   Ledger SDK
+#   (c) 2024 Ledger
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#*******************************************************************************
+
+ifeq ($(__MAKEFILE_DEFINES__),)
+__MAKEFILE_DEFINES__ := 1
+
+include $(BOLOS_SDK)/Makefile.target
+
+API_LEVEL := 0
+
+# APPNAME exposed to the app as a CFLAG because it might contain spaces
+CFLAGS += -DAPPNAME=\"$(APPNAME)\"
+
+# API_LEVEL exposed to the app as an integer
+DEFINES += API_LEVEL=$(API_LEVEL)
+
+# Define list of other items to be exposed to the app as strings
+# TARGET_ID is not in this list: it is already defined in bolos_target.h.
+APP_METADATA_LIST := TARGET TARGET_NAME APPVERSION SDK_NAME SDK_VERSION SDK_HASH
+DEFINES += $(foreach item,$(APP_METADATA_LIST), $(item)=\"$($(item))\")
+
+# Use new io architecture
+DEFINES += REVAMPED_IO
+
+### platform definitions
+DEFINES += gcc __IO=volatile
+
+# no assert by default
+DEFINES += NDEBUG
+
+# default is not to display make commands
+log = $(if $(strip $(VERBOSE)),$1,@$1) # kept for retrocompat
+L = $(if $(strip $(VERBOSE)),,@)
+
+ifeq ($(CC),)
+CC        = clang
+endif
+
+SYSROOT = $(shell $(GCCPATH)arm-none-eabi-gcc -print-sysroot)
+ifeq ($(SYSROOT),)
+    # path for Debian-based systems
+    SYSROOT = /usr/lib/arm-none-eabi
+endif
+CFLAGS   += --sysroot="$(SYSROOT)"
+
+# optimization and debugging levels
+ifneq ($(DEBUG),0)
+    OPTI_LVL  = g
+    # any higher won't work with LLVM >= 14
+    # will be fixed in LLVM 20 : https://github.com/llvm/llvm-project/pull/116956
+    DBG_LVL   = 1
+else
+    OPTI_LVL  = z
+    DBG_LVL   = 0
+endif
+CFLAGS   += -O$(OPTI_LVL) -g$(DBG_LVL)
+
+# Reduces code size
+CFLAGS   += -fomit-frame-pointer -momit-leaf-frame-pointer
+
+CFLAGS   += -fno-common
+CFLAGS   += -std=gnu99
+
+CFLAGS   += -Wall -Wextra
+CFLAGS   += -Wno-main
+CFLAGS   += -Werror=int-to-pointer-cast
+
+# Additional Clang warnings
+CFLAGS   += -Wno-error=int-conversion -Wimplicit-fallthrough
+CFLAGS   += -Wvla -Wundef -Wshadow -Wformat=2 -Wformat-security -Wwrite-strings
+
+ENABLE_SDK_WERROR ?= 0
+ifneq ($(ENABLE_SDK_WERROR),0)
+    CFLAGS   += -Werror -Werror=\#pragma-messages
+endif
+
+CFLAGS   += -fdata-sections -ffunction-sections -funsigned-char -fshort-enums
+CFLAGS   += -mno-unaligned-access
+CFLAGS   += -fropi
+CFLAGS   += -fno-jump-tables # avoid jump tables for switch to avoid problems with invalid PIC access
+
+LDFLAGS  += -Wall
+LDFLAGS  += -fno-common -ffunction-sections -fdata-sections -fwhole-program
+LDFLAGS  += -mno-unaligned-access
+LDFLAGS  += -Wl,--gc-sections -Wl,-Map,$(DBG_DIR)/app.map
+LDFLAGS  += -nostdlib -nodefaultlibs
+
+ifeq ($(TARGET_NAME),TARGET_NANOX)
+    CPU       = cortex-m3
+    CFLAGS   += -frwpi
+    LDFLAGS  += -L$(BOLOS_SDK)/arch/st33/lib/
+endif
+
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_STAX TARGET_FLEX TARGET_NANOS2 TARGET_APEX_P TARGET_APEX_M))
+    CPU       = cortex-m35p+nodsp
+    CFLAGS   += -msoft-float
+    CFLAGS   += -frwpi
+    LDFLAGS  += -L$(BOLOS_SDK)/arch/st33k1/lib/
+endif
+
+# Common to all targets
+CFLAGS   += --target=arm-none-eabi -mcpu=$(CPU) -mlittle-endian -mthumb
+# no --target in case arm-none-eabi-gcc is used
+AFLAGS   += -mcpu=$(CPU) -mlittle-endian -mthumb
+# LD is set to $(CC) (clang)
+LDFLAGS  += --target=arm-none-eabi
+LDFLAGS  += -mcpu=$(CPU) -mlittle-endian -mthumb
+
+ifeq ($(TARGET_NAME),TARGET_STAX)
+# For Stax NBGL must be used
+USE_NBGL = 1
+DEFINES += HAVE_BAGL_FONT_INTER_REGULAR_24PX
+DEFINES += HAVE_BAGL_FONT_INTER_SEMIBOLD_24PX
+DEFINES += HAVE_BAGL_FONT_INTER_MEDIUM_32PX
+DEFINES += HAVE_BAGL_FONT_INTER_SEMIBOLD_24PX_1BPP
+DEFINES += HAVE_INAPP_BLE_PAIRING
+DEFINES += HAVE_NBGL
+DEFINES += HAVE_PIEZO_SOUND
+DEFINES += HAVE_SE_TOUCH
+DEFINES += HAVE_SE_EINK_DISPLAY
+DEFINES += NBGL_PAGE
+DEFINES += NBGL_USE_CASE
+DEFINES += SCREEN_SIZE_WALLET
+endif # TARGET_STAX
+
+ifeq ($(TARGET_NAME),TARGET_FLEX)
+# For Flex NBGL must be used
+USE_NBGL = 1
+DEFINES += HAVE_BAGL_FONT_INTER_REGULAR_28PX
+DEFINES += HAVE_BAGL_FONT_INTER_SEMIBOLD_28PX
+DEFINES += HAVE_BAGL_FONT_INTER_MEDIUM_36PX
+DEFINES += HAVE_INAPP_BLE_PAIRING
+DEFINES += HAVE_NBGL
+DEFINES += HAVE_PIEZO_SOUND
+DEFINES += HAVE_SE_TOUCH
+DEFINES += HAVE_SE_EINK_DISPLAY
+# DEFINES += HAVE_HW_TOUCH_SWIPE
+DEFINES += NBGL_PAGE
+DEFINES += NBGL_USE_CASE
+DEFINES += SCREEN_SIZE_WALLET
+endif # TARGET_FLEX
+
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_APEX_P TARGET_APEX_M))
+# For Apex NBGL must be used
+USE_NBGL = 1
+DEFINES += HAVE_BAGL_FONT_NANOTEXT_MEDIUM_18PX
+DEFINES += HAVE_BAGL_FONT_NANOTEXT_BOLD_18PX
+DEFINES += HAVE_BAGL_FONT_NANODISPLAY_SEMIBOLD_24PX
+DEFINES += HAVE_NBGL
+DEFINES += HAVE_SE_TOUCH
+DEFINES += HAVE_SE_EINK_DISPLAY
+# DEFINES += HAVE_HW_TOUCH_SWIPE
+DEFINES += NBGL_PAGE
+DEFINES += NBGL_USE_CASE
+DEFINES += SCREEN_SIZE_WALLET
+endif # TARGET_APEX
+
+ifeq ($(TARGET_NAME),TARGET_APEX_P)
+DEFINES += HAVE_INAPP_BLE_PAIRING
+endif # TARGET_APEX_P
+
+
+# For other devices, by default NBGL is not used
+USE_NBGL ?= 0
+
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_NANOS2))
+DEFINES += BAGL_HEIGHT=64
+DEFINES += BAGL_WIDTH=128
+DEFINES += HAVE_BAGL_ELLIPSIS
+DEFINES += HAVE_BAGL_FONT_OPEN_SANS_REGULAR_11PX
+DEFINES += HAVE_BAGL_FONT_OPEN_SANS_EXTRABOLD_11PX
+DEFINES += HAVE_BAGL_FONT_OPEN_SANS_LIGHT_16PX
+DEFINES += SCREEN_SIZE_NANO
+
+ifeq ($(USE_NBGL),0)
+DEFINES += HAVE_BAGL
+DEFINES += HAVE_UX_FLOW
+else
+DEFINES += HAVE_NBGL
+DEFINES += NBGL_STEP
+DEFINES += NBGL_USE_CASE
+endif # USE_NBGL
+
+endif # TARGET_NANOX / TARGET_NANOS2
+
+DEFINES += OS_IO_SEPH_BUFFER_SIZE=272
+
+ifeq ($(TARGET_NAME),$(filter $(TARGET_NAME),TARGET_NANOX TARGET_NANOS2))
+# Screen is directly connected to the SE
+DEFINES       += HAVE_SE_SCREEN
+# Button is directly connected to the SE
+DEFINES       += HAVE_SE_BUTTON
+DEFINES       += HAVE_FONTS
+DEFINES       += HAVE_INAPP_BLE_PAIRING
+DEFINES       += HAVE_BATTERY
+endif
+
+DEFINES       += HAVE_LEDGER_PKI
+
+# include builtin CX libs options
+-include $(BOLOS_SDK)/Makefile.conf.cx
+
+endif

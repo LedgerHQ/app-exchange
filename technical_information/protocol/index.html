@@ -1,0 +1,2770 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Ledger Swap">
+      
+      
+      
+      
+        <link rel="prev" href="../diagram/">
+      
+      
+        <link rel="next" href="../fund_and_sell/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../img/Ledger-logo-696.webp">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Exchange Protocol API - Ledger Swap documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#exchange-application-protocol-api" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Ledger Swap documentation" class="md-header__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ledger Swap documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Exchange Protocol API
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Ledger Swap documentation" class="md-nav__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    Ledger Swap documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../walkthrough/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enabling the SWAP on your application
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Enabling the SWAP on your application
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../walkthrough/prerequisite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prerequisite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../walkthrough/run_first_test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running an existing SWAP test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../walkthrough/enable_the_swap_compilation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First compilation with the standard SWAP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../walkthrough/enable_standard_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a basic SWAP test for you coin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../walkthrough/code_the_handlers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code the handlers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Information
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Technical Information
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exchange Protocol API
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exchange Protocol API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Request:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        COMMAND:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="COMMAND:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notes-on-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes on COMMANDS:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RATE_TYPE:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TYPE:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EXTENSION:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DATA:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DATA:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET_VERSION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_new_transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        START_NEW_TRANSACTION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_partner_key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SET_PARTNER_KEY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SET_PARTNER_KEY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-all-legacy-types-the-data-for-this-command-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all LEGACY TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-all-unified-types-the-data-for-this-command-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all UNIFIED TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_partner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_PARTNER
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#process_transaction_response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PROCESS_TRANSACTION_RESPONSE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PROCESS_TRANSACTION_RESPONSE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-all-legacy-types-the-data-for-this-command-is_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all LEGACY TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-all-unified-types-the-data-for-this-command-is_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all UNIFIED TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET_CHALLENGE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send_trusted_name_descriptor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEND_TRUSTED_NAME_DESCRIPTOR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_transaction_signature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_TRANSACTION_SIGNATURE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CHECK_TRANSACTION_SIGNATURE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-all-legacy-types-the-data-for-this-command-is_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all LEGACY TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-all-unified-types-the-data-for-this-command-is_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all UNIFIED TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_asset_in_legacy_and_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_ASSET_IN_LEGACY_AND_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_asset_in_and_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_ASSET_IN_AND_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_asset_in_no_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_ASSET_IN_NO_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_payout_address" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_PAYOUT_ADDRESS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_refund_address_and_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_REFUND_ADDRESS_AND_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_refund_address_no_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_REFUND_ADDRESS_NO_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prompt_ui_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PROMPT_UI_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_signing_transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        START_SIGNING_TRANSACTION
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Response:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Response:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returned-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returned data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Returned data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_version_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET_VERSION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_new_transaction_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        START_NEW_TRANSACTION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_challenge_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET_CHALLENGE
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Return code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fund_and_sell/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FUND and SELL flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Crypto Asset List (CAL)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSS safety in coin applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../coin_application_api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coin Application API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Coin Application API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coin_application_api/swap_handle_check_address/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    handle_check_address()
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coin_application_api/swap_handle_get_printable_amount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    handle_get_printable_amount()
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coin_application_api/swap_copy_transaction_parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    copy_transaction_parameters()
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coin_application_api/ui_bypass/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI bypass
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../coin_application_api/error_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The DALE tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Request:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Request:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        COMMAND:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="COMMAND:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#notes-on-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes on COMMANDS:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RATE_TYPE:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TYPE:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EXTENSION:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DATA:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DATA:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET_VERSION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_new_transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        START_NEW_TRANSACTION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_partner_key" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SET_PARTNER_KEY
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SET_PARTNER_KEY">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-all-legacy-types-the-data-for-this-command-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all LEGACY TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-all-unified-types-the-data-for-this-command-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all UNIFIED TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_partner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_PARTNER
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#process_transaction_response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PROCESS_TRANSACTION_RESPONSE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PROCESS_TRANSACTION_RESPONSE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-all-legacy-types-the-data-for-this-command-is_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all LEGACY TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-all-unified-types-the-data-for-this-command-is_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all UNIFIED TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET_CHALLENGE
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#send_trusted_name_descriptor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SEND_TRUSTED_NAME_DESCRIPTOR
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_transaction_signature" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_TRANSACTION_SIGNATURE
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CHECK_TRANSACTION_SIGNATURE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#for-all-legacy-types-the-data-for-this-command-is_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all LEGACY TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#for-all-unified-types-the-data-for-this-command-is_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For all UNIFIED TYPES, the data for this command is:
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_asset_in_legacy_and_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_ASSET_IN_LEGACY_AND_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_asset_in_and_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_ASSET_IN_AND_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_asset_in_no_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_ASSET_IN_NO_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_payout_address" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_PAYOUT_ADDRESS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_refund_address_and_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_REFUND_ADDRESS_AND_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check_refund_address_no_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECK_REFUND_ADDRESS_NO_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prompt_ui_display" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PROMPT_UI_DISPLAY
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_signing_transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        START_SIGNING_TRANSACTION
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#response" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Response:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Response:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#returned-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Returned data
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Returned data">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get_version_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET_VERSION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start_new_transaction_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        START_NEW_TRANSACTION
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_challenge_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET_CHALLENGE
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#return-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Return code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="exchange-application-protocol-api">EXCHANGE application protocol API</h1>
+<p>Communication is done through a series of request-response exchanges (APDU / RAPDU).</p>
+<p>Please look at the <a href="../diagram/">sequence diagram</a> to know more about the APDUs used here.</p>
+<h2 id="request">Request:</h2>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 byte</td>
+<td>CLASS (constant 0xE0)</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>COMMAND to run</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>P1: RATE_TYPE of the transaction</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>P2: TYPE and EXTENSION</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>LC: Length of the data section</td>
+</tr>
+<tr>
+<td>LC bytes</td>
+<td>DATA, content depends of the COMMAND</td>
+</tr>
+</tbody>
+</table>
+<h3 id="command">COMMAND:</h3>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET_VERSION</td>
+<td>0x02</td>
+<td>Get application version. This APDU can be sent independently of the current app state</td>
+</tr>
+<tr>
+<td>START_NEW_TRANSACTION</td>
+<td>0x03</td>
+<td>Start new EXCHANGE transaction. This APDU resets the app state</td>
+</tr>
+<tr>
+<td>SET_PARTNER_KEY</td>
+<td>0x04</td>
+<td>Set the credentials of the exchange partner</td>
+</tr>
+<tr>
+<td>CHECK_PARTNER</td>
+<td>0x05</td>
+<td>Check that the credentials of the exchange partner are signed by the Ledger key</td>
+</tr>
+<tr>
+<td>PROCESS_TRANSACTION_RESPONSE</td>
+<td>0x06</td>
+<td>Receive the transaction proposal from the exchange partner</td>
+</tr>
+<tr>
+<td>CHECK_TRANSACTION_SIGNATURE</td>
+<td>0x07</td>
+<td>Check that the transaction proposal is signed by the exchange partner</td>
+</tr>
+<tr>
+<td>GET_CHALLENGE</td>
+<td>0x10</td>
+<td>Optional: Retrieve the current challenge value for the TLV trusted descriptor feature</td>
+</tr>
+<tr>
+<td>SEND_TRUSTED_NAME_DESCRIPTOR</td>
+<td>0x11</td>
+<td>Optional: Provide a TLV trusted descriptor</td>
+</tr>
+<tr>
+<td>CHECK_ASSET_IN_LEGACY_AND_DISPLAY</td>
+<td>0x08</td>
+<td>Format the amounts and fees used and prompts screen review (FUND_LEGACY and SELL_LEGACY flows only)</td>
+</tr>
+<tr>
+<td>CHECK_ASSET_IN_AND_DISPLAY</td>
+<td>0x0B</td>
+<td>Format the amounts and fees used and prompts screen review (FUND based and SELL based flows)</td>
+</tr>
+<tr>
+<td>CHECK_ASSET_IN_NO_DISPLAY</td>
+<td>0x0D</td>
+<td>Format the amounts and fees used. (FUND based and SELL based flows only)</td>
+</tr>
+<tr>
+<td>CHECK_PAYOUT_ADDRESS</td>
+<td>0x08</td>
+<td>Check that the payout address belongs to us (SWAP based flows only)</td>
+</tr>
+<tr>
+<td>CHECK_REFUND_ADDRESS_AND_DISPLAY</td>
+<td>0x09</td>
+<td>Check that the refund address belongs to us (SWAP based flows only) and prompts screen review</td>
+</tr>
+<tr>
+<td>CHECK_REFUND_ADDRESS_NO_DISPLAY</td>
+<td>0x0C</td>
+<td>Check that the refund address belongs to us (SWAP based flows only)</td>
+</tr>
+<tr>
+<td>PROMPT_UI_DISPLAY</td>
+<td>0x0F</td>
+<td>Prompt the screen review for the user</td>
+</tr>
+<tr>
+<td>START_SIGNING_TRANSACTION</td>
+<td>0x0A</td>
+<td>Start the library application responsible for the FROM signing</td>
+</tr>
+</tbody>
+</table>
+<p>The COMMANDS must be sent to the application in the correct order, this order depends of the TYPE chosen for the exchange flow:</p>
+<table>
+<thead>
+<tr>
+<th>All types</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>START_NEW_TRANSACTION</td>
+</tr>
+<tr>
+<td>SET_PARTNER_KEY</td>
+</tr>
+<tr>
+<td>CHECK_PARTNER</td>
+</tr>
+<tr>
+<td>PROCESS_TRANSACTION_RESPONSE</td>
+</tr>
+<tr>
+<td>CHECK_TRANSACTION_SIGNATURE</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>SWAP based TYPES</th>
+<th>or (discouraged version)</th>
+<th>FUND based and SELL based TYPES</th>
+<th>or (discouraged version)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHECK_PAYOUT_ADDRESS</td>
+<td>CHECK_PAYOUT_ADDRESS</td>
+<td>CHECK_ASSET_IN_NO_DISPLAY</td>
+<td>CHECK_ASSET_IN_AND_DISPLAY</td>
+</tr>
+<tr>
+<td>CHECK_REFUND_ADDRESS_NO_DISPLAY</td>
+<td>CHECK_REFUND_ADDRESS_AND_DISPLAY</td>
+<td>PROMPT_UI_DISPLAY</td>
+<td></td>
+</tr>
+<tr>
+<td>PROMPT_UI_DISPLAY</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>All types</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>START_SIGNING_TRANSACTION</td>
+</tr>
+</tbody>
+</table>
+<h4 id="notes-on-commands">Notes on COMMANDS:</h4>
+<ul>
+<li>
+<p>Command START_SIGNING_TRANSACTION requires that a UI review by the user has happened, either through a CHECK_X_AND_DISPLAY (legacy method), or through the dedicated PROMPT_UI_DISPLAY command.</p>
+</li>
+<li>
+<p>It is always possible to restart the flow by sending a START_NEW_TRANSACTION command, except when the UI review screen is being displayed.</p>
+</li>
+<li>
+<p>The command START_SIGNING_TRANSACTION will start the library application, the current application will not be EXCHANGE anymore.</p>
+</li>
+</ul>
+<h3 id="rate_type">RATE_TYPE:</h3>
+<p>Different possible rates for the transaction. The rate is sent to the app as P1 of an APDU.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FIXED</td>
+<td>0x00</td>
+<td>The rate in the transaction is a fixed value</td>
+</tr>
+<tr>
+<td>FLOATING</td>
+<td>0x01</td>
+<td>The rate in the transaction is an estimation</td>
+</tr>
+</tbody>
+</table>
+<h3 id="type">TYPE:</h3>
+<p>Different exchange types are possible for the app. The type is sent to the app as the lowest 4 bits of the P2 byte of the APDU.</p>
+<p>Changing the subcommand after an exchange flow is started will result in an error response and the APDU is ignored.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SWAP_LEGACY</td>
+<td>0x00</td>
+<td>SWAP transaction (crypto against crypto) using legacy signature and encoding, deprecated by the NEW counterpart</td>
+</tr>
+<tr>
+<td>SELL_LEGACY</td>
+<td>0x01</td>
+<td>SELL transaction (crypto against fiat) using legacy signature and encoding, deprecated by the NEW counterpart</td>
+</tr>
+<tr>
+<td>FUND_LEGACY</td>
+<td>0x02</td>
+<td>FUND transaction (crypto to owned account) using legacy signature and encoding, deprecated by the NEW counterpart</td>
+</tr>
+<tr>
+<td>SWAP_NEW</td>
+<td>0x03</td>
+<td>SWAP transaction (crypto against crypto) using unified signature and encoding</td>
+</tr>
+<tr>
+<td>SELL_NEW</td>
+<td>0x04</td>
+<td>SELL transaction (crypto against fiat) using unified signature and encoding</td>
+</tr>
+<tr>
+<td>FUND_NEW</td>
+<td>0x05</td>
+<td>FUND transaction (crypto to owned account) using unified signature and encoding</td>
+</tr>
+</tbody>
+</table>
+<h3 id="extension">EXTENSION:</h3>
+<p>This feature is only available in a PROCESS_TRANSACTION_RESPONSE command in a SWAP_NEW, SELL_NEW, or FUND_NEW flow.</p>
+<p>In Legacy flows the extension must be P2_NONE.</p>
+<p>The extension is sent to the app as the upper 4 bits of the P2 byte of the APDU.</p>
+<p>The maximum DATA in a single APDU is 255 bytes, in case it is not sufficient for a command,
+it is possible to use the EXTENSION feature to send the command in several parts.</p>
+<p>To use the EXTENSION feature, craft the data of the command you want to send and split it in 255 bytes chunks.</p>
+<p>Then send this chunks to the app using a combination of P2_EXTEND and P2_MORE in each APDU header.</p>
+<p>The application will reconstruct the DATA by concatenating the received APDUs.</p>
+<p>The application will refuse to reconstruct more than 512 bytes.</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P2_NONE</td>
+<td>0x00 &lt;&lt; 4</td>
+<td>This APDU is self sufficient</td>
+</tr>
+<tr>
+<td>P2_EXTEND</td>
+<td>0x01 &lt;&lt; 4</td>
+<td>This APDU is not whole, it extends a previously received one</td>
+</tr>
+<tr>
+<td>P2_MORE</td>
+<td>0x02 &lt;&lt; 4</td>
+<td>This APDU is not whole, the followup part while be received later</td>
+</tr>
+</tbody>
+</table>
+<h3 id="data">DATA:</h3>
+<h4 id="get_version">GET_VERSION</h4>
+<p>No data expected.</p>
+<h4 id="start_new_transaction">START_NEW_TRANSACTION</h4>
+<p>No data expected.</p>
+<h4 id="set_partner_key">SET_PARTNER_KEY</h4>
+<h5 id="for-all-legacy-types-the-data-for-this-command-is">For all LEGACY TYPES, the data for this command is:</h5>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 byte</td>
+<td>Length N of the encoded partner name</td>
+</tr>
+<tr>
+<td>N bytes</td>
+<td>Partner name encoded with utf-8</td>
+</tr>
+<tr>
+<td>LC - (1 + N) bytes</td>
+<td>Partner public key</td>
+</tr>
+</tbody>
+</table>
+<h5 id="for-all-unified-types-the-data-for-this-command-is">For all UNIFIED TYPES, the data for this command is:</h5>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 byte</td>
+<td>Length N of the encoded partner name</td>
+</tr>
+<tr>
+<td>N bytes</td>
+<td>Partner name encoded with utf-8</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Curve used by the partner</td>
+</tr>
+<tr>
+<td>LC - (2 + N) bytes</td>
+<td>Partner public key</td>
+</tr>
+</tbody>
+</table>
+<p>With the possible values for the curve being 0x00 for SECP256K1, and 0x01 for SECP256R1.</p>
+<h4 id="check_partner">CHECK_PARTNER</h4>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LC bytes</td>
+<td>Signature of the partner credentials by the Ledger key, curve secp256k1 hashfunc sha256</td>
+</tr>
+</tbody>
+</table>
+<h4 id="process_transaction_response">PROCESS_TRANSACTION_RESPONSE</h4>
+<p>Please refer to the src/protobuf files for the actual transaction proposal content.</p>
+<h5 id="for-all-legacy-types-the-data-for-this-command-is_1">For all LEGACY TYPES, the data for this command is:</h5>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 byte</td>
+<td>Length N of the encoded transaction proposal</td>
+</tr>
+<tr>
+<td>N bytes</td>
+<td>Transaction proposal. Bytes array for SWAP_LEGACY, URLsafe base 64 encoding for SELL_LEGACY and FUND_LEGACY</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Length M of the transaction fees</td>
+</tr>
+<tr>
+<td>M bytes</td>
+<td>Transaction fees</td>
+</tr>
+</tbody>
+</table>
+<h5 id="for-all-unified-types-the-data-for-this-command-is_1">For all UNIFIED TYPES, the data for this command is:</h5>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 byte</td>
+<td>Format used for the transaction encoding</td>
+</tr>
+<tr>
+<td>2 bytes</td>
+<td>Length N of the encoded transaction proposal</td>
+</tr>
+<tr>
+<td>N bytes</td>
+<td>Encoded transaction proposal</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Length M of the transaction fees</td>
+</tr>
+<tr>
+<td>M bytes</td>
+<td>Transaction fees</td>
+</tr>
+</tbody>
+</table>
+<p>With the possible values for the format being 0x00 for Bytes Array (no encoding), and 0x01 for Base 64 Url encoding.</p>
+<p>The DATA of this command may exceed the capacity of a single APDU (255 bytes), in this case use the EXTENSION feature.</p>
+<h4 id="get_challenge">GET_CHALLENGE</h4>
+<p>Retrieve the current challenge value for the TLV trusted descriptor feature.</p>
+<p>It will be regenerated on application side following a SEND_TRUSTED_NAME_DESCRIPTOR command (successful or not).</p>
+<h4 id="send_trusted_name_descriptor">SEND_TRUSTED_NAME_DESCRIPTOR</h4>
+<p>Provide a TLV trusted descriptor from the CAL to apply a trusted value upon the refund or payout address.</p>
+<h4 id="check_transaction_signature">CHECK_TRANSACTION_SIGNATURE</h4>
+<h5 id="for-all-legacy-types-the-data-for-this-command-is_2">For all LEGACY TYPES, the data for this command is:</h5>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LC bytes</td>
+<td>Signature of the computed transaction proposed by the partner</td>
+</tr>
+</tbody>
+</table>
+<p>For SWAP_LEGACY TYPE, the signature is computed on the transaction proposal.</p>
+<p>For SELL_LEGACY and FUND_LEGACY the signature is computed on the transaction proposal prefixed with a DOT ('.').</p>
+<p>For SWAP_LEGACY and FUND_LEGACY, the signature is in DER format.</p>
+<p>For SELL_LEGACY the signature is in (R,S) format.</p>
+<h5 id="for-all-unified-types-the-data-for-this-command-is_2">For all UNIFIED TYPES, the data for this command is:</h5>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 byte</td>
+<td>If the signature is computed on a prefixed transaction</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Format of the signature itself</td>
+</tr>
+<tr>
+<td>LC - 2 bytes</td>
+<td>Signature of the computed transaction proposed by the partner</td>
+</tr>
+</tbody>
+</table>
+<p>With the possible values for the format of the transaction used for signing being 0x01 if it was DOT ('.') prefixed, 0x00 otherwise.</p>
+<p>With the possible values for the format of the signature itself being 0x00 for DER format, and 0x01 for (R,S) format.</p>
+<h4 id="check_asset_in_legacy_and_display">CHECK_ASSET_IN_LEGACY_AND_DISPLAY</h4>
+<p>This command is DEPRECATED.</p>
+<p>Please refer to CHECK_ASSET_IN_AND_DISPLAY (strict equivalent but discouraged) or CHECK_ASSET_IN_NO_DISPLAY + PROMPT_UI_DISPLAY</p>
+<p>This command works only for the SELL_LEGACY and FUND_LEGACY TYPES, the data content is the same as CHECK_ASSET_IN_AND_DISPLAY only the INS byte is different (and does not collide with CHECK_PAYOUT_ADDRESS).</p>
+<h4 id="check_asset_in_and_display">CHECK_ASSET_IN_AND_DISPLAY</h4>
+<p>This command is the same as CHECK_ASSET_IN_NO_DISPLAY except that the application will prompt the UI review if the check is successful.</p>
+<p>Usage of this command is discouraged, please use CHECK_ASSET_IN_NO_DISPLAY + PROMPT_UI_DISPLAY instead.</p>
+<h4 id="check_asset_in_no_display">CHECK_ASSET_IN_NO_DISPLAY</h4>
+<p>This command is used for SELL based and FUND based TYPES.</p>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 byte</td>
+<td>Coin configuration length of the FROM coin. The coin configuration is made of the ticker, appname, and subconf</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Ticker name length N</td>
+</tr>
+<tr>
+<td>N bytes</td>
+<td>Ticker name of this the coin configuration. The ticker has to be the same as the FROM ticker</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Application name length M</td>
+</tr>
+<tr>
+<td>M bytes</td>
+<td>Name of the application that can handle this currency</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Sub coin configuration length R</td>
+</tr>
+<tr>
+<td>R bytes</td>
+<td>Sub coin configuration, used for tokens to specify an app the subticker and the decimals</td>
+</tr>
+<tr>
+<td>S bytes</td>
+<td>Signature of the coin configuration by the Ledger key in DER format, curve secp256k1 hashfunc sha256</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Packed derivation path length T</td>
+</tr>
+<tr>
+<td>T bytes</td>
+<td>Packed derivation path used for the FROM coin</td>
+</tr>
+</tbody>
+</table>
+<h4 id="check_payout_address">CHECK_PAYOUT_ADDRESS</h4>
+<p>This command is used only in the SWAP_LEGACY and SWAP_NEW TYPES.</p>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 byte</td>
+<td>Coin configuration length of the TO coin. The coin configuration is made of the ticker, appname, and subconf</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Ticker name length N</td>
+</tr>
+<tr>
+<td>N bytes</td>
+<td>Ticker name of this the coin configuration. The ticker has to be the same as the TO ticker</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Application name length M</td>
+</tr>
+<tr>
+<td>M bytes</td>
+<td>Name of the application that can handle this currency</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Sub coin configuration length R</td>
+</tr>
+<tr>
+<td>R bytes</td>
+<td>Sub coin configuration, used for tokens to specify an app the subticker and the decimals</td>
+</tr>
+<tr>
+<td>S bytes</td>
+<td>Signature of the coin configuration by the Ledger key in DER format, curve secp256k1 hashfunc sha256</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Packed derivation path length T</td>
+</tr>
+<tr>
+<td>T bytes</td>
+<td>Packed derivation path used for the TO coin</td>
+</tr>
+</tbody>
+</table>
+<h4 id="check_refund_address_and_display">CHECK_REFUND_ADDRESS_AND_DISPLAY</h4>
+<p>This command is the same as CHECK_REFUND_ADDRESS_NO_DISPLAY except that the application will prompt the UI review if the check is successful.</p>
+<p>Usage of this command is discouraged, please use CHECK_REFUND_ADDRESS_NO_DISPLAY + PROMPT_UI_DISPLAY instead.</p>
+<h4 id="check_refund_address_no_display">CHECK_REFUND_ADDRESS_NO_DISPLAY</h4>
+<p>This command is used only in the SWAP_LEGACY and SWAP_NEW TYPES.</p>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 byte</td>
+<td>Coin configuration length of the FROM coin. The coin configuration is made of the ticker, appname, and subconf</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Ticker name length N</td>
+</tr>
+<tr>
+<td>N bytes</td>
+<td>Ticker name of this the coin configuration. The ticker has to be the same as the FROM ticker</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Application name length M</td>
+</tr>
+<tr>
+<td>M bytes</td>
+<td>Name of the application that can handle this currency</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Sub coin configuration length R</td>
+</tr>
+<tr>
+<td>R bytes</td>
+<td>Sub coin configuration, used for tokens to specify an app the subticker and the decimals</td>
+</tr>
+<tr>
+<td>S bytes</td>
+<td>Signature of the coin configuration by the Ledger key in DER format, curve secp256k1 hashfunc sha256</td>
+</tr>
+<tr>
+<td>1 byte</td>
+<td>Packed derivation path length T</td>
+</tr>
+<tr>
+<td>T bytes</td>
+<td>Packed derivation path used for the FROM coin</td>
+</tr>
+</tbody>
+</table>
+<h4 id="prompt_ui_display">PROMPT_UI_DISPLAY</h4>
+<p>This command prompts the UI so the user can validate the transaction on screen.</p>
+<h4 id="start_signing_transaction">START_SIGNING_TRANSACTION</h4>
+<p>No data expected.</p>
+<h2 id="response">Response:</h2>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N bytes</td>
+<td>Command specific data</td>
+</tr>
+<tr>
+<td>2 bytes</td>
+<td>Return code</td>
+</tr>
+</tbody>
+</table>
+<h3 id="returned-data">Returned data</h3>
+<p>Only the COMMANDS described below return data. All others only return a code.</p>
+<h4 id="get_version_1">GET_VERSION</h4>
+<p>In case of success, this command will return the application version in format {MAJOR.MINOR.PATCH}.</p>
+<h4 id="start_new_transaction_1">START_NEW_TRANSACTION</h4>
+<p>In case of success, this command will return a nonce called "device transaction id" used for the initiated flow.</p>
+<p>For TYPE SWAP_LEGACY, the format of this nonce is a 10 char array.</p>
+<p>For all other TYPES, the format of this nonce is a 32 bytes array.</p>
+<h4 id="get_challenge_1">GET_CHALLENGE</h4>
+<p>The current challenge value in u32 format.</p>
+<h3 id="return-code">Return code</h3>
+<p>Return code can be one of the following values:</p>
+<table>
+<thead>
+<tr>
+<th>Bytes</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x6A80</td>
+<td>INCORRECT_COMMAND_DATA</td>
+<td>The DATA sent does not match the correct format for the COMMAND specified</td>
+</tr>
+<tr>
+<td>0x6A81</td>
+<td>DESERIALIZATION_FAILED</td>
+<td>Can't parse partner transaction proposal</td>
+</tr>
+<tr>
+<td>0x6A82</td>
+<td>WRONG_TRANSACTION_ID</td>
+<td>Transaction ID is not equal to one generated on the START_NEW_TRANSACTION step</td>
+</tr>
+<tr>
+<td>0x6A83</td>
+<td>INVALID_ADDRESS</td>
+<td>Refund or payout address doesn't belong to us</td>
+</tr>
+<tr>
+<td>0x6A84</td>
+<td>USER_REFUSED_TRANSACTION</td>
+<td>User refused the transaction proposal</td>
+</tr>
+<tr>
+<td>0x6A85</td>
+<td>INTERNAL_ERROR</td>
+<td>Internal error of the application</td>
+</tr>
+<tr>
+<td>0x6A86</td>
+<td>WRONG_P1</td>
+<td>The P1 value is not a valid RATE</td>
+</tr>
+<tr>
+<td>0x6A87</td>
+<td>WRONG_P2_SUBCOMMAND</td>
+<td>The P2 lower 4 bits of the P2 byte is not a valid SUBCOMMAND</td>
+</tr>
+<tr>
+<td>0x6A88</td>
+<td>WRONG_P2_EXTENSION</td>
+<td>The P2 upper 4 bits of the P2 byte is not a valid EXTENSION</td>
+</tr>
+<tr>
+<td>0x6A89</td>
+<td>INVALID_P2_EXTENSION</td>
+<td>The extension is a valid value but is refused in the current context</td>
+</tr>
+<tr>
+<td>0x6A8A</td>
+<td>MEMORY_CORRUPTION</td>
+<td>A child application started by Exchange has corrupted the Exchange application memory</td>
+</tr>
+<tr>
+<td>0x6A8B</td>
+<td>AMOUNT_FORMATTING_FAILED</td>
+<td>A child application failed to format an amount provided by the partner</td>
+</tr>
+<tr>
+<td>0x6A8C</td>
+<td>APPLICATION_NOT_INSTALLED</td>
+<td>The requested child application is not installed on the device</td>
+</tr>
+<tr>
+<td>0x6A8D</td>
+<td>WRONG_EXTRA_ID_OR_EXTRA_DATA</td>
+<td>The values given for extra_id (memo) and / or extra_data (Thorswap like) are incorrect</td>
+</tr>
+<tr>
+<td>0x6A8E</td>
+<td>WRONG_TLV_CHALLENGE</td>
+<td>The challenge provided in the descriptor does not match the challenge generated</td>
+</tr>
+<tr>
+<td>0x6A8F</td>
+<td>WRONG_TLV_CONTENT</td>
+<td>The content of the descriptor does not fit the Exchange use case specification</td>
+</tr>
+<tr>
+<td>0x6A90</td>
+<td>MISSING_TLV_CONTENT</td>
+<td>The descriptor is missing requirement tags</td>
+</tr>
+<tr>
+<td>0x6A91</td>
+<td>WRONG_TRUSTED_NAME_TLV</td>
+<td>The content of the descriptor does not fit the common descriptor specification</td>
+</tr>
+<tr>
+<td>0x6A92</td>
+<td>USER_REFUSED_CROSS_SEED</td>
+<td>User refused the transaction proposal when prompted by the Cross Seed Swap warning</td>
+</tr>
+<tr>
+<td>0x6E00</td>
+<td>CLASS_NOT_SUPPORTED</td>
+<td>The CLASS is not 0xE0</td>
+</tr>
+<tr>
+<td>0x6E01</td>
+<td>MALFORMED_APDU</td>
+<td>The APDU header is malformed</td>
+</tr>
+<tr>
+<td>0x6E02</td>
+<td>INVALID_DATA_LENGTH</td>
+<td>The length of the DATA is refused for this COMMAND</td>
+</tr>
+<tr>
+<td>0x6D00</td>
+<td>INVALID_INSTRUCTION</td>
+<td>COMMAND is not in the "Possible commands" table</td>
+</tr>
+<tr>
+<td>0x6D01</td>
+<td>UNEXPECTED_INSTRUCTION</td>
+<td>COMMAND is in the "Possible commands" table but is refused in the current context</td>
+</tr>
+<tr>
+<td>0x6D02</td>
+<td>DESCRIPTOR_NOT_USED</td>
+<td>The received descriptor could not be applied to refund nor payout address</td>
+</tr>
+<tr>
+<td>0x9D1A</td>
+<td>SIGN_VERIFICATION_FAIL</td>
+<td>The signature sent by this command does not match the data or the associated public key</td>
+</tr>
+<tr>
+<td>0x9000</td>
+<td>SUCCESS</td>
+<td>Success code</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.indexes", "navigation.expand"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>

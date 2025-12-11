@@ -1,0 +1,738 @@
+#ifdef HAVE_SE_TOUCH
+/** @page nbgl_app_use_case Predefined Application Use-cases API
+
+@section nbgl_use_case_intro Introduction
+This chapter describes the Application Use-cases API of Advanced BOLOS Graphic Library.
+
+This layer offers a simplified view of some typical use-cases of display in an Application running on Stax.
+For example, a use-case can be:
+
+- Reviewing a transaction/message
+- Reviewing details on a given data of a transaction/message
+- Displaying pages of settings
+
+A full description of each predefined use-case can be found in this document
+
+@section nbgl_use_case_concepts Concepts
+
+This layer uses the high-level API described in @ref nbgl_page, but offers to developer more than a single page.
+
+The goal is to simplify the usage of NBGL, but also to offer a better homogeneity across applications, by pushing
+developers to use common API for common use-cases.
+
+So that not only the look of the pages but also their transitions look the same. Which should be a real help
+for end-users, getting more and more familiar with the user experience of applications.
+
+@subsection nbgl_use_case_example_1 Example 1: transaction review
+
+\image{inline} html UseCase-Review.png "caption" height=300
+
+In this example, a transaction review consists in 3 successive pages, and can be seen as a use-case
+
+@subsection nbgl_use_case_example_2 Example 2: home & settings pages
+
+\image{inline} html UseCase-HomeSettings.png "caption" height=300
+
+In this other example, displaying home page, then the settings and info consists in 3 pages, and can be seen as another use-case.
+
+@section nbgl_use_cases Use Cases
+
+A few APIs are available to draw typical Use-Cases, such as:
+
+- for Home Screen & Settings:
+ - @ref nbgl_useCaseHomeAndSettings() to draw the home page and settings/info pages (see @subpage use_case_home_settings)
+- for Individual pages:
+ - @ref nbgl_useCaseConfirm() to draw a typical confirmation page, for example when rejecting a transaction (see @subpage use_case_confirm)
+ - @ref nbgl_useCaseChoice() to draw a typical dual choice page (see @subpage use_case_choice)
+ - @ref nbgl_useCaseStatus() to draw a transient status page, without control, for example when a transaction is successfully signed (see @subpage use_case_status)
+ - @ref nbgl_useCaseSpinner() to draw an infinite spinner page (see @subpage use_case_spinner)
+- for most used reviews:
+ - @ref nbgl_useCaseReview() to draw the pages of a regular coin transaction review, when all info are available from the beginning (see @subpage use_case_review)
+ - @ref nbgl_useCaseReviewLight() to draw the pages of a transaction review with a simple button confirmation, when all info are available from the beginning (see @subpage use_case_review_light)
+ - @ref nbgl_useCaseReviewStreamingStart() to draw the pages of a regular coin transaction review, when all info are not available from the beginning (see @subpage use_case_review_streaming)
+- for reviews with a warning prolog:
+ - @ref nbgl_useCaseAdvancedReview() to draw the pages of a regular coin transaction review, when all info are available from the beginning, but with an identified risk requiring a warning prolog (see @subpage use_case_review_with_warning)
+ - @ref nbgl_useCaseAdvancedReviewStreamingStart() to draw the pages of a regular coin transaction review, when all info are not available from the beginning, but with an identified risk requiring a warning prolog (see @subpage use_case_review_with_warning and @subpage use_case_review_streaming)
+- for address verification:
+ - @ref nbgl_useCaseAddressReview() to draw an address confirmation page, with a possibility to see it as QR Code and some extra tag/value pairs (see @subpage use_case_addr_review)
+- for keypad:
+ - @ref nbgl_useCaseKeypad() to draw a default keypad implementation (see @subpage use_case_keypad)
+- for generic navigable content:
+ - @ref nbgl_useCaseNavigableContent() to draw a level of generic content navigable pages
+
+Some APIs have also been kept for backward compatibility, and for some rare cases:
+
+- for most used reviews:
+ - @ref nbgl_useCaseReviewStart() to draw the cover page of a review (initial page, without data)
+ - @ref nbgl_useCaseStaticReview() to draw the data pages of a regular review, when all info are available from the beginning (all pages but the cover one)
+
+@subsection use_case_home_settings Home & Settings screen Use Case
+
+\image{inline} html UseCase-HomeSettingsAPI.png "caption" height=300
+
+Ledger would like all application to have the same layout for home screen and settings/info, so the @ref nbgl_useCaseHomeAndSettings() function enables to
+create such a set of page, the configurable parameters being:
+
+- the application name (appName)
+- the application icon (appIcon)
+- the tagline, a text under app name (if NULL, it will be "This app enables signing transactions on the <appName> network.")
+- the callback when touching *quit application* button
+
+@code
+extern const nbgl_icon_details_t *eth_icon;
+
+enum {
+    SWITCH1_TOKEN = FIRST_USER_TOKEN,
+    SWITCH2_TOKEN
+};
+
+static const nbgl_layoutSwitch_t switches[] = {
+    {.initState = false,
+     .text      = "ENS addresses",
+     .subText   = "Displays the resolved address of ENS domains.",
+     .token     = SWITCH1_TOKEN,
+     .tuneId    = TUNE_TAP_CASUAL},
+    {.initState = true,
+     .text      = "Raw messages",
+     .subText   = "Displays raw content from EIP712 messages.",
+     .token     = SWITCH2_TOKEN,
+     .tuneId    = TUNE_TAP_CASUAL}
+};
+static const char *infoTypes[]    = {"Version", "Developer"};
+static const char *infoContents[] = {"1.9.18", "Ledger"};
+
+// function called in case of action on switches
+static void controlsCallback(int token, uint8_t index, int page) {
+  if (token == SWITCH1_TOKEN) {
+    if (index == 0) {
+      // deactivate something related with ENS
+    }
+    else {
+      // activate something related with ENS
+    }
+  }
+  else if (token == SWITCH2_TOKEN) {
+    if (index == 0) {
+      // deactivate something related with EIP712
+    }
+    else {
+      // activate something related with EIP712
+    }
+  }
+}
+
+static const nbgl_content_t contentsList = {
+  .content.switchesList.nbSwitches = 2,
+  .content.switchesList.switches = switches,
+  .type = SWITCHES_LIST,
+  .contentActionCallback = controlsCallback
+};
+
+static const nbgl_genericContents_t eth_settingContents
+    = {.contentsList = &contentsList, .nbContents = 1};
+static const nbgl_contentInfoList_t eth_infosList
+    = {.nbInfos = 2, .infoTypes = infoTypes, .infoContents = infoContents};
+
+void onQuit(void) {
+    // exit app here
+}
+void appMain(void) {
+    nbgl_useCaseHomeAndSettings("Ethereum",
+                                eth_icon,
+                                NULL,                  // use default tag line
+                                INIT_HOME_PAGE,        // start at home page
+                                &eth_settingContents,  // description of settings
+                                &eth_infosList,        // description of app info
+                                NULL,                  // no action button on home screen
+                                onQuit);               // when quitting
+}
+@endcode
+
+@subsubsection use_case_home_settings_with_action Home & Settings screen with action button Use Case
+
+\image{inline} html UseCase-HomeAction.png "caption" height=300
+
+For some rare applications, one may need an action button in the Home screen, to perform either:
+
+- The main action of the Application
+- Or an side-action, as to display an address
+
+The \b action argument of @ref nbgl_useCaseHomeAndSettings() can be used for that. This structure (@ref nbgl_homeAction_t)
+enables to specify:
+
+- A text & an icon for the button
+- A function to be called when the button is touched
+- The type of button (either @ref STRONG_HOME_ACTION for main action, in black, or @ref SOFT_HOME_ACTION for side action, in white)
+
+@subsection use_case_confirm Confirmation Use Case
+
+\image{inline} html UseCase-Confirm.png "caption" height=300
+
+A confirmation use-case consists in a single modal page containing a fixed icon, a configurable message, a black button and a footer to make
+the choice, with configuration texts. The @ref nbgl_useCaseConfirm() function enables to create such a page.
+
+The *callback* argument is called when the button is touched.
+
+When the footer is touched, this modal screen is simply dismissed, revealing the previous page on background.
+
+Here is the code to display the example picture (and a status page for confirmation)
+
+@code
+static void confirmationCallback(void) {
+  // draw a status screen which continues by returning to appMain
+  nbgl_useCaseStatus("Transaction rejected", false, appMain);
+}
+
+void onRejectTransaction(void) {
+  nbgl_useCaseConfirm("Reject transaction?",
+                      "Yes, Reject",
+                      "Go back to transaction",
+                      confirmationCallback);
+}
+@endcode
+
+@subsection use_case_choice Choice Use Case
+
+\image{inline} html UseCase-Choice.png "caption" height=300
+
+A choice use-case consists in a single page containing a fixed icon, a configurable icon, a configurable message, a black button and a footer to make
+the choice, with configuration texts. The @ref nbgl_useCaseChoice() function enables to create such a page.
+
+The *callback* argument is called when the button or the footer is touched. Its argument is a boolean which is *true* when button is
+touched, *false* when footer is touched.
+
+Here is the code to display the example picture
+
+@code
+static void onChoice(bool confirm) {
+  if (confirm) {
+    // do something on button touch
+  }
+  else {
+    // do something on footer touch
+  }
+}
+
+void onRejectTransaction(void) {
+  nbgl_useCaseChoice(&C_key_64px,
+                     "Delete all credentials?",
+                     "This includes all saved\ncredentials from all websites\nand services.",
+                     "Yes, erase",
+                     "No, don't erase",
+                     onChoice);
+}
+@endcode
+
+@subsection use_case_status Status Use Case
+
+\image{inline} html UseCase-Status.png "caption" height=300
+
+A status is a transient page, without control, to display during a short time, for example when a transaction is successfully signed.
+The @ref nbgl_useCaseStatus() function enables to create such a page, with the following arguments:
+
+- a message string to set in middle of page
+- a boolean to indicate if true, that the message is drawn in a Ledger style (with corners) and select the icon
+- a quit callback, called when timer times out (or the page is "tapped")
+
+If it's a success status, a *success* tune will be automatically played.
+
+@subsection use_case_review_status Pre-defined review status Use Case
+
+\image{inline} html UseCase-Review-Status.png "caption" height=300
+
+Similar as @subpage use_case_status, this is used to display transient page, without control, during a short time, for example when a transaction is successfully signed.
+The @ref nbgl_useCaseReviewStatus() function enables to create such a page, with the following arguments:
+
+- a type of status (with predefined message)
+- a quit callback, called when timer times out (or the page is "tapped")
+
+If it's a success status, a *success* tune will be automatically played.
+
+@subsection use_case_review Review Use Case
+
+\image{inline} html UseCase-Review.png "caption" height=300
+
+In most cases, the developer may know all tag/value pairs of a transaction when it is submitted.
+
+Thus, the number of pages is computed automatically and pages can be navigated forward and backward.
+
+In case of a tag/value pair too long to be fully displayed, the *more* button will be automatically drawn and its handling
+automatically performed by NBGL by building a detailed modal view.
+
+When the user taps on *Reject* in any page, a confirmation page is automatically drawned to let user confirm that he rejects
+the transaction. In this case, the given callback is called and it's up to app's developer to call @ref nbgl_useCaseReviewStatus(), as in
+case of long-press.
+
+The API to initiate the display of the series of pages is @ref nbgl_useCaseReview(), providing:
+
+- the type of operation to review (transaction, message or generic operation)
+- the list of tag/value pairs (or a callback to get them one by one)
+- the texts/icon to use in presentation page and in last page
+- a callback called when the long press button on last page or reject confirmation is used. The callback's param is *true* for confirmation, *false* for rejection.
+
+Here is the code to display something similar to example picture:
+
+@code
+// 4 pairs of tag/value to display
+static nbgl_layoutTagValue_t pairs[4];
+
+static const nbgl_contentTagValueList_t pairList = {
+  .nbMaxLinesForValue = 0,
+  .nbPairs = 4,
+  .pairs = (nbgl_layoutTagValue_t*)pairs
+};
+
+// called when long press button on 3rd page is long-touched or when reject footer is touched
+static void onReviewResult(bool confirm) {
+  // display a status page and go back to main
+  if (confirm) {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, appMain);
+  }
+  else {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, appMain);
+  }
+}
+
+void startReview(void) {
+  // standard review, providing the whole list of pairs
+  nbgl_useCaseReview(TYPE_TRANSACTION, // type of operation
+                     &pairList,       // list of tag/value pairs
+                     coinIcon,        // icon of the coin
+                     "Review transaction\nto send coin", // title of the first page
+                     NULL,                               // sub-title of the first page
+                     "Sign transaction to\nsend coin?",  // title of the last page
+                     onReviewResult);                    // callback on result of the review
+}
+@endcode
+
+Here is another version of the example code, using a callback mechanism to get tag/value pairs:
+
+@code
+// common tag/value pair to return
+static nbgl_layoutTagValue_t pair;
+
+static nbgl_layoutTagValue_t* getPair(uint8_t index);
+
+static const nbgl_contentTagValueList_t pairList = {
+  .nbMaxLinesForValue = 0,
+  .nbPairs = 4,
+  .pairs = NULL, // to indicate that callback should be used
+  .callback = getPair,
+  .startIndex = 0
+};
+
+// called when long press button on 3rd page is long-touched or when reject footer is touched
+static void onReviewResult(bool confirm) {
+  // display a status page and go back to main
+  if (confirm) {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, appMain);
+  }
+  else {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, appMain);
+  }
+}
+
+// function called by NBGL to get the pair indexed by "index"
+static nbgl_layoutTagValue_t* getPair(uint8_t index) {
+  switch (index) {
+  case 0:
+    pair.item = "To";
+    pair.value = "0x123456";
+    break;
+  case 1:
+    pair.item = "From";
+    pair.value = "0x654321";
+    break;
+  case 2:
+    pair.item = "Amount";
+    pair.value = "1.2345 BTC";
+    break;
+  case 3:
+    pair.item = "Fees";
+    pair.value = "0.1 BTC";
+    break;
+  }
+  return &pair;
+}
+
+void startReview(void) {
+  // standard review, providing the whole list of pairs
+  nbgl_useCaseReview(TYPE_TRANSACTION, // type of operation
+                     &pairList,       // list of tag/value pairs
+                     coinIcon,        // icon of the coin
+                     "Review transaction\nto send coin", // title of the first page
+                     NULL,                               // sub-title of the first page
+                     "Sign transaction to\nsend coin?",  // title of the last page
+                     onReviewResult);                    // callback on result of the review
+}
+@endcode
+
+@subsection use_case_review_light Light review Use Case
+
+In some cases, the developer may want to display a review but with a less intense confirmation than a long-press button. A simple button is used in this
+case.
+
+The API to initiate the display of the series of pages is @ref nbgl_useCaseReviewLight(), providing:
+
+- the list of tag/value pairs (or a callback to get them one by one)
+- the texts/icon to use in presentation page and in last page
+- a callback called when the long press button on last page or reject confirmation is used. The callback's param is *true* for confirmation, *false* for rejection.
+
+@subsection use_case_review_streaming Streaming review Use Case
+
+\image{inline} html UseCase-Streaming.png "caption" height=300
+
+In some cases, the application cannot know all tag/value pairs of a transaction when the review is started.
+
+In this case, what we call a *streaming* review can be used. The pages to display for each *stream* are computed automatically and pages can be navigated forward
+and backward (only within a *stream* for backward).
+
+In case of a tag/value pair too long to be fully displayed, the *more* button will be automatically drawn and its handling
+automatically performed by NBGL by building a detailed modal view.
+
+When the user taps on *Reject* in any page, a confirmation page is automatically drawned to let user confirm that he rejects
+the transaction. In this case, the given callback is called and it's up to app's developer to call @ref nbgl_useCaseReviewStatus(), as in
+case of long-press.
+
+The API to initiate the display of the series of pages is @ref nbgl_useCaseReviewStreamingStart(), providing:
+
+- the type of operation to review (transaction, message or generic operation)
+- the texts/icon to use in presentation page
+- a callback with one boolean parameter:
+  - If this parameter is *false*, it means that the transaction is rejected.
+  - If this parameter is *true*, it means that NBGL is waiting for new data, sent with @ref nbgl_useCaseReviewStreamingContinue() or @ref nbgl_useCaseReviewStreamingContinueExt()
+
+As long as there are new tag/value pairs to send, the API to call is either @ref nbgl_useCaseReviewStreamingContinueExt() (if skip is possible) or
+@ref nbgl_useCaseReviewStreamingContinue(), providing:
+
+- the list of tag/value pairs (or a callback to get them one by one)
+- a callback with one boolean parameter:
+  - If this parameter is *false*, it means that the transaction is rejected.
+  - If this parameter is *true*, it means that NBGL is waiting for new data, to be sent with @ref nbgl_useCaseReviewStreamingContinue() or @ref nbgl_useCaseReviewStreamingContinueExt()
+
+When there is no more data to send, the API to call is @ref nbgl_useCaseReviewStreamingFinish(), providing:
+
+- the title to use for last page (with long-press button)
+- a callback called when the long press button on last page or reject confirmation is used. The callback's param is *true* for confirmation, *false* for rejection.
+
+Here is the code to display something similar to example picture:
+
+@code
+
+// called when long press button on last page is long-touched or when reject footer is touched
+static void onReviewResult(bool confirm) {
+  // display a status page and go back to main
+  if (confirm) {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, appMain);
+  }
+  else {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, appMain);
+  }
+}
+
+static void onTransactionContinue(bool askMore)
+{
+  if (askMore) {
+    nbgl_contentTagValueList_t pairsToSend;
+    // try to get more data
+    if (moreDataToSend(&pairsToSend)) {
+      nbgl_useCaseReviewStreamingContinue(&pairsToSend, onTransactionContinue);
+    }
+    else {
+      // all data sent, so finish
+      nbgl_useCaseReviewStreamingFinish("Sign transaction to transfer Cardano?", // title on last page
+                                        onReviewResult); // callback to handle reject/accept
+    }
+  }
+  else {
+      onReviewResult(false);
+  }
+}
+
+void startReview(void) {
+  // initiate the streaming review
+  nbgl_useCaseReviewStreamingStart(TYPE_TRANSACTION,
+                                   &C_ic_asset_cardano_64, // icon on first and last page
+                                   "Review transaction",   // title of the first page
+                                   NULL,                   // sub-title of the first page
+                                   onTransactionContinue); // callback to reject or ask more data
+}
+@endcode
+
+@subsection use_case_review_with_warning Review with warning Use Case
+
+\image{inline} html UseCase-Review-With-Warning.png "caption" height=500
+
+The review itself behaves like in @subpage use_case_review. The main differences are:
+
+- The review itself is preceded by a warning page offering the possibility to cancel the review ("Back to safety") or to start it ("Continue anyway")
+- In the first and last pages of the actual review, a top-right button offers the possibility to get more information about the warning
+
+The API to initiate the display of the series of pages is @ref nbgl_useCaseAdvancedReview(), providing:
+
+- the type of operation to review (transaction, message or generic operation)
+- the list of tag/value pairs (or a callback to get them one by one)
+- the texts/icon to use in presentation page and in last page
+- the configuration to use for the warning (see @ref nbgl_warning_t structure)
+- a callback called when the long press button on last page or reject confirmation is used. The callback's param is *true* for confirmation, *false* for rejection.
+
+@note the recommended configuration for warning is the predefined one. In this case, one just has to fill the *predefinedSet* field of @ref nbgl_warning_t with the appropriate warning
+causes (bitfield) and the *reportProvider* field with the name of the 3rd party providing the Web3Checks report, if necessary.
+
+Here is the code to display something similar to example picture:
+
+@code
+// 4 pairs of tag/value to display
+static nbgl_layoutTagValue_t pairs[4];
+
+static const nbgl_contentTagValueList_t pairList = {
+  .nbMaxLinesForValue = 0,
+  .nbPairs = 4,
+  .pairs = (nbgl_layoutTagValue_t*)pairs
+};
+
+// warning description (cannot be in call stack)
+static nbgl_warning_t warningDesc;
+
+// called when long press button on 3rd page is long-touched or when reject footer is touched
+static void onReviewResult(bool confirm) {
+  // display a status page and go back to main
+  if (confirm) {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, appMain);
+  }
+  else {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, appMain);
+  }
+}
+
+void staticReview(void) {
+  warningDesc.predefinedSet   = (1 << W3C_RISK_DETECTED_WARN) | (1 << BLIND_SIGNING_WARN);
+  warningDesc.reportProvider  = "Blockaid";
+  warningDesc.providerMessage = "Losing swap";
+  warningDesc.reportUrl       = "url.com/od24xz";
+
+  // static review, providing the whole list of pairs
+  nbgl_useCaseAdvancedReview(TYPE_TRANSACTION, // type of operation
+                                &pairList,       // list of tag/value pairs
+                                coinIcon,        // icon of the coin
+                                "Review transaction\nto send coin", // title of the first page
+                                NULL,                               // sub-title of the first page
+                                "Sign transaction to\nsend coin?",  // title of the last page
+                                NULL,                               // no tip-box in first page of review
+                                &warningDesc,                       // description of warning causes
+                                onReviewResult);                    // callback on result of the review
+}
+@endcode
+
+Here is another version of the example code, not using predefined text:
+
+@code
+// 4 pairs of tag/value to display
+static nbgl_layoutTagValue_t pairs[4];
+
+static const nbgl_contentTagValueList_t pairList = {
+  .nbMaxLinesForValue = 0,
+  .nbPairs = 4,
+  .pairs = (nbgl_layoutTagValue_t*)pairs
+};
+
+// icons for first level warning details
+static const nbgl_icon_details_t *barListIcons[] = {&WARNING_ICON, &INFO_I_ICON};
+
+// first level warning details
+static const char *const                  barListTexts[]    = {"Blind signing", "Risk detected"};
+static const char *const                  barListSubTexts[] = {"This transaction cannot be fully decoded.", "Web3 Checks found a risk:\nLosing swap"};
+// second level warning details in prolog
+static const struct nbgl_warningDetails_s barListIntroDetails[]  = {
+    {.title  = "Back",
+     .type   = QRCODE_WARNING,
+     .qrCode = {.url = "ledger.com/e8", .text1 = "ledger.com/e8", .text2 = "Scan to learn about the risks of blind signing.", .centered = true}},
+    {.title        = "Back",
+     .type         = QRCODE_WARNING,
+     .qrCode = {.url = "url.com/od24xz", .text1 = "url.com/od24xz", .text2 = "Scan to view the risk report from Blockaid.", .centered = true}}
+};
+
+// second level warning details in review
+static const struct nbgl_warningDetails_s barListIntroDetails[]  = {
+    {.title  = "Back",
+     .type   = CENTERED_INFO_WARNING,
+     .centeredInfo = {.icon = &C_Warning_64px, .title = "Blind signing", .description = "This transaction’s details are not fully verifiable. If you sign it, you could lose all your assets.\n\nLearn about blind signing:
+ledger.com/e8"}},
+    {.title        = "Back",
+     .type         = CENTERED_INFO_WARNING,
+     .centeredInfo = {.icon = &C_Warning_64px, .title = "Risk detected", .description = "This transaction was scanned as risky by Web3 Checks.\n\nView full Blockaid report:url.com/od24xz"}}
+};
+
+// info in main warning page
+static const nbgl_contentCenter_t warningInfo = {
+  .icon          = &C_Warning_64px,
+  .title         = "Dangerous transaction",
+  .description   = "This transaction cannot be fully decoded, and was marked risky by Web3 Checks."
+};
+
+// first level warning details in prolog
+static const nbgl_warningDetails_t warningIntroDetails = {
+  .title                   = "Security report",
+  .type                    = BAR_LIST_WARNING,
+  .barList.nbBars          = 2,
+  .barList.icons           = barListIcons,
+  .barList.texts           = barListTexts,
+  .barList.subTexts        = barListSubTexts,
+  .barList.details         = barListIntroDetails
+};
+
+// first level warning details in review (when pressing top-right from first and last pages)
+static const nbgl_warningDetails_t warningReviewDetails = {
+  .title                   = "Security report",
+  .type                    = BAR_LIST_WARNING,
+  .barList.nbBars          = 2,
+  .barList.icons           = barListIcons,
+  .barList.texts           = barListTexts,
+  .barList.subTexts        = barListSubTexts,
+  .barList.details         = barListReviewDetails
+};
+
+// warning description (cannot be in call stack)
+static const nbgl_warning_t warningDesc = {
+  .info               = &warningInfo,
+  .introTopRightIcon  = &PRIVACY_ICON,
+  .reviewTopRightIcon = &WARNING_ICON,
+  .introDetails       = &warningIntroDetails,
+  .reviewDetails      = &warningReviewDetails
+};
+
+// called when long press button on 3rd page is long-touched or when reject footer is touched
+static void onReviewResult(bool confirm) {
+  // display a status page and go back to main
+  if (confirm) {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_SIGNED, appMain);
+  }
+  else {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_TRANSACTION_REJECTED, appMain);
+  }
+}
+
+void staticReview(void) {
+  // static review, providing the whole list of pairs
+  nbgl_useCaseAdvancedReview(TYPE_TRANSACTION, // type of operation
+                                &pairList,       // list of tag/value pairs
+                                coinIcon,        // icon of the coin
+                                "Review transaction\nto send coin", // title of the first page
+                                NULL,                               // sub-title of the first page
+                                "Sign transaction to\nsend coin?",  // title of the last page
+                                NULL,                               // no tip-box in first page of review
+                                &warningDesc,                       // description of warning causes
+                                onReviewResult);                    // callback on result of the review
+}
+@endcode
+
+@subsection use_case_addr_review Address Review Use Case
+
+\image{inline} html UseCase-AddressReview.png "caption" height=500
+
+When an address needs to be confirmed, it can be displayed in a Address Review Use Case.
+After a title page, a second page is displayed with the raw address (as text). An extra button under the raw address enables to open a modal page to see the address as a QR code.
+Moreover, if extra information need to be displayed, for example a derivation path, it is provided in a second page, also containing
+a black button/Footer pair to choose to confirm or reject the address.
+
+The @ref nbgl_useCaseAddressReview() function enables to create such a set of pages, with the following parameters:
+
+- the address to confirm (NULL terminated string)
+- a callback called when button or footer is touched (if true, confirm, if false reject)
+- the list of extra tag/value pairs
+
+Here is the code to display something similar to example picture:
+
+@code
+// 2 pairs of tag/value to display in second page
+static nbgl_layoutTagValue_t pairs[2];
+
+static const nbgl_contentTagValueList_t pairList = {
+  .nbMaxLinesForValue = 0,
+  .nbPairs = 2,
+  .pairs = (nbgl_layoutTagValue_t*)pairs
+};
+
+// called when either confirm button or reject token is called
+static void displayAddressCallback(bool confirm) {
+  if (confirm) {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_ADDRESS_VERIFIED, app_fullEthereum);
+  }
+  else {
+    nbgl_useCaseReviewStatus(STATUS_TYPE_ADDRESS_REJECTED, app_fullEthereum);
+  }
+}
+
+void app_ethereumVerifyAddress(void) {
+  nbgl_useCaseAddressReview("bc1pkdcufjh6dxjaaa05hudvxqg5fhspfmwmp8g92gq8cv4gwwnmgrfqfd4jlg",
+                            &pairList
+                            myAppIcon,
+                            "Verify MyCoin\naddress",
+                            NULL,
+                            "Cancel",
+                            appMain);
+}
+@endcode
+
+@subsection use_case_spinner Spinner Use Case
+
+\image{inline} html UseCase-Spinner.png "caption" height=300
+
+This Use Case is simply to display a static *waiting page*
+
+The @ref nbgl_useCaseSpinner() function enables to create such a page, without any parameters.
+
+@subsection use_case_keypad Keypad Use Case
+
+\image{inline} html UseCase-Keypad.png "caption" height=350
+
+We have here 2 different variants, allowing to show or hide the entered digits.
+
+When a pincode is requested, a default keypad can be displayed, with hidden digits.
+As shown on the image above, it consists of:
+
+- a navigation bar at the top
+- a title area, specifying the type of pin code or operation requested
+- a hidden Digits area (the max nb of supported digits is 12)
+- the keypad at the bottom
+
+The @ref nbgl_useCaseKeypad() function enables to create such page, with the following parameters:
+
+- a title
+- min and max pin code lengths
+- a boolean to request a shuffled keypad
+- a boolean to request \b hidden digits
+- callbacks for navigation and pin validation
+
+@note The \em backspace and \em validate buttons will be shown or hidden automatically.
+
+Here is the code to display something similar to example picture:
+
+@code
+static void validate_pin(const uint8_t *pinentry, uint8_t length) {
+    // Code to validate the entered pin code
+}
+
+static void quit_cb() {
+    // Back to the main app menu
+}
+
+void ui_menu_pinentry_display(unsigned int value) {
+    // Draw the keypad
+    nbgl_useCaseKeypad("PIN Keypad (5555)",
+                       4,
+                       4,
+                       false,
+                       true,
+                       validate_pin,
+                       quit_cb);
+}
+@endcode
+
+@section use_case_refresh_page Refreshing screen
+
+After having drawn graphic objects in **framebuffer**, all functions of this API automatically refresh the screen.
+So no need to call @ref nbgl_refresh().
+
+*/
+#endif // HAVE_SE_TOUCH

@@ -1,0 +1,2378 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Ledger Swap">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../img/Ledger-logo-696.webp">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>Technical Specification - Ledger Swap documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.618322db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#technical-specification" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Ledger Swap documentation" class="md-header__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ledger Swap documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Technical Specification
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Ledger Swap documentation" class="md-nav__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    Ledger Swap documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../walkthrough/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enabling the SWAP on your application
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Enabling the SWAP on your application
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/prerequisite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prerequisite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/run_first_test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running an existing SWAP test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/enable_the_swap_compilation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First compilation with the standard SWAP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/enable_standard_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a basic SWAP test for you coin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/code_the_handlers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code the handlers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../technical_information/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Information
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Technical Information
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exchange Protocol API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/fund_and_sell/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FUND and SELL flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/cal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Crypto Asset List (CAL)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/bss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSS safety in coin applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../technical_information/coin_application_api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coin Application API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Coin Application API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/swap_handle_check_address/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    handle_check_address()
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/swap_handle_get_printable_amount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    handle_get_printable_amount()
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/swap_copy_transaction_parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    copy_transaction_parameters()
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/ui_bypass/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI bypass
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/error_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/dale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The DALE tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#about" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        About
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apdus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        APDUs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="APDUs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#get-boilerplate-public-address" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET BOILERPLATE PUBLIC ADDRESS
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GET BOILERPLATE PUBLIC ADDRESS">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Coding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sign-boilerplate-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SIGN BOILERPLATE TRANSACTION
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SIGN BOILERPLATE TRANSACTION">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coding_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Coding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-single-apdu-small-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 1: Single APDU (small transaction)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-three-apdus-large-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 2: Three APDUs (large transaction)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data-first-transaction-data-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data (first transaction data block)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data-other-transaction-data-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data (other transaction data block)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sign-boilerplate-token-transaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SIGN BOILERPLATE TOKEN TRANSACTION
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SIGN BOILERPLATE TOKEN TRANSACTION">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coding_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Coding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#examples_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-1-single-apdu-small-transaction_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 1: Single APDU (small transaction)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-2-three-apdus-large-transaction_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example 2: Three APDUs (large transaction)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data-first-transaction-data-block_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data (first transaction data block)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data-other-transaction-data-block_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data (other transaction data block)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transaction-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transaction format
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-app-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET APP VERSION
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GET APP VERSION">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coding_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Coding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get-app-name" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GET APP NAME
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="GET APP NAME">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coding_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Coding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#provide-token-info" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PROVIDE TOKEN INFO
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PROVIDE TOKEN INFO">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#description_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Description
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-lookup-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Token Lookup Priority
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persistence-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persistence Behavior
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#coding_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Coding
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Coding">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#command_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#input-data_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Input data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#output-data_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-tlv-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example TLV structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#status-words" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Status Words
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="technical-specification">Technical Specification</h1>
+<blockquote>
+<p><strong>Warning</strong>
+This documentation is a template and shall be updated with your own APDUs.</p>
+</blockquote>
+<h2 id="about">About</h2>
+<p>This documentation describes the APDU messages interface to communicate with the Boilerplate application.</p>
+<p>The application covers the following functionalities :</p>
+<ul>
+<li>Get a public Boilerplate address given a BIP 32 path</li>
+<li>Sign a basic Boilerplate transaction given a BIP 32 path and raw transaction</li>
+<li>Sign a token transaction given a BIP 32 path, token address, and raw transaction</li>
+<li>Provide dynamic token metadata via CAL (Crypto Asset List) signed descriptors</li>
+<li>Retrieve the Boilerplate app version</li>
+<li>Retrieve the Boilerplate app name</li>
+</ul>
+<p>The application interface can be accessed over HID or BLE</p>
+<h2 id="apdus">APDUs</h2>
+<h3 id="get-boilerplate-public-address">GET BOILERPLATE PUBLIC ADDRESS</h3>
+<h4 id="description">Description</h4>
+<p>This command returns the public key for the given BIP 32 path.</p>
+<p>The address can be optionally checked on the device before being returned.</p>
+<h4 id="coding">Coding</h4>
+<h5 id="command"><code>Command</code></h5>
+<table>
+<thead>
+<tr>
+<th>CLA</th>
+<th>INS</th>
+<th>P1</th>
+<th>P2</th>
+<th>Lc</th>
+<th>Le</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td>05</td>
+<td>00 : return address</td>
+<td>00</td>
+<td>variable</td>
+<td>variable</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td>01 : display address and confirm before returning</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data"><code>Input data</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Number of BIP 32 derivations to perform (max 10 levels)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>First derivation index (big endian)</td>
+<td>4</td>
+</tr>
+<tr>
+<td>...</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Last derivation index (big endian)</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<h5 id="output-data"><code>Output data</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Public Key length</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Public Key</td>
+<td>var</td>
+</tr>
+<tr>
+<td>Chain code length</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Chain code</td>
+<td>var</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sign-boilerplate-transaction">SIGN BOILERPLATE TRANSACTION</h3>
+<h4 id="description_1">Description</h4>
+<p>This command signs a Boilerplate transaction after having the user validate the transactions parameters.</p>
+<p>The input data is the RLP encoded transaction streamed to the device in 255 bytes maximum data chunks.</p>
+<h4 id="coding_1">Coding</h4>
+<h5 id="command_1"><code>Command</code></h5>
+<table>
+<thead>
+<tr>
+<th>CLA</th>
+<th>INS</th>
+<th>P1</th>
+<th>P2</th>
+<th>Lc</th>
+<th>Le</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td>06</td>
+<td>Chunk index</td>
+<td>More chunks</td>
+<td>variable</td>
+<td>variable</td>
+</tr>
+</tbody>
+</table>
+<p><strong>P1 - Chunk index:</strong></p>
+<ul>
+<li><code>0x00</code>: First chunk (contains BIP32 path)</li>
+<li><code>0x01</code>: Second chunk</li>
+<li><code>0x02</code>: Third chunk</li>
+<li>...</li>
+<li><code>0xFF</code>: Maximum chunk index</li>
+</ul>
+<p><strong>P2 - More chunks flag:</strong></p>
+<ul>
+<li><code>0x00</code>: Last chunk (no more data)</li>
+<li><code>0x80</code>: More chunks to follow</li>
+</ul>
+<h5 id="examples"><code>Examples</code></h5>
+<h6 id="example-1-single-apdu-small-transaction">Example 1: Single APDU (small transaction)</h6>
+<p>When the entire transaction (including BIP32 path) fits in one APDU:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="go">P1:   00  (first chunk)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="go">P2:   00  (last chunk, no more data)</span>
+</code></pre></div>
+<h6 id="example-2-three-apdus-large-transaction">Example 2: Three APDUs (large transaction)</h6>
+<p>When transaction data requires chunking across multiple APDUs:</p>
+<p><em>First APDU (P1=0x00, P2=0x80):</em>
+<em>Second APDU (P1=0x01, P2=0x80):</em>
+<em>Third APDU (P1=0x02, P2=0x00):</em></p>
+<h5 id="input-data-first-transaction-data-block"><code>Input data (first transaction data block)</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Number of BIP 32 derivations to perform (max 10 levels)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>First derivation index (big endian)</td>
+<td>4</td>
+</tr>
+<tr>
+<td>...</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Last derivation index (big endian)</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data-other-transaction-data-block"><code>Input data (other transaction data block)</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transaction chunk</td>
+<td>variable</td>
+</tr>
+</tbody>
+</table>
+<h5 id="output-data_1"><code>Output data</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Signature length</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Signature</td>
+<td>variable</td>
+</tr>
+<tr>
+<td>v</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sign-boilerplate-token-transaction">SIGN BOILERPLATE TOKEN TRANSACTION</h3>
+<h4 id="description_2">Description</h4>
+<p>This command signs a mock token transaction after user on-screen validation.</p>
+<p>The application will only display and sign transaction for tokens it has knowledge about (address/ticker/magnitude).
+Information is fetched from the internal hardcoded token database, or received from the PROVIDE_TOKEN_INFO API.</p>
+<p>The tokens and the token transaction format are made up for showcase purposes.</p>
+<h4 id="coding_2">Coding</h4>
+<h5 id="command_2"><code>Command</code></h5>
+<table>
+<thead>
+<tr>
+<th>CLA</th>
+<th>INS</th>
+<th>P1</th>
+<th>P2</th>
+<th>Lc</th>
+<th>Le</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td>07</td>
+<td>Chunk index</td>
+<td>More chunks</td>
+<td>variable</td>
+<td>variable</td>
+</tr>
+</tbody>
+</table>
+<p><strong>P1 - Chunk index:</strong></p>
+<ul>
+<li><code>0x00</code>: First chunk (contains BIP32 path)</li>
+<li><code>0x01</code>: Second chunk</li>
+<li><code>0x02</code>: Third chunk</li>
+<li>...</li>
+<li><code>0xFF</code>: Maximum chunk index</li>
+</ul>
+<p><strong>P2 - More chunks flag:</strong></p>
+<ul>
+<li><code>0x00</code>: Last chunk (no more data)</li>
+<li><code>0x80</code>: More chunks to follow</li>
+</ul>
+<h5 id="examples_1"><code>Examples</code></h5>
+<h6 id="example-1-single-apdu-small-transaction_1">Example 1: Single APDU (small transaction)</h6>
+<p>When the entire transaction (including BIP32 path) fits in one APDU:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="go">P1:   00  (first chunk)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="go">P2:   00  (last chunk, no more data)</span>
+</code></pre></div>
+<h6 id="example-2-three-apdus-large-transaction_1">Example 2: Three APDUs (large transaction)</h6>
+<p>When transaction data requires chunking across multiple APDUs:</p>
+<p><em>First APDU (P1=0x00, P2=0x80):</em>
+<em>Second APDU (P1=0x01, P2=0x80):</em>
+<em>Third APDU (P1=0x02, P2=0x00):</em></p>
+<h5 id="input-data-first-transaction-data-block_1"><code>Input data (first transaction data block)</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Number of BIP 32 derivations to perform (max 10 levels)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>First derivation index (big endian)</td>
+<td>4</td>
+</tr>
+<tr>
+<td>...</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Last derivation index (big endian)</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data-other-transaction-data-block_1"><code>Input data (other transaction data block)</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Token transaction chunk (includes 32-byte token address)</td>
+<td>variable</td>
+</tr>
+</tbody>
+</table>
+<h5 id="transaction-format"><code>Transaction format</code></h5>
+<p>The token transaction has the following format:</p>
+<ul>
+<li>Nonce (8 bytes, big endian)</li>
+<li>To address (20 bytes)</li>
+<li>Token address (32 bytes) - must be in the token database</li>
+<li>Amount (8 bytes, big endian) - in token's smallest unit</li>
+<li>Memo length (varint)</li>
+<li>Memo (variable length)</li>
+</ul>
+<h5 id="output-data_2"><code>Output data</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Signature length</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Signature</td>
+<td>variable</td>
+</tr>
+<tr>
+<td>v</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="get-app-version">GET APP VERSION</h3>
+<h4 id="description_3">Description</h4>
+<p>This command returns boilerplate application version</p>
+<h4 id="coding_3">Coding</h4>
+<h5 id="command_3"><code>Command</code></h5>
+<table>
+<thead>
+<tr>
+<th>CLA</th>
+<th>INS</th>
+<th>P1</th>
+<th>P2</th>
+<th>Lc</th>
+<th>Le</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td>03</td>
+<td>00</td>
+<td>00</td>
+<td>00</td>
+<td>04</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data_1"><code>Input data</code></h5>
+<p>None</p>
+<h5 id="output-data_3"><code>Output data</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application major version</td>
+<td>01</td>
+</tr>
+<tr>
+<td>Application minor version</td>
+<td>01</td>
+</tr>
+<tr>
+<td>Application patch version</td>
+<td>01</td>
+</tr>
+</tbody>
+</table>
+<h3 id="get-app-name">GET APP NAME</h3>
+<h4 id="description_4">Description</h4>
+<p>This command returns boilerplate application name</p>
+<h4 id="coding_4">Coding</h4>
+<h5 id="command_4"><code>Command</code></h5>
+<table>
+<thead>
+<tr>
+<th>CLA</th>
+<th>INS</th>
+<th>P1</th>
+<th>P2</th>
+<th>Lc</th>
+<th>Le</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td>04</td>
+<td>00</td>
+<td>00</td>
+<td>00</td>
+<td>04</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data_2"><code>Input data</code></h5>
+<p>None</p>
+<h5 id="output-data_4"><code>Output data</code></h5>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application name</td>
+<td>variable</td>
+</tr>
+</tbody>
+</table>
+<h3 id="provide-token-info">PROVIDE TOKEN INFO</h3>
+<h4 id="description_5">Description</h4>
+<p>This command provides dynamic token metadata to the device via a CAL (Crypto Asset List) signed descriptor.
+The descriptor is a TLV-encoded message signed by the CAL (a Ledger HSM) and the signature
+is validated using the device's PKI certificate infrastructure.</p>
+<p>Once provided, the dynamic token information takes priority over the hardcoded token database
+for subsequent token transaction signing. The token metadata persists in RAM across
+commands (including regular transactions) until the app exits or a new token is provided.</p>
+<p>This enables tokens to be added without firmware updates.</p>
+<p><strong>IMPORTANT FOR THIRD-PARTY DEVELOPERS:</strong></p>
+<ul>
+<li>For this feature to work on a given application, the CAL needs to maintain the knowledge
+  of the relevant tokens. This feature thus <strong>requires coordination with Ledger teams</strong>
+  before implementation. Please reach out before implementing it.</li>
+<li>The hardcoded token database is a simpler token management method as it only involves the application.</li>
+</ul>
+<p>Security model</p>
+<ul>
+<li>The CAL key must first be whitelisted with correct permissions on the device PKI,
+  this is done by sending a certificate with the OS APDU header (starting by 0xB006)</li>
+<li>We can then send the TLV signed with the CAL key, the os_pki_verify lib call will
+  ensure the TLV is signed by a whitelisted authority (the onboarded CAL key).</li>
+<li>In the test framework, we created a local fake CAL key and crafted a certificate
+  with TEST permissions. It be accepted by Speculos but not by a real device.</li>
+</ul>
+<h4 id="token-lookup-priority">Token Lookup Priority</h4>
+<p>Once a dynamic token is provided via <code>PROVIDE_TOKEN_INFO</code>, the token database lookup in <code>get_token_info()</code> follows this priority:</p>
+<ol>
+<li><strong>Dynamic token (CAL)</strong>: Check a dynamic token has been received</li>
+<li><strong>Hardcoded database</strong>: Check built-in token database</li>
+<li><strong>Unknown</strong>: Refuses to sign. A fallback method could be implemented instead (Display token address, blind sign, ...)</li>
+</ol>
+<p>This means CAL-provided tokens <strong>override</strong> hardcoded database entries with the same address.</p>
+<h4 id="persistence-behavior">Persistence Behavior</h4>
+<p>The dynamic token information is stored in RAM only (not in NVM) and persists across commands:</p>
+<ul>
+<li>Persists across <code>SIGN_TX</code> (regular transactions)</li>
+<li>Persists across <code>SIGN_TOKEN_TX</code> (token transactions)</li>
+<li>Persists across <code>GET_PUBLIC_KEY</code> and other read-only commands</li>
+<li>Cleared when app exits to dashboard</li>
+<li>Cleared after every transaction in SWAP context</li>
+<li>Overwritten when new <code>PROVIDE_TOKEN_INFO</code> command received (only one slot is handled)</li>
+</ul>
+<h4 id="coding_5">Coding</h4>
+<h5 id="command_5"><code>Command</code></h5>
+<table>
+<thead>
+<tr>
+<th>CLA</th>
+<th>INS</th>
+<th>P1</th>
+<th>P2</th>
+<th>Lc</th>
+<th>Le</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E0</td>
+<td>22</td>
+<td>00</td>
+<td>00</td>
+<td>variable</td>
+<td>00</td>
+</tr>
+</tbody>
+</table>
+<h5 id="input-data_3"><code>Input data</code></h5>
+<p>The input data is a TLV-encoded descriptor with the following outer tags
+(all tags required, order matters for signature verification):</p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Name</th>
+<th>Length</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x01</td>
+<td>STRUCTURE_TYPE</td>
+<td>1 byte</td>
+<td>Descriptor type (DYNAMIC_TOKEN = 0x90)</td>
+</tr>
+<tr>
+<td>0x02</td>
+<td>VERSION</td>
+<td>1 byte</td>
+<td>Version of the serialization format</td>
+</tr>
+<tr>
+<td>0x03</td>
+<td>COIN_TYPE</td>
+<td>4 bytes</td>
+<td>SLIP-44 coin type</td>
+</tr>
+<tr>
+<td>0x04</td>
+<td>APP_NAME</td>
+<td>var</td>
+<td>Name of the AppCoin. Case sensitive</td>
+</tr>
+<tr>
+<td>0x05</td>
+<td>TICKER</td>
+<td>var</td>
+<td>Token ticker that will be displayed on the device</td>
+</tr>
+<tr>
+<td>0x06</td>
+<td>MAGNITUDE</td>
+<td>1 byte</td>
+<td>Decimals to format the amount in Ticker</td>
+</tr>
+<tr>
+<td>0x07</td>
+<td>TUID</td>
+<td>var</td>
+<td>Token Unique Identifier (app specific)</td>
+</tr>
+<tr>
+<td>0x08</td>
+<td>SIGNATURE</td>
+<td>[70-72]</td>
+<td>Signature of above fields</td>
+</tr>
+</tbody>
+</table>
+<p><strong>TUID Field (tag 0x07):</strong>
+The TUID field content is application specific. It is recommended to make it a nested TLV structure itself.
+In the Boilerplate made up implementation it contains a single tag:</p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Description</th>
+<th>Length</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x10</td>
+<td>Token address</td>
+<td>32 bytes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Signature construction:</strong>
+The signature (tag 0x08) is computed over all tags EXCEPT tag 0x08 itself.
+In production context, the CAL is responsible for this signature.
+In our test framework, we use a mock CAL to dynamically craft signatures.</p>
+<h5 id="output-data_5"><code>Output data</code></h5>
+<p>None (returns 0x9000 on success)</p>
+<h5 id="example-tlv-structure"><code>Example TLV structure</code></h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="go">01 01 90                    # STRUCTURE_TYPE = DYNAMIC_TOKEN (0x90)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="go">02 01 01                    # VERSION = 1</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="go">03 04 80 00 80 01           # CHAIN_ID = 0x80008001 (hardened 0x8001)</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="go">04 01 00                    # SIGNER_ALGO = SECP256K1 (0x00)</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="go">05 01 08                    # SIGNER_KEY = COIN_META (0x08)</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="go">06 40 &lt;64 bytes signature&gt;  # DER_SIGNATURE (r || s)</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="go">07 22                       # TUID length (34 bytes including sub-TLV)</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="go">   10 20 &lt;32 bytes&gt;         #   Sub-tag 0x10: token address</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="go">08 07                       # APP_DATA length (7 bytes)</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="go">   04 55534454              #   Ticker length (4) + &quot;USDT&quot;</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="go">   06                       #   Decimals (6)</span>
+</code></pre></div>
+<h5 id="errors"><code>Errors</code></h5>
+<table>
+<thead>
+<tr>
+<th>SW</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B009</td>
+<td>SW_INVALID_DYNAMIC_TOKEN - TLV parsing failed, signature verification failed, wrong coin type, or TUID validation failed</td>
+</tr>
+<tr>
+<td>6A86</td>
+<td>SWO_INCORRECT_P1_P2 - P1 or P2 not zero</td>
+</tr>
+<tr>
+<td>6A87</td>
+<td>SWO_WRONG_DATA_LENGTH - Invalid TLV structure length</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note on testing:</strong> Speculos emulator accepts test PKI certificates for signature validation,
+but real Ledger devices reject them. This is a OS security feature independent of application code or build flags.</p>
+<h2 id="status-words">Status Words</h2>
+<p>The following standard Status Words are returned for all APDUs.</p>
+<table>
+<thead>
+<tr>
+<th>SW</th>
+<th>SW name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>6985</td>
+<td>SWO_CONDITIONS_NOT_SATISFIED</td>
+<td>Rejected by user</td>
+</tr>
+<tr>
+<td>6A86</td>
+<td>SWO_INCORRECT_P1_P2</td>
+<td>Either P1 or P2 is incorrect</td>
+</tr>
+<tr>
+<td>6A87</td>
+<td>SWO_WRONG_DATA_LENGTH</td>
+<td>Lc or minimum APDU length is incorrect</td>
+</tr>
+<tr>
+<td>6D00</td>
+<td>SWO_INVALID_INS</td>
+<td>No command exists with INS</td>
+</tr>
+<tr>
+<td>6E00</td>
+<td>SWO_INVALID_CLA</td>
+<td>Bad CLA used for this application</td>
+</tr>
+<tr>
+<td>6A80</td>
+<td>SWO_INCORRECT_DATA</td>
+<td>Failed to parse raw transaction</td>
+</tr>
+<tr>
+<td>6985</td>
+<td>SWO_CONDITIONS_NOT_SATISFIED</td>
+<td>Security issue with bad state</td>
+</tr>
+<tr>
+<td>6600</td>
+<td>SWO_SECURITY_ISSUE</td>
+<td>Signature of raw transaction failed</td>
+</tr>
+<tr>
+<td>B009</td>
+<td>SW_INVALID_DYNAMIC_TOKEN</td>
+<td>Dynamic token TLV parsing/validation failed</td>
+</tr>
+<tr>
+<td>9000</td>
+<td>OK</td>
+<td>Success</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.indexes", "navigation.expand"], "search": "../../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>

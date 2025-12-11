@@ -1,0 +1,261 @@
+{
+  "title": "address_verif",
+  "pages": [
+    {
+      "name": "Entry",
+      "targets": [
+        {
+          "app_event": "BTC_VERIFY_ADDR",
+          "page": "classic-01"
+        }
+      ]
+    },
+    {
+      "name": "classic-01",
+      "targets": [
+        {
+          "object": "RIGHT_BUTTON",
+          "page": "classic-02",
+          "comment": "accept"
+        },
+        {
+          "object": "BOTTOM_BUTTON",
+          "page": "classic-cancelled",
+          "comment": "reject"
+        }
+      ]
+    },
+    {
+      "name": "classic-02",
+      "targets": [
+        {
+          "object": "CHOICE_2",
+          "page": "classic-qr_code",
+          "comment": "view QR"
+        },
+        {
+          "object": "CHOICE_1",
+          "page": "classic-verified",
+          "comment": "confirm"
+        }
+      ]
+    },
+    {
+      "name": "classic-qr_code",
+      "targets": [
+        {
+          "object": "BOTTOM_BUTTON",
+          "page": "classic-02"
+        }
+      ]
+    },
+    {
+      "name": "classic-verified",
+      "targets": [
+        {
+          "object": "WHOLE_SCREEN",
+          "page": "without_settings-01"
+        }
+      ]
+    },
+    {
+      "name": "classic-cancelled",
+      "targets": [
+        {
+          "object": "WHOLE_SCREEN",
+          "page": "without_settings-01"
+        }
+      ]
+    },
+    {
+      "name": "without_settings-01",
+      "targets": [
+        {
+          "app_event": "BTC_VERIFY_ADDR",
+          "page": "classic-01",
+          "comment": "2nd classic with reject"
+        },
+        {
+          "app_event": "CARDANO_VERIFY_ADDR",
+          "page": "long_address-01",
+          "comment": "veridy address+info"
+        }
+      ]
+    },
+    {
+      "name": "long_address-01",
+      "targets": [
+        {
+          "object": "RIGHT_BUTTON",
+          "page": "long_address-02"
+        }
+      ]
+    },
+    {
+      "name": "long_address-02",
+      "targets": [
+        {
+          "object": "EXTRA_BUTTON",
+          "page": "long_address-qr_code",
+          "comment": "view QR"
+        },
+        {
+          "object": "RIGHT_BUTTON",
+          "page": "long_address-03"
+        }
+      ]
+    },
+    {
+      "name": "long_address-qr_code",
+      "targets": [
+        {
+          "object": "BOTTOM_BUTTON",
+          "page": "long_address-02"
+        }
+      ]
+    },
+    {
+      "name": "long_address-03",
+      "targets": [
+        {
+          "app_event": "ETH_VERIFY_MULTISIG",
+          "page": "multi-sig-01",
+          "comment": "verify mutli-sig"
+        }
+      ]
+    },
+    {
+      "name": "multi-sig-01",
+      "targets": [
+        {
+          "object": "RIGHT_BUTTON",
+          "page": "multi-sig-02"
+        }
+      ]
+    },
+    {
+      "name": "multi-sig-02",
+      "targets": [
+        {
+          "object": "EXTRA_BUTTON",
+          "product": "flex,apex_p",
+          "page": "multi-sig-qr_code",
+          "comment": "view QR"
+        },
+        {
+          "object": "CHOICE_2",
+          "product": "stax",
+          "page": "multi-sig-qr_code",
+          "comment": "view QR"
+        },
+        {
+          "object": "RIGHT_BUTTON",
+          "product": "flex,apex_p",
+          "page": "multi-sig-03"
+        },
+        {
+          "object": "VALUE_BUTTON_3",
+          "product": "stax",
+          "page": "multi-sig-signers-01",
+          "comment": "view signers details (alias)"
+        },
+        {
+          "app_event": "BTC_SHARE_ADDR",
+          "product": "stax",
+          "page": "share-addr-01",
+          "comment": "start share addr scenario"
+        }
+      ]
+    },
+    {
+      "name": "multi-sig-03",
+      "product": "flex,apex_p",
+      "targets": [
+        {
+          "object": "VALUE_BUTTON_2",
+          "page": "multi-sig-signers-01",
+          "comment": "view signers details (alias)"
+        },
+        {
+          "app_event": "BTC_SHARE_ADDR",
+          "page": "share-addr-01",
+          "comment": "start share addr scenario"
+        }
+      ]
+    },
+    {
+      "name": "multi-sig-qr_code",
+      "targets": [
+        {
+          "object": "BOTTOM_BUTTON",
+          "page": "multi-sig-02"
+        }
+      ]
+    },
+    {
+      "name": "multi-sig-signers-01",
+      "targets": [
+        {
+          "object": "RIGHT_BUTTON",
+          "page": "multi-sig-signers-02"
+        }
+      ]
+    },
+    {
+      "name": "multi-sig-signers-02",
+      "targets": [
+        {
+          "object": "BOTTOM_BUTTON",
+          "product": "flex,apex_p",
+          "page": "multi-sig-03"
+        },
+        {
+          "object": "BOTTOM_BUTTON",
+          "product": "stax",
+          "page": "multi-sig-02"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-01",
+      "targets": [
+        {
+          "object": "TOP_RIGHT_BUTTON",
+          "page": "share-addr-02"
+        },
+        {
+          "object": "CHOICE_1",
+          "page": "share-addr-04"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-02",
+      "targets": [
+        {
+          "object": "CONTROLS,0",
+          "page": "share-addr-03",
+          "comment": "view addr details (alias)"
+        },
+        {
+          "object": "BACK_BUTTON",
+          "page": "share-addr-01"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-03",
+      "targets": [
+        {
+          "object": "BACK_BUTTON",
+          "page": "share-addr-02"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-04",
+      "targets": [
+      ]
+    }
+  ]
+}
