@@ -269,4 +269,5 @@ jobs:
       lib_binaries_artifact: libraries_binaries
       lib_binaries_artifact_dir: test/python/lib_binaries/
       test_filter: ${{ inputs.test_filter }}
+      test_options: "--ignore-missing-binaries"
       regenerate_snapshots: ${{ inputs.regenerate_snapshots }}
