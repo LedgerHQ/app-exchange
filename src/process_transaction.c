@@ -288,7 +288,7 @@ static bool check_transaction_id(subcommand_e subcommand) {
     return true;
 }
 
-static void normalize_currencies(subcommand) {
+static void normalize_currencies(subcommand_e subcommand) {
     if (subcommand == SWAP || subcommand == SWAP_NG) {
         to_uppercase(G_swap_ctx.swap_transaction.currency_from,
                      sizeof(G_swap_ctx.swap_transaction.currency_from));
@@ -323,7 +323,7 @@ static void normalize_currencies(subcommand) {
 }
 
 // trim leading 0s
-static void trim_amounts(subcommand) {
+static void trim_amounts(subcommand_e subcommand) {
     if (subcommand == SWAP || subcommand == SWAP_NG) {
         trim_pb_bytes_array(
             (pb_bytes_array_16_t *) &G_swap_ctx.swap_transaction.amount_to_provider);
