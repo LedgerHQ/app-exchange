@@ -61,6 +61,9 @@ jobs:
           - repo: 'LedgerHQ/app-boilerplate-rust'
             branch: 'main'
             use_case: ''
+          - repo: 'LedgerHQ/app-sui'
+            branch: 'y333/remove_alamgu_deps'
+            use_case: ''
     uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_swap_tests.yml@v1
     with:
       app_repository: ${{ matrix.coin.repo }}

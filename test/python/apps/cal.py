@@ -1,6 +1,5 @@
 from exchange_client.cal_helper import CurrencyConfiguration
 
-from .sui_utils import SUI_CONF, SUI_PACKED_DERIVATION_PATH, SUI_USDC_CONF
 
 # Eth family
 from exchange_client.ethereum import ETH_PACKED_DERIVATION_PATH, ETH_CONF
@@ -56,7 +55,5 @@ COSMOS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ATOM", conf=COSMOS
 ADA_BYRON_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_BYRON_PACKED_DERIVATION_PATH)
 ADA_SHELLEY_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_SHELLEY_PACKED_DERIVATION_PATH)
 NEAR_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="NEAR", conf=NEAR_CONF, packed_derivation_path=NEAR_PACKED_DERIVATION_PATH)
-SUI_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="SUI", conf=SUI_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
-SUI_USDC_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDC", conf=SUI_USDC_CONF, packed_derivation_path=SUI_PACKED_DERIVATION_PATH)
 APTOS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="APT", conf=APTOS_CONF, packed_derivation_path=APTOS_PACKED_DERIVATION_PATH)
 KAS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="KAS", conf=KAS_CONF, packed_derivation_path=KAS_PACKED_DERIVATION_PATH)

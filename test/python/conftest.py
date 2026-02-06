@@ -37,7 +37,6 @@ def pytest_configure(config):
             "ATOM": "Cosmos",
             "cardano": "Cardano ADA",
             "near": "NEAR",
-            "sui": "Sui",
             "kaspa": "Kaspa",
             "celo": "Celo",
         }
