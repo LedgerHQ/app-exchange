@@ -41,35 +41,6 @@ jobs:
       upload_app_binaries_artifact: 'app_ethereum_binaries'
       use_case: 'use_test_keys'
 
-  run_coin_swap_tests:
-    name: Run swap tests using the reusable workflow
-    needs: [build_exchange_for_swap, build_ethereum_for_swap]
-    strategy:
-      fail-fast: false
-      matrix:
-        coin:
-          # this list shall be built dynamically in the future
-          - repo: 'LedgerHQ/app-boilerplate'
-            branch: 'master'
-            use_case: ''
-          - repo: 'LedgerHQ/app-solana'
-            branch: 'develop'
-            use_case: 'trusted_name_test'
-          - repo: 'LedgerHQ/app-hedera'
-            branch: 'develop'
-            use_case: ''
-          - repo: 'LedgerHQ/app-boilerplate-rust'
-            branch: 'main'
-            use_case: ''
-    uses: LedgerHQ/ledger-app-workflows/.github/workflows/reusable_swap_tests.yml@v1
-    with:
-      app_repository: ${{ matrix.coin.repo }}
-      app_branch_name: ${{ matrix.coin.branch }}
-      use_case: ${{ matrix.coin.use_case }}
-      exchange_binaries_artifact: 'app_exchange_binaries'
-      ethereum_binaries_artifact: 'app_ethereum_binaries'
-      regenerate_snapshots: ${{ inputs.golden_run == 'Open a PR' }}
-
   job_swap_functional_tests:
     name: Build and run swap local tests
     uses: ./.github/workflows/reusable_swap_functional_tests.yml
