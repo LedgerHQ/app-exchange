@@ -120,15 +120,6 @@ on:
         default: 'LedgerHQ/app-cosmos'
         type: string
 
-      branch_for_sui:
-        required: false
-        default: 'develop'
-        type: string
-      repo_for_sui:
-        required: false
-        default: 'LedgerHQ/app-sui'
-        type: string
-
       branch_for_aptos:
         required: false
         default: 'develop'
@@ -212,9 +203,6 @@ jobs:
           - name: ATOM
             repo: ${{ inputs.repo_for_cosmos }}
             branch: ${{ inputs.branch_for_cosmos }}
-          - name: sui
-            repo: ${{ inputs.repo_for_sui }}
-            branch: ${{ inputs.branch_for_sui }}
           - name: APTOS
             repo: ${{ inputs.repo_for_aptos }}
             branch: ${{ inputs.branch_for_aptos }}
