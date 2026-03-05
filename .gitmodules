@@ -1,3 +1,0 @@
-[submodule "ledger-nanopb"]
-	path = ledger-nanopb
-	url = git@github.com:LedgerHQ/ledger-nanopb.git
