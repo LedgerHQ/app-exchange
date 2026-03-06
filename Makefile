@@ -173,7 +173,7 @@ include $(BOLOS_SDK)/Makefile.standard_app
 ########################################
 .PHONY: proto
 proto:
-	make -C ledger-nanopb/generator/proto
-	protoc --nanopb_out=. src/proto/protocol.proto --plugin=protoc-gen-nanopb=ledger-nanopb/generator/protoc-gen-nanopb
+	make -C nanopb/nanopb-0.3.9/generator/proto
+	protoc --nanopb_out=. src/proto/protocol.proto --plugin=protoc-gen-nanopb=nanopb/nanopb-0.3.9/generator/protoc-gen-nanopb
 	protoc --python_out=. src/proto/protocol.proto
 	mv src/proto/protocol_pb2.py client/src/ledger_app_clients/exchange/pb/exchange_pb2.py
