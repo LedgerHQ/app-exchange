@@ -71,7 +71,7 @@ class TestTrustedName:
 
         challenge = ex.get_challenge().data
         assert len(challenge) == 4
-        wrong_challenge = challenge[:-1] + bytes([challenge[-1] + 1])
+        wrong_challenge = challenge[:-1] + bytes([(challenge[-1] + 1) % 256])
         with pytest.raises(ExceptionRAPDU) as e:
             ex.send_pki_certificate_and_trusted_name_descriptor(challenge=wrong_challenge)
         assert e.value.status == Errors.WRONG_TLV_CHALLENGE
