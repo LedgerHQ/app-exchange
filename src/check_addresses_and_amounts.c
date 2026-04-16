@@ -139,6 +139,7 @@ static uint16_t format_fees(buf_t sub_coin_config, char *appname) {
 static bool format_fiat_amount(void) {
     size_t len = strlen(G_swap_ctx.sell_transaction.out_currency);
     if (len + 1 >= sizeof(G_swap_ctx.printable_get_amount)) {
+        PRINTF("Error: Currency ticker is too long to format printable amount\n");
         return false;
     }
 
@@ -148,6 +149,7 @@ static bool format_fiat_amount(void) {
     G_swap_ctx.printable_get_amount[len] = ' ';
     G_swap_ctx.printable_get_amount[len + 1] = '\x00';
 
+    // Format the amount part of the string after the FIAT currency ticker
     if (get_fiat_printable_amount(G_swap_ctx.sell_transaction.out_amount.coefficient.bytes,
                                   G_swap_ctx.sell_transaction.out_amount.coefficient.size,
                                   G_swap_ctx.sell_transaction.out_amount.exponent,
@@ -258,7 +260,7 @@ int check_addresses_and_amounts(const command_t *cmd) {
     if (G_swap_ctx.subcommand == SELL || G_swap_ctx.subcommand == SELL_NG) {
         if (!format_fiat_amount()) {
             PRINTF("Error: Failed to format FIAT amount\n");
-            return reply_error(INTERNAL_ERROR);
+            return reply_error(AMOUNT_FORMATTING_FAILED);
         }
     }
 
