@@ -120,6 +120,15 @@ on:
         default: 'LedgerHQ/app-cosmos'
         type: string
 
+      branch_for_firmachain:
+        required: false
+        default: 'main'
+        type: string
+      repo_for_firmachain:
+        required: false
+        default: 'FirmaChain/ledger-firmachain'
+        type: string
+
       branch_for_aptos:
         required: false
         default: 'develop'
@@ -203,6 +212,9 @@ jobs:
           - name: ATOM
             repo: ${{ inputs.repo_for_cosmos }}
             branch: ${{ inputs.branch_for_cosmos }}
+          - name: FCT
+            repo: ${{ inputs.repo_for_firmachain }}
+            branch: ${{ inputs.branch_for_firmachain }}
           - name: APTOS
             repo: ${{ inputs.repo_for_aptos }}
             branch: ${{ inputs.branch_for_aptos }}

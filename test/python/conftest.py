@@ -35,6 +35,7 @@ def pytest_configure(config):
             "tron": "Tron",
             "ton": "TON",
             "ATOM": "Cosmos",
+            "FCT": "Firmachain",
             "cardano": "Cardano ADA",
             "near": "NEAR",
             "kaspa": "Kaspa",
