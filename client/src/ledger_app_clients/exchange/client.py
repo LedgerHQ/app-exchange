@@ -3,12 +3,11 @@ from typing import Generator, Optional, Dict
 from enum import IntEnum
 
 from ragger.backend.interface import BackendInterface, RAPDU
-from ledgered.devices import DeviceType
 from ragger.utils import prefix_with_len
 
 from .utils import handle_lib_call_start_or_stop, int_to_minimally_sized_bytes, prefix_with_len_custom
 from .transaction_builder import SubCommand
-from .pki.pem_signer import KeySigner
+from .signing_partners import TRUSTED_NAME_PARTNER
 
 from .pki.tlv import FieldTag, format_tlv
 
@@ -86,20 +85,6 @@ class PayinExtraDataID(IntEnum):
 
 EXCHANGE_CLASS = 0xE0
 
-class PKIClient:
-    _CLA: int = 0xB0
-    _INS: int = 0x06
-
-    def __init__(self, client: BackendInterface) -> None:
-        self._client = client
-
-    def send_certificate(self, payload: bytes) -> RAPDU:
-        return self._client.exchange(cla=self._CLA,
-                                     ins=self._INS,
-                                     p1=0x04, # PubKeyUsage = 0x04
-                                     p2=0x00,
-                                     data=payload)
-
 class ExchangeClient:
     CLA = EXCHANGE_CLASS
     def __init__(self,
@@ -116,7 +101,6 @@ class ExchangeClient:
         self._client: BackendInterface = client
         self._rate: Rate = rate
         self._subcommand: SubCommand = subcommand
-        self.trusted_name_key_signer = KeySigner("trusted_name.pem")
 
     @property
     def rate(self) -> Rate:
@@ -215,10 +199,10 @@ class ExchangeClient:
         if not skip_signature_field:
             if fake_signature_field:
                 payload += format_tlv(FieldTag.TAG_DER_SIGNATURE,
-                                      self.trusted_name_key_signer.sign_data(payload + b"0"))
+                                      TRUSTED_NAME_PARTNER.sign(payload + b"0"))
             else:
                 payload += format_tlv(FieldTag.TAG_DER_SIGNATURE,
-                                      self.trusted_name_key_signer.sign_data(payload))
+                                      TRUSTED_NAME_PARTNER.sign(payload))
 
         return self._exchange_split(Command.SEND_TRUSTED_NAME_DESCRIPTOR, payload=payload)
 
@@ -237,21 +221,7 @@ class ExchangeClient:
                                                          skip_signature_field: bool = False,
                                                          fake_signature_field: bool = False) -> RAPDU:
         # send PKI certificate
-        cert_apdu = ""
-        # pylint: disable=line-too-long
-        if self._client.device.type == DeviceType.NANOSP:
-            cert_apdu = "01010102010211040000000212010013020002140101160400000000200C547275737465645F4E616D6530020004310104320121332102B91FBEC173E3BA4A714E014EBC827B6F899A9FA7F4AC769CDE284317A00F4F6534010135010315473045022100D494B106E217B46BB90BF20A4E9285529C4C8382D9B80FF462F74942579785F802202D68D0F85CD7CA36BDF351FD41332F310E93163BD175F6A92446C14A3329CC8B"  # noqa: E501
-        elif self._client.device.type == DeviceType.NANOX:
-            cert_apdu = "01010102010211040000000212010013020002140101160400000000200C547275737465645F4E616D6530020004310104320121332102B91FBEC173E3BA4A714E014EBC827B6F899A9FA7F4AC769CDE284317A00F4F653401013501021546304402207FCD665B94B43A6E838E8CD68BE52403D38A7E6A98E2CE291AB1C5D24A41101D02207AB1863E5CB127D9E8A680AC63FF2F2CBEA79CE76652A72832EF154BF1AD6477"  # noqa: E501
-        elif self._client.device.type == DeviceType.STAX:
-            cert_apdu = "01010102010211040000000212010013020002140101160400000000200C547275737465645F4E616D6530020004310104320121332102B91FBEC173E3BA4A714E014EBC827B6F899A9FA7F4AC769CDE284317A00F4F65340101350104154730450221008F8FB0117C8D51F0D13A77680C18CA98B4B317C3D6C67F23BF9198410BEDF1A1022023B1052CA43E86E2411831990C64B1E027D85E142AD39F480948E3EF9517E55E"  # noqa: E501
-        elif self._client.device.type == DeviceType.FLEX:
-            cert_apdu = "01010102010211040000000212010013020002140101160400000000200C547275737465645F4E616D6530020004310104320121332102B91FBEC173E3BA4A714E014EBC827B6F899A9FA7F4AC769CDE284317A00F4F6534010135010515473045022100CEF28780DCAFA3A485D83406D519F9AC12FD9B9C3AA7AE798896013F07DD178D022020F01B1AB1D2AAEDA70357F615EAC55E17FE94EC36DF9DE850CEFACBC98D16C8"  # noqa: E501
-        elif self._client.device.type == DeviceType.APEX_P:
-            cert_apdu = "01010102010211040000000212010013020002140101160400000000200C547275737465645F4E616D6530020004310104320121332102B91FBEC173E3BA4A714E014EBC827B6F899A9FA7F4AC769CDE284317A00F4F6534010135010615463044022059B471F3F7F28EDC959B5854A4811E45454C983E731C3B99EF329A7030592E6F02206AE7716C26A5280F3BCE34E9C8660C7128512AC32D58FB8CA49B80DBD7CED8DC"  # noqa: E501
-        assert cert_apdu != "", "Certificate APDU string is empty"
-        # pylint: enable=line-too-long
-        PKIClient(self._client).send_certificate(bytes.fromhex(cert_apdu))
+        self._client.exchange_raw(TRUSTED_NAME_PARTNER.get_certificate_payload(self._client.device.type))
 
         return self.send_trusted_name_descriptor(structure_type=structure_type,
                                                  version=version,
