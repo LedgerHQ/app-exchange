@@ -223,6 +223,8 @@ jobs:
       upload_app_binaries_artifact: libraries_binaries-${{ matrix.coin.name }}-${{ strategy.job-index }}
       upload_as_lib_artifact: ${{ matrix.coin.name }}
       builder: ledger-app-builder
+      build_comparison: false
+      enable_stack_consumption: false
 
   merge_libraries_build:
     name: Merge built libraries
@@ -243,6 +245,7 @@ jobs:
       app_branch_name: ${{ inputs.branch_for_exchange }}
       flags: "TESTING=1 TEST_PUBLIC_KEY=1 TRUSTED_NAME_TEST_KEY=1 DEBUG=1"
       upload_app_binaries_artifact: exchange_binaries
+      enable_stack_consumption: false
 
   ragger_tests:
     name: Run ragger tests
@@ -258,3 +261,4 @@ jobs:
       lib_binaries_artifact_dir: test/python/lib_binaries/
       test_filter: ${{ inputs.test_filter }}
       regenerate_snapshots: ${{ inputs.regenerate_snapshots }}
+      post_stack_consumption: false
