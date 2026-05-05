@@ -86,6 +86,7 @@ jobs:
     with:
       # No flags
       upload_app_binaries_artifact: "exchange_production_build"
+      build_comparison: true
 
   ragger_production_tests:
     name: Run ragger tests using the reusable workflow
