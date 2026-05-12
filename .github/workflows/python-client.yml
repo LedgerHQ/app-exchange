@@ -24,6 +24,3 @@ jobs:
       package_name: 'ledger_app_clients.exchange'
       package_directory: 'client'
       publish: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/client-') }}
-      jfrog_deployment: false
-    secrets:
-      pypi_token: ${{ secrets.PYPI_PUBLIC_API_TOKEN }}
