@@ -18,9 +18,8 @@ from ragger.bip import pack_derivation_path
 from xrpl.core import addresscodec
 
 
-### Proposed Solana derivation paths for tests ###
-XRP_DEFAULT_PATH = "44'/144'/0'/0/0"
-XRP_PACKED_DERIVATION_PATH = pack_derivation_path("m/44'/144'/0'/0/0")
+XRP_DEFAULT_PATH = "m/44'/144'/0'/0'/0"
+XRP_PACKED_DERIVATION_PATH = pack_derivation_path(XRP_DEFAULT_PATH)
 
 
 ### Package this currency configuration in exchange format ###
@@ -217,7 +216,9 @@ class XRPClient:
                         pass
             payload = payload[size:]
 
-    def _craft_simple_tx(self, fees: int, memo: str, destination: str, send_amount: int) -> bytes:
+    def _craft_simple_tx(self, source_pubkey: bytes, source_address: str, fees: int, memo: str, destination: str, send_amount: int) -> bytes:
+        source_account_id = addresscodec.decode_classic_address(source_address)
+
         tx: bytes = b""
 
         tx += int.to_bytes(STI_FIELDS.STI_UINT16 << 4 | FIELDS_IDS.XRP_UINT16_TRANSACTION_TYPE, length=1, byteorder='big')
@@ -240,11 +241,11 @@ class XRPClient:
 
         tx += int.to_bytes(STI_FIELDS.STI_VL << 4 | FIELDS_IDS.XRP_VL_SIGNING_PUB_KEY, length=1, byteorder='big')
         tx += int.to_bytes(XRP_PUBKEY_SIZE, length=1, byteorder='big')
-        tx += addresscodec.decode_account_public_key("aBPM4Dk4bxMFEEBx93yU8DF2FSoUt19SDNPcGRsdzr6h9vhhPAGe")
+        tx += source_pubkey
 
         tx += int.to_bytes(STI_FIELDS.STI_ACCOUNT << 4 | FIELDS_IDS.XRP_ACCOUNT_ACCOUNT, length=1, byteorder='big')
         tx += int.to_bytes(XRP_ACCOUNT_SIZE, length=1, byteorder='big')
-        tx += addresscodec.decode_classic_address("rTooLkitCksh5mQa67eaa2JaY7gzNePtD")
+        tx += source_account_id
 
         tx += int.to_bytes(STI_FIELDS.STI_ACCOUNT << 4 | FIELDS_IDS.XRP_ACCOUNT_DESTINATION, length=1, byteorder='big')
         tx += int.to_bytes(XRP_ACCOUNT_SIZE, length=1, byteorder='big')
@@ -252,7 +253,8 @@ class XRPClient:
 
         return tx
 
-    def send_simple_sign_tx(self, path: str, fees: int, memo: str, destination: str, send_amount: int) -> RAPDU:
+    def send_simple_sign_tx(self, path: str, source_pubkey: bytes, source_address: str, fees: int, memo: str, destination: str, send_amount: int) -> RAPDU:
         packed_path = pack_derivation_path(path)
-        tx = self._craft_simple_tx(fees=fees, memo=memo, destination=destination, send_amount=send_amount)
+        tx = self._craft_simple_tx(source_pubkey=source_pubkey, source_address=source_address,
+                                   fees=fees, memo=memo, destination=destination, send_amount=send_amount)
         return self._backend.exchange(self.CLA, Ins.SIGN, P1.FIRST, P2.CURVE_SECP256K1, packed_path + tx)
