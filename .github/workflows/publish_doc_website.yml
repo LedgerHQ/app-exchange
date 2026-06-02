@@ -24,11 +24,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          submodules: recursive
 
       - name: Checkout solana
         uses: actions/checkout@v6
         with:
           repository: LedgerHQ/app-solana
+          submodules: recursive
           ref: develop
           path: ./docs/deps/app-solana
           fetch-depth: 1
@@ -37,6 +40,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: LedgerHQ/app-boilerplate
+          submodules: recursive
           ref: master
           path: ./docs/deps/app-boilerplate
           fetch-depth: 1
@@ -45,6 +49,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: LedgerHQ/ledger-secure-sdk
+          submodules: recursive
           ref: master
           path: ./docs/deps/ledger-secure-sdk
           fetch-depth: 1
@@ -53,6 +58,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: LedgerHQ/app-boilerplate-rust
+          submodules: recursive
           ref: main
           path: ./docs/deps/app-boilerplate-rust
           fetch-depth: 1
@@ -61,6 +67,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: LedgerHQ/ledger-device-rust-sdk
+          submodules: recursive
           ref: master
           path: ./docs/deps/ledger-device-rust-sdk
           fetch-depth: 1
