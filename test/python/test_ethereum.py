@@ -145,6 +145,13 @@ class BSCTests(GenericEthereumNetworkTests):
     chain_id = 56
     currency_configuration = cal.BNB_CURRENCY_CONFIGURATION
 
+    def perform_final_tx(self, destination, send_amount, fees, memo):
+        # Start by sending Network information (name, ticker, but no icon because useless here)
+        app_client = EthAppClient(self.backend)
+        app_client.provide_network_information(DynamicNetwork("BNB Smart Chain", "BNB", self.chain_id))
+        # Then perform normal transaction
+        super().perform_final_tx(destination, send_amount, fees, memo)
+
 class TestsBSC:
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_MEMO)
     def test_bsc(self, backend, exchange_navigation_helper, test_to_run):
