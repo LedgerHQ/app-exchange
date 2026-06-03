@@ -196,8 +196,8 @@ void __cyg_profile_func_enter(void *func, void *callsite __attribute__((unused))
            fname,
            callsite,
            &fname,
-           ((void *) &fname) - &_ebss);  //, last_stack_left - (((void*)&fname) - &_ebss));
-    last_stack_left = ((void *) &fname) - &_ebss;
+           (int) ((uintptr_t) &fname - (uintptr_t) &_ebss));
+    last_stack_left = (int) ((uintptr_t) &fname - (uintptr_t) &_ebss);
     G_depth++;
 }
 void __cyg_profile_func_exit(void *this_fn, void *call_site)
@@ -209,7 +209,11 @@ void __cyg_profile_func_exit(void *func, void *callsite __attribute__((unused)))
     for (int i = 0; i < G_depth; i++) {
         PRINTF(" ");
     }
-    PRINTF("<- %p '%s' [from %p], left: %d\n", func, fname, callsite, ((void *) &fname) - &_ebss);
+    PRINTF("<- %p '%s' [from %p], left: %d\n",
+           func,
+           fname,
+           callsite,
+           (int) ((uintptr_t) &fname - (uintptr_t) &_ebss));
     // last_stack_left = ((void*)&fname) - &_ebss;
 }
 
