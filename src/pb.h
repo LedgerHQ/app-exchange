@@ -200,9 +200,9 @@ typedef uint_least8_t pb_type_t;
 #define PB_ATYPE_CALLBACK 0x40
 #define PB_ATYPE_MASK     0xC0
 
-#define PB_ATYPE(x) ((x) &PB_ATYPE_MASK)
-#define PB_HTYPE(x) ((x) &PB_HTYPE_MASK)
-#define PB_LTYPE(x) ((x) &PB_LTYPE_MASK)
+#define PB_ATYPE(x) ((x) & PB_ATYPE_MASK)
+#define PB_HTYPE(x) ((x) & PB_HTYPE_MASK)
+#define PB_LTYPE(x) ((x) & PB_LTYPE_MASK)
 
 /* Data type used for storing sizes of struct fields
  * and array counts.
@@ -217,7 +217,7 @@ typedef int_least16_t pb_ssize_t;
 typedef uint_least8_t pb_size_t;
 typedef int_least8_t pb_ssize_t;
 #endif
-#define PB_SIZE_MAX ((pb_size_t) -1)
+#define PB_SIZE_MAX ((pb_size_t) - 1)
 
 /* Data type for storing encoded data and other byte streams.
  * This typedef exists to support platforms where uint8_t does not exist.
@@ -399,8 +399,7 @@ struct pb_extension_s {
 /* Delta from start of one member to the start of another member. */
 #define pb_delta(st, m1, m2) ((int) offsetof(st, m1) - (int) offsetof(st, m2))
 /* Marks the end of the field list */
-#define PB_LAST_FIELD \
-    { 0, (pb_type_t) 0, 0, 0, 0, 0, 0 }
+#define PB_LAST_FIELD {0, (pb_type_t) 0, 0, 0, 0, 0, 0}
 
 /* Macros for filling in the data_offset field */
 /* data_offset for first field in a message */
@@ -420,56 +419,65 @@ struct pb_extension_s {
  * submessages and default values.
  */
 #define PB_REQUIRED_STATIC(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_STATIC | PB_HTYPE_REQUIRED | ltype, fd, 0, pb_membersize(st, m), 0, ptr }
+    {tag, PB_ATYPE_STATIC | PB_HTYPE_REQUIRED | ltype, fd, 0, pb_membersize(st, m), 0, ptr}
 
 /* Optional fields add the delta to the has_ variable. */
-#define PB_OPTIONAL_STATIC(tag, st, m, fd, ltype, ptr)                                  \
-    {                                                                                   \
-        tag, PB_ATYPE_STATIC | PB_HTYPE_OPTIONAL | ltype, fd, pb_delta(st, has_##m, m), \
-            pb_membersize(st, m), 0, ptr                                                \
-    }
+#define PB_OPTIONAL_STATIC(tag, st, m, fd, ltype, ptr) \
+    {tag,                                              \
+     PB_ATYPE_STATIC | PB_HTYPE_OPTIONAL | ltype,      \
+     fd,                                               \
+     pb_delta(st, has_##m, m),                         \
+     pb_membersize(st, m),                             \
+     0,                                                \
+     ptr}
 
 #define PB_SINGULAR_STATIC(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_STATIC | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m), 0, ptr }
+    {tag, PB_ATYPE_STATIC | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m), 0, ptr}
 
 /* Repeated fields have a _count field and also the maximum number of entries. */
-#define PB_REPEATED_STATIC(tag, st, m, fd, ltype, ptr)                                    \
-    {                                                                                     \
-        tag, PB_ATYPE_STATIC | PB_HTYPE_REPEATED | ltype, fd, pb_delta(st, m##_count, m), \
-            pb_membersize(st, m[0]), pb_arraysize(st, m), ptr                             \
-    }
+#define PB_REPEATED_STATIC(tag, st, m, fd, ltype, ptr) \
+    {tag,                                              \
+     PB_ATYPE_STATIC | PB_HTYPE_REPEATED | ltype,      \
+     fd,                                               \
+     pb_delta(st, m##_count, m),                       \
+     pb_membersize(st, m[0]),                          \
+     pb_arraysize(st, m),                              \
+     ptr}
 
 /* Allocated fields carry the size of the actual data, not the pointer */
 #define PB_REQUIRED_POINTER(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_POINTER | PB_HTYPE_REQUIRED | ltype, fd, 0, pb_membersize(st, m[0]), 0, ptr }
+    {tag, PB_ATYPE_POINTER | PB_HTYPE_REQUIRED | ltype, fd, 0, pb_membersize(st, m[0]), 0, ptr}
 
 /* Optional fields don't need a has_ variable, as information would be redundant */
 #define PB_OPTIONAL_POINTER(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_POINTER | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m[0]), 0, ptr }
+    {tag, PB_ATYPE_POINTER | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m[0]), 0, ptr}
 
 /* Same as optional fields*/
 #define PB_SINGULAR_POINTER(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_POINTER | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m[0]), 0, ptr }
+    {tag, PB_ATYPE_POINTER | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m[0]), 0, ptr}
 
 /* Repeated fields have a _count field and a pointer to array of pointers */
-#define PB_REPEATED_POINTER(tag, st, m, fd, ltype, ptr)                                    \
-    {                                                                                      \
-        tag, PB_ATYPE_POINTER | PB_HTYPE_REPEATED | ltype, fd, pb_delta(st, m##_count, m), \
-            pb_membersize(st, m[0]), 0, ptr                                                \
-    }
+#define PB_REPEATED_POINTER(tag, st, m, fd, ltype, ptr) \
+    {tag,                                               \
+     PB_ATYPE_POINTER | PB_HTYPE_REPEATED | ltype,      \
+     fd,                                                \
+     pb_delta(st, m##_count, m),                        \
+     pb_membersize(st, m[0]),                           \
+     0,                                                 \
+     ptr}
 
 /* Callbacks are much like required fields except with special datatype. */
 #define PB_REQUIRED_CALLBACK(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_CALLBACK | PB_HTYPE_REQUIRED | ltype, fd, 0, pb_membersize(st, m), 0, ptr }
+    {tag, PB_ATYPE_CALLBACK | PB_HTYPE_REQUIRED | ltype, fd, 0, pb_membersize(st, m), 0, ptr}
 
 #define PB_OPTIONAL_CALLBACK(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_CALLBACK | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m), 0, ptr }
+    {tag, PB_ATYPE_CALLBACK | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m), 0, ptr}
 
 #define PB_SINGULAR_CALLBACK(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_CALLBACK | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m), 0, ptr }
+    {tag, PB_ATYPE_CALLBACK | PB_HTYPE_OPTIONAL | ltype, fd, 0, pb_membersize(st, m), 0, ptr}
 
 #define PB_REPEATED_CALLBACK(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_CALLBACK | PB_HTYPE_REPEATED | ltype, fd, 0, pb_membersize(st, m), 0, ptr }
+    {tag, PB_ATYPE_CALLBACK | PB_HTYPE_REPEATED | ltype, fd, 0, pb_membersize(st, m), 0, ptr}
 
 /* Optional extensions don't have the has_ field, as that would be redundant.
  * Furthermore, the combination of OPTIONAL without has_ field is used
@@ -478,7 +486,7 @@ struct pb_extension_s {
  * extensions are marked as REQUIRED instead.
  */
 #define PB_OPTEXT_STATIC(tag, st, m, fd, ltype, ptr) \
-    { tag, PB_ATYPE_STATIC | PB_HTYPE_REQUIRED | ltype, 0, 0, pb_membersize(st, m), 0, ptr }
+    {tag, PB_ATYPE_STATIC | PB_HTYPE_REQUIRED | ltype, 0, 0, pb_membersize(st, m), 0, ptr}
 
 #define PB_OPTEXT_POINTER(tag, st, m, fd, ltype, ptr) \
     PB_OPTIONAL_POINTER(tag, st, m, fd, ltype, ptr)
@@ -533,26 +541,34 @@ struct pb_extension_s {
 
 /* Field description for repeated static fixed count fields.*/
 #define PB_REPEATED_FIXED_COUNT(tag, type, placement, message, field, prevfield, ptr) \
-    {                                                                                 \
-        tag, PB_ATYPE_STATIC | PB_HTYPE_REPEATED | PB_LTYPE_MAP_##type,               \
-            PB_DATAOFFSET_##placement(message, field, prevfield), 0,                  \
-            pb_membersize(message, field[0]), pb_arraysize(message, field), ptr       \
-    }
+    {tag,                                                                             \
+     PB_ATYPE_STATIC | PB_HTYPE_REPEATED | PB_LTYPE_MAP_##type,                       \
+     PB_DATAOFFSET_##placement(message, field, prevfield),                            \
+     0,                                                                               \
+     pb_membersize(message, field[0]),                                                \
+     pb_arraysize(message, field),                                                    \
+     ptr}
 
 /* Field description for oneof fields. This requires taking into account the
  * union name also, that's why a separate set of macros is needed.
  */
-#define PB_ONEOF_STATIC(u, tag, st, m, fd, ltype, ptr)                                   \
-    {                                                                                    \
-        tag, PB_ATYPE_STATIC | PB_HTYPE_ONEOF | ltype, fd, pb_delta(st, which_##u, u.m), \
-            pb_membersize(st, u.m), 0, ptr                                               \
-    }
+#define PB_ONEOF_STATIC(u, tag, st, m, fd, ltype, ptr) \
+    {tag,                                              \
+     PB_ATYPE_STATIC | PB_HTYPE_ONEOF | ltype,         \
+     fd,                                               \
+     pb_delta(st, which_##u, u.m),                     \
+     pb_membersize(st, u.m),                           \
+     0,                                                \
+     ptr}
 
-#define PB_ONEOF_POINTER(u, tag, st, m, fd, ltype, ptr)                                   \
-    {                                                                                     \
-        tag, PB_ATYPE_POINTER | PB_HTYPE_ONEOF | ltype, fd, pb_delta(st, which_##u, u.m), \
-            pb_membersize(st, u.m[0]), 0, ptr                                             \
-    }
+#define PB_ONEOF_POINTER(u, tag, st, m, fd, ltype, ptr) \
+    {tag,                                               \
+     PB_ATYPE_POINTER | PB_HTYPE_ONEOF | ltype,         \
+     fd,                                                \
+     pb_delta(st, which_##u, u.m),                      \
+     pb_membersize(st, u.m[0]),                         \
+     0,                                                 \
+     ptr}
 
 #define PB_ONEOF_FIELD(union_name,                                                         \
                        tag,                                                                \
@@ -572,17 +588,23 @@ struct pb_extension_s {
                           PB_LTYPE_MAP_##type,                                             \
                           ptr)
 
-#define PB_ANONYMOUS_ONEOF_STATIC(u, tag, st, m, fd, ltype, ptr)                       \
-    {                                                                                  \
-        tag, PB_ATYPE_STATIC | PB_HTYPE_ONEOF | ltype, fd, pb_delta(st, which_##u, m), \
-            pb_membersize(st, m), 0, ptr                                               \
-    }
+#define PB_ANONYMOUS_ONEOF_STATIC(u, tag, st, m, fd, ltype, ptr) \
+    {tag,                                                        \
+     PB_ATYPE_STATIC | PB_HTYPE_ONEOF | ltype,                   \
+     fd,                                                         \
+     pb_delta(st, which_##u, m),                                 \
+     pb_membersize(st, m),                                       \
+     0,                                                          \
+     ptr}
 
-#define PB_ANONYMOUS_ONEOF_POINTER(u, tag, st, m, fd, ltype, ptr)                       \
-    {                                                                                   \
-        tag, PB_ATYPE_POINTER | PB_HTYPE_ONEOF | ltype, fd, pb_delta(st, which_##u, m), \
-            pb_membersize(st, m[0]), 0, ptr                                             \
-    }
+#define PB_ANONYMOUS_ONEOF_POINTER(u, tag, st, m, fd, ltype, ptr) \
+    {tag,                                                         \
+     PB_ATYPE_POINTER | PB_HTYPE_ONEOF | ltype,                   \
+     fd,                                                          \
+     pb_delta(st, which_##u, m),                                  \
+     pb_membersize(st, m[0]),                                     \
+     0,                                                           \
+     ptr}
 
 #define PB_ANONYMOUS_ONEOF_FIELD(union_name,                                              \
                                  tag,                                                     \

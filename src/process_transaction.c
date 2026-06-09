@@ -218,10 +218,10 @@ static bool check_extra_id_extra_data(subcommand_e subcommand) {
             size_t expected_size;
 
             if (extra_data_type == 0x03) {
-                // SOL_TEMPLATE: header + 8 bytes
-                expected_size = 9;
+                // SOL_TEMPLATE: header + 32 bytes hash + 4 bytes template id
+                expected_size = 37;
             } else {
-                // Standard templates: header + 32 bytes
+                // Standard templates: header + 32 bytes hash
                 expected_size = 33;
             }
 
