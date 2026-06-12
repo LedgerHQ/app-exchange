@@ -89,15 +89,15 @@ class TestExtraData:
             assert e.value.status == Errors.WRONG_EXTRA_ID_OR_EXTRA_DATA
 
     @pytest.mark.parametrize('configurations', [
-        # Valid SOL_TEMPLATE: type 0x03 with 8 bytes payload (total 9 bytes)
+        # Valid SOL_TEMPLATE: type 0x03 with 32 + 4 bytes payload (total 37 bytes)
+        ConfForTest(payin_extra_id=None,
+                    payin_extra_data=PayinExtraDataID.SOL_TEMPLATE.to_bytes(1, byteorder='big') + bytes([0x0F] * 36),
+                    valid=True),
+        # Invalid SOL_TEMPLATE: type 0x03 with wrong size (8 bytes payload instead of 36)
         ConfForTest(payin_extra_id=None,
                     payin_extra_data=PayinExtraDataID.SOL_TEMPLATE.to_bytes(1, byteorder='big') + bytes([0x0F] * 8),
-                    valid=True),
-        # Invalid SOL_TEMPLATE: type 0x03 with wrong size (7 bytes payload instead of 8)
-        ConfForTest(payin_extra_id=None,
-                    payin_extra_data=PayinExtraDataID.SOL_TEMPLATE.to_bytes(1, byteorder='big') + bytes([0x0F] * 7),
                     valid=False),
-        # Invalid SOL_TEMPLATE: type 0x03 with wrong size (32 bytes payload instead of 8)
+        # Invalid SOL_TEMPLATE: type 0x03 with wrong size (32 bytes payload instead of 36)
         ConfForTest(payin_extra_id=None,
                     payin_extra_data=PayinExtraDataID.SOL_TEMPLATE.to_bytes(1, byteorder='big') + bytes([0x0F] * 32),
                     valid=False),

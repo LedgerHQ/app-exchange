@@ -189,8 +189,8 @@ static bool deserialize_protobuf_payload(buf_t payload,
 
 static bool check_extra_id_extra_data(subcommand_e subcommand) {
     if (subcommand == SWAP || subcommand == SWAP_NG) {
-        pb_bytes_array_33_t *extra =
-            (pb_bytes_array_33_t *) &G_swap_ctx.swap_transaction.payin_extra_data;
+        ledger_swap_NewTransactionResponse_payin_extra_data_t *extra =
+            &G_swap_ctx.swap_transaction.payin_extra_data;
         // has_extra_id == extra id string is not 0 sized
         bool has_extra_id = (G_swap_ctx.swap_transaction.payin_extra_id[0] != '\0');
         // has_extra_data == extra data is not empty and does not have only one byte NATIVE id (0)
@@ -213,15 +213,15 @@ static bool check_extra_id_extra_data(subcommand_e subcommand) {
 
             // Check size based on the header byte (first byte indicates the type)
             // 0x00: NATIVE, 0x01: EVM_CALLDATA (32 bytes), 0x02: OP_RETURN (32 bytes), 0x03:
-            // SOL_TEMPLATE (8 bytes)
+            // SOL_TEMPLATE (36 bytes)
             uint8_t extra_data_type = extra->bytes[0];
             size_t expected_size;
 
             if (extra_data_type == 0x03) {
-                // SOL_TEMPLATE: header + 8 bytes
-                expected_size = 9;
+                // SOL_TEMPLATE: header + 32 bytes hash + 4 bytes template id
+                expected_size = 37;
             } else {
-                // Standard templates: header + 32 bytes
+                // Standard templates: header + 32 bytes hash
                 expected_size = 33;
             }
 
