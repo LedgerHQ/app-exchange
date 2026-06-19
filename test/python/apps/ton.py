@@ -9,7 +9,7 @@ from ragger.bip import pack_derivation_path
 from ragger.utils import create_currency_config
 from ragger.error import ExceptionRAPDU
 
-TON_CONF = create_currency_config("TON", "TON")
+TON_CONF = create_currency_config("GRAM", "TON")
 TON_USDTON_CONF = create_currency_config("USDT", "TON", ("USDT",9))
 
 TON_DERIVATION_PATH = "m/44'/607'/0'/0'/0'/0'"

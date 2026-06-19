@@ -49,7 +49,7 @@ XLM_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XLM", conf=XLM_CONF, 
 XRP_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XRP", conf=XRP_CONF, packed_derivation_path=XRP_PACKED_DERIVATION_PATH)
 XTZ_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="XTZ", conf=XTZ_CONF, packed_derivation_path=XTZ_PACKED_DERIVATION_PATH)
 DOT_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="DOT", conf=DOT_CONF, packed_derivation_path=DOT_PACKED_DERIVATION_PATH)
-TON_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="TON", conf=TON_CONF, packed_derivation_path=TON_PACKED_DERIVATION_PATH)
+TON_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="GRAM", conf=TON_CONF, packed_derivation_path=TON_PACKED_DERIVATION_PATH)
 TON_USDT_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="USDT", conf=TON_USDTON_CONF, packed_derivation_path=TON_PACKED_DERIVATION_PATH)
 COSMOS_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ATOM", conf=COSMOS_CONF, packed_derivation_path=COSMOS_PACKED_DERIVATION_PATH)
 ADA_BYRON_CURRENCY_CONFIGURATION = CurrencyConfiguration(ticker="ADA", conf=ADA_CONF, packed_derivation_path=ADA_BYRON_PACKED_DERIVATION_PATH)
