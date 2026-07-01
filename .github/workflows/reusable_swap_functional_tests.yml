@@ -63,7 +63,7 @@ on:
         type: string
       repo_for_bitcoin:
         required: false
-        default: 'LedgerHQ/app-bitcoin-new'
+        default: 'LedgerHQ/app-bitcoin'
         type: string
 
       branch_for_polkadot:
