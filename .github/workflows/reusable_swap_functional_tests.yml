@@ -54,7 +54,7 @@ on:
         type: string
       repo_for_bitcoin_legacy:
         required: false
-        default: 'LedgerHQ/app-bitcoin'
+        default: 'LedgerHQ/app-bitcoin-legacy'
         type: string
 
       branch_for_bitcoin:
