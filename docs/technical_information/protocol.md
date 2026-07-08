@@ -155,7 +155,7 @@ With the possible values for the curve being 0x00 for SECP256K1, and 0x01 for SE
 
 #### PROCESS_TRANSACTION_RESPONSE
 
-Please refer to the src/protobuf files for the actual transaction proposal content.
+See the [Transaction proposal format](./protobuf.md) page for the content of the protobuf transaction proposal, field by field.
 
 ##### For all LEGACY TYPES, the data for this command is:
 
