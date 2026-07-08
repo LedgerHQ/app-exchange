@@ -58,6 +58,7 @@ nav:
       - Technical Information: technical_information/index.md
       - Sequence diagram: technical_information/diagram.md
       - Exchange Protocol API: technical_information/protocol.md
+      - Transaction proposal (protobuf): technical_information/protobuf.md
       - FUND and SELL flows: technical_information/fund_and_sell.md
       - Crypto Asset List (CAL): technical_information/cal.md
       - BSS safety in coin applications: technical_information/bss.md

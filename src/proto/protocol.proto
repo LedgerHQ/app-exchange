@@ -1,6 +1,7 @@
 syntax = "proto3";
 package ledger_swap;
 
+// --8<-- [start:new_transaction_response]
 message NewTransactionResponse {
     string payin_address = 1;
     string payin_extra_id = 2;
@@ -16,13 +17,17 @@ message NewTransactionResponse {
     string device_transaction_id = 11;
     bytes device_transaction_id_ng = 12;
 }
+// --8<-- [end:new_transaction_response]
 
+// --8<-- [start:udecimal]
 // (coefficient) * 10^(- exponent)
 message UDecimal {
     bytes  coefficient = 1;
     uint32 exponent = 2;
 }
+// --8<-- [end:udecimal]
 
+// --8<-- [start:new_sell_response]
 message NewSellResponse {
     string   trader_email = 1;           // traderEmail
     string   in_currency = 2;            // inCurrency
@@ -33,7 +38,9 @@ message NewSellResponse {
     UDecimal out_amount = 6;             // outAmount
     bytes    device_transaction_id = 7;  // nonce
 }
+// --8<-- [end:new_sell_response]
 
+// --8<-- [start:new_fund_response]
 message NewFundResponse {
     string   user_id = 1;                // user ID
     string   account_name = 2;           // funded account name ex: Card 1234
@@ -43,3 +50,4 @@ message NewFundResponse {
     string   in_extra_id = 7;            // memo
     bytes    device_transaction_id = 6;  // nonce
 }
+// --8<-- [end:new_fund_response]
