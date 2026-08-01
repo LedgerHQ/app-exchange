@@ -1,12 +1,17 @@
 from enum import IntEnum, Enum, auto
+from hashlib import sha256
 
 from ragger.bip import pack_derivation_path
 from ragger.utils import create_currency_config, RAPDU
-from stellar_sdk import StrKey
+from stellar_sdk import Keypair, StrKey
 
 XLM_CONF = create_currency_config("XLM", "Stellar")
 
 XLM_PACKED_DERIVATION_PATH = pack_derivation_path("m/44'/148'/0'")
+
+# Address derived from the Speculos seed on m/44'/148'/0', used as the
+# transaction source account and to verify the signature returned by the app
+XLM_SOURCE_ACCOUNT = "GCNCEJIAZ5D3APIF5XWAJ3JSSTHM4HPHE7GK3NAB6R6WWSZDB2A2BQ5B"
 
 class Ins():
     GET_PUBLIC_KEY = 0x02
@@ -121,11 +126,14 @@ class StellarClient:
         self._backend = backend
 
     def _craft_simple_tx(self, network: Network, fees: int, memo: str, destination: str, send_amount: int) -> bytes:
+        # TransactionSignaturePayload: network id + ENVELOPE_TYPE_TX + Transaction.
+        # This is the exact byte string the network expects signatures over; it
+        # ends at tx.ext and must not contain the envelope's signatures field.
         tx: bytes = b""
         tx += networks_dict[network]
         tx += int.to_bytes(EnvelopeType.ENVELOPE_TYPE_TX, length=4, byteorder='big')
         tx += int.to_bytes(CryptoKeyType.KEY_TYPE_ED25519, length=4, byteorder='big')
-        tx += StrKey.decode_ed25519_public_key("GCNCEJIAZ5D3APIF5XWAJ3JSSTHM4HPHE7GK3NAB6R6WWSZDB2A2BQ5B")
+        tx += StrKey.decode_ed25519_public_key(XLM_SOURCE_ACCOUNT)
         tx += int.to_bytes(fees, length=4, byteorder='big')
         tx += bytes.fromhex("0123 4567 89AB CDEF") # sequence number
         tx += int.to_bytes(PreconditionType.PRECOND_NONE, length=4, byteorder='big')
@@ -139,13 +147,16 @@ class StellarClient:
         tx += int.to_bytes(AssetType.ASSET_TYPE_NATIVE, length=4, byteorder='big')
         tx += int.to_bytes(send_amount, length=8, byteorder='big')
         tx += int.to_bytes(0, length=4, byteorder="big")  # tx.ext.v = 0
-        tx += int.to_bytes(0, length=4, byteorder="big")  # sig.len = 0
         return tx
 
     def send_simple_sign_tx(self, path: str, network: Network, fees: int, memo: str, destination: str, send_amount: int) -> RAPDU:
         packed_path = pack_derivation_path(path)
         tx = self._craft_simple_tx(network=network, fees=fees, memo=memo, destination=destination, send_amount=send_amount)
-        return self._backend.exchange(self.CLA, Ins.SIGN, P1.FIRST, P2.LAST, packed_path + tx)
+        rapdu = self._backend.exchange(self.CLA, Ins.SIGN, P1.FIRST, P2.LAST, packed_path + tx)
+        # The app signs the sha256 digest of the signature payload; raises
+        # BadSignatureError if the app signed anything else
+        Keypair.from_public_key(XLM_SOURCE_ACCOUNT).verify(sha256(tx).digest(), rapdu.data)
+        return rapdu
 
 
 

@@ -24,13 +24,13 @@ class StellarTests(ExchangeTestRunner):
     signature_refusal_error_code = StellarErrors.SW_SWAP_CHECKING_FAIL
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
+        # send_simple_sign_tx() also asserts the validity of the returned signature
         StellarClient(self.backend).send_simple_sign_tx(path="m/44'/148'/0'",
                                                         network=Network.MAINNET,
                                                         fees=fees,
                                                         memo=memo,
                                                         destination=destination,
                                                         send_amount=send_amount)
-        # TODO : assert signature validity
 
 
 # Use a class to reuse the same Speculos instance
