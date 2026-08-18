@@ -199,7 +199,9 @@ int check_addresses_and_amounts(const command_t *cmd) {
     // We received the coin configuration from the CAL and its signature. Check the signature
     if (!check_coin_configuration_signature(config, der)) {
         PRINTF("Error: Fail to verify signature of coin config\n");
+#ifndef BYPASS_CHECK_COIN_CFG
         return reply_error(SIGN_VERIFICATION_FAIL);
+#endif
     }
 
     // Break up the configuration into its individual elements

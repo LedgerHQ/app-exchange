@@ -21,7 +21,9 @@ int check_partner(const command_t *cmd) {
                                   cmd->data.bytes,
                                   cmd->data.size)) {
         PRINTF("Error: Failed to verify signature of partner data\n");
+#ifndef BYPASS_CHECK_PARTNER
         return reply_error(SIGN_VERIFICATION_FAIL);
+#endif
     }
 
     if (reply_success() < 0) {
