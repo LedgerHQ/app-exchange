@@ -39,7 +39,8 @@ class TronTrxTests(TronTests):
                                          memo=memo,
                                          destination=destination,
                                          send_amount=send_amount,
-                                         token="TRX")
+                                         token="TRX",
+                                         fees=fees)
         # TODO : assert signature validity
 
 
@@ -60,7 +61,8 @@ class TronUsdtTests(TronTests):
                                          memo=memo,
                                          destination=destination,
                                          send_amount=send_amount,
-                                         token="USDT")
+                                         token="USDT",
+                                         fees=fees)
         # TODO : assert signature validity
 
 
@@ -81,7 +83,8 @@ class TronUsdcTests(TronTests):
                                          memo=memo,
                                          destination=destination,
                                          send_amount=send_amount,
-                                         token="USDC")
+                                         token="USDC",
+                                         fees=fees)
         # TODO : assert signature validity
 
 
@@ -102,7 +105,8 @@ class TronTusdTests(TronTests):
                                          memo=memo,
                                          destination=destination,
                                          send_amount=send_amount,
-                                         token="TUSD")
+                                         token="TUSD",
+                                         fees=fees)
 
 class TestsTusd:
     @pytest.mark.parametrize('test_to_run', ALL_TESTS_EXCEPT_THORSWAP_AND_FEES)
@@ -128,7 +132,8 @@ class TronTrxToUsdtTests(TronTests):
                                              memo=memo,
                                              destination=destination,
                                              send_amount=send_amount,
-                                             token="USDT")
+                                             token="USDT",
+                                             fees=fees)
         assert e.value.status == self.signature_refusal_error_code
 
 
@@ -150,7 +155,8 @@ class TronUsdttoTrxTests(TronTests):
                                              memo=memo,
                                              destination=destination,
                                              send_amount=send_amount,
-                                             token="TRX")
+                                             token="TRX",
+                                             fees=fees)
         assert e.value.status == self.signature_refusal_error_code
 
 
@@ -172,7 +178,8 @@ class TronUsdtoUsdcTests(TronTests):
                                              memo=memo,
                                              destination=destination,
                                              send_amount=send_amount,
-                                             token="USDC")
+                                             token="USDC",
+                                             fees=fees)
         assert e.value.status == self.signature_refusal_error_code
 
 

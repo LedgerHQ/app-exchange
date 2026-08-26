@@ -105,12 +105,14 @@ class TronClient:
                       contractType,
                       contract,
                       data=None,
-                      permission_id=None):
+                      permission_id=None,
+                      fee_limit=0):
         tx = tron.Transaction()
         tx.raw_data.timestamp = 1575712492061
         tx.raw_data.expiration = 1575712551000
         tx.raw_data.ref_block_hash = bytes.fromhex("95DA42177DB00507")
         tx.raw_data.ref_block_bytes = bytes.fromhex("3DCE")
+        tx.raw_data.fee_limit = fee_limit
         if data:
             tx.raw_data.custom_data = data.encode()
 
@@ -125,16 +127,17 @@ class TronClient:
             c.Permission_id = permission_id
         return tx.raw_data.SerializeToString()
 
-    def _craft_trx_send_tx(self, memo: str, owner_address: bytes, to_address: bytes, send_amount: int) -> bytes:
+    def _craft_trx_send_tx(self, memo: str, owner_address: bytes, to_address: bytes, send_amount: int, fees: int) -> bytes:
         contract = Contract.TransferContract(owner_address=owner_address,
                                              to_address=to_address,
                                              amount=send_amount)
 
         return self._packContract(tron.Transaction.Contract.TransferContract,
                                   contract,
-                                  memo)
+                                  memo,
+                                  fee_limit=fees)
 
-    def _craft_trc20_send_tx(self, memo: str, owner_address: bytes, to_address: bytes, send_amount: int, token: str) -> bytes:
+    def _craft_trc20_send_tx(self, memo: str, owner_address: bytes, to_address: bytes, send_amount: int, token: str, fees: int) -> bytes:
         if token == "USDT":
             contract_address = bytes.fromhex("41a614f803b6fd780986a42c78ec9c7f77e6ded13c")
         elif token == "USDC":
@@ -157,14 +160,16 @@ class TronClient:
 
         return self._packContract(tron.Transaction.Contract.TriggerSmartContract,
                                   contract,
-                                  memo)
+                                  memo,
+                                  fee_limit=fees)
 
     def send_tx(self,
                 path: str,
                 memo: str,
                 destination: str,
                 send_amount: int,
-                token: str) -> RAPDU:
+                token: str,
+                fees: int = 0) -> RAPDU:
 
         if not self.owner_address:
             rapdu = self.send_get_public_key_non_confirm(path)
@@ -176,9 +181,9 @@ class TronClient:
         data = pack_derivation_path(path)
 
         if token == "TRX":
-            data += self._craft_trx_send_tx(memo, self.owner_address, to_address, send_amount)
+            data += self._craft_trx_send_tx(memo, self.owner_address, to_address, send_amount, fees)
         else:
-            data += self._craft_trc20_send_tx(memo, self.owner_address, to_address, send_amount, token)
+            data += self._craft_trc20_send_tx(memo, self.owner_address, to_address, send_amount, token, fees)
         assert len(data) < MAX_APDU_LEN
 
         return self._backend.exchange(CLA, InsType.SIGN, P1.SIGN, 0x00, data)
