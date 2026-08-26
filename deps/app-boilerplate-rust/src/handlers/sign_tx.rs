@@ -1,0 +1,196 @@
+/*****************************************************************************
+ *   Ledger App Boilerplate Rust.
+ *   (c) 2023 Ledger SAS.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *****************************************************************************/
+use crate::app_ui::sign::ui_display_tx;
+use crate::utils::Bip32Path;
+use crate::AppSW;
+use alloc::vec::Vec;
+use ledger_device_sdk::ecc::{Secp256k1, SeedDerive};
+use ledger_device_sdk::hash::{sha3::Keccak256, HashInit};
+use ledger_device_sdk::io::{Command, CommandResponse};
+use ledger_device_sdk::log;
+use ledger_device_sdk::nbgl::NbglHomeAndSettings;
+
+use serde::Deserialize;
+use serde_json_core::from_slice;
+
+const MAX_TRANSACTION_LEN: usize = 510;
+
+use ledger_device_sdk::libcall::swap::CreateTxParams;
+
+#[derive(Deserialize)]
+pub struct Tx<'a> {
+    #[allow(dead_code)]
+    nonce: u64,
+    pub coin: &'a str,
+    pub value: u64,
+    #[serde(with = "hex::serde")] // Allows JSON deserialization from hex string
+    pub to: [u8; 20],
+    pub memo: &'a str,
+}
+
+/// Transaction context holding state between APDU chunks.
+pub struct TxContext<'a> {
+    raw_tx: Vec<u8>,
+    path: Bip32Path,
+    review_finished: bool,
+    pub home: NbglHomeAndSettings,
+    /// Swap parameters if running in swap mode.
+    /// Used to validate the transaction against the Exchange's request.
+    pub swap_params: Option<&'a CreateTxParams>,
+}
+
+// Implement constructor for TxInfo with default values
+impl<'a> TxContext<'a> {
+    // Constructor
+    pub fn new() -> TxContext<'a> {
+        TxContext {
+            raw_tx: Vec::new(),
+            path: Default::default(),
+            review_finished: false,
+            home: Default::default(),
+            swap_params: None,
+        }
+    }
+
+    pub fn new_with_swap(params: &'a CreateTxParams) -> TxContext<'a> {
+        TxContext {
+            raw_tx: Vec::new(),
+            path: Default::default(),
+            review_finished: false,
+            home: Default::default(),
+            swap_params: Some(params),
+        }
+    }
+
+    // Get review status
+    #[allow(dead_code)]
+    pub fn finished(&self) -> bool {
+        self.review_finished
+    }
+    // Implement reset for TxInfo
+    fn reset(&mut self) {
+        self.raw_tx.clear();
+        self.path = Default::default();
+        self.review_finished = false;
+    }
+}
+
+/// Handler for the Sign Transaction APDU.
+///
+/// Receives transaction chunks, parses them, and signs the transaction.
+///
+/// # Swap Mode
+///
+/// If `ctx.swap_params` is present:
+/// 1. Validates the parsed transaction against the swap parameters (amount, destination).
+/// 2. If valid, bypasses the UI and signs immediately.
+/// 3. If invalid, returns an error.
+pub fn handler_sign_tx<'a>(
+    command: Command<'a>,
+    chunk: u8,
+    more: bool,
+    ctx: &mut TxContext,
+) -> Result<CommandResponse<'a>, AppSW> {
+    log::debug!("=> handler_sign_tx");
+    // Try to get data from command
+    let data = command.get_data();
+    // First chunk, try to parse the path
+    if chunk == 0 {
+        log::debug!("Chunk 0: Path parsing");
+        // Reset transaction context
+        ctx.reset();
+        // This will propagate the error if the path is invalid
+        ctx.path = data.try_into()?;
+        Ok(command.into_response())
+    // Next chunks, append data to raw_tx and return or parse
+    // the transaction if it is the last chunk.
+    } else {
+        if ctx.raw_tx.len() + data.len() > MAX_TRANSACTION_LEN {
+            return Err(AppSW::TxWrongLength);
+        }
+
+        // Append data to raw_tx
+        ctx.raw_tx.extend(data);
+
+        // If we expect more chunks, return
+        if more {
+            ctx.review_finished = false;
+            Ok(command.into_response())
+        // Otherwise, try to parse the transaction
+        } else {
+            // --8<-- [start:ui_bypass]
+            log::debug!("Last chunk received, parsing tx");
+            // Try to deserialize the transaction
+            let (tx, _): (Tx, usize) = from_slice(&ctx.raw_tx).map_err(|_| AppSW::TxParsingFail)?;
+            log::debug!("Tx parsed successfully");
+
+            // Check if in swap mode
+            if let Some(params) = ctx.swap_params {
+                ctx.review_finished = true;
+                // --8<-- [start:SwapError_usage]
+                if let Err(error) = crate::swap::check_swap_params(params, &tx) {
+                    // The swap validation failed and returned us the common format error defined by the SDK
+                    // Use SDK method to append error code and message in standard format
+                    let mut response = command.into_response();
+                    error.append_to_response(&mut response)?;
+                    Err(AppSW::SwapFail)
+                } else {
+                    log::debug!("Swap validation success, bypassing UI");
+                    compute_signature_and_append(command.into_response(), ctx)
+                }
+                // --8<-- [end:SwapError_usage]
+            } else {
+                log::debug!("Normal mode, showing UI");
+                // Display transaction. If user approves
+                // the transaction, sign it. Otherwise,
+                // return a "deny" status word.
+
+                let comm = command.into_comm();
+
+                if ui_display_tx(comm, &tx)? {
+                    ctx.review_finished = true;
+                    compute_signature_and_append(comm.begin_response(), ctx)
+                } else {
+                    ctx.review_finished = true;
+                    Err(AppSW::Deny)
+                }
+            }
+            // --8<-- [end:ui_bypass]
+        }
+    }
+}
+
+fn compute_signature_and_append<'a>(
+    mut response: CommandResponse<'a>,
+    ctx: &mut TxContext,
+) -> Result<CommandResponse<'a>, AppSW> {
+    log::debug!("Signing transaction");
+    let mut keccak256 = Keccak256::new();
+    let mut message_hash: [u8; 32] = [0u8; 32];
+
+    let _ = keccak256.hash(&ctx.raw_tx, &mut message_hash);
+
+    let (sig, siglen, parity) = Secp256k1::derive_from_path(ctx.path.as_ref())
+        .deterministic_sign(&message_hash)
+        .map_err(|_| AppSW::TxSignFail)?;
+
+    response
+        .append(&[siglen as u8])?
+        .append(&sig[..siglen as usize])?
+        .append(&[parity as u8])?;
+    Ok(response)
+}

@@ -1,0 +1,1504 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Rust programming language coding conventions and best practices">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../../img/Ledger-logo-696.webp">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Ledger Embedded Rust Rules - Ledger Swap documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ledger-embedded-rust-rules" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../../.." title="Ledger Swap documentation" class="md-header__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ledger Swap documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ledger Embedded Rust Rules
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../../.." title="Ledger Swap documentation" class="md-nav__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    Ledger Swap documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../walkthrough/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enabling the SWAP on your application
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Enabling the SWAP on your application
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../walkthrough/prerequisite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prerequisite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../walkthrough/run_first_test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running an existing SWAP test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../walkthrough/enable_the_swap_compilation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First compilation with the standard SWAP
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    First compilation with the standard SWAP
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../walkthrough/enable_the_swap_compilation/c/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For C applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../walkthrough/enable_the_swap_compilation/rust/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Rust applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../walkthrough/enable_standard_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a basic SWAP test for you coin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../walkthrough/code_the_handlers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code the handlers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../technical_information/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Information
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Technical Information
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exchange Protocol API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/protobuf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction proposal (protobuf)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/fund_and_sell/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FUND and SELL flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/cal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Crypto Asset List (CAL)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/bss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSS safety in coin applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../technical_information/coin_application_api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coin Application API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Coin Application API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/coin_application_api/entry_point/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coin application entry point
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/coin_application_api/swap_handle_check_address/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CHECK_ADDRESS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/coin_application_api/swap_handle_get_printable_amount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GET_PRINTABLE_AMOUNT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_8_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../../technical_information/coin_application_api/sign_transaction/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SIGN_TRANSACTION
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_8_5" id="__nav_3_8_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_8_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SIGN_TRANSACTION
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/coin_application_api/sign_transaction/swap_copy_transaction_parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Copy Transaction Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/coin_application_api/sign_transaction/ui_bypass/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI bypass
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/coin_application_api/sign_transaction/error_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../../technical_information/dale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The DALE tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#general-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        General Instructions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#patterns-to-follow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patterns to Follow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Patterns to Follow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ownership-borrowing-and-lifetimes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ownership, Borrowing, and Lifetimes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#patterns-to-avoid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Patterns to Avoid
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Error Handling
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-to-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How to build
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="How to build">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#build-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-organization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project Organization
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="ledger-embedded-rust-rules">Ledger Embedded Rust Rules</h1>
+<h2 id="general-instructions">General Instructions</h2>
+<ul>
+<li>Always prioritize readability, safety, and maintainability.</li>
+<li>Use strong typing and leverage Rust's ownership system for memory safety.</li>
+<li>Break down complex functions into smaller, more manageable functions.</li>
+<li>For algorithm-related code, include explanations of the approach used.</li>
+<li>Write code with good maintainability practices, including comments on why certain design decisions were made.</li>
+<li>Handle errors gracefully using <code>Result&lt;T, E&gt;</code> and provide meaningful error messages.</li>
+<li>For external dependencies, mention their usage and purpose in documentation.</li>
+<li>Use consistent naming conventions following <a href="https://github.com/rust-lang/rfcs/blob/master/text/0430-finalizing-naming-conventions.md">RFC 430</a>.</li>
+<li>Write idiomatic, safe, and efficient Rust code that follows the borrow checker's rules.</li>
+<li>Ensure code compiles without warnings.</li>
+</ul>
+<h2 id="patterns-to-follow">Patterns to Follow</h2>
+<ul>
+<li>Use modules (<code>mod</code>) and public interfaces (<code>pub</code>) to encapsulate logic.</li>
+<li>Handle errors properly using <code>?</code>, <code>match</code>, or <code>if let</code>.</li>
+<li>Implement traits to abstract services or external dependencies.</li>
+<li>Prefer enums over flags and states for type safety.</li>
+<li>Use builders for complex object creation.</li>
+<li>Use iterators instead of index-based loops as they're often faster and safer.</li>
+<li>Use <code>&amp;str</code> instead of <code>String</code> for function parameters when you don't need ownership.</li>
+<li>Prefer borrowing and zero-copy operations to avoid unnecessary allocations.</li>
+</ul>
+<h3 id="ownership-borrowing-and-lifetimes">Ownership, Borrowing, and Lifetimes</h3>
+<ul>
+<li>Prefer borrowing (<code>&amp;T</code>) over cloning unless ownership transfer is necessary.</li>
+<li>Use <code>&amp;mut T</code> when you need to modify borrowed data.</li>
+<li>Explicitly annotate lifetimes when the compiler cannot infer them.</li>
+</ul>
+<h2 id="patterns-to-avoid">Patterns to Avoid</h2>
+<ul>
+<li>Don't use <code>unwrap()</code> or <code>expect()</code> unless failure is truly impossible or represents an unrecoverable state.</li>
+<li>Avoid panics in library code—return <code>Result</code> instead.</li>
+<li>Avoid deeply nested logic—refactor with functions or combinators.</li>
+<li>Dependencies must be checked with <code>cargo audit</code> to ensure no known impactful vulnerabilities are present.</li>
+<li>Avoid <code>unsafe</code> unless required and fully documented. All <code>unsafe</code> blocks must be justified in a comment.</li>
+</ul>
+<h2 id="error-handling">Error Handling</h2>
+<ul>
+<li>Use <code>Result&lt;T, E&gt;</code> for recoverable errors and <code>panic!</code> only for unrecoverable errors.</li>
+<li>Prefer <code>?</code> operator over <code>unwrap()</code> or <code>expect()</code> for error propagation.</li>
+<li>Use <code>Option&lt;T&gt;</code> for values that may or may not exist.</li>
+<li>Provide meaningful error messages and context.</li>
+<li>Validate function arguments and return appropriate errors for invalid input.</li>
+</ul>
+<h2 id="how-to-build">How to build</h2>
+<h3 id="configuration">Configuration</h3>
+<ul>
+<li>Supported devices are listed in <code>[app].devices</code> inside <code>ledger_app.toml</code>.</li>
+<li>Rust apps are built per device with <a href="https://github.com/LedgerHQ/cargo-ledger"><code>cargo-ledger</code></a>. The target device is selected by its cargo target name:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;"><code>ledger_app.toml</code> device</th>
+<th style="text-align: left;">cargo target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>nanos+</code></td>
+<td style="text-align: left;"><code>nanosplus</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>nanox</code></td>
+<td style="text-align: left;"><code>nanox</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>stax</code></td>
+<td style="text-align: left;"><code>stax</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>flex</code></td>
+<td style="text-align: left;"><code>flex</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>apex_p</code></td>
+<td style="text-align: left;"><code>apex_p</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The toolchain is pinned in <code>rust-toolchain.toml</code>. Building <code>core</code>/<code>alloc</code> for the device target requires the unstable <code>build-std</code> feature, configured in <code>.cargo/config.toml</code>.</li>
+<li><code>.cargo/config.toml</code> may declare a default cargo target; commands without an explicit target build for it.</li>
+<li>The application must compile without errors or warnings. Run <code>cargo fmt --check</code> and <code>cargo clippy</code> before submitting; warnings must not be silenced without a documented reason.</li>
+<li>Heap is 8192 bytes by default. Override via <code>HEAP_SIZE</code> env var; allowed values: 2048, 4096, 8192, 16384, 24576.</li>
+</ul>
+<h3 id="docker-environment">Docker Environment</h3>
+<ul>
+<li><strong>Image discovery:</strong> Run <code>docker images | grep ledger</code> before any <code>docker run</code>. Do NOT assume a hardcoded image name.</li>
+<li><strong>Common image:</strong> <code>ghcr.io/ledgerhq/ledger-app-builder/ledger-app-dev-tools:latest</code> (includes the Rust toolchain, <code>cargo-ledger</code>, Speculos, enforcer). <code>cargo build</code> on the host will not produce a runnable binary — there is no host target.</li>
+<li><strong>Volume mount:</strong> Mount the project root to <code>/app</code> inside the container.</li>
+<li><strong>Host OS adaptation:</strong> Adapt Docker commands to the host OS (e.g., shell syntax for current directory, variable escaping).</li>
+</ul>
+<h3 id="build-command">Build command</h3>
+<p>Run <code>cargo ledger build &lt;TARGET&gt;</code>, replacing <code>&lt;TARGET&gt;</code> with the cargo target for the device (output: <code>target/&lt;TARGET&gt;/release/&lt;app-name&gt;</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>nanosplus<span class="w">       </span><span class="c1"># one of: nanox | nanosplus | stax | flex | apex_p</span>
+</code></pre></div>
+<p>Enable debug logging with the <code>debug</code> feature:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>nanosplus<span class="w"> </span>--<span class="w"> </span>--features<span class="w"> </span>debug
+</code></pre></div>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>Write clear and concise comments for each function, struct, enum, and complex logic.</li>
+<li>Ensure functions have descriptive names and include comprehensive documentation.</li>
+<li>Document all public APIs with rustdoc (<code>///</code> comments) following the <a href="https://rust-lang.github.io/api-guidelines/">API Guidelines</a>.</li>
+<li>Use <code>#[doc(hidden)]</code> to hide implementation details from public documentation.</li>
+<li>Document error conditions, panic scenarios, and safety considerations.</li>
+<li>Examples should use <code>?</code> operator, not <code>unwrap()</code> or deprecated <code>try!</code> macro.</li>
+</ul>
+<h2 id="project-organization">Project Organization</h2>
+<ul>
+<li>Use semantic versioning in <code>Cargo.toml</code>.</li>
+<li>Include comprehensive metadata: <code>description</code>, <code>license</code>, <code>repository</code>, <code>keywords</code>, <code>categories</code>.</li>
+<li>Use feature flags for optional functionality.</li>
+<li>Organize code into modules using <code>mod.rs</code> or named files.</li>
+<li>Keep <code>main.rs</code> or <code>lib.rs</code> minimal - move logic to modules.</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../../..", "features": ["navigation.indexes", "navigation.expand"], "search": "../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

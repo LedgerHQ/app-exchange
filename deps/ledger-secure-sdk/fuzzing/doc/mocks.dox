@@ -1,0 +1,101 @@
+/** @page fuzzing_mocks The mocks
+
+The `mock/` folder holds the small, app-owned host-side glue. Everything
+generic — crypto, NBGL, OS, syscalls, SDK libraries — is provided by the
+framework and linked through `secure_sdk`; do **not** reimplement it here.
+
+@section mck_required Required symbols
+
+`mock/mocks.h` declares the symbols the harness and framework read:
+
+@code{.c}
+#pragma once
+#include <stddef.h>
+#include <stdint.h>
+#include "fuzz_defs.h"
+#include "exceptions.h"
+
+extern try_context_t fuzz_exit_jump_ctx;   /* longjmp target used to unwind os_exit */
+
+extern const uint8_t *fuzz_tail_ptr;              /* APDU payload pointer */
+extern size_t         fuzz_tail_len;              /* APDU payload length */
+@endcode
+
+`mock/mocks.c` defines them:
+
+@code{.c}
+#include "mocks.h"
+
+const uint8_t *fuzz_tail_ptr = NULL;
+size_t         fuzz_tail_len = 0;
+@endcode
+
+@note `fuzz_app_cleanup()` is **not** required here. The framework ships a weak
+no-op default, so define it (in the harness or here) only if your target needs
+per-iteration teardown.
+
+@section mck_stubs Recommended stubs
+
+Most apps also add two small no-ops in `mocks.c`:
+
+@code{.c}
+#include <stdarg.h>
+
+/* PRINTF is removed from the macro set for fuzz builds (see the Build macros
+ * page) so app sources compile it as a real call. This keeps it a no-op. */
+int PRINTF(const char *format, ...) { (void) format; return 0; }
+
+/* Zeroing BSS would erase the prefix state Absolution restores each iteration. */
+void os_explicit_zero_BSS_segment(void) {}
+@endcode
+
+Add any other app-specific stub the fuzz build needs the same way (a hardware
+peripheral the host cannot provide, for instance). Keep them minimal and
+side-effect free.
+
+@section mck_noffsets No prefix offsets here
+
+Mocks describe app state; they never describe where that state lands inside
+Absolution's prefix. The harness takes its lane/command bytes from the head of
+its own input (see @ref fuzzing_harness), and the mutator needs only the prefix
+*size*, which the campaign supplies. If you find yourself wanting a byte offset
+in a mock, the input is the place to read it from instead.
+
+@section mck_overrides Overriding a shared mock
+
+Shared mocks that an app is expected to be able to replace are declared
+`__attribute__((weak))`. To override one, define the same symbol in an app mock
+source; the strong app definition wins at link time and no build configuration is
+needed. This is rarely necessary — prefer constraining the mock's control global
+in `invariants/domain-overrides.txt` (see @ref fuzzing_invariants), which lets
+Absolution drive both the success and failure paths instead of pinning one.
+
+Do **not** rely on link order to shadow a *non-weak* framework symbol. That
+happens to work today because the fuzz targets are linked with
+`-Wl,--allow-multiple-definition`, but it is silent in both directions: the app
+copy may win, or the framework copy may, depending on object order. If you need
+to override something that is not weak, make it weak in the SDK in the same
+change.
+
+@section mck_exit Exit codes are oracles
+
+`os_sched_exit()` is mocked to `longjmp` back to the harness so an app that exits does
+not end the campaign. Two exit codes are not ordinary exits and abort instead, so
+libFuzzer records the input as a crash and writes an artifact:
+
+| code | source | meaning |
+| ---- | ------ | ------- |
+| 255  | `ledger_assert.c` calls `os_sched_exit(-1)`; `bolos_task_status_t` is `unsigned char` | a `LEDGER_ASSERT` failed |
+| 37   | `stack_protector.c` | the BOLOS stack canary was found overwritten |
+
+Both mean the app caught itself in a state it considers impossible, which is what a
+campaign exists to find. Unwinding for them made both silent: a one-hour app-bitcoin-new
+campaign tripped a `LEDGER_ASSERT` and produced no crash, no artifact and no reproducer,
+because the input was a transient mutation that added no coverage and libFuzzer
+discarded it.
+
+@note `os_sched_exit(0)` still unwinds. `lib_standard_app/swap_error_code_helpers.c`
+uses it on ordinary paths.
+
+
+*/

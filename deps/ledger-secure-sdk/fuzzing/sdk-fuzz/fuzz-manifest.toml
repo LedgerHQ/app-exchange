@@ -1,0 +1,333 @@
+# SDK self-fuzz manifest (multi-target).
+
+[sdk]
+harness_version = "2"
+
+[coverage]
+exclude_regexes = [
+    '.*fuzzing/mock/.*',
+    '.*fuzzing/sdk-fuzz/mock/.*',
+    '.*fuzzer\.c',
+    '.*fuzz_dispatcher\.c',
+    '.*fuzzing/sdk-fuzz/harness/.*',
+]
+
+[[targets]]
+fuzzer = "fuzz_alloc"
+key_files = ["lib_alloc/mem_alloc.c"]
+seeds = { ins = [0x01] }
+
+[targets.dictionary]
+tokens = [
+    { name = "op_alloc",   value = "M" },
+    { name = "op_free",    value = "F" },
+    { name = "op_realloc", value = "R" },
+    { name = "op_stat",    value = "S" },
+    { name = "op_parse",   value = "P" },
+    { name = "sz_zero",    value = "\\x00\\x00" },
+    { name = "sz_one",     value = "\\x01\\x00" },
+    { name = "sz_8",       value = "\\x08\\x00" },
+    { name = "sz_256",     value = "\\x00\\x01" },
+    { name = "sz_max",     value = "\\xF0\\x7F" },
+]
+
+[[targets]]
+fuzzer = "fuzz_alloc_utils"
+key_files = ["lib_alloc/app_mem_utils.c"]
+seeds = { ins = [0x01] }
+
+[targets.dictionary]
+tokens = [
+    { name = "op0_alloc",   value = "\\x00" },
+    { name = "op1_calloc",  value = "\\x01" },
+    { name = "op2_strdup",  value = "\\x02" },
+    { name = "op3_free",    value = "\\x03" },
+    { name = "op4_freenul", value = "\\x04" },
+]
+
+[[targets]]
+fuzzer = "fuzz_lists"
+key_files = ["lib_lists/lists.c"]
+seeds = { ins = [0x01] }
+
+[targets.dictionary]
+tokens = [
+    { name = "op_push_front",    value = "\\x00" },
+    { name = "op_push_back",     value = "\\x01" },
+    { name = "op_pop_front",     value = "\\x02" },
+    { name = "op_pop_back",      value = "\\x03" },
+    { name = "op_insert_after",  value = "\\x04" },
+    { name = "op_insert_before", value = "\\x05" },
+    { name = "op_remove",        value = "\\x06" },
+    { name = "op_clear",         value = "\\x07" },
+    { name = "op_sort",          value = "\\x08" },
+    { name = "op_size",          value = "\\x09" },
+    { name = "op_reverse",       value = "\\x0A" },
+    { name = "op_empty",         value = "\\x0B" },
+    { name = "op_remove_if",     value = "\\x0C" },
+    { name = "op_unique",        value = "\\x0D" },
+    { name = "doubly_flag",      value = "\\x80" },
+]
+
+[[targets]]
+fuzzer = "fuzz_apdu_parser"
+key_files = ["lib_standard_app/parser.c"]
+seeds = { ins = [0x01, 0x02, 0x03] }
+
+[targets.dictionary]
+tokens = [
+    { name = "apdu_min",       value = "\\xE0\\x01\\x00\\x00" },
+    { name = "apdu_with_lc0",  value = "\\xE0\\x01\\x00\\x00\\x00" },
+    { name = "apdu_with_lc1",  value = "\\xE0\\x01\\x00\\x00\\x01\\xAA" },
+]
+
+[[targets]]
+fuzzer = "fuzz_base58"
+key_files = ["lib_standard_app/base58.c"]
+seeds = { ins = [0x01, 0x02, 0x03] }
+
+[targets.dictionary]
+tokens = [
+    { name = "b58_1",  value = "1" },
+    { name = "b58_2",  value = "2" },
+    { name = "b58_9",  value = "9" },
+    { name = "b58_A",  value = "A" },
+    { name = "b58_H",  value = "H" },
+    { name = "b58_Z",  value = "Z" },
+    { name = "b58_a",  value = "a" },
+    { name = "b58_k",  value = "k" },
+    { name = "b58_z",  value = "z" },
+    { name = "b58_leading", value = "11111" },
+    { name = "b58_addr",    value = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa" },
+]
+
+[[targets]]
+fuzzer = "fuzz_bip32"
+key_files = ["lib_standard_app/bip32.c"]
+seeds = { ins = [0x01, 0x02, 0x03] }
+
+[targets.dictionary]
+tokens = [
+    { name = "bip32_44h",     value = "\\x80\\x00\\x00\\x2C" },
+    { name = "bip32_0h",      value = "\\x80\\x00\\x00\\x00" },
+    { name = "bip32_0",       value = "\\x00\\x00\\x00\\x00" },
+    { name = "bip32_1",       value = "\\x00\\x00\\x00\\x01" },
+    { name = "bip32_60h",     value = "\\x80\\x00\\x00\\x3C" },
+    { name = "bip32_ffff",    value = "\\xFF\\xFF\\xFF\\xFF" },
+]
+
+[[targets]]
+fuzzer = "fuzz_qrcodegen"
+key_files = ["qrcode/src/qrcodegen.c"]
+seeds = { ins = [0x01] }
+
+[targets.dictionary]
+tokens = [
+    { name = "ecc_low",     value = "\\x00" },
+    { name = "ecc_medium",  value = "\\x01" },
+    { name = "ecc_quarter", value = "\\x02" },
+    { name = "ecc_high",    value = "\\x03" },
+    { name = "mode_bin",    value = "\\x00" },
+    { name = "mode_text",   value = "\\x01" },
+    { name = "numeric_str", value = "0123456789" },
+    { name = "alphanum",    value = "HELLO WORLD" },
+]
+
+[[targets]]
+fuzzer = "fuzz_tlv_dynamic_descriptor"
+key_files = ["lib_tlv/tlv_library.c", "lib_tlv/use_cases/tlv_use_case_dynamic_descriptor.c"]
+seeds = { ins = [0x01] }
+
+[targets.dictionary]
+tokens = [
+    { name = "tag_struct_type",  value = "\\x01" },
+    { name = "tag_version",      value = "\\x02" },
+    { name = "tag_coin_type",    value = "\\x03" },
+    { name = "tag_app_name",     value = "\\x04" },
+    { name = "tag_ticker",       value = "\\x05" },
+    { name = "tag_magnitude",    value = "\\x06" },
+    { name = "tag_tuid",         value = "\\x07" },
+    { name = "tag_signature",    value = "\\x08" },
+    { name = "der_short_len",    value = "\\x04" },
+    { name = "der_long_1b",      value = "\\x81" },
+    { name = "der_long_2b",      value = "\\x82" },
+    { name = "type_dyn_token",   value = "\\x90" },
+    { name = "struct_v0",        value = "\\x01\\x01\\x00" },
+    { name = "struct_v1",        value = "\\x01\\x01\\x01" },
+]
+
+[[targets]]
+fuzzer = "fuzz_tlv_trusted_name"
+key_files = ["lib_tlv/tlv_library.c", "lib_tlv/use_cases/tlv_use_case_trusted_name.c"]
+seeds = { ins = [0x01] }
+
+[targets.dictionary]
+tokens = [
+    { name = "tag_struct_type",    value = "\\x01" },
+    { name = "tag_version",        value = "\\x02" },
+    { name = "tag_not_valid",      value = "\\x10" },
+    { name = "tag_challenge",      value = "\\x12" },
+    { name = "tag_signer_key",     value = "\\x13" },
+    { name = "tag_signer_algo",    value = "\\x14" },
+    { name = "tag_der_sig",        value = "\\x15" },
+    { name = "tag_trusted_name",   value = "\\x20" },
+    { name = "tag_address",        value = "\\x22" },
+    { name = "tag_chain_id",       value = "\\x23" },
+    { name = "tag_tn_type",        value = "\\x70" },
+    { name = "tag_tn_source",      value = "\\x71" },
+    { name = "tag_nft_id",         value = "\\x72" },
+    { name = "tag_src_contract",   value = "\\x73" },
+    { name = "der_long_1b",        value = "\\x81" },
+    { name = "der_long_2b",        value = "\\x82" },
+]
+
+[[targets]]
+fuzzer = "fuzz_nfc_ndef"
+key_files = ["lib_nfc/src/nfc_ndef.c"]
+seeds = { ins = [0x01] }
+
+[targets.dictionary]
+tokens = [
+    { name = "ndef_text",    value = "\\x01" },
+    { name = "ndef_uri",     value = "\\x02" },
+    { name = "uri_http",     value = "\\x01" },
+    { name = "uri_https",    value = "\\x02" },
+    { name = "uri_http_www", value = "\\x03" },
+    { name = "uri_https_www", value = "\\x04" },
+    { name = "uri_tel",      value = "\\x05" },
+    { name = "uri_mailto",   value = "\\x06" },
+    { name = "uri_ftp",      value = "\\x0D" },
+    { name = "uri_ftps",     value = "\\x0E" },
+    { name = "uri_max",      value = "\\x23" },
+]
+
+[[targets]]
+fuzzer = "fuzz_address_book"
+key_files = [
+    "app_features/address_book/src/address_book.c",
+    "app_features/address_book/src/address_book_common.c",
+    "app_features/address_book/src/address_book_crypto.c",
+    "app_features/address_book/src/identity_register.c",
+    "app_features/address_book/src/identity_edit_contact_name.c",
+    "app_features/address_book/src/identity_edit_identifier.c",
+    "app_features/address_book/src/identity_edit_scope.c",
+    "app_features/address_book/src/identity_provide_contact.c",
+    "app_features/address_book/src/ledger_account_register.c",
+    "app_features/address_book/src/ledger_account_edit.c",
+    "app_features/address_book/src/ledger_account_provide_contact.c",
+]
+[targets.seeds]
+cla = 0x00
+ins = [0x01, 0x02, 0x03, 0x04, 0x11, 0x12, 0x20, 0x21]
+
+[targets.seeds.custom]
+enabled = true
+script  = "generate-seeds-address-book.py"
+
+[targets.dictionary]
+tokens = [
+    # TLV tags — all address-book flows
+    { name = "tag_struct_type",      value = "\\x01" },
+    { name = "tag_struct_version",   value = "\\x02" },
+    { name = "tag_chain_id",         value = "\\x23" },
+    { name = "tag_hmac_proof",       value = "\\x29" },
+    { name = "tag_blockchain_fam",   value = "\\x51" },
+    { name = "tag_deriv_path",       value = "\\x69" },
+    { name = "tag_contact_name",     value = "\\xf0" },
+    { name = "tag_scope",            value = "\\xf1" },
+    { name = "tag_identifier",       value = "\\xf2" },
+    { name = "tag_prev_name",        value = "\\xf3" },
+    { name = "tag_prev_identifier",  value = "\\xf4" },
+    { name = "tag_prev_scope",       value = "\\xf5" },
+    { name = "tag_group_handle",     value = "\\xf6" },
+    { name = "tag_hmac_rest",        value = "\\xf7" },
+    # STRUCTURE_TYPE values — exact byte the parser enforces per command type
+    { name = "type_register_id",          value = "\\x2d" },
+    { name = "type_edit_name",            value = "\\x2e" },
+    { name = "type_reg_ledger_acct",      value = "\\x2f" },
+    { name = "type_edit_ledger_acct",     value = "\\x30" },
+    { name = "type_edit_identifier",      value = "\\x31" },
+    { name = "type_edit_scope",           value = "\\x32" },
+    { name = "type_provide_contact",      value = "\\x33" },
+    { name = "type_provide_la_contact",   value = "\\x34" },
+    # STRUCTURE_VERSION — every descriptor type uses version 0x01
+    { name = "struct_version_1",     value = "\\x01" },
+    # P1 values (APDU sub-command selectors)
+    { name = "p1_register_id",    value = "\\x01" },
+    { name = "p1_edit_name",      value = "\\x02" },
+    { name = "p1_edit_id",        value = "\\x03" },
+    { name = "p1_edit_scope",     value = "\\x04" },
+    { name = "p1_reg_la",         value = "\\x11" },
+    { name = "p1_edit_la",        value = "\\x12" },
+    { name = "p1_provide_id",     value = "\\x20" },
+    { name = "p1_provide_la",     value = "\\x21" },
+    # Blockchain family byte values (only 0x00 and 0x01 are valid)
+    { name = "fam_bitcoin",       value = "\\x00" },
+    { name = "fam_ethereum",      value = "\\x01" },
+    # BIP32 path components
+    { name = "bip32_count_5",     value = "\\x05" },
+    { name = "bip32_hard",        value = "\\x80\\x00\\x00\\x00" },
+    { name = "bip32_44h",         value = "\\x80\\x00\\x00\\x2C" },
+    { name = "bip32_60h",         value = "\\x80\\x00\\x00\\x3C" },
+    { name = "bip32_0",           value = "\\x00\\x00\\x00\\x00" },
+    # Ethernet mainnet chain ID (big-endian uint64 = 1)
+    { name = "chain_id_eth_mainnet", value = "\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x01" },
+]
+
+[[targets]]
+fuzzer = "fuzz_address_book_crypto"
+key_files = [
+    "app_features/address_book/src/address_book_crypto.c",
+]
+# Seeds: byte[0]=flags (0=all syscalls succeed), byte[1]=sel (function variant).
+# One seed per variant so the fuzzer starts with every function reachable.
+seeds = { cla = 0x00, ins = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b] }
+
+[targets.dictionary]
+tokens = [
+    # flags byte: bit0=hmac_fail, bit1=hmac_verify_fail
+    { name = "flags_none",          value = "\\x00" },
+    { name = "flags_hmac_fail",     value = "\\x01" },
+    { name = "flags_verify_fail",   value = "\\x02" },
+    { name = "flags_both_fail",     value = "\\x03" },
+    # sel variants (0-11)
+    { name = "sel_gen_gh",          value = "\\x00" },
+    { name = "sel_verify_gh",       value = "\\x01" },
+    { name = "sel_compute_proof",   value = "\\x02" },
+    { name = "sel_verify_proof",    value = "\\x03" },
+    { name = "sel_compute_rest",    value = "\\x04" },
+    { name = "sel_verify_rest",     value = "\\x05" },
+    { name = "sel_send_proof",      value = "\\x06" },
+    { name = "sel_send_reg_resp",   value = "\\x07" },
+    { name = "sel_compute_la",      value = "\\x08" },
+    { name = "sel_verify_la",       value = "\\x09" },
+    { name = "sel_new_group_path",  value = "\\x0a" },
+    { name = "sel_exist_group_path",value = "\\x0b" },
+    # Blockchain family values
+    { name = "fam_bitcoin",         value = "\\x00" },
+    { name = "fam_ethereum",        value = "\\x01" },
+    # GID / group_handle sizes (32 and 64 bytes of known bytes)
+    { name = "gid_zeros",           value = "\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00" },
+    { name = "hmac_zeros",          value = "\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00" },
+    # Ethereum chain IDs (big-endian uint64)
+    { name = "chain_id_mainnet",    value = "\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x01" },
+    { name = "chain_id_polygon",    value = "\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x89" },
+]
+
+[[targets]]
+fuzzer = "fuzz_nbgl_page"
+key_files = ["lib_nbgl/src/nbgl_page.c", "lib_nbgl/src/nbgl_layout.c"]
+seeds = { ins = [0x01] }
+
+[targets.dictionary]
+tokens = [
+    { name = "sel_tagvalue", value = "\\x00" },
+    { name = "sel_switches", value = "\\x01" },
+    { name = "sel_infos",    value = "\\x02" },
+    { name = "count_zero",   value = "\\x00" },
+    { name = "count_one",    value = "\\x01" },
+    { name = "count_max",    value = "\\x08" },
+    { name = "str_amount",   value = "Amount" },
+    { name = "str_addr",     value = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" },
+    { name = "str_long",     value = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" },
+]

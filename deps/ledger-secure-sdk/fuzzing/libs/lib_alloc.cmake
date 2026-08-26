@@ -1,0 +1,11 @@
+include_guard()
+include(${BOLOS_SDK}/fuzzing/macros/macros.cmake)
+
+file(GLOB LIB_ALLOC_SOURCES CONFIGURE_DEPENDS "${BOLOS_SDK}/lib_alloc/*.c")
+
+add_library(alloc STATIC ${LIB_ALLOC_SOURCES})
+target_link_libraries(alloc PUBLIC macros)
+target_compile_options(alloc PRIVATE ${COMPILATION_FLAGS})
+target_include_directories(
+  alloc PUBLIC "${BOLOS_SDK}/include/" "${BOLOS_SDK}/lib_alloc/"
+                           "${BOLOS_SDK}/target/${TARGET}/include")

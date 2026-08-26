@@ -1,0 +1,17 @@
+#pragma once
+
+#include "bolos_target.h"
+
+#if defined(TARGET_NANOX)
+#define SHARED_TRAMPOLINE_ADDR 0x00210001
+#elif defined(TARGET_NANOS2)
+#define SHARED_TRAMPOLINE_ADDR 0x00808001
+#elif defined(TARGET_STAX)
+#define SHARED_TRAMPOLINE_ADDR 0x00808001
+#elif defined(TARGET_FLEX)
+#define SHARED_TRAMPOLINE_ADDR 0x00808001
+#elif defined(TARGET_APEX_P)
+#define SHARED_TRAMPOLINE_ADDR 0x00808001
+#elif defined(TARGET_APEX_M)
+#define SHARED_TRAMPOLINE_ADDR 0x00808001
+#endif

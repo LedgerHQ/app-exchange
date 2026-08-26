@@ -1,0 +1,1918 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Ledger Swap">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../img/Ledger-logo-696.webp">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Changelog - Ledger Swap documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../.." title="Ledger Swap documentation" class="md-header__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ledger Swap documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changelog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="Ledger Swap documentation" class="md-nav__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    Ledger Swap documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../walkthrough/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enabling the SWAP on your application
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Enabling the SWAP on your application
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/prerequisite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prerequisite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/run_first_test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running an existing SWAP test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../walkthrough/enable_the_swap_compilation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First compilation with the standard SWAP
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    First compilation with the standard SWAP
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/enable_the_swap_compilation/c/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For C applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/enable_the_swap_compilation/rust/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Rust applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/enable_standard_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a basic SWAP test for you coin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../walkthrough/code_the_handlers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code the handlers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../technical_information/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Information
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Technical Information
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exchange Protocol API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/protobuf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction proposal (protobuf)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/fund_and_sell/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FUND and SELL flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/cal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Crypto Asset List (CAL)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/bss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSS safety in coin applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../technical_information/coin_application_api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coin Application API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Coin Application API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/entry_point/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coin application entry point
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/swap_handle_check_address/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CHECK_ADDRESS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/swap_handle_get_printable_amount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GET_PRINTABLE_AMOUNT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_8_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../technical_information/coin_application_api/sign_transaction/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SIGN_TRANSACTION
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_8_5" id="__nav_3_8_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_8_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SIGN_TRANSACTION
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/sign_transaction/swap_copy_transaction_parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Copy Transaction Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/sign_transaction/ui_bypass/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI bypass
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/coin_application_api/sign_transaction/error_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../technical_information/dale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The DALE tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1370-2026-08-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.37.0] - 2026-08-24
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.37.0] - 2026-08-24">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deprecated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deprecated
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1362-2026-08-18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.36.2] - 2026-08-18
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.36.2] - 2026-08-18">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1361-2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.36.1] - 2026-07-02
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.36.1] - 2026-07-02">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1360-2026-07-02" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.36.0] - 2026-07-02
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.36.0] - 2026-07-02">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1353-2026-06-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.35.3] - 2026-06-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.35.3] - 2026-06-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1352-2026-06-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.35.2] - 2026-06-04
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.35.2] - 2026-06-04">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1351-2026-04-30" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.35.1] - 2026-04-30
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.35.1] - 2026-04-30">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1350-2026-04-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.35.0] - 2026-04-24
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.35.0] - 2026-04-24">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1340-2026-03-11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.34.0] - 2026-03-11
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.34.0] - 2026-03-11">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1331-2026-03-03" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.33.1] - 2026-03-03
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.33.1] - 2026-03-03">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1330-2026-02-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.33.0] - 2026-02-24
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.33.0] - 2026-02-24">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1321-2026-02-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.32.1] - 2026-02-19
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.32.1] - 2026-02-19">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1320-2026-02-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.32.0] - 2026-02-04
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.32.0] - 2026-02-04">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Added
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#changed_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1310-2026-01-15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.31.0] - 2026-01-15
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.31.0] - 2026-01-15">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1300-2026-01-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.30.0] - 2026-01-05
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.30.0] - 2026-01-05">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1291-2025-11-28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.29.1] - 2025-11-28
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.29.1] - 2025-11-28">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1290-2025-11-19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.29.0] - 2025-11-19
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.29.0] - 2025-11-19">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1280-2025-11-04" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        [1.28.0] - 2025-11-04
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="[1.28.0] - 2025-11-04">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changed_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="changelog">Changelog</h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<p>The format is based on <a href="https://keepachangelog.com/en/1.0.0/">Keep a Changelog</a>,
+and this project adheres to <a href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2 id="1370-2026-08-24">[1.37.0] - 2026-08-24</h2>
+<h3 id="added">Added</h3>
+<ul>
+<li><code>StatusWords::CmdNotAccepted</code> (0x6901). An APDU received while a previous
+  command is still being processed is now answered with this status word instead
+  of being queued or silently dropped. Note that adding a variant to the public
+  <code>StatusWords</code> enum breaks downstream exhaustive <code>match</code> expressions over it.</li>
+</ul>
+<h3 id="fixed">Fixed</h3>
+<ul>
+<li><code>io_new</code>: BOLOS internal APDUs (CLA 0xB0) arriving while an NBGL screen is
+  displayed are handled inline again instead of being answered
+  <code>CmdNotAccepted</code>. That handling was gated behind the <code>stack_usage</code> feature, so
+  default builds rejected OS level requests that <code>next_command</code> answers.</li>
+<li><code>io_new</code>: a double APDU is now answered on the polling iteration that detects
+  it. It used to be answered on the next one, so a screen completing in between
+  discarded it with no response at all, leaving the host waiting.</li>
+<li><code>io_new</code>: a malformed APDU received while a screen is displayed is answered
+  <code>BadLen</code> instead of being ignored, matching <code>next_command</code> and <code>io_legacy</code>.</li>
+<li><code>io_new</code>: rejecting an APDU no longer leaves <code>apdu_type</code> overwritten with the
+  rejected APDU's transport, which made the in-flight command reply on the
+  wrong channel.</li>
+</ul>
+<h3 id="deprecated">Deprecated</h3>
+<ul>
+<li><code>NbglHomeAndSettings::show()</code> is now marked with the <code>#[deprecated]</code> attribute,
+  matching what its documentation already stated. Use <code>show_and_return()</code>
+  instead, which does not force a home screen refresh for every received APDU.</li>
+</ul>
+<h2 id="1362-2026-08-18">[1.36.2] - 2026-08-18</h2>
+<h3 id="changed">Changed</h3>
+<ul>
+<li>updating ref to ledger_secure_sdk_sys to 1.16.4 (stack protector support,
+  <code>.init_array</code> removed from final link)</li>
+</ul>
+<h2 id="1361-2026-07-02">[1.36.1] - 2026-07-02</h2>
+<h3 id="changed_1">Changed</h3>
+<ul>
+<li>updating ref to ledger_secure_sdk_sys to 1.16.3</li>
+</ul>
+<h2 id="1360-2026-07-02">[1.36.0] - 2026-07-02</h2>
+<h3 id="added_1">Added</h3>
+<ul>
+<li>Build variants: up to 10 per app via the numbered <code>variant_0</code> … <code>variant_9</code>
+  cargo features. The matching <code>[package.metadata.ledger.variants.&lt;N&gt;]</code> table is
+  overlaid on the base <code>[package.metadata.ledger]</code> metadata at build time,
+  letting one source tree produce variant apps (e.g. testnet) that differ only in
+  name, icon, or derivation path. An app forwards a human-named feature to a slot
+  (e.g. <code>variant_testnet = ["ledger_device_sdk/variant_0"]</code>) and selects it with
+  <code>--features variant_testnet</code>. Resolution is fail-closed: a missing selected
+  variant table aborts the build rather than falling back to the base values, and
+  enabling more than one <code>variant_&lt;N&gt;</code> feature is a hard error.</li>
+</ul>
+<h2 id="1353-2026-06-11">[1.35.3] - 2026-06-11</h2>
+<h3 id="changed_2">Changed</h3>
+<ul>
+<li>Fix app_flags stored in ELF section</li>
+</ul>
+<h2 id="1352-2026-06-04">[1.35.2] - 2026-06-04</h2>
+<h3 id="changed_3">Changed</h3>
+<ul>
+<li>Silence warning and remove useless cfg_version unstable feature</li>
+</ul>
+<h2 id="1351-2026-04-30">[1.35.1] - 2026-04-30</h2>
+<h3 id="changed_4">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Fix clippy warnings
+- Embed icon in install_params
+</code></pre></div>
+<h2 id="1350-2026-04-24">[1.35.0] - 2026-04-24</h2>
+<h3 id="changed_5">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Migrate from 2021 to 2024 edition
+- Manage BOLOS stack consumption APDUs
+- Adds ZIP32 (Zcash) derivation support by extending the C-SDK bindings
+  and restructuring ECC layer to include new curve families and supporting
+  math/BN helpers
+- Fixes Speculos test hangs by ensuring BOLOS APDUs are properly handled
+</code></pre></div>
+<h2 id="1340-2026-03-11">[1.34.0] - 2026-03-11</h2>
+<h3 id="changed_6">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Integrates io_new&#39;s version of the Comm object with Nbgl,
+  and also with the new libcall module.
+- Ports all SDK examples from the legacy io module (io_legacy) to
+  the new io_new module.
+</code></pre></div>
+<h2 id="1331-2026-03-03">[1.33.1] - 2026-03-03</h2>
+<h3 id="changed_7">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Fix unused variable warning in no debug mode (log module)
+</code></pre></div>
+<h2 id="1330-2026-02-24">[1.33.0] - 2026-02-24</h2>
+<h3 id="changed_8">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Enable NBGL use case Generic Review for Nano devices
+</code></pre></div>
+<h2 id="1321-2026-02-19">[1.32.1] - 2026-02-19</h2>
+<h3 id="changed_9">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Reverted: bolos_apdu: do not use os_registry_get_current_app_tag
+- Remove deprecated support of app subtasks
+</code></pre></div>
+<h2 id="1320-2026-02-04">[1.32.0] - 2026-02-04</h2>
+<h3 id="added_2">Added</h3>
+<div class="highlight"><pre><span></span><code>- log module
+</code></pre></div>
+<h3 id="changed_10">Changed</h3>
+<div class="highlight"><pre><span></span><code>- bolos_apdu: do not use os_registry_get_current_app_tag
+</code></pre></div>
+<h2 id="1310-2026-01-15">[1.31.0] - 2026-01-15</h2>
+<h3 id="changed_11">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Manage install parameters and app flags the same way a C apps
+- Fix cargo audit
+- Improve Swap doc
+- Add Genereic Swap error codes
+</code></pre></div>
+<h2 id="1300-2026-01-05">[1.30.0] - 2026-01-05</h2>
+<h3 id="changed_12">Changed</h3>
+<div class="highlight"><pre><span></span><code>- update nightly toolchain version
+</code></pre></div>
+<h2 id="1291-2025-11-28">[1.29.1] - 2025-11-28</h2>
+<h3 id="changed_13">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Bump ledger_secure_sdk_sys to 1.12.1
+</code></pre></div>
+<h2 id="1290-2025-11-19">[1.29.0] - 2025-11-19</h2>
+<h3 id="changed_14">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Rust SDK as a single crate: ledger_device_sdk: include_gif is included as a
+  module and ledger_secure_sdk_sys can be accessed by activating the sys feature.
+</code></pre></div>
+<h2 id="1280-2025-11-04">[1.28.0] - 2025-11-04</h2>
+<h3 id="changed_15">Changed</h3>
+<div class="highlight"><pre><span></span><code>- Added Ledger PKI and TLV parsers (Dynamic Token, Trusted Name, Generic) support
+- Add ADDRESS_EXTRA_ID_BUF_SIZE support (swap)
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.indexes", "navigation.expand"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

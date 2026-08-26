@@ -1,0 +1,44 @@
+#if defined(__SSP__) || defined(__SSP_ALL__) || defined(__SSP_STRONG__) || defined(__SSP_EXPLICIT__)
+
+#include "syscalls.h"
+
+.syntax unified
+.thumb
+
+.section .boot.ssp_init, "ax"
+
+.extern main
+.global __wrap___stack_chk_init
+.thumb_func
+__wrap___stack_chk_init:
+    // Relies on the OS contract for arg0 (r0): 0 on a standalone launch,
+    // non-zero (the libargs_t*) on a libcall.
+    // if r0 != 0, skip initialization and jump directly to main
+    // (don't overwrite parent canary during a libcall)
+    cmp r0, #0
+    bne 1f
+
+    // save arguments passed to main
+    push {r0-r3}
+
+    // call cx_get_random_bytes(&__stack_chk_guard, sizeof(__stack_chk_guard));
+    // we can't use the function cx_get_random_bytes because of PIC
+    ldr r0, =SYSCALL_cx_get_random_bytes_ID
+    mov r2, r9
+    movs r3, #4
+    push {r2-r3}
+    mov r1, sp
+    bl SVC_Call
+    pop {r2-r3}
+
+    // restore arguments
+    pop {r0-r3}
+
+    // canary initialized; fall through to the shared exit below
+1:
+    b main
+
+// place the constants pool after the unconditional branch, out of the exec path
+.ltorg
+
+#endif

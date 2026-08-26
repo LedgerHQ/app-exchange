@@ -1,0 +1,153 @@
+{
+  "title": "address_verif",
+  "pages": [
+    {
+      "name": "Entry",
+      "targets": [
+        {
+          "app_event": "ETH_VERIFY_ADDR",
+          "page": "classic-03"
+        }
+      ]
+    },
+    {
+      "name": "classic-03",
+      "targets": [
+        {
+          "key": "right",
+          "page": "classic-01"
+        },
+        {
+          "key": "right",
+          "page": "classic-01"
+        }
+      ]
+    },
+    {
+      "name": "classic-01",
+      "targets": [
+        {
+          "key": "right",
+          "page": "classic-02"
+        },
+        {
+          "key": "right",
+          "page": "classic-02"
+        }
+      ]
+    },
+    {
+      "name": "classic-02",
+      "targets": [
+        {
+          "key": "right",
+          "page": "classic-05"
+        },
+        {
+          "key": "right",
+          "page": "classic-05"
+        }
+      ]
+    },
+    {
+      "name": "classic-05",
+      "targets": [
+        {
+          "key": "both",
+          "page": "classic-07"
+        },
+        {
+          "key": "right",
+          "page": "classic-06"
+        }
+      ]
+    },
+    {
+      "name": "classic-07",
+      "targets": [
+        {
+          "app_event": "ETH_VERIFY_ADDR",
+          "page": "classic-03"
+        }
+      ]
+    },
+    {
+      "name": "classic-06",
+      "targets": [
+        {
+          "key": "both",
+          "page": "classic-08"
+        }
+      ]
+    },
+    {
+      "name": "classic-08",
+      "targets": [
+        {
+          "app_event": "BTC_SHARE_ADDR",
+          "page": "share-addr-01",
+          "comment": "start share addr scenario"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-01",
+      "targets": [
+        {
+          "key": "right",
+          "page": "share-addr-02"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-02",
+      "targets": [
+        {
+          "key": "right",
+          "page": "share-addr-03"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-03",
+      "targets": [
+        {
+          "key": "right",
+          "page": "share-addr-04"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-04",
+      "targets": [
+        {
+          "key": "right",
+          "page": "share-addr-05"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-05",
+      "targets": [
+        {
+          "key": "right",
+          "page": "share-addr-06"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-06",
+      "targets": [
+        {
+          "key": "right",
+          "page": "share-addr-07"
+        }
+      ]
+    },
+    {
+      "name": "share-addr-07",
+      "targets": [
+      ]
+    }
+  ]
+}

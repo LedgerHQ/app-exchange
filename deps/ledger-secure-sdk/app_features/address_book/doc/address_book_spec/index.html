@@ -1,0 +1,2482 @@
+
+<!DOCTYPE html>
+
+<html class="no-js" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="Documentation for Ledger Swap" name="description"/>
+<link href="../../../../../../img/Ledger-logo-696.webp" rel="icon"/>
+<meta content="mkdocs-1.6.1, mkdocs-material-9.7.7" name="generator"/>
+<title>Address Book — Implementation Specification - Ledger Swap documentation</title>
+<link href="../../../../../../assets/stylesheets/main.ec1eaa64.min.css" rel="stylesheet"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback" rel="stylesheet"/>
+<style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+<script>__md_scope=new URL("../../../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+</head>
+<body dir="ltr">
+<input autocomplete="off" class="md-toggle" data-md-toggle="drawer" id="__drawer" type="checkbox"/>
+<input autocomplete="off" class="md-toggle" data-md-toggle="search" id="__search" type="checkbox"/>
+<label class="md-overlay" for="__drawer"></label>
+<div data-md-component="skip">
+<a class="md-skip" href="#address-book-implementation-specification">
+          Skip to content
+        </a>
+</div>
+<div data-md-component="announce">
+</div>
+<header class="md-header md-header--shadow" data-md-component="header">
+<nav aria-label="Header" class="md-header__inner md-grid">
+<a aria-label="Ledger Swap documentation" class="md-header__button md-logo" data-md-component="logo" href="../../../../../.." title="Ledger Swap documentation">
+<img alt="logo" src="../../../../../../img/Ledger-logo-696.webp"/>
+</a>
+<label class="md-header__button md-icon" for="__drawer">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+</label>
+<div class="md-header__title" data-md-component="header-title">
+<div class="md-header__ellipsis">
+<div class="md-header__topic">
+<span class="md-ellipsis">
+            Ledger Swap documentation
+          </span>
+</div>
+<div class="md-header__topic" data-md-component="header-topic">
+<span class="md-ellipsis">
+            
+              Address Book — Implementation Specification
+            
+          </span>
+</div>
+</div>
+</div>
+<script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+<label class="md-header__button md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+</label>
+<div class="md-search" data-md-component="search" role="dialog">
+<label class="md-search__overlay" for="__search"></label>
+<div class="md-search__inner" role="search">
+<form class="md-search__form" name="search">
+<input aria-label="Search" autocapitalize="off" autocomplete="off" autocorrect="off" class="md-search__input" data-md-component="search-query" name="query" placeholder="Search" required="" spellcheck="false" type="text"/>
+<label class="md-search__icon md-icon" for="__search">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+</label>
+<nav aria-label="Search" class="md-search__options">
+<button aria-label="Clear" class="md-search__icon md-icon" tabindex="-1" title="Clear" type="reset">
+<svg viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+</button>
+</nav>
+</form>
+<div class="md-search__output">
+<div class="md-search__scrollwrap" data-md-scrollfix="" tabindex="0">
+<div class="md-search-result" data-md-component="search-result">
+<div class="md-search-result__meta">
+            Initializing search
+          </div>
+<ol class="md-search-result__list" role="presentation"></ol>
+</div>
+</div>
+</div>
+</div>
+</div>
+</nav>
+</header>
+<div class="md-container" data-md-component="container">
+<main class="md-main" data-md-component="main">
+<div class="md-main__inner md-grid">
+<div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Navigation" class="md-nav md-nav--primary" data-md-level="0">
+<label class="md-nav__title" for="__drawer">
+<a aria-label="Ledger Swap documentation" class="md-nav__button md-logo" data-md-component="logo" href="../../../../../.." title="Ledger Swap documentation">
+<img alt="logo" src="../../../../../../img/Ledger-logo-696.webp"/>
+</a>
+    Ledger Swap documentation
+  </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../..">
+<span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../../../../walkthrough/">
+<span class="md-ellipsis">
+    
+  
+    Enabling the SWAP on your application
+  
+
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_2_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_2">
+<span class="md-nav__icon md-icon"></span>
+            
+  
+    Enabling the SWAP on your application
+  
+
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../walkthrough/prerequisite/">
+<span class="md-ellipsis">
+    
+  
+    Prerequisite
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../walkthrough/run_first_test/">
+<span class="md-ellipsis">
+    
+  
+    Running an existing SWAP test
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_2_4" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../../../../walkthrough/enable_the_swap_compilation/">
+<span class="md-ellipsis">
+    
+  
+    First compilation with the standard SWAP
+  
+
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_2_4_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_2_4">
+<span class="md-nav__icon md-icon"></span>
+            
+  
+    First compilation with the standard SWAP
+  
+
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../walkthrough/enable_the_swap_compilation/c/">
+<span class="md-ellipsis">
+    
+  
+    For C applications
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../walkthrough/enable_the_swap_compilation/rust/">
+<span class="md-ellipsis">
+    
+  
+    For Rust applications
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../walkthrough/enable_standard_app/">
+<span class="md-ellipsis">
+    
+  
+    Creating a basic SWAP test for you coin
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../walkthrough/code_the_handlers/">
+<span class="md-ellipsis">
+    
+  
+    Code the handlers
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../../../../technical_information/">
+<span class="md-ellipsis">
+    
+  
+    Technical Information
+  
+
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_label" class="md-nav" data-md-level="1">
+<label class="md-nav__title" for="__nav_3">
+<span class="md-nav__icon md-icon"></span>
+            
+  
+    Technical Information
+  
+
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/diagram/">
+<span class="md-ellipsis">
+    
+  
+    Sequence diagram
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/protocol/">
+<span class="md-ellipsis">
+    
+  
+    Exchange Protocol API
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/protobuf/">
+<span class="md-ellipsis">
+    
+  
+    Transaction proposal (protobuf)
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/fund_and_sell/">
+<span class="md-ellipsis">
+    
+  
+    FUND and SELL flows
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/cal/">
+<span class="md-ellipsis">
+    
+  
+    Crypto Asset List (CAL)
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/bss/">
+<span class="md-ellipsis">
+    
+  
+    BSS safety in coin applications
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_8" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../../../../technical_information/coin_application_api/">
+<span class="md-ellipsis">
+    
+  
+    Coin Application API
+  
+
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_label" class="md-nav" data-md-level="2">
+<label class="md-nav__title" for="__nav_3_8">
+<span class="md-nav__icon md-icon"></span>
+            
+  
+    Coin Application API
+  
+
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/coin_application_api/entry_point/">
+<span class="md-ellipsis">
+    
+  
+    Coin application entry point
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/coin_application_api/swap_handle_check_address/">
+<span class="md-ellipsis">
+    
+  
+    CHECK_ADDRESS
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/coin_application_api/swap_handle_get_printable_amount/">
+<span class="md-ellipsis">
+    
+  
+    GET_PRINTABLE_AMOUNT
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item md-nav__item--nested">
+<input class="md-nav__toggle md-toggle md-toggle--indeterminate" id="__nav_3_8_5" type="checkbox"/>
+<div class="md-nav__link md-nav__container">
+<a class="md-nav__link" href="../../../../../../technical_information/coin_application_api/sign_transaction/">
+<span class="md-ellipsis">
+    
+  
+    SIGN_TRANSACTION
+  
+
+    
+  </span>
+</a>
+<label class="md-nav__link" for="__nav_3_8_5" id="__nav_3_8_5_label" tabindex="0">
+<span class="md-nav__icon md-icon"></span>
+</label>
+</div>
+<nav aria-expanded="false" aria-labelledby="__nav_3_8_5_label" class="md-nav" data-md-level="3">
+<label class="md-nav__title" for="__nav_3_8_5">
+<span class="md-nav__icon md-icon"></span>
+            
+  
+    SIGN_TRANSACTION
+  
+
+          </label>
+<ul class="md-nav__list" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/coin_application_api/sign_transaction/swap_copy_transaction_parameters/">
+<span class="md-ellipsis">
+    
+  
+    Copy Transaction Parameters
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/coin_application_api/sign_transaction/ui_bypass/">
+<span class="md-ellipsis">
+    
+  
+    UI bypass
+  
+
+    
+  </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/coin_application_api/sign_transaction/error_codes/">
+<span class="md-ellipsis">
+    
+  
+    Error codes
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="../../../../../../technical_information/dale/">
+<span class="md-ellipsis">
+    
+  
+    The DALE tool
+  
+
+    
+  </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+<div class="md-sidebar__scrollwrap">
+<div class="md-sidebar__inner">
+<nav aria-label="Table of contents" class="md-nav md-nav--secondary">
+<label class="md-nav__title" for="__toc">
+<span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+<ul class="md-nav__list" data-md-component="toc" data-md-scrollfix="">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#table-of-contents">
+<span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#1-overview">
+<span class="md-ellipsis">
+      
+        1. Overview
+      
+    </span>
+</a>
+<nav aria-label="1. Overview" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#end-to-end-use-case">
+<span class="md-ellipsis">
+      
+        End-to-end use case
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#2-app-configuration">
+<span class="md-ellipsis">
+      
+        2. App configuration
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#3-apdu-interface">
+<span class="md-ellipsis">
+      
+        3. APDU interface
+      
+    </span>
+</a>
+<nav aria-label="3. APDU interface" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#sub-command-table">
+<span class="md-ellipsis">
+      
+        Sub-command table
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#chunked-transport">
+<span class="md-ellipsis">
+      
+        Chunked transport
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#4-common-foundations">
+<span class="md-ellipsis">
+      
+        4. Common foundations
+      
+    </span>
+</a>
+<nav aria-label="4. Common foundations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#41-tlv-encoding">
+<span class="md-ellipsis">
+      
+        4.1 TLV encoding
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#42-reference-tables">
+<span class="md-ellipsis">
+      
+        4.2 Reference tables
+      
+    </span>
+</a>
+<nav aria-label="4.2 Reference tables" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tlv-tag-registry">
+<span class="md-ellipsis">
+      
+        TLV tag registry
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#struct_type-summary">
+<span class="md-ellipsis">
+      
+        STRUCT_TYPE summary
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#43-cryptographic-operations">
+<span class="md-ellipsis">
+      
+        4.3 Cryptographic operations
+      
+    </span>
+</a>
+<nav aria-label="4.3 Cryptographic operations" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#group-handle">
+<span class="md-ellipsis">
+      
+        Group Handle
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#identity-hmac-messages">
+<span class="md-ellipsis">
+      
+        Identity HMAC messages
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#ledger-account-hmac-message">
+<span class="md-ellipsis">
+      
+        Ledger Account HMAC message
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#5-sub-commands">
+<span class="md-ellipsis">
+      
+        5. Sub-commands
+      
+    </span>
+</a>
+<nav aria-label="5. Sub-commands" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#51-register-identity">
+<span class="md-ellipsis">
+      
+        5.1 Register Identity
+      
+    </span>
+</a>
+<nav aria-label="5.1 Register Identity" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#two-operating-modes">
+<span class="md-ellipsis">
+      
+        Two operating modes
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tlv-payload">
+<span class="md-ellipsis">
+      
+        TLV payload
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flow">
+<span class="md-ellipsis">
+      
+        Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response-on-confirm">
+<span class="md-ellipsis">
+      
+        Response (on confirm)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#52-edit-contact-name">
+<span class="md-ellipsis">
+      
+        5.2 Edit Contact Name
+      
+    </span>
+</a>
+<nav aria-label="5.2 Edit Contact Name" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tlv-payload_1">
+<span class="md-ellipsis">
+      
+        TLV payload
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flow_1">
+<span class="md-ellipsis">
+      
+        Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response-on-confirm_1">
+<span class="md-ellipsis">
+      
+        Response (on confirm)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#53-edit-identifier">
+<span class="md-ellipsis">
+      
+        5.3 Edit Identifier
+      
+    </span>
+</a>
+<nav aria-label="5.3 Edit Identifier" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tlv-payload_2">
+<span class="md-ellipsis">
+      
+        TLV payload
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flow_2">
+<span class="md-ellipsis">
+      
+        Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response-on-confirm_2">
+<span class="md-ellipsis">
+      
+        Response (on confirm)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#54-edit-scope">
+<span class="md-ellipsis">
+      
+        5.4 Edit Scope
+      
+    </span>
+</a>
+<nav aria-label="5.4 Edit Scope" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tlv-payload_3">
+<span class="md-ellipsis">
+      
+        TLV payload
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flow_3">
+<span class="md-ellipsis">
+      
+        Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response-on-confirm_3">
+<span class="md-ellipsis">
+      
+        Response (on confirm)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#55-register-ledger-account">
+<span class="md-ellipsis">
+      
+        5.5 Register Ledger Account
+      
+    </span>
+</a>
+<nav aria-label="5.5 Register Ledger Account" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tlv-payload_4">
+<span class="md-ellipsis">
+      
+        TLV payload
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flow_4">
+<span class="md-ellipsis">
+      
+        Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response-on-confirm_4">
+<span class="md-ellipsis">
+      
+        Response (on confirm)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#56-edit-ledger-account">
+<span class="md-ellipsis">
+      
+        5.6 Edit Ledger Account
+      
+    </span>
+</a>
+<nav aria-label="5.6 Edit Ledger Account" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tlv-payload_5">
+<span class="md-ellipsis">
+      
+        TLV payload
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flow_5">
+<span class="md-ellipsis">
+      
+        Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response-on-confirm_5">
+<span class="md-ellipsis">
+      
+        Response (on confirm)
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#57-provide-contact">
+<span class="md-ellipsis">
+      
+        5.7 Provide Contact
+      
+    </span>
+</a>
+<nav aria-label="5.7 Provide Contact" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tlv-payload_6">
+<span class="md-ellipsis">
+      
+        TLV payload
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flow_6">
+<span class="md-ellipsis">
+      
+        Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response">
+<span class="md-ellipsis">
+      
+        Response
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#58-provide-ledger-account-contact">
+<span class="md-ellipsis">
+      
+        5.8 Provide Ledger Account Contact
+      
+    </span>
+</a>
+<nav aria-label="5.8 Provide Ledger Account Contact" class="md-nav">
+<ul class="md-nav__list">
+<li class="md-nav__item">
+<a class="md-nav__link" href="#tlv-payload_7">
+<span class="md-ellipsis">
+      
+        TLV payload
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#flow_7">
+<span class="md-ellipsis">
+      
+        Flow
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#response_1">
+<span class="md-ellipsis">
+      
+        Response
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</li>
+</ul>
+</nav>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#6-coin-app-entrypoints">
+<span class="md-ellipsis">
+      
+        6. Coin-app entrypoints
+      
+    </span>
+</a>
+</li>
+<li class="md-nav__item">
+<a class="md-nav__link" href="#7-status-words">
+<span class="md-ellipsis">
+      
+        7. Status words
+      
+    </span>
+</a>
+</li>
+</ul>
+</nav>
+</div>
+</div>
+</div>
+<div class="md-content" data-md-component="content">
+<article class="md-content__inner md-typeset">
+<h1 id="address-book-implementation-specification">Address Book — Implementation Specification</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-overview">Overview</a></li>
+<li><a href="#2-app-configuration">App configuration</a></li>
+<li><a href="#3-apdu-interface">APDU interface</a></li>
+<li><a href="#4-common-foundations">Common foundations</a></li>
+<li>4.1 <a href="#41-tlv-encoding">TLV encoding</a></li>
+<li>4.2 <a href="#42-reference-tables">Reference tables</a></li>
+<li>4.3 <a href="#43-cryptographic-operations">Cryptographic operations</a></li>
+<li><a href="#5-sub-commands">Sub-commands</a></li>
+<li>5.1 <a href="#51-register-identity">Register Identity</a></li>
+<li>5.2 <a href="#52-edit-contact-name">Edit Contact Name</a></li>
+<li>5.3 <a href="#53-edit-identifier">Edit Identifier</a></li>
+<li>5.4 <a href="#54-edit-scope">Edit Scope</a></li>
+<li>5.5 <a href="#55-register-ledger-account">Register Ledger Account</a></li>
+<li>5.6 <a href="#56-edit-ledger-account">Edit Ledger Account</a></li>
+<li>5.7 <a href="#57-provide-contact">Provide Contact</a></li>
+<li>5.8 <a href="#58-provide-ledger-account-contact">Provide Ledger Account Contact</a></li>
+<li><a href="#6-coin-app-entrypoints">Coin-app entrypoints</a></li>
+<li><a href="#7-status-words">Status words</a></li>
+</ol>
+<hr/>
+<h2 id="1-overview">1. Overview</h2>
+<p>The <strong>Address Book</strong> feature allows a Ledger device to securely associate human-readable names with blockchain identifiers, so users see a familiar name rather than a raw address or public key during a transaction review.</p>
+<p>A <strong>Contact</strong> is defined by three elements:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>contact_name</strong></td>
+<td>Human-readable label (e.g. "Alice")</td>
+</tr>
+<tr>
+<td><strong>scope</strong></td>
+<td>Context string identifying the network or token (e.g. "Ethereum", "BTC legacy")</td>
+</tr>
+<tr>
+<td><strong>identifier</strong></td>
+<td>Blockchain-specific value: an address (Ethereum, Solana) or a pubkey (Bitcoin)</td>
+</tr>
+</tbody>
+</table>
+<p>The device is stateless: it stores nothing persistently. On registration it generates a random <strong>Group ID</strong> (<code>gid</code>, 32 bytes), authenticates it with a device key as a <code>group_handle</code> (64 bytes), and returns two independent <strong>HMAC Proofs of Registration</strong> — <code>HMAC_PROOF</code> (covers the contact name) and <code>HMAC_REST</code> (covers scope, identifier, and network) — that the wallet stores alongside the contact record alongside the <code>group_handle</code>. Having two independent proofs allows the wallet to later rename a contact without needing to re-present the identifier or scope.</p>
+<h3 id="end-to-end-use-case">End-to-end use case</h3>
+<p><strong>Step 1 — Registration (once per contact / network):</strong></p>
+<pre class="mermaid"><code>flowchart
+    R1[Wallet sends CMD_REGISTER_IDENTITY]
+    R2[User confirms contact_name + scope + identifier]
+    R3[Device computes HMAC_PROOF and HMAC_REST]
+    R4[Wallet stores hmac_proof + hmac_rest with contact record]
+    R1 --&gt; R2 --&gt; R3 --&gt; R4</code></pre>
+<p><strong>Step 2 — Payment:</strong></p>
+<p>At payment time, the wallet transmits the <code>hmac_proof</code> alongside the transaction data. The coin app resolves the contact name from the proof and displays it during the transaction review on the device.</p>
+<pre class="mermaid"><code>flowchart
+    P1[User initiates payment to a registered contact]
+    P2[Wallet sends transaction + hmac_proof to device]
+    P3[Coin app resolves contact_name from hmac_proof]
+    P4["Device displays: To: Alice (0x1234...)"]
+    P5[User confirms — transaction signed and broadcast]
+    P1 --&gt; P2 --&gt; P3 --&gt; P4 --&gt; P5</code></pre>
+<hr/>
+<h2 id="2-app-configuration">2. App configuration</h2>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-0-1" id="__codelineno-0-1" name="__codelineno-0-1"></a><span class="c"># Required for all Address Book features</span>
+<a href="#__codelineno-0-2" id="__codelineno-0-2" name="__codelineno-0-2"></a><span class="nv">ENABLE_ADDRESS_BOOK</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+<a href="#__codelineno-0-3" id="__codelineno-0-3" name="__codelineno-0-3"></a>
+<a href="#__codelineno-0-4" id="__codelineno-0-4" name="__codelineno-0-4"></a><span class="c"># Enables "Ledger Account" features</span>
+<a href="#__codelineno-0-5" id="__codelineno-0-5" name="__codelineno-0-5"></a><span class="c"># Not applicable to Bitcoin (UTXO model — no stable account address)</span>
+<a href="#__codelineno-0-6" id="__codelineno-0-6" name="__codelineno-0-6"></a><span class="nv">ENABLE_ADDRESS_BOOK_LEDGER_ACCOUNT</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+<p>The SDK's <code>Makefile.standard_app</code> translates each <code>ENABLE_*</code> variable into the corresponding <code>HAVE_*</code> preprocessor define.
+<code>ENABLE_ADDRESS_BOOK_LEDGER_ACCOUNT</code> is nested inside the <code>ENABLE_ADDRESS_BOOK</code> block, so <code>HAVE_ADDRESS_BOOK_LEDGER_ACCOUNT</code>
+can only be defined when <code>HAVE_ADDRESS_BOOK</code> is also defined.
+Register Identity, Edit Contact Name, Edit Identifier, and Edit Scope are always active when <code>HAVE_ADDRESS_BOOK</code> is defined — they require no additional flag.</p>
+<hr/>
+<h2 id="3-apdu-interface">3. APDU interface</h2>
+<p>All Address Book commands share the same APDU layout:</p>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-1-1" id="__codelineno-1-1" name="__codelineno-1-1"></a>CLA  INS  P1          P2            Lc           Data
+<a href="#__codelineno-1-2" id="__codelineno-1-2" name="__codelineno-1-2"></a>0xB0 0x10 &lt;sub-cmd&gt;   0x00 | 0x80   &lt;chunk_len&gt;  &lt;chunk&gt;
+</code></pre></div>
+<p>P1 selects the sub-command; P2 is the chunk flag (<code>0x00</code> first chunk, <code>0x80</code>
+continuation). The payload is always carried with the chunked framing described
+below, even when it fits in a single chunk.</p>
+<h3 id="sub-command-table">Sub-command table</h3>
+<table>
+<thead>
+<tr>
+<th>P1</th>
+<th>Sub-command</th>
+<th>Guard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x01</td>
+<td>Register Identity</td>
+<td><code>HAVE_ADDRESS_BOOK</code></td>
+</tr>
+<tr>
+<td>0x02</td>
+<td>Edit Contact Name</td>
+<td><code>HAVE_ADDRESS_BOOK</code></td>
+</tr>
+<tr>
+<td>0x03</td>
+<td>Edit Identifier</td>
+<td><code>HAVE_ADDRESS_BOOK</code></td>
+</tr>
+<tr>
+<td>0x04</td>
+<td>Edit Scope</td>
+<td><code>HAVE_ADDRESS_BOOK</code></td>
+</tr>
+<tr>
+<td>0x11</td>
+<td>Register Ledger Account</td>
+<td><code>HAVE_ADDRESS_BOOK</code> &amp;&amp; <code>HAVE_ADDRESS_BOOK_LEDGER_ACCOUNT</code></td>
+</tr>
+<tr>
+<td>0x12</td>
+<td>Edit Ledger Account</td>
+<td><code>HAVE_ADDRESS_BOOK</code> &amp;&amp; <code>HAVE_ADDRESS_BOOK_LEDGER_ACCOUNT</code></td>
+</tr>
+<tr>
+<td>0x20</td>
+<td>Provide Contact</td>
+<td><code>HAVE_ADDRESS_BOOK</code></td>
+</tr>
+<tr>
+<td>0x21</td>
+<td>Provide Ledger Account Contact</td>
+<td><code>HAVE_ADDRESS_BOOK</code> &amp;&amp; <code>HAVE_ADDRESS_BOOK_LEDGER_ACCOUNT</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="chunked-transport">Chunked transport</h3>
+<p><strong>Every</strong> command — regardless of payload size — uses the same <strong>P2-based chunking scheme</strong>.
+A single uniform format avoids special-casing small payloads and eases future evolutions (e.g. larger payloads on new chains).</p>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-2-1" id="__codelineno-2-1" name="__codelineno-2-1"></a>First chunk  (P2 = 0x00):  | total_length(2, BE) | first_data_slice |
+<a href="#__codelineno-2-2" id="__codelineno-2-2" name="__codelineno-2-2"></a>Next  chunks (P2 = 0x80):  | next_data_slice     |
+</code></pre></div>
+<ul>
+<li><code>total_length</code> is the 2-byte big-endian total size of the TLV payload (excluding the 2-byte header itself).</li>
+<li>Each chunk carries at most 255 bytes of APDU data (including the 2-byte length header for the first chunk).</li>
+<li>All intermediate chunks are answered synchronously by the device with <code>9000</code>.</li>
+<li>The last chunk triggers the processing and UI flow on the device; the host must await the asynchronous response.</li>
+<li>A payload that fits in a single chunk uses <code>P2 = 0x00</code> and is a complete transfer (still prefixed with its 2-byte <code>total_length</code>).</li>
+</ul>
+<p>Payloads that exceed 255 bytes simply span several chunks; the framing is identical to the single-chunk case. The largest payloads (see size notes in §5) are:</p>
+<ul>
+<li><strong>Edit Identifier</strong> (§5.3, up to 385 B)</li>
+<li><strong>Edit Scope</strong> (§5.4, up to 337 B)</li>
+<li><strong>Provide Contact</strong> (§5.7, up to 319 B)</li>
+<li><strong>Register Identity</strong> (§5.1, up to 269 B) when <code>GROUP_HANDLE</code> + <code>HMAC_PROOF</code> are present and the identifier exceeds ~77 bytes (non-Ethereum chains)</li>
+</ul>
+<hr/>
+<h2 id="4-common-foundations">4. Common foundations</h2>
+<h3 id="41-tlv-encoding">4.1 TLV encoding</h3>
+<p>All TLV fields use BER-TLV compact encoding:</p>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-3-1" id="__codelineno-3-1" name="__codelineno-3-1"></a>Tag    (1 byte)     — see §4.2
+<a href="#__codelineno-3-2" id="__codelineno-3-2" name="__codelineno-3-2"></a>Length (1–2 bytes)  — DER-style: value &lt; 0x80 → 1 byte; otherwise 0x81..0x82 prefix
+<a href="#__codelineno-3-3" id="__codelineno-3-3" name="__codelineno-3-3"></a>Value  (Length bytes)
+</code></pre></div>
+<p>Multi-byte integer values are encoded <strong>big-endian, minimum length</strong> (no leading zero bytes unless the value is zero itself).</p>
+<h3 id="42-reference-tables">4.2 Reference tables</h3>
+<h4 id="tlv-tag-registry">TLV tag registry</h4>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Name</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x01</td>
+<td>STRUCT_TYPE</td>
+<td>Structure type discriminator (see each sub-command section)</td>
+</tr>
+<tr>
+<td>0x02</td>
+<td>STRUCT_VERSION</td>
+<td>Structure version (currently <code>0x01</code> for all)</td>
+</tr>
+<tr>
+<td>0xf0</td>
+<td>CONTACT_NAME</td>
+<td>Human-readable name label (printable ASCII, max 32 chars)</td>
+</tr>
+<tr>
+<td>0xf1</td>
+<td>SCOPE</td>
+<td>Context string for the identifier (printable ASCII, max 32 chars)</td>
+</tr>
+<tr>
+<td>0xf2</td>
+<td>ACCOUNT_IDENTIFIER</td>
+<td>Blockchain identifier — address (Ethereum, Solana) or public key (Bitcoin); max 80 B</td>
+</tr>
+<tr>
+<td>0xf3</td>
+<td>PREVIOUS_CONTACT_NAME</td>
+<td>Old contact name, for display and HMAC verification (Edit Contact Name only)</td>
+</tr>
+<tr>
+<td>0xf4</td>
+<td>PREVIOUS_IDENTIFIER</td>
+<td>Old identifier, for HMAC verification (Edit Identifier only)</td>
+</tr>
+<tr>
+<td>0xf5</td>
+<td>PREVIOUS_SCOPE</td>
+<td>Old scope, for display and HMAC verification (Edit Scope only)</td>
+</tr>
+<tr>
+<td>0xf6</td>
+<td>GROUP_HANDLE</td>
+<td>Device-generated opaque token: <code>gid(32) + HMAC-SHA256(K_group, gid)(32)</code>; see §4.3</td>
+</tr>
+<tr>
+<td>0x69</td>
+<td>DERIVATION_PATH</td>
+<td>BIP32 path (packed: depth(1) + indices(4 each)); <strong>Ledger Account only</strong></td>
+</tr>
+<tr>
+<td>0x23</td>
+<td>CHAIN_ID</td>
+<td>Chain ID — mandatory for <code>BLOCKCHAIN_FAMILY = 1</code> (Ethereum); omitted for others</td>
+</tr>
+<tr>
+<td>0x51</td>
+<td>BLOCKCHAIN_FAMILY</td>
+<td>Blockchain family (0=Bitcoin, 1=Ethereum, 2=Solana, 3=Polkadot, 4=Cosmos, 5=Cardano)</td>
+</tr>
+<tr>
+<td>0x29</td>
+<td>HMAC_PROOF</td>
+<td>32-byte HMAC-SHA256 name-binding proof: covers <code>gid(32) + name</code> (§4.3)</td>
+</tr>
+<tr>
+<td>0xf7</td>
+<td>HMAC_REST</td>
+<td>32-byte HMAC-SHA256 over <code>(gid(32), scope, identifier, family[, chain_id])</code> (§4.3)</td>
+</tr>
+</tbody>
+</table>
+<h4 id="struct_type-summary">STRUCT_TYPE summary</h4>
+<table>
+<thead>
+<tr>
+<th>STRUCT_TYPE</th>
+<th>Constant</th>
+<th>Sub-command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x2d</td>
+<td><code>TYPE_REGISTER_IDENTITY</code></td>
+<td>Register Identity</td>
+</tr>
+<tr>
+<td>0x2e</td>
+<td><code>TYPE_EDIT_CONTACT_NAME</code></td>
+<td>Edit Contact Name</td>
+</tr>
+<tr>
+<td>0x2f</td>
+<td><code>TYPE_REGISTER_LEDGER_ACCOUNT</code></td>
+<td>Register Ledger Account</td>
+</tr>
+<tr>
+<td>0x30</td>
+<td><code>TYPE_EDIT_LEDGER_ACCOUNT</code></td>
+<td>Edit Ledger Account</td>
+</tr>
+<tr>
+<td>0x31</td>
+<td><code>TYPE_EDIT_IDENTIFIER</code></td>
+<td>Edit Identifier</td>
+</tr>
+<tr>
+<td>0x32</td>
+<td><code>TYPE_EDIT_SCOPE</code></td>
+<td>Edit Scope</td>
+</tr>
+<tr>
+<td>0x33</td>
+<td><code>TYPE_PROVIDE_CONTACT</code></td>
+<td>Provide Contact</td>
+</tr>
+<tr>
+<td>0x34</td>
+<td><code>TYPE_PROVIDE_LEDGER_ACCOUNT_CONTACT</code></td>
+<td>Provide Ledger Account Contact</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-cryptographic-operations">4.3 Cryptographic operations</h3>
+<p>All cryptographic operations — Group Handle generation/verification, Identity HMAC computation/verification, and Ledger Account HMAC computation/verification — are delegated to the OS via two dedicated syscalls:</p>
+<ul>
+<li><code>sys_address_book_hmac()</code> — compute HMAC</li>
+<li><code>sys_address_book_hmac_verify()</code> — verify HMAC (constant-time)</li>
+</ul>
+<p>Key derivation is internal to the OS. Each feature uses a distinct domain-separation salt to prevent cross-feature key reuse.</p>
+<h4 id="group-handle">Group Handle</h4>
+<p>At registration the device generates a random 32-byte <strong>Group ID</strong> (<code>gid</code>) and authenticates it with a separate device key. The resulting <code>group_handle</code> has the following opaque structure:</p>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-4-1" id="__codelineno-4-1" name="__codelineno-4-1"></a>group_handle = gid(32) | MAC(K_group, gid)(32)
+</code></pre></div>
+<p>The device returns <code>group_handle</code> (64 bytes) to the wallet, which stores it opaquely alongside the contact record. For each subsequent Edit operation the wallet re-sends the full <code>group_handle</code>; the device verifies the MAC via syscall in constant time, and — only on success — extracts <code>gid</code> to authenticate the HMAC proofs.</p>
+<p>This design prevents <strong>proof splicing</strong>: because the wallet cannot fabricate a valid <code>group_handle</code> for an arbitrary <code>gid</code>, it cannot mix <code>HMAC_PROOF</code> from one registered contact with <code>HMAC_REST</code> from another.</p>
+<h4 id="identity-hmac-messages">Identity HMAC messages</h4>
+<p>Both Identity HMACs are computed and verified by the OS via syscall. The following message formats define what each proof covers:</p>
+<p><strong>HMAC_PROOF</strong> covers the contact name only. Used by Register Identity (computed), Edit Contact Name (verified then re-computed).</p>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-5-1" id="__codelineno-5-1" name="__codelineno-5-1"></a>message = gid(32) | name_len(1) | contact_name
+</code></pre></div>
+<p><strong>HMAC_REST</strong> covers scope, identifier, and network. Used by Register Identity (computed), Edit Identifier (verified then re-computed), and Edit Scope (verified then re-computed).</p>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-6-1" id="__codelineno-6-1" name="__codelineno-6-1"></a>message = gid(32) | scope_len(1) | scope | id_len(1) | identifier | family(1) [ | chain_id(8) ]
+</code></pre></div>
+<blockquote>
+<p><code>chain_id</code> is included only when <code>BLOCKCHAIN_FAMILY = 1</code> (Ethereum).</p>
+</blockquote>
+<p>Register Identity returns <code>group_handle</code>, <code>HMAC_PROOF</code>, and <code>HMAC_REST</code>. Edit sub-commands receive <code>group_handle</code> and both proofs so the device can independently verify the contact binding.
+The tag <code>HMAC_PROOF</code> is also used by Ledger Account commands (single HMAC, same tag value, different salt).</p>
+<h4 id="ledger-account-hmac-message">Ledger Account HMAC message</h4>
+<p><strong>HMAC_PROOF</strong> covers the account name and network. Used by Register Ledger Account (computed), Edit Ledger Account (verified then re-computed), and Provide Ledger Account Contact (verified).</p>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-7-1" id="__codelineno-7-1" name="__codelineno-7-1"></a>message = name_len(1) | account_name | family(1) [ | chain_id(8) ]
+</code></pre></div>
+<blockquote>
+<p><code>chain_id</code> is included only when <code>BLOCKCHAIN_FAMILY = 1</code> (Ethereum).</p>
+</blockquote>
+<hr/>
+<h2 id="5-sub-commands">5. Sub-commands</h2>
+<h3 id="51-register-identity">5.1 Register Identity</h3>
+<ul>
+<li><strong>Sub-command:</strong> P1 = <code>0x01</code></li>
+<li><strong>Structure type:</strong> <code>0x2d</code> (<code>TYPE_REGISTER_IDENTITY</code>)</li>
+<li><strong>Guard:</strong> <code>HAVE_ADDRESS_BOOK</code></li>
+</ul>
+<p>Registers a <code>(name, scope, identifier)</code> tuple on the device. The <code>ACCOUNT_IDENTIFIER</code> field is blockchain-agnostic:</p>
+<table>
+<thead>
+<tr>
+<th>Chain</th>
+<th>IDENTIFIER content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ethereum</td>
+<td>20-byte address</td>
+</tr>
+<tr>
+<td>Solana</td>
+<td>32-byte base58-decoded address</td>
+</tr>
+<tr>
+<td>Bitcoin</td>
+<td>33-byte compressed public key (no stable address model)</td>
+</tr>
+</tbody>
+</table>
+<p>The response contains two independent <strong>HMAC Proofs of Registration</strong> (<code>HMAC_PROOF</code> and <code>HMAC_REST</code>) that cryptographically bind the contact to this device.</p>
+<h4 id="two-operating-modes">Two operating modes</h4>
+<p><strong>New group (default):</strong> <code>GROUP_HANDLE</code> and <code>HMAC_PROOF</code> are omitted. The device generates a fresh <code>gid</code>, computes a new <code>group_handle</code>, and returns <code>group_handle + HMAC_PROOF + HMAC_REST</code>. The wallet stores all three alongside the first <code>(scope, identifier)</code> record.</p>
+<p><strong>Link to existing group (optional):</strong> <code>GROUP_HANDLE</code> and <code>HMAC_PROOF</code> are both provided. The device verifies the <code>group_handle</code> MAC and the <code>HMAC_PROOF</code> (proving the wallet owns the contact), then computes only a new <code>HMAC_REST</code> for the new <code>(scope, identifier)</code>. The response echoes back the same <code>group_handle</code> and <code>HMAC_PROOF</code>, with a freshly computed <code>HMAC_REST</code>.</p>
+<blockquote>
+<p>Both optional tags must be present together or both absent — providing only one is rejected.</p>
+</blockquote>
+<p>This allows a wallet to register multiple addresses for the same contact (e.g. the same person's Ethereum Mainnet and Base addresses) under a single <code>group_handle</code>. A subsequent rename via Edit Contact Name then invalidates the shared <code>HMAC_PROOF</code> for all addresses at once.</p>
+<h4 id="tlv-payload">TLV payload</h4>
+<table>
+<thead>
+<tr>
+<th>Tag Name</th>
+<th>Value</th>
+<th>Mandatory</th>
+<th>Max size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STRUCT_TYPE</td>
+<td>0x01</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x2d (<code>TYPE_REGISTER_IDENTITY</code>)</td>
+</tr>
+<tr>
+<td>STRUCT_VERSION</td>
+<td>0x02</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x01</td>
+</tr>
+<tr>
+<td>CONTACT_NAME</td>
+<td>0xf0</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Contact name (max 32 printable ASCII chars)</td>
+</tr>
+<tr>
+<td>SCOPE</td>
+<td>0xf1</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Context string (e.g. "Ethereum", "Bitcoin legacy", "Solana USDC")</td>
+</tr>
+<tr>
+<td>ACCOUNT_IDENTIFIER</td>
+<td>0xf2</td>
+<td>Yes</td>
+<td>80 B</td>
+<td>Blockchain identifier (address or pubkey, chain-dependent)</td>
+</tr>
+<tr>
+<td>CHAIN_ID</td>
+<td>0x23</td>
+<td>Cond.</td>
+<td>8 B</td>
+<td>Chain ID (mandatory for Ethereum)</td>
+</tr>
+<tr>
+<td>BLOCKCHAIN_FAMILY</td>
+<td>0x51</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>Blockchain family</td>
+</tr>
+<tr>
+<td>GROUP_HANDLE</td>
+<td>0xf6</td>
+<td>Optional</td>
+<td>64 B</td>
+<td>Existing group handle — links this identifier to an existing contact group</td>
+</tr>
+<tr>
+<td>HMAC_PROOF</td>
+<td>0x29</td>
+<td>Optional</td>
+<td>32 B</td>
+<td><code>HMAC_PROOF</code> for the existing group — required when <code>GROUP_HANDLE</code> is present</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Payload size (new group):</strong> worst case (max identifier, Ethereum) = <strong>169 B</strong> — fits in a single short APDU ✓</p>
+<p><strong>Payload size (existing group):</strong> adds <code>GROUP_HANDLE</code> (66 B with TLV overhead) + <code>HMAC_PROOF</code> (34 B) = up to <strong>269 B</strong> for a maximum-size identifier. For Ethereum (20-byte address) the total remains within 255 B ✓. For other chains with large identifiers, multi-chunk transport (see §3) is required.</p>
+</blockquote>
+<h4 id="flow">Flow</h4>
+<ol>
+<li>Parse TLV payload.</li>
+<li>If <code>GROUP_HANDLE</code> is present: verify its MAC (constant-time), extract <code>gid</code>, verify <code>HMAC_PROOF</code> over <code>(gid, contact_name)</code> (constant-time) — proves the wallet owns the existing group.</li>
+<li>Call <code>handle_check_register_identity()</code> (coin-app entrypoint) for chain-specific validation.</li>
+<li>Display to user: contact_name + scope + identifier.</li>
+<li>On confirm: generate <code>gid</code> and compute <code>group_handle</code> + <code>HMAC_PROOF</code> (new group), or reuse the verified <code>gid</code> and echo them back (existing group); then compute <code>HMAC_REST</code> for the new <code>(scope, identifier)</code>.</li>
+</ol>
+<pre class="mermaid"><code>sequenceDiagram
+
+    Wallet-&gt;&gt;Device: CMD_REGISTER_IDENTITY (contact_name + scope + identifier [+ group_handle + hmac_proof] + ...)
+    Device-&gt;&gt;Device: Parse TLV
+    alt GROUP_HANDLE + HMAC_PROOF provided (existing group)
+        Device-&gt;&gt;Device: Verify group_handle MAC, extract gid
+        Device-&gt;&gt;Device: Verify HMAC_PROOF(gid, contact_name) — proves wallet owns the group
+    end
+    Device-&gt;&gt;Device: handle_check_register_identity() [coin-app]
+    Device-&gt;&gt;User: Display: contact_name / scope / identifier
+    User-&gt;&gt;Device: Confirm
+    alt New group
+        Device-&gt;&gt;Device: Generate gid, compute group_handle
+        Device-&gt;&gt;Device: Compute HMAC_PROOF
+    else Existing group
+        Note right of Device: Echo back received group_handle and hmac_proof
+    end
+    Device-&gt;&gt;Device: Compute HMAC_REST
+    Device-&gt;&gt;Wallet: 0x2d | group_handle(64) | hmac_proof(32) | hmac_rest(32)  [9000]
+    Wallet-&gt;&gt;Wallet: Store group_handle + hmac_proof + hmac_rest with (scope, identifier) record</code></pre>
+<h4 id="response-on-confirm">Response (on confirm)</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-8-1" id="__codelineno-8-1" name="__codelineno-8-1"></a>type(1) | group_handle(64) | hmac_proof(32) | hmac_rest(32)  — total 129 bytes
+</code></pre></div>
+<ul>
+<li><code>type</code> = <code>0x2d</code> (<code>TYPE_REGISTER_IDENTITY</code>)</li>
+<li><code>group_handle</code> = <code>gid(32) | HMAC-SHA256(K_group, gid)(32)</code> — opaque token to re-send on edits; freshly generated (new group) or echoed back (existing group)</li>
+<li><code>hmac_proof</code> = HMAC-SHA256 over: <code>gid(32) | name_len(1) | contact_name</code> — freshly computed (new group) or echoed back (existing group)</li>
+<li><code>hmac_rest</code> = HMAC-SHA256 over: <code>gid(32) | scope_len(1) | scope | identifier_len(1) | identifier | family(1) [ | chain_id(8) ]</code> — always freshly computed for the new <code>(scope, identifier)</code> pair</li>
+</ul>
+<h3 id="52-edit-contact-name">5.2 Edit Contact Name</h3>
+<ul>
+<li><strong>Sub-command:</strong> P1 = <code>0x02</code></li>
+<li><strong>Structure type:</strong> <code>0x2e</code> (<code>TYPE_EDIT_CONTACT_NAME</code>)</li>
+<li><strong>Guard:</strong> <code>HAVE_ADDRESS_BOOK</code></li>
+</ul>
+<p>Changes the <code>CONTACT_NAME</code> of an existing contact. Because <code>HMAC_PROOF</code> covers only <code>gid + name</code>, the wallet does <strong>not</strong> need to re-present the identifier, scope, or network — it only provides <code>group_handle</code>, the old name, and the <code>HMAC_PROOF</code> returned at registration. The device verifies the group handle, verifies the proof, displays <code>old_name → new_name</code>, and returns a new <code>HMAC_PROOF</code> for the updated name.</p>
+<h4 id="tlv-payload_1">TLV payload</h4>
+<table>
+<thead>
+<tr>
+<th>Tag Name</th>
+<th>Value</th>
+<th>Mandatory</th>
+<th>Max size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STRUCT_TYPE</td>
+<td>0x01</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x2e (<code>TYPE_EDIT_CONTACT_NAME</code>)</td>
+</tr>
+<tr>
+<td>STRUCT_VERSION</td>
+<td>0x02</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x01</td>
+</tr>
+<tr>
+<td>PREVIOUS_CONTACT_NAME</td>
+<td>0xf3</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Old contact name (must match value used at registration)</td>
+</tr>
+<tr>
+<td>CONTACT_NAME</td>
+<td>0xf0</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>New contact name (max 32 printable ASCII chars)</td>
+</tr>
+<tr>
+<td>GROUP_HANDLE</td>
+<td>0xf6</td>
+<td>Yes</td>
+<td>64 B</td>
+<td>Opaque token from Register Identity response</td>
+</tr>
+<tr>
+<td>HMAC_PROOF</td>
+<td>0x29</td>
+<td>Yes</td>
+<td>32 B</td>
+<td><code>HMAC_PROOF</code> returned by the original Register Identity</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Payload size:</strong> worst case (max names) = <strong>174 B</strong> — fits in a single short APDU ✓</p>
+</blockquote>
+<h4 id="flow_1">Flow</h4>
+<ol>
+<li>Parse TLV payload.</li>
+<li>Verify <code>group_handle</code> MAC (constant-time) and extract <code>gid</code>.</li>
+<li>Verify <code>HMAC_PROOF</code> over <code>(gid, previous_name)</code> (constant-time) — proves the contact was registered on this device.</li>
+<li>Display to user: <code>previous_name → new_name</code>.</li>
+<li>On confirm: compute new <code>HMAC_PROOF</code> over <code>(gid, new_name)</code> and return it.</li>
+</ol>
+<pre class="mermaid"><code>sequenceDiagram
+
+    Note over Wallet: Has: group_handle, previous_name, hmac_proof (from registration)
+    Wallet-&gt;&gt;Device: CMD_EDIT_CONTACT_NAME (group_handle + previous_name + new_name + hmac_proof)
+    Device-&gt;&gt;Device: Parse TLV
+    Device-&gt;&gt;Device: Verify group_handle MAC, extract gid
+    Device-&gt;&gt;Device: Verify HMAC_PROOF(gid, previous_name)    Note right of Device: Proves contact registered on this device
+    Device-&gt;&gt;User: Display: previous_name → new_name
+    User-&gt;&gt;Device: Confirm
+    Device-&gt;&gt;Device: Compute new HMAC_PROOF(gid, new_name)    Device-&gt;&gt;Wallet: 0x2e | hmac_proof(32)  [9000]
+    Device-&gt;&gt;Device: on_edit_contact_name_applied() [coin-app] — update cached name in place
+    Wallet-&gt;&gt;Wallet: Replace stored hmac_proof and contact name</code></pre>
+<h4 id="response-on-confirm_1">Response (on confirm)</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-9-1" id="__codelineno-9-1" name="__codelineno-9-1"></a>type(1) | hmac_proof(32)
+</code></pre></div>
+<ul>
+<li><code>type</code> = <code>0x2e</code> (<code>TYPE_EDIT_CONTACT_NAME</code>)</li>
+<li><code>hmac_proof</code> = new HMAC-SHA256 over: <code>gid(32) | name_len(1) | new_contact_name</code></li>
+</ul>
+<h3 id="53-edit-identifier">5.3 Edit Identifier</h3>
+<ul>
+<li><strong>Sub-command:</strong> P1 = <code>0x03</code></li>
+<li><strong>Structure type:</strong> <code>0x31</code> (<code>TYPE_EDIT_IDENTIFIER</code>)</li>
+<li><strong>Guard:</strong> <code>HAVE_ADDRESS_BOOK</code></li>
+</ul>
+<p>Changes the <code>IDENTIFIER</code> of an existing contact while keeping the same <code>contact_name</code> and <code>scope</code>. The wallet provides the <em>old identifier</em> and the stored <code>hmac_proof</code>, allowing the device to verify the prior registration, display <code>old_identifier → new_identifier</code> to the user, and return a new proof for the updated identifier.</p>
+<h4 id="tlv-payload_2">TLV payload</h4>
+<table>
+<thead>
+<tr>
+<th>Tag Name</th>
+<th>Value</th>
+<th>Mandatory</th>
+<th>Max size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STRUCT_TYPE</td>
+<td>0x01</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x31 (<code>TYPE_EDIT_IDENTIFIER</code>)</td>
+</tr>
+<tr>
+<td>STRUCT_VERSION</td>
+<td>0x02</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x01</td>
+</tr>
+<tr>
+<td>CONTACT_NAME</td>
+<td>0xf0</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Contact name (unchanged from registration)</td>
+</tr>
+<tr>
+<td>SCOPE</td>
+<td>0xf1</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Context string (unchanged from registration)</td>
+</tr>
+<tr>
+<td>ACCOUNT_IDENTIFIER</td>
+<td>0xf2</td>
+<td>Yes</td>
+<td>80 B</td>
+<td>New blockchain identifier (replacing the old one)</td>
+</tr>
+<tr>
+<td>PREVIOUS_IDENTIFIER</td>
+<td>0xf4</td>
+<td>Yes</td>
+<td>80 B</td>
+<td>old identifier (to verify the HMAC from the prior registration)</td>
+</tr>
+<tr>
+<td>GROUP_HANDLE</td>
+<td>0xf6</td>
+<td>Yes</td>
+<td>64 B</td>
+<td>Opaque token from Register Identity response</td>
+</tr>
+<tr>
+<td>CHAIN_ID</td>
+<td>0x23</td>
+<td>Cond.</td>
+<td>8 B</td>
+<td>Chain ID (mandatory for Ethereum)</td>
+</tr>
+<tr>
+<td>BLOCKCHAIN_FAMILY</td>
+<td>0x51</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>Blockchain family</td>
+</tr>
+<tr>
+<td>HMAC_PROOF</td>
+<td>0x29</td>
+<td>Yes</td>
+<td>32 B</td>
+<td><code>HMAC_PROOF</code> from Register Identity (verifies the contact name)</td>
+</tr>
+<tr>
+<td>HMAC_REST</td>
+<td>0xf7</td>
+<td>Yes</td>
+<td>32 B</td>
+<td><code>HMAC_REST</code> from Register Identity (verifies the old identifier)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Payload size:</strong> worst case (Ethereum, max identifiers, with scope) = <strong>385 B</strong> — exceeds the 255 B short APDU limit. Multi-chunk transport is required (see §3).</p>
+</blockquote>
+<h4 id="flow_2">Flow</h4>
+<ol>
+<li>Parse TLV payload.</li>
+<li>Verify <code>group_handle</code> MAC (constant-time) and extract <code>gid</code>.</li>
+<li>Verify <code>HMAC_PROOF</code> over <code>(gid, contact_name)</code> (constant-time) — proves the name was registered on this device.</li>
+<li>Verify <code>HMAC_REST</code> over <code>(gid, scope, old_identifier, family [, chain_id])</code> (constant-time) — proves the identifier was registered on this device.</li>
+<li>Call <code>handle_check_edit_identifier()</code> (coin-app entrypoint) for chain-specific validation of the new identifier.</li>
+<li>Display to user: <code>contact_name</code> / <code>old_identifier → new_identifier</code>.</li>
+<li>On confirm: compute new <code>HMAC_REST</code> over <code>(gid, scope, new_identifier, family [, chain_id])</code> and return it.</li>
+</ol>
+<pre class="mermaid"><code>sequenceDiagram
+
+    Note over Wallet: Has: group_handle, contact_name, old_identifier, hmac_proof, hmac_rest (from registration)
+    Wallet-&gt;&gt;Device: CMD_EDIT_IDENTIFIER (group_handle + contact_name + new_identifier + old_identifier + hmac_proof + hmac_rest + ...)
+    Device-&gt;&gt;Device: Parse TLV
+    Device-&gt;&gt;Device: Verify group_handle MAC, extract gid
+    Device-&gt;&gt;Device: Verify HMAC_PROOF(gid, contact_name)
+    Device-&gt;&gt;Device: Verify HMAC_REST(gid, scope, old_identifier, family[, chain_id])
+    Note right of Device: Proves contact (name + identifier) registered on this device
+    Device-&gt;&gt;Device: handle_check_edit_identifier() [coin-app]
+    Device-&gt;&gt;User: Display: contact_name / old_identifier → new_identifier
+    User-&gt;&gt;Device: Confirm
+    Device-&gt;&gt;Device: Compute new HMAC_REST(gid, scope, new_identifier, family[, chain_id])    Device-&gt;&gt;Wallet: 0x31 | hmac_rest(32)  [9000]
+    Device-&gt;&gt;Device: on_edit_identifier_applied() [coin-app] — update cached identifier in place
+    Wallet-&gt;&gt;Wallet: Replace stored hmac_rest and identifier with new values</code></pre>
+<h4 id="response-on-confirm_2">Response (on confirm)</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-10-1" id="__codelineno-10-1" name="__codelineno-10-1"></a>type(1) | hmac_rest(32)
+</code></pre></div>
+<ul>
+<li><code>type</code> = <code>0x31</code> (<code>TYPE_EDIT_IDENTIFIER</code>)</li>
+<li><code>hmac_rest</code> = new HMAC-SHA256 over: <code>gid(32) | scope_len(1) | scope | identifier_len(1) | new_identifier | family(1) [ | chain_id(8) ]</code></li>
+</ul>
+<h3 id="54-edit-scope">5.4 Edit Scope</h3>
+<ul>
+<li><strong>Sub-command:</strong> P1 = <code>0x04</code></li>
+<li><strong>Structure type:</strong> <code>0x32</code> (<code>TYPE_EDIT_SCOPE</code>)</li>
+<li><strong>Guard:</strong> <code>HAVE_ADDRESS_BOOK</code></li>
+</ul>
+<p>Changes the <code>SCOPE</code> of an existing contact while keeping the same <code>contact_name</code> and <code>identifier</code>. The wallet provides the <em>old scope</em> and the stored <code>hmac_proof</code>, allowing the device to verify the prior registration, display <code>old_scope → new_scope</code> to the user, and return a new proof for the updated scope.</p>
+<h4 id="tlv-payload_3">TLV payload</h4>
+<table>
+<thead>
+<tr>
+<th>Tag Name</th>
+<th>Value</th>
+<th>Mandatory</th>
+<th>Max size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STRUCT_TYPE</td>
+<td>0x01</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x32 (<code>TYPE_EDIT_SCOPE</code>)</td>
+</tr>
+<tr>
+<td>STRUCT_VERSION</td>
+<td>0x02</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x01</td>
+</tr>
+<tr>
+<td>CONTACT_NAME</td>
+<td>0xf0</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Contact name (unchanged from registration)</td>
+</tr>
+<tr>
+<td>SCOPE</td>
+<td>0xf1</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>New scope (max 32 printable ASCII chars)</td>
+</tr>
+<tr>
+<td>ACCOUNT_IDENTIFIER</td>
+<td>0xf2</td>
+<td>Yes</td>
+<td>80 B</td>
+<td>Blockchain identifier (unchanged from registration)</td>
+</tr>
+<tr>
+<td>PREVIOUS_SCOPE</td>
+<td>0xf5</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>old scope (must match value used at registration)</td>
+</tr>
+<tr>
+<td>GROUP_HANDLE</td>
+<td>0xf6</td>
+<td>Yes</td>
+<td>64 B</td>
+<td>Opaque token from Register Identity response</td>
+</tr>
+<tr>
+<td>CHAIN_ID</td>
+<td>0x23</td>
+<td>Cond.</td>
+<td>8 B</td>
+<td>Chain ID (mandatory for Ethereum)</td>
+</tr>
+<tr>
+<td>BLOCKCHAIN_FAMILY</td>
+<td>0x51</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>Blockchain family</td>
+</tr>
+<tr>
+<td>HMAC_PROOF</td>
+<td>0x29</td>
+<td>Yes</td>
+<td>32 B</td>
+<td><code>HMAC_PROOF</code> from Register Identity, proves the contact name</td>
+</tr>
+<tr>
+<td>HMAC_REST</td>
+<td>0xf7</td>
+<td>Yes</td>
+<td>32 B</td>
+<td><code>HMAC_REST</code> from Register Identity, proves the scope</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Payload size:</strong> worst case (Ethereum, max identifier) = <strong>337 B</strong> — exceeds the 255 B short APDU limit. Multi-chunk transport is required (see §3).</p>
+</blockquote>
+<h4 id="flow_3">Flow</h4>
+<ol>
+<li>Parse TLV payload.</li>
+<li>Verify <code>group_handle</code> MAC (constant-time) and extract <code>gid</code>.</li>
+<li>Verify <code>HMAC_PROOF</code> over <code>(gid, contact_name)</code> (constant-time) — proves the name was registered on this device.</li>
+<li>Verify <code>HMAC_REST</code> over <code>(gid, old_scope, identifier, family [, chain_id])</code> (constant-time) — proves the scope/identifier were registered on this device.</li>
+<li>Display to user: <code>contact_name</code> / <code>old_scope → new_scope</code>.</li>
+<li>On confirm: compute new <code>HMAC_REST</code> over <code>(gid, new_scope, identifier, family [, chain_id])</code> and return it.</li>
+</ol>
+<pre class="mermaid"><code>sequenceDiagram
+
+    Note over Wallet: Has: group_handle, contact_name, old_scope, hmac_proof, hmac_rest (from registration)
+    Wallet-&gt;&gt;Device: CMD_EDIT_SCOPE (group_handle + contact_name + new_scope + old_scope + hmac_proof + hmac_rest + identifier + ...)
+    Device-&gt;&gt;Device: Parse TLV
+    Device-&gt;&gt;Device: Verify group_handle MAC, extract gid
+    Device-&gt;&gt;Device: Verify HMAC_PROOF(gid, contact_name)
+    Device-&gt;&gt;Device: Verify HMAC_REST(gid, old_scope, identifier, family[, chain_id])
+    Note right of Device: Proves contact (name + scope) registered on this device
+    Device-&gt;&gt;User: Display: contact_name / old_scope → new_scope
+    User-&gt;&gt;Device: Confirm
+    Device-&gt;&gt;Device: Compute new HMAC_REST(gid, new_scope, identifier, family[, chain_id])    Device-&gt;&gt;Wallet: 0x32 | hmac_rest(32)  [9000]
+    Device-&gt;&gt;Device: on_edit_scope_applied() [coin-app] — update cached scope in place
+    Wallet-&gt;&gt;Wallet: Replace stored hmac_rest and contact scope</code></pre>
+<h4 id="response-on-confirm_3">Response (on confirm)</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-11-1" id="__codelineno-11-1" name="__codelineno-11-1"></a>type(1) | hmac_rest(32)
+</code></pre></div>
+<ul>
+<li><code>type</code> = <code>0x32</code> (<code>TYPE_EDIT_SCOPE</code>)</li>
+<li><code>hmac_rest</code> = new HMAC-SHA256 over: <code>gid(32) | scope_len(1) | new_scope | identifier_len(1) | identifier | family(1) [ | chain_id(8) ]</code></li>
+</ul>
+<h3 id="55-register-ledger-account">5.5 Register Ledger Account</h3>
+<ul>
+<li><strong>Sub-command:</strong> P1 = <code>0x11</code></li>
+<li><strong>Structure type:</strong> <code>0x2f</code> (<code>TYPE_REGISTER_LEDGER_ACCOUNT</code>)</li>
+<li><strong>Guard:</strong> <code>HAVE_ADDRESS_BOOK</code> &amp;&amp; <code>HAVE_ADDRESS_BOOK_LEDGER_ACCOUNT</code></li>
+</ul>
+<p>Registers a name for a Ledger-owned account, identified by its derivation path and blockchain family. <code>CHAIN_ID</code> is only present for Ethereum, where multiple networks share the same address format.</p>
+<h4 id="tlv-payload_4">TLV payload</h4>
+<table>
+<thead>
+<tr>
+<th>Tag Name</th>
+<th>Value</th>
+<th>Mandatory</th>
+<th>Max size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STRUCT_TYPE</td>
+<td>0x01</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x2f (<code>TYPE_REGISTER_LEDGER_ACCOUNT</code>)</td>
+</tr>
+<tr>
+<td>STRUCT_VERSION</td>
+<td>0x02</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x01</td>
+</tr>
+<tr>
+<td>CONTACT_NAME</td>
+<td>0xf0</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Account name (max 32 printable ASCII chars)</td>
+</tr>
+<tr>
+<td>DERIVATION_PATH</td>
+<td>0x69</td>
+<td>Yes</td>
+<td>41 B</td>
+<td>BIP32 derivation path</td>
+</tr>
+<tr>
+<td>CHAIN_ID</td>
+<td>0x23</td>
+<td>Cond.</td>
+<td>8 B</td>
+<td>Chain ID (mandatory for Ethereum)</td>
+</tr>
+<tr>
+<td>BLOCKCHAIN_FAMILY</td>
+<td>0x51</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>Blockchain family</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Payload size:</strong> worst case (Ethereum, max path depth) = <strong>96 B</strong> — fits in a single short APDU ✓</p>
+</blockquote>
+<h4 id="flow_4">Flow</h4>
+<ol>
+<li>Parse TLV payload.</li>
+<li>Call <code>handle_check_register_ledger_account()</code> (coin-app entrypoint).</li>
+<li>Call <code>display_register_ledger_account_review()</code> (coin-app entrypoint) — the app owns the UI.</li>
+<li>On confirm: compute HMAC Proof of Registration and return it.</li>
+</ol>
+<pre class="mermaid"><code>sequenceDiagram
+
+    Wallet-&gt;&gt;Device: CMD_REGISTER_LEDGER_ACCOUNT (contact_name + path + family + ...)
+    Device-&gt;&gt;Device: Parse TLV
+    Device-&gt;&gt;Device: handle_check_register_ledger_account() [coin-app]
+    Device-&gt;&gt;Device: display_register_ledger_account_review() [coin-app]
+    Device-&gt;&gt;User: Display: account name + address
+    User-&gt;&gt;Device: Confirm
+    Device-&gt;&gt;Device: Derive HMAC key at BIP32 path (Ledger Account KDF)
+    Device-&gt;&gt;Device: HMAC-SHA256(key, name_len|name|family[|chain_id])
+    Device-&gt;&gt;Wallet: 0x2f | hmac_proof(32)  [9000]
+    Wallet-&gt;&gt;Wallet: Store hmac_proof with account record</code></pre>
+<h4 id="response-on-confirm_4">Response (on confirm)</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-12-1" id="__codelineno-12-1" name="__codelineno-12-1"></a>type(1) | hmac_proof(32)
+</code></pre></div>
+<ul>
+<li><code>type</code> = <code>0x2f</code> (<code>TYPE_REGISTER_LEDGER_ACCOUNT</code>)</li>
+<li><code>hmac_proof</code> = HMAC-SHA256 over: <code>contact_name_len(1) | contact_name | family(1) [ | chain_id(8) ]</code></li>
+</ul>
+<blockquote>
+<p><code>chain_id</code> is included in the HMAC message only when <code>BLOCKCHAIN_FAMILY = 1</code> (Ethereum).</p>
+</blockquote>
+<h3 id="56-edit-ledger-account">5.6 Edit Ledger Account</h3>
+<ul>
+<li><strong>Sub-command:</strong> P1 = <code>0x12</code></li>
+<li><strong>Structure type:</strong> <code>0x30</code> (<code>TYPE_EDIT_LEDGER_ACCOUNT</code>)</li>
+<li><strong>Guard:</strong> <code>HAVE_ADDRESS_BOOK</code> &amp;&amp; <code>HAVE_ADDRESS_BOOK_LEDGER_ACCOUNT</code></li>
+</ul>
+<p>Edits the name of an existing Ledger account. The wallet provides the old name and the stored <code>hmac_proof</code>, allowing the device to verify the prior registration, display the review to the user, and return a new proof for the updated name.</p>
+<p>The Edit flow reuses the Register review UI: the coin app provides <code>handle_check_edit_ledger_account()</code> to validate and prepare the shared review context, <code>display_register_ledger_account_review()</code> for the review, <code>finalize_ui_ledger_account()</code> to return the device to idle, and <code>on_edit_ledger_account_applied()</code> to update the cached contact.</p>
+<h4 id="tlv-payload_5">TLV payload</h4>
+<table>
+<thead>
+<tr>
+<th>Tag Name</th>
+<th>Value</th>
+<th>Mandatory</th>
+<th>Max size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STRUCT_TYPE</td>
+<td>0x01</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x30 (<code>TYPE_EDIT_LEDGER_ACCOUNT</code>)</td>
+</tr>
+<tr>
+<td>STRUCT_VERSION</td>
+<td>0x02</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x01</td>
+</tr>
+<tr>
+<td>PREVIOUS_CONTACT_NAME</td>
+<td>0xf3</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>old account name (must match value used at registration)</td>
+</tr>
+<tr>
+<td>CONTACT_NAME</td>
+<td>0xf0</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>New account name (max 32 printable ASCII chars)</td>
+</tr>
+<tr>
+<td>HMAC_PROOF</td>
+<td>0x29</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>HMAC Proof of Registration returned by Register Ledger Account</td>
+</tr>
+<tr>
+<td>DERIVATION_PATH</td>
+<td>0x69</td>
+<td>Yes</td>
+<td>41 B</td>
+<td>BIP32 derivation path (same as at registration)</td>
+</tr>
+<tr>
+<td>CHAIN_ID</td>
+<td>0x23</td>
+<td>Cond.</td>
+<td>8 B</td>
+<td>Chain ID (mandatory for Ethereum)</td>
+</tr>
+<tr>
+<td>BLOCKCHAIN_FAMILY</td>
+<td>0x51</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>Blockchain family</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Payload size:</strong> worst case (Ethereum, max path depth) = <strong>164 B</strong> — fits in a single short APDU ✓</p>
+</blockquote>
+<h4 id="flow_5">Flow</h4>
+<ol>
+<li>Parse TLV payload.</li>
+<li>Re-derive HMAC over <code>(previous_name, family [, chain_id])</code> and compare with <code>hmac_proof</code> (constant-time) — proves the account was registered on this device.</li>
+<li>Display <code>previous_name → new_name</code> to user (SDK-handled, no coin-app callback).</li>
+<li>On confirm: compute new HMAC over <code>(new_name, family [, chain_id])</code> and return it.</li>
+</ol>
+<pre class="mermaid"><code>sequenceDiagram
+
+    Note over Wallet: Has: previous_name, hmac_proof (from registration)
+    Wallet-&gt;&gt;Device: CMD_EDIT_LEDGER_ACCOUNT (previous_name + new_name + hmac_proof + path + family + ...)
+    Device-&gt;&gt;Device: Parse TLV
+    Device-&gt;&gt;Device: Re-derive HMAC(previous_name, family[, chain_id]), compare with hmac_proof
+    Note right of Device: Proves account registered on this device
+    Device-&gt;&gt;User: Display: previous_name → new_name
+    User-&gt;&gt;Device: Confirm
+    Device-&gt;&gt;Device: HMAC-SHA256(key, new_name_len|new_name|family[|chain_id])
+    Device-&gt;&gt;Wallet: 0x30 | hmac_proof(32)  [9000]
+    Device-&gt;&gt;Device: on_edit_ledger_account_applied() [coin-app] — update cached account name in place
+    Wallet-&gt;&gt;Wallet: Replace stored hmac_proof with new account record</code></pre>
+<h4 id="response-on-confirm_5">Response (on confirm)</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-13-1" id="__codelineno-13-1" name="__codelineno-13-1"></a>type(1) | hmac_proof(32)
+</code></pre></div>
+<ul>
+<li><code>type</code> = <code>0x30</code> (<code>TYPE_EDIT_LEDGER_ACCOUNT</code>)</li>
+<li><code>hmac_proof</code> = new HMAC-SHA256 over: <code>name_len(1) | new_name | family(1) [ | chain_id(8) ]</code></li>
+</ul>
+<hr/>
+<h3 id="57-provide-contact">5.7 Provide Contact</h3>
+<ul>
+<li><strong>Sub-command:</strong> P1 = <code>0x20</code></li>
+<li><strong>Structure type:</strong> <code>0x33</code> (<code>TYPE_PROVIDE_CONTACT</code>)</li>
+<li><strong>Guard:</strong> <code>HAVE_ADDRESS_BOOK</code></li>
+</ul>
+<p>Sent by the wallet <strong>before a transaction</strong> to let the device substitute a human-readable contact name (and scope) for a raw blockchain address on the review screen. The device verifies both HMAC proofs to guarantee that the contact was legitimately registered on this device, then exposes the validated data to the coin app via the <code>handle_provide_identity()</code> callback.</p>
+<h4 id="tlv-payload_6">TLV payload</h4>
+<table>
+<thead>
+<tr>
+<th>Tag Name</th>
+<th>Value</th>
+<th>Mandatory</th>
+<th>Max size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STRUCT_TYPE</td>
+<td>0x01</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x33 (<code>TYPE_PROVIDE_CONTACT</code>)</td>
+</tr>
+<tr>
+<td>STRUCT_VERSION</td>
+<td>0x02</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>0x01</td>
+</tr>
+<tr>
+<td>CONTACT_NAME</td>
+<td>0xf0</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Contact name (must match value used at registration)</td>
+</tr>
+<tr>
+<td>SCOPE</td>
+<td>0xf1</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Contact scope (must match value used at registration)</td>
+</tr>
+<tr>
+<td>ACCOUNT_IDENTIFIER</td>
+<td>0xf2</td>
+<td>Yes</td>
+<td>80 B</td>
+<td>Blockchain identifier (unchanged from registration)</td>
+</tr>
+<tr>
+<td>GROUP_HANDLE</td>
+<td>0xf6</td>
+<td>Yes</td>
+<td>64 B</td>
+<td>Opaque token from Register Identity response</td>
+</tr>
+<tr>
+<td>CHAIN_ID</td>
+<td>0x23</td>
+<td>Cond.</td>
+<td>8 B</td>
+<td>Chain ID (mandatory for Ethereum)</td>
+</tr>
+<tr>
+<td>BLOCKCHAIN_FAMILY</td>
+<td>0x51</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>Blockchain family</td>
+</tr>
+<tr>
+<td>HMAC_PROOF</td>
+<td>0x29</td>
+<td>Yes</td>
+<td>32 B</td>
+<td><code>HMAC_PROOF</code> from Register Identity — proves contact name</td>
+</tr>
+<tr>
+<td>HMAC_REST</td>
+<td>0xf7</td>
+<td>Yes</td>
+<td>32 B</td>
+<td><code>HMAC_REST</code> from Register Identity — proves scope + identifier</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Payload size:</strong> worst case (Ethereum, max name + scope + identifier) = <strong>319 B</strong> — exceeds the 255 B short APDU limit. Multi-chunk transport is required (see §3).</p>
+</blockquote>
+<h4 id="flow_6">Flow</h4>
+<ol>
+<li>Parse TLV payload.</li>
+<li>Verify <code>group_handle</code> MAC (constant-time) and extract <code>gid</code>.</li>
+<li>Verify <code>HMAC_PROOF</code> over <code>(gid, contact_name)</code> (constant-time) — proves the name was registered on this device.</li>
+<li>Verify <code>HMAC_REST</code> over <code>(gid, scope, identifier, family [, chain_id])</code> (constant-time) — proves the scope and identifier were registered on this device.</li>
+<li>Call <code>handle_provide_identity()</code> (coin-app entrypoint) — passes the validated contact data for the app to store and use during the upcoming transaction review.</li>
+<li>Return <code>9000</code> (no data).</li>
+</ol>
+<pre class="mermaid"><code>sequenceDiagram
+
+    Note over Wallet: Has: group_handle, contact_name, scope, identifier, hmac_proof, hmac_rest
+    Wallet-&gt;&gt;Device: CMD_PROVIDE_CONTACT (group_handle + contact_name + scope + identifier + hmac_proof + hmac_rest + ...)
+    Device-&gt;&gt;Device: Parse TLV
+    Device-&gt;&gt;Device: Verify group_handle MAC, extract gid
+    Device-&gt;&gt;Device: Verify HMAC_PROOF(gid, contact_name)
+    Device-&gt;&gt;Device: Verify HMAC_REST(gid, scope, identifier, family[, chain_id])
+    Note right of Device: Both proofs valid — contact legitimately registered on this device
+    Device-&gt;&gt;Device: handle_provide_identity() [coin-app] — store contact data for transaction review
+    Device-&gt;&gt;Wallet: 9000
+    Note over Wallet: Wallet sends the transaction APDU next</code></pre>
+<h4 id="response">Response</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-14-1" id="__codelineno-14-1" name="__codelineno-14-1"></a>9000  (no data)
+</code></pre></div>
+<hr/>
+<h3 id="58-provide-ledger-account-contact">5.8 Provide Ledger Account Contact</h3>
+<ul>
+<li><strong>Sub-command:</strong> P1 = <code>0x21</code></li>
+<li><strong>Structure type:</strong> <code>0x34</code> (<code>TYPE_PROVIDE_LEDGER_ACCOUNT_CONTACT</code>)</li>
+<li><strong>Guard:</strong> <code>HAVE_ADDRESS_BOOK</code> &amp;&amp; <code>HAVE_ADDRESS_BOOK_LEDGER_ACCOUNT</code></li>
+</ul>
+<p>Sent by the wallet <strong>before a transaction</strong> to let the device substitute the human-readable account name for the raw Ethereum address of a previously-registered Ledger Account. Unlike Provide Contact (§5.7), there is no external identifier, no <code>group_handle</code>, no <code>scope</code>, and no <code>HMAC_REST</code> — the only proof required is the <code>HMAC_PROOF</code> returned by Register Ledger Account.</p>
+<p>The device verifies the HMAC Proof of Registration, then derives the Ethereum address from the BIP32 path and exposes the validated <code>(address → name)</code> mapping to the coin app via <code>handle_provide_ledger_account()</code>.</p>
+<h4 id="tlv-payload_7">TLV payload</h4>
+<table>
+<thead>
+<tr>
+<th>Tag Name</th>
+<th>Value</th>
+<th>Mandatory</th>
+<th>Max size</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STRUCT_TYPE</td>
+<td>0x01</td>
+<td>Yes</td>
+<td>1 B</td>
+<td><code>0x34</code> (<code>TYPE_PROVIDE_LEDGER_ACCOUNT_CONTACT</code>)</td>
+</tr>
+<tr>
+<td>STRUCT_VERSION</td>
+<td>0x02</td>
+<td>Yes</td>
+<td>1 B</td>
+<td><code>0x01</code></td>
+</tr>
+<tr>
+<td>CONTACT_NAME</td>
+<td>0xf0</td>
+<td>Yes</td>
+<td>32 B</td>
+<td>Account name (must match value used at registration)</td>
+</tr>
+<tr>
+<td>DERIVATION_PATH</td>
+<td>0x69</td>
+<td>Yes</td>
+<td>41 B</td>
+<td>BIP32 derivation path (same as at registration)</td>
+</tr>
+<tr>
+<td>CHAIN_ID</td>
+<td>0x23</td>
+<td>Cond.</td>
+<td>8 B</td>
+<td>Chain ID (mandatory for Ethereum)</td>
+</tr>
+<tr>
+<td>BLOCKCHAIN_FAMILY</td>
+<td>0x51</td>
+<td>Yes</td>
+<td>1 B</td>
+<td>Blockchain family</td>
+</tr>
+<tr>
+<td>HMAC_PROOF</td>
+<td>0x29</td>
+<td>Yes</td>
+<td>32 B</td>
+<td><code>HMAC_PROOF</code> from Register Ledger Account — proves the account name</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Payload size:</strong> worst case (Ethereum, max path depth, max name) = <strong>130 B</strong> — fits in a single short APDU ✓</p>
+</blockquote>
+<h4 id="flow_7">Flow</h4>
+<ol>
+<li>Parse TLV payload.</li>
+<li>Re-derive HMAC over <code>(account_name, family [, chain_id])</code> at the given BIP32 path and compare with <code>hmac_proof</code> (constant-time) — proves the account was registered on this device.</li>
+<li>Call <code>handle_provide_ledger_account()</code> (coin-app entrypoint) — the app derives the Ethereum address from the BIP32 path, stores the <code>(address → name)</code> mapping for use during the upcoming transaction review.</li>
+<li>Return <code>9000</code> (no data).</li>
+</ol>
+<pre class="mermaid"><code>sequenceDiagram
+
+    Note over Wallet: Has: account_name, bip32_path, chain_id, hmac_proof (from registration)
+    Wallet-&gt;&gt;Device: CMD_PROVIDE_LEDGER_ACCOUNT_CONTACT (account_name + bip32_path + chain_id + family + hmac_proof)
+    Device-&gt;&gt;Device: Parse TLV
+    Device-&gt;&gt;Device: Re-derive HMAC(account_name, family[, chain_id]) at bip32_path, compare with hmac_proof
+    Note right of Device: Proof valid — account legitimately registered on this device
+    Device-&gt;&gt;Device: handle_provide_ledger_account() [coin-app] — derive address, store mapping
+    Device-&gt;&gt;Wallet: 9000
+    Note over Wallet: Wallet sends the transaction APDU next</code></pre>
+<h4 id="response_1">Response</h4>
+<div class="highlight"><pre><span></span><code><a href="#__codelineno-15-1" id="__codelineno-15-1" name="__codelineno-15-1"></a>9000  (no data)
+</code></pre></div>
+<hr/>
+<h2 id="6-coin-app-entrypoints">6. Coin-app entrypoints</h2>
+<p>The SDK calls coin-app functions following four naming patterns:</p>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Role</th>
+<th>Return</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>handle_check_XXX(params)</code></td>
+<td>Chain-specific validation after TLV parsing, before review display</td>
+<td><code>true</code> to proceed, <code>false</code> to reject</td>
+</tr>
+<tr>
+<td><code>get_XXX_tagValue(index)</code></td>
+<td>NBGL review callback — return one tag-value pair by index</td>
+<td>Tag-value pair, <code>NULL</code> when out of range</td>
+</tr>
+<tr>
+<td><code>finalize_ui_XXX()</code></td>
+<td>Post-choice cleanup and return to idle (confirm and reject)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>on_edit_XXX_applied(edit)</code></td>
+<td>Update cached contact in place (confirmed edits only, after HMAC sent)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>The required callbacks depend on the sub-command.</p>
+<table>
+<thead>
+<tr>
+<th>Sub-command</th>
+<th style="text-align: center;"><code>handle_check</code></th>
+<th style="text-align: center;"><code>get_tagValue</code></th>
+<th style="text-align: center;"><code>finalize_ui</code></th>
+<th style="text-align: center;"><code>on_edit_applied</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>register_identity</code></td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">—</td>
+</tr>
+<tr>
+<td><code>edit_contact_name</code></td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td><code>edit_identifier</code></td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td><code>edit_scope</code></td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td><code>register_ledger_account</code></td>
+<td style="text-align: center;">✓ ¹</td>
+<td style="text-align: center;">— ¹</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">—</td>
+</tr>
+<tr>
+<td><code>edit_ledger_account</code></td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">—</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>¹ Register Ledger Account replaces the <code>handle_check</code> + <code>get_tagValue</code> pair with a single <code>display_register_ledger_account_review</code> callback — the coin app owns the full review UI and calls the SDK-provided choice callback on confirm or reject.</p>
+</blockquote>
+<p>Two additional entrypoints handle contact provisioning (no UI, called silently before a transaction):</p>
+<table>
+<thead>
+<tr>
+<th>Entrypoint</th>
+<th>Called when</th>
+<th>Return</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>handle_provide_identity</code></td>
+<td>After Provide Identity Contact HMAC verification</td>
+<td><code>true</code> to store, <code>false</code> to reject</td>
+</tr>
+<tr>
+<td><code>handle_provide_ledger_account</code></td>
+<td>After Provide Ledger Account Contact HMAC verification</td>
+<td><code>true</code> to store, <code>false</code> to reject</td>
+</tr>
+</tbody>
+</table>
+<hr/>
+<h2 id="7-status-words">7. Status words</h2>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Constant</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x9000</td>
+<td><code>SWO_SUCCESS</code></td>
+<td>Operation successful</td>
+</tr>
+<tr>
+<td>0x6A80</td>
+<td><code>SWO_INCORRECT_DATA</code></td>
+<td>Malformed TLV, invalid group handle, or user rejection</td>
+</tr>
+<tr>
+<td>0x6982</td>
+<td><code>SWO_SECURITY_CONDITION_NOT_SATISFIED</code></td>
+<td>HMAC_PROOF or HMAC_REST proof verification failed</td>
+</tr>
+<tr>
+<td>0x6984</td>
+<td><code>SWO_CONDITIONS_NOT_SATISFIED</code></td>
+<td>Unknown sub-command or unsupported configuration</td>
+</tr>
+<tr>
+<td>0x6B00</td>
+<td><code>SWO_WRONG_PARAMETER_VALUE</code></td>
+<td>Coin-app rejected the data (chain, address format, etc.)</td>
+</tr>
+</tbody>
+</table>
+</article>
+</div>
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+</div>
+</main>
+<footer class="md-footer">
+<div class="md-footer-meta md-typeset">
+<div class="md-footer-meta__inner md-grid">
+<div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" rel="noopener" target="_blank">
+      Material for MkDocs
+    </a>
+</div>
+</div>
+</div>
+</footer>
+</div>
+<div class="md-dialog" data-md-component="dialog">
+<div class="md-dialog__inner md-typeset"></div>
+</div>
+<script id="__config" type="application/json">{"annotate": null, "base": "../../../../../..", "features": ["navigation.indexes", "navigation.expand"], "search": "../../../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+<script src="../../../../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+</body>
+</html>

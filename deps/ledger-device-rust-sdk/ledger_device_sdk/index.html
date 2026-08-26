@@ -1,0 +1,1528 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for Ledger Swap">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../img/Ledger-logo-696.webp">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Ledger device SDK for Rust Applications - Ledger Swap documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ledger-device-sdk-for-rust-applications" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Ledger Swap documentation" class="md-header__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Ledger Swap documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ledger device SDK for Rust Applications
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Ledger Swap documentation" class="md-nav__button md-logo" aria-label="Ledger Swap documentation" data-md-component="logo">
+      
+  <img src="../../../img/Ledger-logo-696.webp" alt="logo">
+
+    </a>
+    Ledger Swap documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../walkthrough/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Enabling the SWAP on your application
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Enabling the SWAP on your application
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/prerequisite/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Prerequisite
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/run_first_test/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Running an existing SWAP test
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../walkthrough/enable_the_swap_compilation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First compilation with the standard SWAP
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    First compilation with the standard SWAP
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/enable_the_swap_compilation/c/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For C applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/enable_the_swap_compilation/rust/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Rust applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/enable_standard_app/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Creating a basic SWAP test for you coin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../walkthrough/code_the_handlers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code the handlers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../technical_information/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical Information
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Technical Information
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/diagram/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence diagram
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exchange Protocol API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/protobuf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transaction proposal (protobuf)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/fund_and_sell/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FUND and SELL flows
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/cal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Crypto Asset List (CAL)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/bss/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BSS safety in coin applications
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../technical_information/coin_application_api/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coin Application API
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Coin Application API
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/entry_point/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coin application entry point
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/swap_handle_check_address/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CHECK_ADDRESS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/swap_handle_get_printable_amount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GET_PRINTABLE_AMOUNT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_8_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../technical_information/coin_application_api/sign_transaction/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SIGN_TRANSACTION
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3_8_5" id="__nav_3_8_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_8_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SIGN_TRANSACTION
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/sign_transaction/swap_copy_transaction_parameters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Copy Transaction Parameters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/sign_transaction/ui_bypass/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    UI bypass
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/coin_application_api/sign_transaction/error_codes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../technical_information/dale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The DALE tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-devices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported devices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#app-metadata-and-build-variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        App metadata and build variants
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="App metadata and build variants">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#build-variants-eg-testnet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Build variants (e.g. testnet)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contributing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contributing
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="ledger-device-sdk-for-rust-applications">Ledger device SDK for Rust Applications</h1>
+<p><img alt="Dynamic TOML Badge" src="https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FLedgerHQ%2Fledger-device-rust-sdk%2Frefs%2Fheads%2Fmaster%2Fledger_device_sdk%2FCargo.toml&amp;query=%24.package.version&amp;label=version" /></p>
+<p>Crate that allows developing Ledger device applications in Rust.</p>
+<p>Contains:</p>
+<ul>
+<li>Safe wrappers over common syscalls and C SDK functions</li>
+<li>IO abstractions (<code>io</code> and <code>seph</code> modules)</li>
+<li>Cryptographic abstractions (<code>ecc</code>, <code>hash</code> and <code>hmac</code> modules)</li>
+<li>Arithmetic (simple and modular) abstraction (<code>math</code> module)</li>
+<li>Persistent data storage (<code>nvm</code> module)</li>
+<li>UI/UX libraries (<code>nbgl</code> module)</li>
+<li>Swap support (<code>libcall</code>module)</li>
+</ul>
+<h2 id="supported-devices">Supported devices</h2>
+<table>
+<thead>
+<tr>
+<th>Nano X</th>
+<th>Nano S Plus</th>
+<th>Stax</th>
+<th>Flex</th>
+<th>Apex P</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>:white_check_mark:</td>
+<td>:white_check_mark:</td>
+<td>:white_check_mark:</td>
+<td>:white_check_mark:</td>
+<td>:white_check_mark:</td>
+</tr>
+</tbody>
+</table>
+<h2 id="usage">Usage</h2>
+<p>Building requires adding <code>rust-src</code> to your Rust installation, and both Clang and arm-none-eabi-gcc.
+On Ubuntu, <code>gcc-multilib</code> might also be required.</p>
+<p>Using rustc nightly builds is mandatory as some unstable features are required.</p>
+<ul>
+<li><code>rustup default nightly-2025-12-05</code> (or use the version specified in <code>rust-toolchain.toml</code>)</li>
+<li><code>rustup component add rust-src</code></li>
+<li>install <a href="http://releases.llvm.org/download.html">Clang</a>.</li>
+<li>install an <a href="https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads">ARM gcc toolchain</a></li>
+</ul>
+<p>If you wish to install the ARM gcc toolchain using your distribution's packages, these commands should work:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># On Debian and Ubuntu</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>clang<span class="w"> </span>gcc-arm-none-eabi<span class="w"> </span>gcc-multilib
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># On Fedora or Red Hat Entreprise Linux</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>clang<span class="w"> </span>arm-none-eabi-gcc<span class="w"> </span>arm-none-eabi-newlib
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># On ArchLinux</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>sudo<span class="w"> </span>pacman<span class="w"> </span>-S<span class="w"> </span>clang<span class="w"> </span>arm-none-eabi-gcc<span class="w"> </span>arm-none-eabi-newlib
+</code></pre></div>
+<p>This SDK provides <a href="https://doc.rust-lang.org/rustc/targets/custom.html">custom target</a> files. One for each supported device.</p>
+<p>We also provide a <a href="https://github.com/LedgerHQ/ledger-app-builder">Docker container</a> to build Rust applications for Ledger devices (recommended for reproducibility):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>pull<span class="w"> </span>ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Build using Docker</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">:/app&quot;</span><span class="w"> </span>ghcr.io/ledgerhq/ledger-app-builder/ledger-app-builder:latest<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>stax
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="sb">````</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="c1">### Building your app</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>Using<span class="w"> </span><span class="o">[</span>cargo-ledger<span class="o">](</span>https://github.com/LedgerHQ/cargo-ledger<span class="o">)</span><span class="w"> </span><span class="o">(</span>recommended<span class="o">)</span>:
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="sb">```</span>bash
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="c1"># Install cargo-ledger</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>cargo<span class="w"> </span>install<span class="w"> </span>cargo-ledger
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="c1"># Setup custom targets (one-time)</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>setup
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="c1"># Build for your target device</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>nanox<span class="w">       </span><span class="c1"># Nano X</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>nanosplus<span class="w">   </span><span class="c1"># Nano S+</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>stax<span class="w">        </span><span class="c1"># Stax</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>flex<span class="w">        </span><span class="c1"># Flex</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>apex_p<span class="w">      </span><span class="c1"># Apex P</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="c1"># Build and load to device</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>nanosplus<span class="w"> </span>--load
+</code></pre></div>
+<p>Alternatively, using plain cargo:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>cargo<span class="w"> </span>build<span class="w"> </span>--release<span class="w"> </span>--target<span class="o">=</span>nanox<span class="w">       </span><span class="c1"># Nano X</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>cargo<span class="w"> </span>build<span class="w"> </span>--release<span class="w"> </span>--target<span class="o">=</span>nanosplus<span class="w">   </span><span class="c1"># Nano S+</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>cargo<span class="w"> </span>build<span class="w"> </span>--release<span class="w"> </span>--target<span class="o">=</span>stax<span class="w">        </span><span class="c1"># Stax</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>cargo<span class="w"> </span>build<span class="w"> </span>--release<span class="w"> </span>--target<span class="o">=</span>flex<span class="w">        </span><span class="c1"># Flex</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>cargo<span class="w"> </span>build<span class="w"> </span>--release<span class="w"> </span>--target<span class="o">=</span>apex_p<span class="w">      </span><span class="c1"># Apex P</span>
+</code></pre></div>
+<h3 id="app-metadata-and-build-variants">App metadata and build variants</h3>
+<p><code>cargo-ledger</code> and the SDK build script read your app's install parameters
+(name, icon, flags, allowed curves and derivation paths) from the
+<code>[package.metadata.ledger]</code> table of your app's <code>Cargo.toml</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">[package.metadata.ledger]</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">curve</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;secp256k1&quot;</span><span class="p">]</span><span class="w">            </span><span class="c1"># curves the app is allowed to use</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">flags</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;0x000&quot;</span><span class="w">                  </span><span class="c1"># application flags (hex string)</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">path</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;44&#39;/0&#39;&quot;</span><span class="p">]</span><span class="w">               </span><span class="c1"># allowed BIP32 derivation-path prefixes</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">name</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;MyApp&quot;</span><span class="w">                  </span><span class="c1"># name shown on the device dashboard</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># one icon table per supported device</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="n">nanox</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">icon</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;icons/app_nanox.gif&quot;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">nanosplus</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">icon</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;icons/app_nanosplus.gif&quot;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">stax</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">icon</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;icons/app_stax.gif&quot;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="n">flex</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">icon</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;icons/app_flex.gif&quot;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">apex_p</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">icon</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;icons/app_apexp.png&quot;</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<h4 id="build-variants-eg-testnet">Build variants (e.g. testnet)</h4>
+<p>A single source tree can produce several installable apps that differ only in a
+few metadata fields — typically a testnet build with a different name, icon, and
+derivation path. The SDK supports up to <strong>10 variants per app</strong>.</p>
+<p>How it works — the variant <strong>slot number</strong> (<code>0</code> … <code>9</code>) is the channel between
+your app and the SDK build script. A build script only sees <code>CARGO_FEATURE_*</code>
+for features on its <em>own</em> crate, so the SDK cannot observe your app's feature
+name — only which numbered slot you switched on. Three things must therefore
+agree on the same number:</p>
+<ol>
+<li>the SDK feature you forward to — <code>ledger_device_sdk/variant_&lt;N&gt;</code>;</li>
+<li>the metadata table — <code>[package.metadata.ledger.variants.&lt;N&gt;]</code>;</li>
+<li>(implicitly) the app feature you give a human name to.</li>
+</ol>
+<p>The app feature name is the human-readable label; the number is just a slot
+index. Wire it up in your app's <code>Cargo.toml</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">[features]</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Human-named app features forward to numbered SDK slots (variant_0 … variant_9).</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">variant_testnet</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ledger_device_sdk/variant_0&quot;</span><span class="p">]</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">variant_betanet</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ledger_device_sdk/variant_1&quot;</span><span class="p">]</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># Declare only the differing keys; every key you omit is inherited from the</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># base [package.metadata.ledger] table. The table key MUST match the slot</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1"># number forwarded above.</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="k">[package.metadata.ledger.variants.0]</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;MyApp Testnet&quot;</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;44&#39;/1&#39;&quot;</span><span class="p">]</span><span class="w">                </span><span class="c1"># standard testnet coin type</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">nanox</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">icon</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">&quot;icons/app_testnet_nanox.gif&quot;</span><span class="w"> </span><span class="p">}</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="c1"># flags, curve, and any non-overridden icon are inherited from the base table</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="k">[package.metadata.ledger.variants.1]</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;MyApp Betanet&quot;</span>
+</code></pre></div>
+<p>Select a variant at build time with its app feature:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>cargo<span class="w"> </span>ledger<span class="w"> </span>build<span class="w"> </span>nanosplus<span class="w"> </span>--<span class="w"> </span>--features<span class="w"> </span>variant_testnet
+</code></pre></div>
+<p>The same app feature also gates your app's <strong>runtime</strong> code, so a variant can
+change behaviour as well as metadata:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="cp">#[cfg(feature = </span><span class="s">&quot;variant_testnet&quot;</span><span class="cp">)]</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">const</span><span class="w"> </span><span class="n">COIN_TYPE</span>: <span class="kt">u32</span> <span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="c1">// testnet</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="cp">#[cfg(not(feature = </span><span class="s">&quot;variant_testnet&quot;</span><span class="cp">))]</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">const</span><span class="w"> </span><span class="n">COIN_TYPE</span>: <span class="kt">u32</span> <span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="c1">// mainnet</span>
+</code></pre></div>
+<p>Note the split of responsibilities: the SDK's <code>variant_&lt;N&gt;</code> feature is
+<strong>metadata-only</strong> (it tells <code>build.rs</code> which overlay to apply); your app's own
+<code>variant_&lt;name&gt;</code> feature is what gates Rust code via <code>#[cfg(feature = …)]</code>.</p>
+<p>Notes:
+- Variant resolution is <strong>fail-closed</strong>: selecting a slot whose
+  <code>[package.metadata.ledger.variants.&lt;N&gt;]</code> table is absent aborts the build
+  instead of silently using the base values. This prevents shipping a
+  "Testnet"-labelled binary that carries mainnet paths or curves.
+- Enabling more than one <code>variant_&lt;N&gt;</code> feature at once is a <strong>hard error</strong> — the
+  build aborts rather than silently picking one of several conflicting variants.
+- Unspecified per-device icons fall back to the base table's icon (icons are
+  cosmetic).</p>
+<h2 id="getting-started">Getting Started</h2>
+<p>For a complete application example, see the <a href="https://github.com/LedgerHQ/app-boilerplate-rust">Rust Boilerplate App</a>.</p>
+<p>Key concepts for Ledger app development:
+- <strong><code>#![no_std]</code> environment</strong>: No standard library, use <code>core::</code> and <code>alloc::</code> types
+- <strong>Panic handler required</strong>: Every app must define a panic handler with <code>set_panic!</code> macro
+- <strong>Device-specific UI</strong>: Use <code>nbgl</code> module for touchscreen devices (Stax/Flex/Apex P), <code>ui</code> module or <code>nbgl</code> with <code>nano_nbgl</code> feature for Nano devices
+- <strong>Testing</strong>: Examples can be run with <a href="https://github.com/LedgerHQ/speculos">Speculos</a> emulator</p>
+<h2 id="examples">Examples</h2>
+<p>The <a href="examples/"><code>examples/</code></a> directory contains various demonstrations. Build and run with:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Touchscreen devices (Stax, Flex, Apex P)</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>cargo<span class="w"> </span>run<span class="w"> </span>--example<span class="w"> </span>nbgl_home_and_settings<span class="w"> </span>--target<span class="w"> </span>stax<span class="w"> </span>--release<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>--config<span class="w"> </span>examples/config.toml
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># Nano devices (S+, X) - requires nano_nbgl feature for NBGL UI</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>cargo<span class="w"> </span>run<span class="w"> </span>--example<span class="w"> </span>nbgl_home_and_settings<span class="w"> </span>--target<span class="w"> </span>nanosplus<span class="w"> </span>--release<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span>--features<span class="w"> </span>nano_nbgl<span class="w"> </span>--config<span class="w"> </span>examples/config.toml
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1"># View all available examples</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>ls<span class="w"> </span>examples/*.rs
+</code></pre></div>
+<p><strong>Note</strong>: Running examples requires Speculos emulator. The <code>config.toml</code> automatically invokes Speculos as the target runner.</p>
+<h2 id="contributing">Contributing</h2>
+<p>You can submit an issue or even a pull request if you wish to contribute.</p>
+<p>Make sure you've followed the installation steps above. In order for your PR to be accepted, it will have to pass the CI, which performs the following checks:</p>
+<ul>
+<li>Check if the code builds on nightly</li>
+<li>Check that <code>clippy</code> does not emit any warnings</li>
+<li>check that your code follows <code>rustfmt</code>'s format (using <code>cargo fmt</code>)</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.indexes", "navigation.expand"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

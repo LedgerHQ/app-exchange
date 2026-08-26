@@ -1,0 +1,46 @@
+[package]
+name = "app-boilerplate-rust"
+version = "1.9.1"
+authors = ["Ledger"]
+edition = "2021"
+
+[dependencies]
+ledger_device_sdk = {version = "*", features = ["io_new"]}
+serde = { version="1.0.192", default-features = false, features = ["derive"] }
+serde-json-core = "0.6.0"
+hex = { version = "0.4.3", default-features = false, features = ["serde", "alloc"] }
+numtoa = "0.2.4"
+arrayvec = { version = "0.7", default-features = false }
+
+[build-dependencies]
+# Decode the source GIFs and write the processed grayscale PNG glyph without
+# pulling the full `image` crate (and its color-management stack). The luma
+# conversion in build.rs reproduces `image::into_luma8()`.
+gif = "0.14"
+png = "0.18"
+
+[features]
+default = ["ledger_device_sdk/nano_nbgl"]
+debug = ["ledger_device_sdk/debug"]
+variant_testnet = ["ledger_device_sdk/variant_0"]
+variant_betanet = ["ledger_device_sdk/variant_1"]
+
+[package.metadata.ledger]
+curve = ["secp256k1"]
+flags = "0"
+path = ["44'/1'"]
+name = "Rust Boilerplate"
+nanosplus = { icon = "icons/crab_14x14.gif" }
+nanox = { icon = "icons/crab_14x14.gif" }
+stax = { icon = "icons/crab_32x32.gif" }
+flex = { icon = "icons/crab_40x40.gif" }
+apex_p = { icon = "icons/crab_32x32.png" }
+
+[package.metadata.ledger.variants.0]
+name = "Rust Testnet BP"
+
+[package.metadata.ledger.variants.1]
+name = "Rust Betanet BP"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("apex_p", "stax", "flex", "nanos", "nanox", "nanosplus"))'] }

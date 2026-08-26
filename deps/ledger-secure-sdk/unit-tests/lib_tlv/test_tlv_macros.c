@@ -1,0 +1,488 @@
+/*****************************************************************************
+ *   (c) 2025 Ledger SAS.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *
+ *****************************************************************************/
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "unity.h"
+
+#include "tlv_library.h"
+#include "buffer.h"
+
+/* -------------------------------------------------------------------------- */
+/* Test TLV parser macro machinery                                            */
+/* -------------------------------------------------------------------------- */
+
+static bool handler_alpha(const tlv_data_t *data, void *out);
+static bool handler_beta(const tlv_data_t *data, void *out);
+
+#define TEST_TAGS(X)                                      \
+    X(0x01, TAG_ALPHA, handler_alpha, ENFORCE_UNIQUE_TAG) \
+    X(0x02, TAG_BETA, handler_beta, ALLOW_MULTIPLE_TAG)   \
+    X(0x03, TAG_GAMMA, NULL, ENFORCE_UNIQUE_TAG)
+
+/* Expand TLV parser and helpers */
+DEFINE_TLV_PARSER(TEST_TAGS, NULL, test_parser)
+
+/* Second parser for testing multiple parsers coexistence */
+#define SECOND_TAGS(X)                         \
+    X(0x10, TAG_FOO, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x20, TAG_BAR, NULL, ALLOW_MULTIPLE_TAG)
+
+DEFINE_TLV_PARSER(SECOND_TAGS, NULL, second_parser)
+
+/* Third parser with common handler */
+static bool common_handler(const tlv_data_t *data, void *out);
+
+#define THIRD_TAGS(X) X(0x30, TAG_DELTA, NULL, ENFORCE_UNIQUE_TAG)
+
+DEFINE_TLV_PARSER(THIRD_TAGS, common_handler, third_parser)
+
+/* Fourth parser with many tags to test scaling */
+#define MANY_TAGS(X)                          \
+    X(0xA0, TAG_A0, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0xA1, TAG_A1, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0xA2, TAG_A2, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0xA3, TAG_A3, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0xA4, TAG_A4, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0xA5, TAG_A5, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0xA6, TAG_A6, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0xA7, TAG_A7, NULL, ENFORCE_UNIQUE_TAG)
+
+DEFINE_TLV_PARSER(MANY_TAGS, NULL, many_parser)
+
+/* clang-format off */
+/* Fifth parser with 33 tags to validate 64-bit flag support (index >= 32) */
+#define LARGE_TAGS(X)                           \
+    X(0x100, TAG_L00, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x101, TAG_L01, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x102, TAG_L02, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x103, TAG_L03, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x104, TAG_L04, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x105, TAG_L05, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x106, TAG_L06, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x107, TAG_L07, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x108, TAG_L08, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x109, TAG_L09, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x10A, TAG_L10, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x10B, TAG_L11, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x10C, TAG_L12, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x10D, TAG_L13, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x10E, TAG_L14, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x10F, TAG_L15, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x110, TAG_L16, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x111, TAG_L17, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x112, TAG_L18, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x113, TAG_L19, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x114, TAG_L20, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x115, TAG_L21, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x116, TAG_L22, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x117, TAG_L23, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x118, TAG_L24, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x119, TAG_L25, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x11A, TAG_L26, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x11B, TAG_L27, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x11C, TAG_L28, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x11D, TAG_L29, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x11E, TAG_L30, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x11F, TAG_L31, NULL, ENFORCE_UNIQUE_TAG) \
+    X(0x120, TAG_L32, NULL, ENFORCE_UNIQUE_TAG)
+/* clang-format on */
+
+DEFINE_TLV_PARSER(LARGE_TAGS, NULL, large_parser)
+
+/* -------------------------------------------------------------------------- */
+/* Dummy handler implementations                                              */
+/* -------------------------------------------------------------------------- */
+
+typedef struct {
+    bool     alpha_called;
+    bool     beta_called;
+    uint32_t beta_call_count;
+    bool     common_called;
+    uint32_t common_call_count;
+} test_output_t;
+
+static bool handler_alpha(const tlv_data_t *data, void *out)
+{
+    (void) data;
+    test_output_t *ctx = out;
+    ctx->alpha_called  = true;
+    return true;
+}
+
+static bool handler_beta(const tlv_data_t *data, void *out)
+{
+    (void) data;
+    test_output_t *ctx = out;
+    ctx->beta_called   = true;
+    ctx->beta_call_count++;
+    return true;
+}
+
+static bool common_handler(const tlv_data_t *data, void *out)
+{
+    (void) data;
+    test_output_t *ctx = out;
+    ctx->common_called = true;
+    ctx->common_call_count++;
+    return true;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tests for __X_DEFINE_TLV__TAG_ASSIGN macro                                 */
+/* -------------------------------------------------------------------------- */
+
+void test_tag_enum_values(void)
+{
+    /* Test that TAG_ASSIGN macro correctly creates enum with specified values */
+    TEST_ASSERT_EQUAL_INT(TAG_ALPHA, 0x01);
+    TEST_ASSERT_EQUAL_INT(TAG_BETA, 0x02);
+    TEST_ASSERT_EQUAL_INT(TAG_GAMMA, 0x03);
+
+    /* Test second parser tags */
+    TEST_ASSERT_EQUAL_INT(TAG_FOO, 0x10);
+    TEST_ASSERT_EQUAL_INT(TAG_BAR, 0x20);
+
+    /* Test third parser tags */
+    TEST_ASSERT_EQUAL_INT(TAG_DELTA, 0x30);
+
+    /* Test many tags parser */
+    TEST_ASSERT_EQUAL_INT(TAG_A0, 0xA0);
+    TEST_ASSERT_EQUAL_INT(TAG_A7, 0xA7);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tests for __X_DEFINE_TLV__TAG_INDEX macro                                  */
+/* -------------------------------------------------------------------------- */
+
+void test_tag_index_enum(void)
+{
+    /* Test that TAG_INDEX macro creates sequential indices starting at 0 */
+    TEST_ASSERT_EQUAL_INT(TAG_ALPHA_INDEX, 0);
+    TEST_ASSERT_EQUAL_INT(TAG_BETA_INDEX, 1);
+    TEST_ASSERT_EQUAL_INT(TAG_GAMMA_INDEX, 2);
+
+    /* Test TAG_COUNT generation */
+    TEST_ASSERT_EQUAL_INT(test_parser_TAG_COUNT, 3);
+    TEST_ASSERT_EQUAL_INT(second_parser_TAG_COUNT, 2);
+    TEST_ASSERT_EQUAL_INT(third_parser_TAG_COUNT, 1);
+    TEST_ASSERT_EQUAL_INT(many_parser_TAG_COUNT, 8);
+}
+
+void test_tag_indices_are_sequential(void)
+{
+    /* Verify indices form a continuous sequence */
+    TEST_ASSERT_EQUAL_INT(TAG_BETA_INDEX - TAG_ALPHA_INDEX, 1);
+    TEST_ASSERT_EQUAL_INT(TAG_GAMMA_INDEX - TAG_BETA_INDEX, 1);
+
+    /* Verify for many tags parser */
+    TEST_ASSERT_EQUAL_INT(TAG_A1_INDEX - TAG_A0_INDEX, 1);
+    TEST_ASSERT_EQUAL_INT(TAG_A2_INDEX - TAG_A1_INDEX, 1);
+    TEST_ASSERT_EQUAL_INT(TAG_A7_INDEX - TAG_A6_INDEX, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tests for __X_DEFINE_TLV__TAG_FLAG macro                                   */
+/* -------------------------------------------------------------------------- */
+
+void test_tag_flag_values(void)
+{
+    /* Test that TAG_FLAG macro correctly computes ((TLV_flag_t)1 << INDEX) */
+    TEST_ASSERT_EQUAL_INT(TAG_ALPHA_FLAG, (TLV_flag_t) 1 << TAG_ALPHA_INDEX);
+    TEST_ASSERT_EQUAL_INT(TAG_BETA_FLAG, (TLV_flag_t) 1 << TAG_BETA_INDEX);
+    TEST_ASSERT_EQUAL_INT(TAG_GAMMA_FLAG, (TLV_flag_t) 1 << TAG_GAMMA_INDEX);
+
+    /* Verify specific flag values */
+    TEST_ASSERT_EQUAL_INT(TAG_ALPHA_FLAG, 0x01); /* 1 << 0 */
+    TEST_ASSERT_EQUAL_INT(TAG_BETA_FLAG, 0x02);  /* 1 << 1 */
+    TEST_ASSERT_EQUAL_INT(TAG_GAMMA_FLAG, 0x04); /* 1 << 2 */
+}
+
+void test_tag_flags_are_unique(void)
+{
+    /* Verify that each flag is a unique bit pattern */
+    TEST_ASSERT_TRUE((TAG_ALPHA_FLAG & TAG_BETA_FLAG) == 0);
+    TEST_ASSERT_TRUE((TAG_ALPHA_FLAG & TAG_GAMMA_FLAG) == 0);
+    TEST_ASSERT_TRUE((TAG_BETA_FLAG & TAG_GAMMA_FLAG) == 0);
+
+    /* Verify OR combination creates unique patterns */
+    TLV_flag_t combined = TAG_ALPHA_FLAG | TAG_BETA_FLAG;
+    TEST_ASSERT_EQUAL_INT(combined, 0x03);
+
+    combined = TAG_ALPHA_FLAG | TAG_GAMMA_FLAG;
+    TEST_ASSERT_EQUAL_INT(combined, 0x05);
+}
+
+void test_tag_flags_multiple_parsers(void)
+{
+    /* Test that flags from different parsers don't collide */
+    TEST_ASSERT_EQUAL_INT(TAG_FOO_FLAG, (TLV_flag_t) 1 << TAG_FOO_INDEX);
+    TEST_ASSERT_EQUAL_INT(TAG_BAR_FLAG, (TLV_flag_t) 1 << TAG_BAR_INDEX);
+    TEST_ASSERT_EQUAL_INT(TAG_DELTA_FLAG, (TLV_flag_t) 1 << TAG_DELTA_INDEX);
+
+    /* Test many flags */
+    TEST_ASSERT_EQUAL_INT(TAG_A0_FLAG, (TLV_flag_t) 1 << TAG_A0_INDEX);
+    TEST_ASSERT_EQUAL_INT(TAG_A7_FLAG, (TLV_flag_t) 1 << TAG_A7_INDEX);
+    TEST_ASSERT_EQUAL_INT(TAG_A7_FLAG, 0x80); /* 1 << 7 */
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tests for __X_DEFINE_TLV__TAG_TO_FLAG_CASE macro                           */
+/* -------------------------------------------------------------------------- */
+
+void test_tag_to_flag_function(void)
+{
+    /* Test TAG_TO_FLAG_CASE macro generates correct switch cases */
+    TEST_ASSERT_EQUAL_INT(test_parser_tag_to_flag(TAG_ALPHA), TAG_ALPHA_FLAG);
+    TEST_ASSERT_EQUAL_INT(test_parser_tag_to_flag(TAG_BETA), TAG_BETA_FLAG);
+    TEST_ASSERT_EQUAL_INT(test_parser_tag_to_flag(TAG_GAMMA), TAG_GAMMA_FLAG);
+
+    /* Test unknown tag returns 0 */
+    TEST_ASSERT_EQUAL_INT(test_parser_tag_to_flag(0x99), 0);
+    TEST_ASSERT_EQUAL_INT(test_parser_tag_to_flag(0x00), 0);
+    TEST_ASSERT_EQUAL_INT(test_parser_tag_to_flag(0xFF), 0);
+}
+
+void test_tag_to_flag_multiple_parsers(void)
+{
+    /* Test second parser */
+    TEST_ASSERT_EQUAL_INT(second_parser_tag_to_flag(TAG_FOO), TAG_FOO_FLAG);
+    TEST_ASSERT_EQUAL_INT(second_parser_tag_to_flag(TAG_BAR), TAG_BAR_FLAG);
+    TEST_ASSERT_EQUAL_INT(second_parser_tag_to_flag(0xFF), 0);
+
+    /* Test third parser */
+    TEST_ASSERT_EQUAL_INT(third_parser_tag_to_flag(TAG_DELTA), TAG_DELTA_FLAG);
+    TEST_ASSERT_EQUAL_INT(third_parser_tag_to_flag(0xFF), 0);
+
+    /* Test many parser */
+    TEST_ASSERT_EQUAL_INT(many_parser_tag_to_flag(TAG_A0), TAG_A0_FLAG);
+    TEST_ASSERT_EQUAL_INT(many_parser_tag_to_flag(TAG_A7), TAG_A7_FLAG);
+    TEST_ASSERT_EQUAL_INT(many_parser_tag_to_flag(0xFF), 0);
+}
+
+void test_tag_to_flag_cross_parser_isolation(void)
+{
+    /* Verify that parsers don't accept tags from other parsers */
+    TEST_ASSERT_EQUAL_INT(test_parser_tag_to_flag(TAG_FOO), 0);
+    TEST_ASSERT_EQUAL_INT(test_parser_tag_to_flag(TAG_BAR), 0);
+    TEST_ASSERT_EQUAL_INT(second_parser_tag_to_flag(TAG_ALPHA), 0);
+    TEST_ASSERT_EQUAL_INT(second_parser_tag_to_flag(TAG_BETA), 0);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tests for __X_DEFINE_TLV__TAG_CALLBACKS macro                              */
+/* -------------------------------------------------------------------------- */
+
+void test_parser_function_exists(void)
+{
+    /* Verify that DEFINE_TLV_PARSER creates the parser function */
+    /* We test this indirectly by checking that the function compiles and links */
+    TLV_reception_t received = {0};
+    test_output_t   out      = {0};
+    buffer_t        buf      = {.ptr = NULL, .size = 0, .offset = 0};
+
+    /* Function should exist and be callable (even if it fails with empty buffer) */
+    bool result = test_parser(&buf, &out, &received);
+    (void) result; /* We don't care about the result, just that it compiles */
+}
+
+void test_multiple_parser_coexistence(void)
+{
+    /* Test that multiple parsers can coexist without naming conflicts */
+    TLV_reception_t received1 = {0}, received2 = {0}, received3 = {0}, received4 = {0};
+    test_output_t   out = {0};
+    buffer_t        buf = {.ptr = NULL, .size = 0, .offset = 0};
+
+    /* All parsers should be callable */
+    (void) test_parser(&buf, &out, &received1);
+    (void) second_parser(&buf, &out, &received2);
+    (void) third_parser(&buf, &out, &received3);
+    (void) many_parser(&buf, &out, &received4);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tests for DEFINE_TLV_PARSER macro integration                              */
+/* -------------------------------------------------------------------------- */
+
+void test_enum_consistency(void)
+{
+    /* Comprehensive check that all generated enums are consistent */
+    TEST_ASSERT_EQUAL_INT(TAG_ALPHA, 0x01);
+    TEST_ASSERT_EQUAL_INT(TAG_BETA, 0x02);
+    TEST_ASSERT_EQUAL_INT(TAG_GAMMA, 0x03);
+
+    TEST_ASSERT_EQUAL_INT(TAG_ALPHA_FLAG, (TLV_flag_t) 1 << TAG_ALPHA_INDEX);
+    TEST_ASSERT_EQUAL_INT(TAG_BETA_FLAG, (TLV_flag_t) 1 << TAG_BETA_INDEX);
+    TEST_ASSERT_EQUAL_INT(TAG_GAMMA_FLAG, (TLV_flag_t) 1 << TAG_GAMMA_INDEX);
+
+    TEST_ASSERT_EQUAL_INT(test_parser_TAG_COUNT, 3);
+}
+
+void test_parser_tag_count_matches_definitions(void)
+{
+    /* Verify TAG_COUNT matches the number of tags defined */
+    /* test_parser has 3 tags */
+    TEST_ASSERT_EQUAL_INT(test_parser_TAG_COUNT, 3);
+
+    /* second_parser has 2 tags */
+    TEST_ASSERT_EQUAL_INT(second_parser_TAG_COUNT, 2);
+
+    /* third_parser has 1 tag */
+    TEST_ASSERT_EQUAL_INT(third_parser_TAG_COUNT, 1);
+
+    /* many_parser has 8 tags */
+    TEST_ASSERT_EQUAL_INT(many_parser_TAG_COUNT, 8);
+}
+
+void test_all_flags_can_be_combined(void)
+{
+    /* Test that all flags can be OR'd together without collision */
+    TLV_flag_t all_flags = TAG_ALPHA_FLAG | TAG_BETA_FLAG | TAG_GAMMA_FLAG;
+    TEST_ASSERT_EQUAL_INT(all_flags, 0x07); /* 0b111 */
+
+    /* Verify each flag is still distinguishable */
+    TEST_ASSERT_TRUE(all_flags & TAG_ALPHA_FLAG);
+    TEST_ASSERT_TRUE(all_flags & TAG_BETA_FLAG);
+    TEST_ASSERT_TRUE(all_flags & TAG_GAMMA_FLAG);
+}
+
+void test_tag_values_are_preserved(void)
+{
+    /* Verify that the X-macro expansion preserves the exact tag values */
+    /* This is critical for protocol compatibility */
+    TEST_ASSERT_EQUAL_INT(TAG_ALPHA, 0x01); /* Not 0 or 1 as index */
+    TEST_ASSERT_EQUAL_INT(TAG_BETA, 0x02);  /* Not 1 or 2 as index */
+    TEST_ASSERT_EQUAL_INT(TAG_GAMMA, 0x03); /* Not 2 or 4 as flag */
+
+    /* Test with non-sequential values */
+    TEST_ASSERT_EQUAL_INT(TAG_FOO, 0x10);
+    TEST_ASSERT_EQUAL_INT(TAG_BAR, 0x20);
+    TEST_ASSERT_EQUAL_INT(TAG_DELTA, 0x30);
+}
+
+void test_index_enumeration_starts_at_zero(void)
+{
+    /* Verify that _INDEX enums always start at 0 */
+    TEST_ASSERT_EQUAL_INT(TAG_ALPHA_INDEX, 0);
+    TEST_ASSERT_EQUAL_INT(TAG_FOO_INDEX, 0);
+    TEST_ASSERT_EQUAL_INT(TAG_DELTA_INDEX, 0);
+    TEST_ASSERT_EQUAL_INT(TAG_A0_INDEX, 0);
+}
+
+void test_flag_computation_correctness(void)
+{
+    /* Verify flag computation for various index values */
+    for (int i = 0; i < 8; i++) {
+        TLV_flag_t expected_flag = (TLV_flag_t) 1 << i;
+        /* We can't dynamically test this, but we verify the pattern */
+        if (i == TAG_ALPHA_INDEX) {
+            TEST_ASSERT_EQUAL_INT(TAG_ALPHA_FLAG, expected_flag);
+        }
+        if (i == TAG_BETA_INDEX) {
+            TEST_ASSERT_EQUAL_INT(TAG_BETA_FLAG, expected_flag);
+        }
+        if (i == TAG_GAMMA_INDEX) {
+            TEST_ASSERT_EQUAL_INT(TAG_GAMMA_FLAG, expected_flag);
+        }
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tests for 64-bit flag support (tags at index >= 32)                        */
+/* -------------------------------------------------------------------------- */
+
+void test_large_parser_tag_count(void)
+{
+    TEST_ASSERT_EQUAL_INT(large_parser_TAG_COUNT, 33);
+}
+
+void test_flag_above_32bit_boundary(void)
+{
+    /* TAG_L32 is at index 32 — this is the exact case that was broken with 1U << 32 */
+    TEST_ASSERT_EQUAL_INT(TAG_L32_INDEX, 32);
+    TEST_ASSERT_TRUE(TAG_L32_FLAG == ((TLV_flag_t) 1 << 32));
+    TEST_ASSERT_TRUE(TAG_L32_FLAG != 0); /* was 0 with the old 1U << 32 (UB) */
+
+    /* Verify a few lower indices are still correct */
+    TEST_ASSERT_TRUE(TAG_L00_FLAG == ((TLV_flag_t) 1 << 0));
+    TEST_ASSERT_TRUE(TAG_L31_FLAG == ((TLV_flag_t) 1 << 31));
+}
+
+void test_large_parser_flags_are_unique(void)
+{
+    /* Verify that no two flags in the large parser share bits */
+    TLV_flag_t all     = 0;
+    TLV_flag_t flags[] = {
+        TAG_L00_FLAG, TAG_L01_FLAG, TAG_L02_FLAG, TAG_L03_FLAG, TAG_L04_FLAG, TAG_L05_FLAG,
+        TAG_L06_FLAG, TAG_L07_FLAG, TAG_L08_FLAG, TAG_L09_FLAG, TAG_L10_FLAG, TAG_L11_FLAG,
+        TAG_L12_FLAG, TAG_L13_FLAG, TAG_L14_FLAG, TAG_L15_FLAG, TAG_L16_FLAG, TAG_L17_FLAG,
+        TAG_L18_FLAG, TAG_L19_FLAG, TAG_L20_FLAG, TAG_L21_FLAG, TAG_L22_FLAG, TAG_L23_FLAG,
+        TAG_L24_FLAG, TAG_L25_FLAG, TAG_L26_FLAG, TAG_L27_FLAG, TAG_L28_FLAG, TAG_L29_FLAG,
+        TAG_L30_FLAG, TAG_L31_FLAG, TAG_L32_FLAG,
+    };
+    for (size_t i = 0; i < sizeof(flags) / sizeof(flags[0]); i++) {
+        TEST_ASSERT_TRUE((all & flags[i]) == 0); /* no overlap */
+        all |= flags[i];
+    }
+}
+
+void test_large_parser_tag_to_flag(void)
+{
+    TEST_ASSERT_TRUE(large_parser_tag_to_flag(TAG_L00) == TAG_L00_FLAG);
+    TEST_ASSERT_TRUE(large_parser_tag_to_flag(TAG_L31) == TAG_L31_FLAG);
+    TEST_ASSERT_TRUE(large_parser_tag_to_flag(TAG_L32) == TAG_L32_FLAG);
+    TEST_ASSERT_TRUE(large_parser_tag_to_flag(0xFF) == 0);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Test suite entry point                                                     */
+/* -------------------------------------------------------------------------- */
+
+void setUp(void) {}
+void tearDown(void) {}
+
+int main(void)
+{
+    UNITY_BEGIN();
+
+    /* __X_DEFINE_TLV__TAG_ASSIGN tests */
+    RUN_TEST(test_tag_enum_values);
+
+    /* __X_DEFINE_TLV__TAG_INDEX tests */
+    RUN_TEST(test_tag_index_enum);
+    RUN_TEST(test_tag_indices_are_sequential);
+
+    /* __X_DEFINE_TLV__TAG_FLAG tests */
+    RUN_TEST(test_tag_flag_values);
+    RUN_TEST(test_tag_flags_are_unique);
+    RUN_TEST(test_tag_flags_multiple_parsers);
+
+    /* __X_DEFINE_TLV__TAG_TO_FLAG_CASE tests */
+    RUN_TEST(test_tag_to_flag_function);
+    RUN_TEST(test_tag_to_flag_multiple_parsers);
+    RUN_TEST(test_tag_to_flag_cross_parser_isolation);
+
+    /* __X_DEFINE_TLV__TAG_CALLBACKS tests */
+    RUN_TEST(test_parser_function_exists);
+    RUN_TEST(test_multiple_parser_coexistence);
+
+    /* Integration tests */
+    RUN_TEST(test_enum_consistency);
+    RUN_TEST(test_parser_tag_count_matches_definitions);
+    RUN_TEST(test_all_flags_can_be_combined);
+    RUN_TEST(test_tag_values_are_preserved);
+    RUN_TEST(test_index_enumeration_starts_at_zero);
+    RUN_TEST(test_flag_computation_correctness);
+
+    /* 64-bit flag support tests */
+    RUN_TEST(test_large_parser_tag_count);
+    RUN_TEST(test_flag_above_32bit_boundary);
+    RUN_TEST(test_large_parser_flags_are_unique);
+    RUN_TEST(test_large_parser_tag_to_flag);
+
+    return UNITY_END();
+}

@@ -1,0 +1,274 @@
+cmake_minimum_required(VERSION 3.20)
+
+if(${CMAKE_VERSION} VERSION_LESS 3.14)
+  cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+endif()
+
+project(
+  SDKSelfFuzzer
+  VERSION 1.0
+  DESCRIPTION "SDK self-fuzz targets (Absolution)"
+  LANGUAGES C)
+
+if(NOT DEFINED BOLOS_SDK)
+  message(FATAL_ERROR "BOLOS_SDK must be defined, CMake will exit.")
+  return()
+endif()
+
+include(${BOLOS_SDK}/fuzzing/cmake/LedgerAppFuzz.cmake)
+ledger_fuzz_setup()
+
+# Mirror the surrounding build's sanitizer; otherwise Absolution defaults to fuzzer,address and clang rejects it against CFL's -fsanitize=memory matrix.
+set(_SDK_FUZZ_SAN "${LEDGER_FUZZ_DEFAULT_SANITIZERS}")
+
+set(SDK_FUZZ_TARGETS
+    fuzz_alloc fuzz_alloc_utils fuzz_apdu_parser fuzz_base58 fuzz_bip32
+    fuzz_lists fuzz_nfc_ndef fuzz_qrcodegen fuzz_tlv_dynamic_descriptor
+    fuzz_tlv_trusted_name fuzz_nbgl_page fuzz_address_book
+    fuzz_address_book_crypto)
+
+# Per-target invariants are .gitignored and regenerated each build; bootstrap missing ones to `.{}` so Absolution can refine them on first configure.
+foreach(_fuzzer ${SDK_FUZZ_TARGETS})
+  ledger_fuzz_bootstrap_file(
+    "${CMAKE_SOURCE_DIR}/invariants/${_fuzzer}.zon"
+    ".{}\n")
+endforeach()
+
+set(SDK_FUZZ_MOCK_SOURCES
+    ${CMAKE_SOURCE_DIR}/mock/mocks.c
+)
+
+set(SDK_FUZZ_INCLUDE_DIRS
+    ${CMAKE_SOURCE_DIR}/mock/
+    ${CMAKE_SOURCE_DIR}/
+    ${BOLOS_SDK}/lib_standard_app/
+)
+
+# TLV targets need a PKI stub and the custom mutator
+set(TLV_EXTRA_SOURCES
+    ${LEDGER_FUZZ_TLV_MUTATOR_SOURCE}
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_alloc
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_alloc.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_alloc.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES ${SDK_FUZZ_INCLUDE_DIRS}
+    LINK_LIBRARIES secure_sdk
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_alloc_utils
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_alloc_utils.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_alloc_utils.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES ${SDK_FUZZ_INCLUDE_DIRS}
+    LINK_LIBRARIES secure_sdk
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_lists
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_lists.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_lists.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES ${SDK_FUZZ_INCLUDE_DIRS}
+    LINK_LIBRARIES secure_sdk
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_apdu_parser
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_apdu_parser.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_apdu_parser.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES ${SDK_FUZZ_INCLUDE_DIRS}
+    LINK_LIBRARIES secure_sdk
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_base58
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_base58.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_base58.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES ${SDK_FUZZ_INCLUDE_DIRS}
+    LINK_LIBRARIES secure_sdk
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_bip32
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_bip32.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_bip32.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES ${SDK_FUZZ_INCLUDE_DIRS}
+    LINK_LIBRARIES secure_sdk
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_qrcodegen
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_qrcodegen.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_qrcodegen.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES ${SDK_FUZZ_INCLUDE_DIRS}
+    LINK_LIBRARIES secure_sdk
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_tlv_dynamic_descriptor
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+        ${TLV_EXTRA_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_tlv_dynamic_descriptor.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_tlv_dynamic_descriptor.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES
+        ${SDK_FUZZ_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/harness/
+    COMPILE_DEFINITIONS APPNAME="Fuzzing"
+    LINK_LIBRARIES secure_sdk
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_tlv_trusted_name
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+        ${TLV_EXTRA_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_tlv_trusted_name.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_tlv_trusted_name.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES
+        ${SDK_FUZZ_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/harness/
+    COMPILE_DEFINITIONS APPNAME="Fuzzing"
+    LINK_LIBRARIES secure_sdk
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_nfc_ndef
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_nfc_ndef.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_nfc_ndef.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES ${SDK_FUZZ_INCLUDE_DIRS}
+    LINK_LIBRARIES secure_sdk
+)
+
+# nbgl page/layout builders. secure_sdk already links the nbgl lib + its HAL
+# mock; add the nbgl headers so the harness can build nbgl_pageContent_t.
+absolution_add_fuzzer(
+    NAME fuzz_nbgl_page
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_nbgl_page.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_nbgl_page.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES
+        ${SDK_FUZZ_INCLUDE_DIRS}
+        ${BOLOS_SDK}/lib_nbgl/include/
+        ${BOLOS_SDK}/lib_ux_nbgl/
+    COMPILE_DEFINITIONS APPNAME="Fuzzing"
+    LINK_LIBRARIES secure_sdk
+)
+
+set(AB_SOURCES
+    ${BOLOS_SDK}/app_features/address_book/src/address_book.c
+    ${BOLOS_SDK}/app_features/address_book/src/address_book_common.c
+    ${BOLOS_SDK}/app_features/address_book/src/address_book_crypto.c
+    ${BOLOS_SDK}/app_features/address_book/src/identity_register.c
+    ${BOLOS_SDK}/app_features/address_book/src/identity_edit_contact_name.c
+    ${BOLOS_SDK}/app_features/address_book/src/identity_edit_identifier.c
+    ${BOLOS_SDK}/app_features/address_book/src/identity_edit_scope.c
+    ${BOLOS_SDK}/app_features/address_book/src/identity_provide_contact.c
+    ${BOLOS_SDK}/app_features/address_book/src/ledger_account_register.c
+    ${BOLOS_SDK}/app_features/address_book/src/ledger_account_edit.c
+    ${BOLOS_SDK}/app_features/address_book/src/ledger_account_provide_contact.c
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_address_book
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+        ${TLV_EXTRA_SOURCES}
+        ${AB_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_address_book.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_address_book.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES
+        ${SDK_FUZZ_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/harness/
+        ${BOLOS_SDK}/app_features/address_book/include/
+    COMPILE_DEFINITIONS
+        APPNAME="Fuzzing"
+        HAVE_ADDRESS_BOOK
+        HAVE_ADDRESS_BOOK_LEDGER_ACCOUNT
+    LINK_LIBRARIES secure_sdk
+)
+
+set(AB_CRYPTO_SOURCES
+    ${BOLOS_SDK}/app_features/address_book/src/address_book_crypto.c
+)
+
+absolution_add_fuzzer(
+    NAME fuzz_address_book_crypto
+    TARGETS
+        ${SDK_FUZZ_MOCK_SOURCES}
+        ${AB_CRYPTO_SOURCES}
+    HARNESS
+        ${CMAKE_SOURCE_DIR}/harness/fuzz_address_book_crypto.c
+    ENTRY fuzz_entry
+    INVARIANT ${CMAKE_SOURCE_DIR}/invariants/fuzz_address_book_crypto.zon
+    SANITIZERS ${_SDK_FUZZ_SAN}
+    INCLUDE_DIRECTORIES
+        ${SDK_FUZZ_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/harness/
+        ${BOLOS_SDK}/app_features/address_book/include/
+    COMPILE_DEFINITIONS
+        APPNAME="Fuzzing"
+        HAVE_ADDRESS_BOOK
+        HAVE_ADDRESS_BOOK_LEDGER_ACCOUNT
+    LINK_LIBRARIES secure_sdk
+)
+
+# These targets call absolution_add_fuzzer() directly, so apply the same
+# generated-TU mitigations ledger_fuzz_add_app_target() gives app targets.
+foreach(_fuzzer ${SDK_FUZZ_TARGETS})
+  ledger_fuzz_harden_target(${_fuzzer})
+endforeach()

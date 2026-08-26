@@ -1,0 +1,15 @@
+[app]
+build_directory = "./"
+sdk = "Rust"
+devices = ["nanox", "nanos+", "stax", "flex", "apex_p"]
+
+[pytest.standalone]
+directory = "./tests/standalone/"
+
+[pytest.swap]
+directory = "./tests/swap/"
+[pytest.swap.dependencies]
+testing_with_latest = [
+    { url = "https://github.com/LedgerHQ/app-exchange", ref = "develop", use_case = "dbg_use_test_keys" },
+    { url = "https://github.com/LedgerHQ/app-ethereum", ref = "develop", use_case = "use_test_keys" },
+]
