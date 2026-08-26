@@ -50,10 +50,29 @@ class TestSellOutAmountOverflow:
         assert e.value.status == Errors.AMOUNT_FORMATTING_FAILED
 
     def test_sell_reject_too_large_coefficient(self, backend):
-        """Coefficient > 8 bytes should be rejected.
+        """Coefficient with more than 8 significant bytes should be rejected.
         It cannot be represented as a uint64_t, so we refuse to format it rather than silently truncating.
         """
         out_amount = {"coefficient": b"\x01\x00\x00\x00\x00\x00\x00\x00\x01", "exponent": 2}
+        with pytest.raises(ExceptionRAPDU) as e:
+            self._perform_sell_up_to_check_asset(backend, out_amount)
+        assert e.value.status == Errors.AMOUNT_FORMATTING_FAILED
+
+
+    def test_sell_accept_zero_padded_coefficient(self, backend):
+        """A partner is not required to send a minimally encoded coefficient.
+        A coefficient longer than 8 bytes but holding a small value must be accepted, not rejected
+        on its raw length. This one holds 10000, so the amount is 100.00 USD.
+        """
+        out_amount = {"coefficient": bytes(14) + b"\x27\x10", "exponent": 2}
+        self._perform_sell_up_to_check_asset(backend, out_amount)
+
+
+    def test_sell_reject_amount_filling_the_whole_buffer(self, backend):
+        """An exponent of 44 with a 20 digit coefficient formats to exactly the size of the display
+        buffer. The result would leave no room for the null terminator, so it must be rejected.
+        """
+        out_amount = {"coefficient": b"\xff" * 8, "exponent": 44}
         with pytest.raises(ExceptionRAPDU) as e:
             self._perform_sell_up_to_check_asset(backend, out_amount)
         assert e.value.status == Errors.AMOUNT_FORMATTING_FAILED
