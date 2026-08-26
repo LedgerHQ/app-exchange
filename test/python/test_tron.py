@@ -35,7 +35,7 @@ class TronTrxTests(TronTests):
     currency_configuration = cal.TRX_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        TronClient(self.backend).send_tx(path="m/44'/148'/0'",
+        TronClient(self.backend).send_tx(path="m/44'/195'/0'",
                                          memo=memo,
                                          destination=destination,
                                          send_amount=send_amount,
@@ -56,7 +56,7 @@ class TronUsdtTests(TronTests):
     currency_configuration = cal.USDT_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        TronClient(self.backend).send_tx(path="m/44'/148'/0'",
+        TronClient(self.backend).send_tx(path="m/44'/195'/0'",
                                          memo=memo,
                                          destination=destination,
                                          send_amount=send_amount,
@@ -77,7 +77,7 @@ class TronUsdcTests(TronTests):
     currency_configuration = cal.USDC_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        TronClient(self.backend).send_tx(path="m/44'/148'/0'",
+        TronClient(self.backend).send_tx(path="m/44'/195'/0'",
                                          memo=memo,
                                          destination=destination,
                                          send_amount=send_amount,
@@ -98,7 +98,7 @@ class TronTusdTests(TronTests):
     currency_configuration = cal.TUSD_CURRENCY_CONFIGURATION
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
-        TronClient(self.backend).send_tx(path="m/44'/148'/0'",
+        TronClient(self.backend).send_tx(path="m/44'/195'/0'",
                                          memo=memo,
                                          destination=destination,
                                          send_amount=send_amount,
@@ -124,7 +124,7 @@ class TronTrxToUsdtTests(TronTests):
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         with pytest.raises(ExceptionRAPDU) as e:
-            TronClient(self.backend).send_tx(path="m/44'/148'/0'",
+            TronClient(self.backend).send_tx(path="m/44'/195'/0'",
                                              memo=memo,
                                              destination=destination,
                                              send_amount=send_amount,
@@ -146,7 +146,7 @@ class TronUsdttoTrxTests(TronTests):
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         with pytest.raises(ExceptionRAPDU) as e:
-            TronClient(self.backend).send_tx(path="m/44'/148'/0'",
+            TronClient(self.backend).send_tx(path="m/44'/195'/0'",
                                              memo=memo,
                                              destination=destination,
                                              send_amount=send_amount,
@@ -168,7 +168,7 @@ class TronUsdtoUsdcTests(TronTests):
 
     def perform_final_tx(self, destination, send_amount, fees, memo):
         with pytest.raises(ExceptionRAPDU) as e:
-            TronClient(self.backend).send_tx(path="m/44'/148'/0'",
+            TronClient(self.backend).send_tx(path="m/44'/195'/0'",
                                              memo=memo,
                                              destination=destination,
                                              send_amount=send_amount,
