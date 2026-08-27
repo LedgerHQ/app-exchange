@@ -313,6 +313,10 @@ static void trim_amounts(subcommand_e subcommand) {
         trim_pb_bytes_array((pb_bytes_array_16_t *) &G_swap_ctx.swap_transaction.amount_to_wallet);
     } else if (subcommand == SELL || subcommand == SELL_NG) {
         trim_pb_bytes_array((pb_bytes_array_16_t *) &G_swap_ctx.sell_transaction.in_amount);
+        // The FIAT out_amount coefficient is not required to use a minimal encoding, trim it too so
+        // that a zero padded value is not mistaken for a value too big to fit in a uint64_t
+        trim_pb_bytes_array(
+            (pb_bytes_array_16_t *) &G_swap_ctx.sell_transaction.out_amount.coefficient);
     } else if (subcommand == FUND || subcommand == FUND_NG) {
         trim_pb_bytes_array((pb_bytes_array_16_t *) &G_swap_ctx.fund_transaction.in_amount);
     }
