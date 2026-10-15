@@ -2,9 +2,9 @@ import pytest
 
 from ragger.error import ExceptionRAPDU
 
-from exchange_client.client import ExchangeClient, Rate, SubCommand, Errors
-from exchange_client.transaction_builder import get_partner_curve, get_credentials, craft_and_sign_tx
-from exchange_client.signing_authority import SigningAuthority, LEDGER_SIGNER
+from ledger_app_clients.exchange.client import ExchangeClient, Rate, SubCommand, Errors
+from ledger_app_clients.exchange.transaction_builder import get_partner_curve, get_credentials, craft_and_sign_tx
+from ledger_app_clients.exchange.signing_authority import SigningAuthority, LEDGER_SIGNER
 from apps import cal
 
 
